@@ -2,6 +2,8 @@
 
 A demo repository for [My JSON Server](https://my-json-server.typicode.com) (alpha)
 
+_Even though it's in alpha, you can start using it if you want. Feedback is welcome :)_
+
 ### Try it
 
 [https://my-json-server.typicode.com/__typicode/demo__](https://my-json-server.typicode.com/typicode/demo)
