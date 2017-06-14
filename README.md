@@ -1,14 +1,10 @@
-# Demo
+> A demo repository for [My JSON Server](https://my-json-server.typicode.com) service :sparkling_heart:
 
-> A demo repository for [My JSON Server](https://my-json-server.typicode.com) service (alpha)
-
-My JSON Server lets you have an online REST server for you or your team :sparkling_heart:
-
-### Try it
+## Try it
 
 [https://my-json-server.typicode.com/__typicode/demo__](https://my-json-server.typicode.com/typicode/demo)
 
-### Get your own online fake server
+## Get your own online fake server
 
 Simply __fork__ this project or __create a [`db.json`](db.json)__ file in a repository then visit:
 
