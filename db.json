@@ -3,26 +3,28 @@
     {
       "id": 1,
       "descricao": "Turma dos millenials",
-      "turno": "Matutino",
-      "segunda": {
-        "idDisciplina": 4
-      },
-      "terca": {
-        "idDisciplina": 5
-      },
-      "quarta": [
-        {
-          "idDisciplina": 1
+      "horario": {
+        "turno": "Matutino",
+        "segunda": {
+          "idDisciplina": 4
         },
-        {
-          "idDisciplina": 3
+        "terca": {
+          "idDisciplina": 5
+        },
+        "quarta": [
+          {
+            "idDisciplina": 1
+          },
+          {
+            "idDisciplina": 3
+          }
+        ],
+        "quinta": {
+          "idDisciplina": 2
+        },
+        "sexta": {
+          "idDisciplina": 8
         }
-      ],
-      "quinta": {
-        "idDisciplina": 2
-      },
-      "sexta": {
-        "idDisciplina": 8
       },
       "alunos": [
         {
@@ -39,27 +41,29 @@
     {
       "id": 2,
       "descricao": "Turma 90's",
-      "turno": "Vespertino",
-      "segunda": {
-        "idDisciplina": 3
-      },
-      "terca": {
-        "idDisciplina": 9
-      },
-      "quarta": {
-        "idDisciplina": 6
-      },
-      "quinta": {
-        "idDisciplina": 7
-      },
-      "sexta": {
-        "idDisciplina": 8
-      },
-      "alunos": [
-        {
-          "idAluno": 3
-        }
-      ]
+      "horario": {
+        "turno": "Vespertino",
+        "segunda": {
+          "idDisciplina": 3
+        },
+        "terca": {
+          "idDisciplina": 9
+        },
+        "quarta": {
+          "idDisciplina": 6
+        },
+        "quinta": {
+          "idDisciplina": 7
+        },
+        "sexta": {
+          "idDisciplina": 8
+        },
+        "alunos": [
+          {
+            "idAluno": 3
+          }
+        ]
+      }
     }
   ],
   "alunos": [
