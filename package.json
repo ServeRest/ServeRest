@@ -2,7 +2,6 @@
   "name": "fake-api-school",
   "scripts": {
     "preinstall": "npm i -g json-server",
-    "api-local-data": "json-server --watch db.json",
-    "api-remote-data": "json-server https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school/db"
+    "start-server": "json-server --watch db.json"
   }
 }
