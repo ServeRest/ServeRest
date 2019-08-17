@@ -15,6 +15,9 @@ acesse essa [URL](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-
 Mais baixo detalho como subir um servidor local com os endpoints listados no arquivo [db.json](/db.json).
 
 ## Recursos existentes 
+
+  <details><p><summary>Abra para ver os recursos existentes</summary>
+
 1. turmas
     1. id
     2. descricao
@@ -46,6 +49,7 @@ Mais baixo detalho como subir um servidor local com os endpoints listados no arq
     1. id
     2. idLocal
     3. nome
+</p> </details>
 
 ## Instalação
 ### Pré-requisitos
