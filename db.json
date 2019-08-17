@@ -3,7 +3,7 @@
     {
       "id": 1,
       "descricao": "Turma dos millenials",
-      "idHorairo": 2,
+      "idHorario": 2,
       "alunos": [
         {
           "idAluno": 1
