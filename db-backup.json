@@ -141,68 +141,41 @@
       "nome": "Mateus"
     }
   ],
-  "locais": [
-    {
-      "id": 1,
-      "nome": "Biblioteca"
-    },
-    {
-      "id": 2,
-      "nome": "Quadra"
-    },
-    {
-      "id": 3,
-      "nome": "Sala de aula"
-    },
-    {
-      "id": 4,
-      "nome": "Laboratório"
-    }
-  ],
   "disciplinas": [
     {
       "id": 1,
-      "idLocal": 3,
       "nome": "Matemática"
     },
     {
       "id": 2,
-      "idLocal": 1,
       "nome": "Sociologia"
     },
     {
       "id": 3,
-      "idLocal": 4,
       "nome": "Física"
     },
     {
       "id": 4,
-      "idLocal": 2,
       "nome": "Educação Física"
     },
     {
       "id": 5,
-      "idLocal": 4,
       "nome": "Química"
     },
     {
       "id": 6,
-      "idLocal": 4,
       "nome": "Biologia"
     },
     {
       "id": 7,
-      "idLocal": 1,
       "nome": "Literatura"
     },
     {
       "id": 8,
-      "idLocal": 1,
       "nome": "Português"
     },
     {
       "id": 9,
-      "idLocal": 3,
       "nome": "História"
     }
   ]
