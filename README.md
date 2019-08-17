@@ -9,9 +9,6 @@
 
 É composto apenas por 1 arquivo contendo os endpoints e 1 arquivo com scripts de como subir o servidor local.
 
-Caso queira utilizar os endpoints criados sem ter seguir os passos abaixos,
-acesse essa [URL](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school). Tem o porém de que os **dados não são persistidos** e as requisições ficam cacheadas por 1 minuto, o que é um dificultor para o estudo.
-
 Mais baixo detalho como subir um servidor local com os endpoints listados no arquivo [db.json](/db.json).
 
 ## Recursos existentes 
@@ -77,21 +74,14 @@ npm install
 
 ## Subindo o servidor local
 
-Há dois modos de subir o servidor local, e dependem da sua necessidade:
-
-1. Caso queira ver, após uma requisição de alteração de dados, o arquivo [db.json](/db.json) alterado:
-
+Execute o seguinte comando:
 ```sh
-npm run server-local-data
-```
+npm run api-server
+``` 
 Com esse script será iniciado o servidor apontando pro arquivo [db.json](/db.json).
 
-2. Caso queira que o arquivo [db.json](/db.json) não seja alterado, sendo preciso apenas reiniciar o servidor para que os dados voltem ao seu estado inicial:
 
-```sh
-npm run server-remote-data
-```
-Com esse script será iniciado o servidor apontando pro schema da página [https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school).
+**Atenção:** A cada requisição de alteração o arquivo [db.json](/db.json) sofrerá modificações, devido a isso esse repositório possui [backup](/db-backup.json) do arquivo.
 
 ## Aprofundando na criação de um server para testes de API
 Sugiro a leitura dos seguintes materiais:
