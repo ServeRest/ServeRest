@@ -1,6 +1,8 @@
 ## Try it
 
-[https://my-json-server.typicode.com/typicode/demo](https://my-json-server.typicode.com/typicode/demo)
+### Em construção
+
+[https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school)
 
 ## Use your own data
 
