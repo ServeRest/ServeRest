@@ -21,31 +21,34 @@ Mais baixo detalho como subir um servidor local com os endpoints listados no arq
 1. turmas
     1. id
     2. descricao
-    3. horario
-        1. turno
-        2. segunda
-        3. terca
-        4. quarta
-        5. quinta
-        6. sexta
+    3. idHorario
     4. alunos
         1. idAluno
 
-2. alunos
+2. horarios
+    1. id
+    2. turno
+    3. segunda
+    4. terca
+    5. quarta
+    6. quinta
+    7. sexta
+
+3. alunos
     1. id
     2. nome
     3. anoNascimento
 
-3. professores
+4. professores
     1. id
     2. idDisciplina
     3. nome
 
-4. locais
+5. locais
     1. id
     2. nome
 
-5. disciplinas
+6. disciplinas
     1. id
     2. idLocal
     3. nome
