@@ -9,10 +9,10 @@
 
 É composto apenas por 1 arquivo contendo os endpoints e 1 arquivo com scripts de como subir o servidor local.
 
-Caso queira utilizar os endpoints criados sem ter seguir os passos abaixos,
+Caso queira consumir os endpoints criados sem ter seguir os passos abaixos,
 acesse essa [URL](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school). Tem o porém de que os **dados não são persistidos** e as requisições ficam cacheadas por 1 minuto, o que é um dificultor para o estudo.
 
-Mais baixo detalho como subir um servidor local com os endpoints listados no arquivo [db.json](/db.json).
+Mais abaixo detalho como subir um servidor local com os endpoints listados no arquivo [db.json](/db.json).
 
 ## Recursos existentes 
 
