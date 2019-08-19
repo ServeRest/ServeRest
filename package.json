@@ -1,8 +1,12 @@
 {
   "name": "fake-api-school",
   "scripts": {
-    "preinstall": "npm i -g json-server",
-    "server-local-data": "json-server --watch db.json",
-    "server-remote-data": "json-server https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school/db"
+    "fake-api-school": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "colors": "^1.3.3",
+    "json-server": "^0.15.0",
+    "jsonwebtoken": "^8.5.1"
   }
 }

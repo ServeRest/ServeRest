@@ -49,6 +49,13 @@ Mais abaixo detalho como subir um servidor local com os endpoints listados no ar
     2. nome
 </p> </details>
 
+  <details><p><summary>Abra para ver os recursos existentes</summary>
+
+1. login
+2. auth
+
+</p> </details>
+
 ## Instalação
 ### Pré-requisitos
 
@@ -64,7 +71,7 @@ Todos os comandos abaixo são feitos no _terminal_.
 git clone https://github.com/PauloGoncalvesBH/fake-api-school.git && cd fake-api-school
 ```
 
-**2** - Execute o comando para instalar o [json-server](https://www.npmjs.com/package/json-server) globalmente.
+**2** - Execute o comando para instalar as dependências necessárias.
 
 ```sh
 npm install
