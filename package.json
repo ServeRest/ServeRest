@@ -1,12 +1,21 @@
 {
   "name": "fake-api-school",
+  "description": "Servidor API REST com dados de escola fictícia",
   "scripts": {
-    "fake-api-school": "node server.js"
+    "fake-api-school": "node server.js",
+    "prettify": "prettier --write **/*.js  **/*.json"
   },
+  "pre-commit": [
+    "prettify"
+  ],
   "dependencies": {
     "body-parser": "^1.19.0",
     "colors": "^1.3.3",
     "json-server": "^0.15.0",
     "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "pre-commit": "^1.2.2",
+    "prettier": "^1.18.2"
   }
 }
