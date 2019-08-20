@@ -35,7 +35,7 @@ server.post("/auth/registrar", (req, res) => {
   const emailAlreadyExist = userdb.users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
-    errorResponse(res, "Email já cadastrado");
+    res.status(400).json({ message: "Email já cadastrado" });
     return;
   }
 
@@ -69,7 +69,7 @@ server.post("/auth/registrar", (req, res) => {
 server.post("/auth/login", (req, res) => {
   const { email, password } = req.body;
   if (isAuthenticated({ email, password }) === false) {
-    errorResponse(res, "Email ou password incorreto");
+    res.status(400).json({ message: "Email ou password incorreto" });
     return;
   }
   const accessToken = createToken({ email, password });
