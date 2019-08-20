@@ -95,7 +95,6 @@ npm run rest-server
 O servidor estará sendo executado com sucesso caso veja a seguinte mensagem:
 
 ```sh
-> fake-api-school@ rest-server C:\fake-api-school
 > node ./src/server.js
 
 Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.
