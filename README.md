@@ -176,3 +176,7 @@ Foram disponibilizadas 3 configurações no arquivo [conf.js](/conf.js):
 ## Preciso de ajuda
 
 Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://github.com/PauloGoncalvesBH/fake-api-school/issues) detalhando a sua situação e irei te ajudar 😊.
+
+---
+
+[MIT License](./LICENSE)
