@@ -4,7 +4,7 @@
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "scripts": {
     "rest-server": "node ./src/server.js",
-    "prettify": "prettier --write **/*.js  **/*.json --ignore-path ./.node_modules"
+    "prettify": "prettier --write **/*.js  **/*.json --ignore-path ./.node_modules --print-width 120"
   },
   "license": "MIT",
   "pre-commit": [

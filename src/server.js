@@ -21,11 +21,7 @@ function readUserFile() {
 
 function isAuthenticated({ email, password }) {
   let userdb = readUserFile();
-  return (
-    userdb.users.findIndex(
-      user => user.email === email && user.password === password
-    ) !== -1
-  );
+  return userdb.users.findIndex(user => user.email === email && user.password === password) !== -1;
 }
 
 function errorResponse(res, message) {
@@ -36,8 +32,7 @@ server.post("/auth/registrar", (req, res) => {
   const { email, password } = req.body;
 
   let userdb = readUserFile();
-  const emailAlreadyExist =
-    userdb.users.findIndex(user => user.email === email) !== -1;
+  const emailAlreadyExist = userdb.users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
     errorResponse(res, "Email já cadastrado");
@@ -57,17 +52,13 @@ server.post("/auth/registrar", (req, res) => {
 
     // Add new user
     data.users.push({ id: idOfLastItem + 1, email: email, password: password });
-    let writeData = fs.writeFile(
-      "./data/users.json",
-      JSON.stringify(data),
-      (err, result) => {
-        // WRITE
-        if (err) {
-          errorResponse(res, err);
-          return;
-        }
+    let writeData = fs.writeFile("./data/users.json", JSON.stringify(data), (err) => {
+      // WRITE
+      if (err) {
+        errorResponse(res, err);
+        return;
       }
-    );
+    });
   });
 
   // Create token for new user
@@ -118,8 +109,7 @@ server.listen(porta, () => {
       .blue
   );
 
-  if (zoeira)
-    console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
+  if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
 
   var jsonDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
 
