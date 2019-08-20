@@ -9,7 +9,6 @@ function readAndOverwriteFile(readPath, writePath) {
     fs.writeFile(writePath, data, err => {
       if (err) {
         console.log(err);
-        return;
       }
     });
   });
