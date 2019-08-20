@@ -19,6 +19,7 @@ Todos os endpoints disponíveis aceitam os verbos *GET, POST, PUT, PATCH* e *DEL
 - [Subindo o servidor REST \o/](#Subindo-o-servidor-REST-\o/)
 - [Consumindo os endpoints](#Consumindo-os-endpoints)
 - [Arquivo de configuração](#Arquivo-de-configuração)
+- [Preciso de ajuda](#Preciso-de-ajuda)
 
 ## Recursos existentes 
 
@@ -171,3 +172,7 @@ Foram disponibilizadas 3 configurações no arquivo [conf.js](/conf.js):
   - Um valor numérico é interpretado como segundos. Se você usar string informe a unidade de tempo (ms, s, m, h, d, y).
 - Porta de acesso ao servidor. ```(Default: 3000)```
 - Zoeira. O que será? Sete como true e inicie o servidor. ```(Default: false)```
+
+## Preciso de ajuda
+
+Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://github.com/PauloGoncalvesBH/fake-api-school/issues) detalhando a sua situação e irei te ajudar 😊.
