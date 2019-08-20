@@ -92,29 +92,11 @@ Para iniciar o servidor e poder consumir os endpoints disponíveis é preciso en
 npm run rest-server
 ```
 
-O servidor estará sendo executado com sucesso caso veja a seguinte mensagem:
+Após isso surgirá as seguintes mensagens no terminal:
 
-```sh
-> node ./src/server.js
+![Mensagem de execução com sucesso no terminal](./img/terminalServidorDePe.jpg)
 
-Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.
-Dúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md
-
-Endpoints disponíveis que necessitam de autenticação:
-  http://localhost:3000/turmas
-  http://localhost:3000/horarios
-  http://localhost:3000/alunos
-  http://localhost:3000/professores
-  http://localhost:3000/disciplinas
-
-Endpoints exclusivos de autenticação:
-  http://localhost:3000/auth/login
-  http://localhost:3000/auth/registrar
-
-O servidor está de pé e em execução na porta 3000!
-```
-
-Pronto, já pode iniciar o seu estudo de testes de API.
+Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
 ## Consumindo os endpoints
 
@@ -174,6 +156,12 @@ Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
     })
 ```
 *Exemplo feito com o framework de testes [frisby.js](https://www.frisbyjs.com).*
+
+### Dica
+
+No terminal do servidor REST é apresentada algumas informações úteis das requisições realizadas.
+
+![Requests no terminal](/img/terminalRequests.jpg)
 
 ## Arquivo de configuração
 
