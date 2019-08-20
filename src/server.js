@@ -52,7 +52,7 @@ server.post("/auth/registrar", (req, res) => {
 
     // Add new user
     data.users.push({ id: idOfLastItem + 1, email: email, password: password });
-    let writeData = fs.writeFile("./data/users.json", JSON.stringify(data), (err) => {
+    let writeData = fs.writeFile("./data/users.json", JSON.stringify(data), err => {
       // WRITE
       if (err) {
         errorResponse(res, err);

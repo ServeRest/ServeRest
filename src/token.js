@@ -9,7 +9,7 @@ function createToken(payload) {
 }
 
 function verifyToken(token) {
-  return jwt.verify(token, SECRET_KEY, (err, decode) => (decode !== undefined ? decode0 : err));
+  return jwt.verify(token, SECRET_KEY, (err, decode) => (decode !== undefined ? decode : err));
 }
 
 module.exports = {
