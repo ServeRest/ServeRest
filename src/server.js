@@ -106,7 +106,7 @@ server.use(router);
 server.listen(porta, () => {
   console.log(
     "Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md"
-      .blue
+      .cyan
   );
 
   if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
