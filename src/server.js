@@ -4,18 +4,19 @@ const fs = require("fs");
 const jsonServer = require("json-server");
 
 const createToken = require("./token.js").createToken;
+const porta = require("../conf.js").porta;
 const verifyToken = require("./token.js").verifyToken;
-const porta = require("./conf.js").porta;
+const zoeira = require("../conf.js").zoeira;
 
 const server = jsonServer.create();
-const router = jsonServer.router("./db.json");
+const router = jsonServer.router("./data/db.json");
 
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(bodyParser.json());
 server.use(jsonServer.defaults());
 
 function readUserFile() {
-  return JSON.parse(fs.readFileSync("./users.json", "UTF-8"));
+  return JSON.parse(fs.readFileSync("./data/users.json", "UTF-8"));
 }
 
 function isAuthenticated({ email, password }) {
@@ -27,11 +28,11 @@ function isAuthenticated({ email, password }) {
   );
 }
 
-function returnErrorResponse(res, message) {
+function errorResponse(res, message) {
   res.status(401).json({ message });
 }
 
-server.post("/auth/register", (req, res) => {
+server.post("/auth/registrar", (req, res) => {
   const { email, password } = req.body;
 
   let userdb = readUserFile();
@@ -39,13 +40,13 @@ server.post("/auth/register", (req, res) => {
     userdb.users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
-    returnErrorResponse(res, "Email já cadastrado");
+    errorResponse(res, "Email já cadastrado");
     return;
   }
 
-  fs.readFile("./users.json", (err, data) => {
+  fs.readFile("./data/users.json", (err, data) => {
     if (err) {
-      returnErrorResponse(res, err);
+      errorResponse(res, err);
       return;
     }
 
@@ -57,12 +58,12 @@ server.post("/auth/register", (req, res) => {
     // Add new user
     data.users.push({ id: idOfLastItem + 1, email: email, password: password });
     let writeData = fs.writeFile(
-      "./users.json",
+      "./data/users.json",
       JSON.stringify(data),
       (err, result) => {
         // WRITE
         if (err) {
-          returnErrorResponse(res, err);
+          errorResponse(res, err);
           return;
         }
       }
@@ -77,7 +78,7 @@ server.post("/auth/register", (req, res) => {
 server.post("/auth/login", (req, res) => {
   const { email, password } = req.body;
   if (isAuthenticated({ email, password }) === false) {
-    returnErrorResponse(res, "Email ou password incorreto");
+    errorResponse(res, "Email ou password incorreto");
     return;
   }
   const accessToken = createToken({ email, password });
@@ -86,26 +87,26 @@ server.post("/auth/login", (req, res) => {
 
 server.use(/^(?!\/auth).*$/, (req, res, next) => {
   if (req.headers.authorization === undefined) {
-    returnErrorResponse(res, "Autenticação necessária");
+    errorResponse(res, "Autenticação necessária");
     return;
   }
   if (req.headers.authorization.split(" ")[0] !== "Bearer") {
-    returnErrorResponse(res, "Tipo de autenticação inválido");
+    errorResponse(res, "Tipo de autenticação inválido");
     return;
   }
   const token = req.headers.authorization.split(" ")[1];
   if (token == undefined) {
-    returnErrorResponse(res, "Token de acesso vazio");
+    errorResponse(res, "Token de acesso vazio");
     return;
   }
   try {
     if (verifyToken(token) instanceof Error) {
-      returnErrorResponse(res, "Token de acesso não é válido");
+      errorResponse(res, "Token de acesso não é válido");
       return;
     }
     next();
   } catch (err) {
-    returnErrorResponse(res, "Token de acesso revogado");
+    errorResponse(res, "Token de acesso revogado");
   }
 });
 
@@ -113,8 +114,22 @@ server.use(router);
 
 server.listen(porta, () => {
   console.log(
-    `O servidor está sendo executado na porta ${porta}, bom proveito!`.green
+    "Servidor de API criado por Paulo Gonçalves <paulorochag@hotmail.com>.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md"
+      .blue
   );
-  console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡\n".yellow);
-  console.log("https://github.com/PauloGoncalvesBH/fake-api-school".blue);
+
+  if (zoeira)
+    console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
+
+  var jsonDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
+
+  console.log(`\nEndpoints disponíveis que necessitam de autenticação:`.gray);
+
+  for (var endpoint in jsonDb) {
+    console.log(`  http://localhost:3000/${endpoint}`.gray);
+  }
+  console.log("\nEndpoints exclusivos de autenticação:".gray);
+  console.log("  http://localhost:3000/auth/login".gray);
+  console.log("  http://localhost:3000/auth/registrar\n".gray);
+  console.log(`O servidor está de pé e em execução na porta ${porta}!`.green);
 });

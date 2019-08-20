@@ -3,20 +3,26 @@
 
 # Fake API School
 
-[![library: json-server](https://img.shields.io/badge/library-json--server-blue)](https://www.npmjs.com/package/json-server)
+### **Servidor REST para o QA estudar testes de API**
+---
 
-### Esse simples material tem a finalidade de fornecer um servidor REST com dados de uma escola fictícia para estudo de testes de API.
+ Esse material disponibiliza um servidor REST com dados de uma escola fictícia permitindo o estudo do uso de token no header, manipulação de resposta, requisições aninhadas e todos os principais verbos.
 
-É composto apenas por 1 arquivo contendo os endpoints e 1 arquivo com scripts de como subir o servidor local.
 
-Caso queira consumir os endpoints criados sem ter seguir os passos abaixos,
-acesse essa [URL](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school). Tem o porém de que os **dados não são persistidos** e as requisições ficam cacheadas por 1 minuto, o que é um dificultor para o estudo.
+Todos os endpoints disponíveis aceitam os verbos *GET, POST, PUT, PATCH* e *DELETE* e utilizam de token de autenticação no header.
 
-Mais abaixo detalho como subir um servidor local com os endpoints listados no arquivo [db.json](/db.json).
+## Sumário
+- [Recursos existentes](#Recursos-existentes)
+- [Instalação](#Instalação)
+    - [Pré-requisitos](#Pré-requisitos)
+    - [Clonando e instalando as dependências](#Clonando-e-instalando-as-dependências)
+- [Subindo o servidor REST \o/](#Subindo-o-servidor-REST-\o/)
+- [Consumindo os endpoints](#Consumindo-os-endpoints)
+- [Arquivo de configuração](#Arquivo-de-configuração)
 
 ## Recursos existentes 
 
-  <details><p><summary>Abra para ver os recursos existentes</summary>
+  <details><p><summary>Abra para ver todos os endpoints disponíveis</summary>
 
 1. turmas
     1. id
@@ -47,12 +53,11 @@ Mais abaixo detalho como subir um servidor local com os endpoints listados no ar
 5. disciplinas
     1. id
     2. nome
-</p> </details>
 
-  <details><p><summary>Abra para ver os recursos existentes</summary>
+*Recursos exclusivos de autenticação:*
 
-1. login
-2. auth
+6. auth/login
+7. auth/registrar
 
 </p> </details>
 
@@ -61,7 +66,7 @@ Mais abaixo detalho como subir um servidor local com os endpoints listados no ar
 
 - [Git](https://git-scm.com/download/) e [Node.js](https://nodejs.org/en/download/) instalados.
 
-### Clonando e instalando a dependência
+### Clonando e instalando as dependências
 
 Todos os comandos abaixo são feitos no _terminal_.
 
@@ -74,32 +79,85 @@ git clone https://github.com/PauloGoncalvesBH/fake-api-school.git && cd fake-api
 **2** - Execute o comando para instalar as dependências necessárias.
 
 ```sh
-npm install
+npm install --production
 ```
 
-## Subindo o servidor local
+## Subindo o servidor REST \o/
 
-Há dois modos de subir o servidor local, e dependem da sua necessidade:
-
-- Caso queira que o arquivo [db.json](/db.json) não seja alterado, sendo preciso apenas reiniciar o servidor para que os dados voltem ao seu estado inicial:
+Para iniciar o servidor e poder consumir os endpoints disponíveis é preciso enviar o seguinte comando:
 
 ```sh
-npm run server-remote-data
+npm run rest-server
 ```
-Com esse script será iniciado o servidor apontando pro schema da página [https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school](https://my-json-server.typicode.com/paulogoncalvesbh/fake-api-school).
 
-*Recomendado pois permite ter um servidor local com dados persistidos e sem alterar arquivo local*
-
-- Caso queira ver, após uma requisição de alteração de dados, o arquivo [db.json](/db.json) alterado:
+O servidor estará sendo executado com sucesso caso veja a seguinte mensagem:
 
 ```sh
-npm run server-local-data
+O servidor está de pé e em execução na porta 3000!
 ```
-Com esse script será iniciado o servidor apontando pro arquivo [db.json](/db.json).
 
-**Atenção:** A cada requisição de alteração o arquivo [db.json](/db.json) sofrerá modificações, devido a isso esse repositório possui [backup](/db-backup.json) do arquivo.
+Pronto, já pode iniciar o seu estudo de testes de API.
 
-## Aprofundando na criação de um server para testes de API
-Sugiro a leitura dos seguintes materiais:
-1. [Repositório da lib Json-server](https://github.com/typicode/json-server)
-2. [Como criar um fake REST server online](https://my-json-server.typicode.com)
+## Consumindo os endpoints
+
+Para poder consumir os serviços disponibilizados e listados [aqui](#Recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
+
+Dessa forma, terá que lidar com os endpoints ```login``` e/ou ```registrar``` para que consiga o token que é enviado via resposta dos mesmos.
+
+Envie uma requisição POST para qualquer um dos seguintes endpoints:
+
+```
+POST http://localhost:3000/auth/login
+POST http://localhost:3000/auth/registrar
+```
+
+Passando o seguinte corpo:
+``` json
+{
+  email: "paulo@email.com",
+  password: "paulo"
+}
+```
+Receberá o token na resposta:
+
+``` json
+{
+  "accessToken": "<TOKEN_DE_ACESSO>"
+}
+```
+Envie esse token no header das requisições para que esteja autenticado:
+
+```
+  Authorization: Bearer <TOKEN_DE_ACESSO>
+```
+Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
+
+> **Observaçôes:**
+> - O tipo de autenticação utilizado é o Bearer.
+> - O token possui tempo de duração. Veja mais na seção [Arquivo de configuração](#Arquivo-de-configuração).
+> - Os usuários ficam armazenados no arquivo [users.json](/data/users.json).
+
+### Exemplo de requisição fazendo o login e passando o token de autenticação retornado no header para uma requisição de GET no endpoint turmas:
+``` javascript
+  return frisby.post('http://localhost:3000/auth/login', {
+    email: "paulo@email.com",
+    password: "paulo"
+  })
+    .then((res) => {
+      return frisby.setup({
+        request: {
+          headers: {
+            'Authorization': `Bearer ${res.json.accessToken}`
+          }
+        }
+      }).get('http://localhost:3000/turmas/1')
+    })
+```
+*Exemplo feito com o framework de testes [frisby.js](https://www.frisbyjs.com).*
+
+## Arquivo de configuração
+
+Foram disponibilizadas 3 configurações no arquivo [conf.js](/conf.js):
+1. Tempo de expiração do token. ```(Default: "1h")```
+2. Porta de acesso ao servidor. ```(Default: 3000)```
+3. Zoeira. Uma pequena brincadeira, sete como true e inicie o servidor. ```(Default: false)```

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const expiresIn = require("./conf.js").tokenTimeout;
+const expiresIn = require("../conf.js").tokenTimeout;
 
 const SECRET_KEY = "123456789";
 
