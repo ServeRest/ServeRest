@@ -95,6 +95,23 @@ npm run rest-server
 O servidor estará sendo executado com sucesso caso veja a seguinte mensagem:
 
 ```sh
+> fake-api-school@ rest-server C:\fake-api-school
+> node ./src/server.js
+
+Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.
+Dúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md
+
+Endpoints disponíveis que necessitam de autenticação:
+  http://localhost:3000/turmas
+  http://localhost:3000/horarios
+  http://localhost:3000/alunos
+  http://localhost:3000/professores
+  http://localhost:3000/disciplinas
+
+Endpoints exclusivos de autenticação:
+  http://localhost:3000/auth/login
+  http://localhost:3000/auth/registrar
+
 O servidor está de pé e em execução na porta 3000!
 ```
 
