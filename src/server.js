@@ -88,7 +88,7 @@ server.use(router);
 server.listen(porta, () => {
   overwriteDataFilesWithbackupFiles();
   console.log(
-    "Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md"
+    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school"
       .cyan
   );
 
