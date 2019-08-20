@@ -100,7 +100,7 @@ Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
 ## Consumindo os endpoints
 
-> **Dica:** As alterações são persistidas, ou seja, os dados não estarão lá caso faça uma requisição de DELETE e reinicie o servidor. Por esse motivo os arquivos ```db.json``` e ```users.json``` possuem backup nesse [diretório](/data/backup/).
+> **Dica:** As alterações são persistidas, porém ao reiniciar o servidor os dados irão voltar ao estado inicial.
 
 Para poder consumir os serviços disponibilizados e listados [aqui](#Recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
 
@@ -124,13 +124,13 @@ Receberá o token na resposta:
 
 ``` json
 {
-  "accessToken": "<TOKEN_DE_ACESSO>"
+  "accessToken": "<TOKEN>"
 }
 ```
 Envie esse token no header das requisições para que esteja autenticado:
 
 ```
-  Authorization: Bearer <TOKEN_DE_ACESSO>
+  Authorization: Bearer <TOKEN>
 ```
 Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
 
@@ -149,7 +149,7 @@ Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
       return frisby.setup({
         request: {
           headers: {
-            'Authorization': `Bearer ${res.json.accessToken}`
+            'Authorization': `Bearer ${res.json.token}`
           }
         }
       }).get('http://localhost:3000/turmas/1')

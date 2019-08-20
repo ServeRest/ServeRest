@@ -4,7 +4,9 @@ const fs = require("fs");
 const jsonServer = require("json-server");
 
 const createToken = require("./token.js").createToken;
+const overwriteDataFilesWithbackupFiles = require("./readWriteFiles.js").overwriteDataFilesWithbackupFiles;
 const porta = require("../conf.js").porta;
+const readUserFile = require("./readWriteFiles.js").readUserFile;
 const verifyToken = require("./token.js").verifyToken;
 const zoeira = require("../conf.js").zoeira;
 
@@ -15,24 +17,10 @@ server.use(bodyParser.urlencoded({ extended: true }));
 server.use(bodyParser.json());
 server.use(jsonServer.defaults());
 
-function readUserFile() {
-  return JSON.parse(fs.readFileSync("./data/users.json", "UTF-8"));
-}
-
-function isAuthenticated({ email, password }) {
-  let userdb = readUserFile();
-  return userdb.users.findIndex(user => user.email === email && user.password === password) !== -1;
-}
-
-function errorResponse(res, message) {
-  res.status(401).json({ message });
-}
-
 server.post("/auth/registrar", (req, res) => {
   const { email, password } = req.body;
 
-  let userdb = readUserFile();
-  const emailAlreadyExist = userdb.users.findIndex(user => user.email === email) !== -1;
+  const emailAlreadyExist = readUserFile().users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
     res.status(400).json({ message: "Email já cadastrado" });
@@ -41,69 +29,64 @@ server.post("/auth/registrar", (req, res) => {
 
   fs.readFile("./data/users.json", (err, data) => {
     if (err) {
-      errorResponse(res, err);
+      res.status(500).json({ err });
       return;
     }
 
-    // Get current users data
     var data = JSON.parse(data.toString());
 
     let idOfLastItem = data.users[data.users.length - 1].id;
 
-    // Add new user
     data.users.push({ id: idOfLastItem + 1, email: email, password: password });
-    let writeData = fs.writeFile("./data/users.json", JSON.stringify(data), err => {
-      // WRITE
+    fs.writeFile("./data/users.json", JSON.stringify(data), err => {
       if (err) {
-        errorResponse(res, err);
+        res.status(500).json({ err });
         return;
       }
     });
   });
 
-  // Create token for new user
-  const accessToken = createToken({ email, password });
-  res.status(201).json({ accessToken });
+  const token = createToken({ email, password });
+  res.status(201).json({ token });
 });
 
 server.post("/auth/login", (req, res) => {
   const { email, password } = req.body;
-  if (isAuthenticated({ email, password }) === false) {
+  const existEmailAndPassword =
+    readUserFile().users.findIndex(user => user.email === email && user.password === password) !== -1;
+  if (!existEmailAndPassword) {
     res.status(400).json({ message: "Email ou password incorreto" });
     return;
   }
-  const accessToken = createToken({ email, password });
-  res.status(200).json({ accessToken });
+  const token = createToken({ email, password });
+  res.status(200).json({ token });
 });
 
 server.use(/^(?!\/auth).*$/, (req, res, next) => {
   if (req.headers.authorization === undefined) {
-    errorResponse(res, "Autenticação necessária");
+    res.status(401).json({ message: "Autenticação necessária" });
     return;
   }
   if (req.headers.authorization.split(" ")[0] !== "Bearer") {
-    errorResponse(res, "Tipo de autenticação inválido");
+    res.status(401).json({ message: "Tipo de autenticação deve ser Bearer" });
     return;
   }
   const token = req.headers.authorization.split(" ")[1];
   if (token == undefined) {
-    errorResponse(res, "Token de acesso vazio");
+    res.status(401).json({ message: "Token de acesso vazio" });
     return;
   }
-  try {
-    if (verifyToken(token) instanceof Error) {
-      errorResponse(res, "Token de acesso não é válido");
-      return;
-    }
-    next();
-  } catch (err) {
-    errorResponse(res, "Token de acesso revogado");
+  if (verifyToken(token) instanceof Error) {
+    res.status(401).json({ message: "Token de acesso não é válido" });
+    return;
   }
+  next();
 });
 
 server.use(router);
 
 server.listen(porta, () => {
+  overwriteDataFilesWithbackupFiles();
   console.log(
     "Servidor REST criado por Paulo Gonçalves <paulorochag@hotmail.com>.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school/blob/master/README.md"
       .cyan
