@@ -126,10 +126,10 @@ server.listen(porta, () => {
   console.log(`\nEndpoints disponíveis que necessitam de autenticação:`.gray);
 
   for (var endpoint in jsonDb) {
-    console.log(`  http://localhost:3000/${endpoint}`.gray);
+    console.log(`  http://localhost:${porta}/${endpoint}`.gray);
   }
   console.log("\nEndpoints exclusivos de autenticação:".gray);
-  console.log("  http://localhost:3000/auth/login".gray);
-  console.log("  http://localhost:3000/auth/registrar\n".gray);
+  console.log(`  http://localhost:${porta}/auth/login`.gray);
+  console.log(`  http://localhost:${porta}/auth/registrar\n`.gray);
   console.log(`O servidor está de pé e em execução na porta ${porta}!`.green);
 });
