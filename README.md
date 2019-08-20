@@ -178,6 +178,8 @@ Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
 ## Arquivo de configuração
 
 Foram disponibilizadas 3 configurações no arquivo [conf.js](/conf.js):
-1. Tempo de expiração do token. ```(Default: "1h")```
-2. Porta de acesso ao servidor. ```(Default: 3000)```
-3. Zoeira. Uma pequena brincadeira, sete como true e inicie o servidor. ```(Default: false)```
+- Tempo de expiração do token. ```(Default: "1h")```
+  - Ex.: ```60```, ```"60m"```, ```"24h"```, ```"365d"```, ```"1y"```. 
+  - Um valor numérico é interpretado como segundos. Se você usar string informe a unidade de tempo (ms, s, m, d, y).
+- Porta de acesso ao servidor. ```(Default: 3000)```
+- Zoeira. O que será? Sete como true e inicie o servidor. ```(Default: false)```
