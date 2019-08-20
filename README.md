@@ -61,6 +61,8 @@ Todos os endpoints disponíveis aceitam os verbos *GET, POST, PUT, PATCH* e *DEL
 
 </p> </details>
 
+> **Dica:** Pode ver os endpoints, exceto os de autenticação, direto no arquivo fonte [db.json](/data/db.json).
+
 ## Instalação
 ### Pré-requisitos
 
