@@ -1,0 +1,182 @@
+{
+  "turmas": [
+    {
+      "id": 1,
+      "descricao": "Turma dos millenials",
+      "idHorario": 2,
+      "alunos": [
+        {
+          "idAluno": 1
+        },
+        {
+          "idAluno": 2
+        },
+        {
+          "idAluno": 4
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "descricao": "Turma 90's",
+      "idHorario": 1,
+      "alunos": [
+        {
+          "idAluno": 3
+        }
+      ]
+    }
+  ],
+  "horarios": [
+    {
+      "id": 1,
+      "turno": "Vespertino",
+      "segunda": {
+        "idDisciplina": 3
+      },
+      "terca": {
+        "idDisciplina": 9
+      },
+      "quarta": {
+        "idDisciplina": 6
+      },
+      "quinta": {
+        "idDisciplina": 7
+      },
+      "sexta": {
+        "idDisciplina": 8
+      }
+    },
+    {
+      "id": 2,
+      "turno": "Matutino",
+      "segunda": {
+        "idDisciplina": 4
+      },
+      "terca": {
+        "idDisciplina": 5
+      },
+      "quarta": [
+        {
+          "idDisciplina": 1
+        },
+        {
+          "idDisciplina": 3
+        }
+      ],
+      "quinta": {
+        "idDisciplina": 2
+      },
+      "sexta": {
+        "idDisciplina": 8
+      }
+    }
+  ],
+  "alunos": [
+    {
+      "id": 1,
+      "nome": "Enzo",
+      "anoNascimento": "2000"
+    },
+    {
+      "id": 2,
+      "nome": "Valentina",
+      "anoNascimento": "2000"
+    },
+    {
+      "id": 3,
+      "nome": "Mário",
+      "anoNascimento": "1996"
+    },
+    {
+      "id": 4,
+      "nome": "Maicosuel",
+      "anoNascimento": "2000"
+    }
+  ],
+  "professores": [
+    {
+      "id": 1,
+      "idDisciplina": 8,
+      "nome": "Carlos"
+    },
+    {
+      "id": 2,
+      "idDisciplina": 6,
+      "nome": "Márcia"
+    },
+    {
+      "id": 3,
+      "idDisciplina": 3,
+      "nome": "Josué"
+    },
+    {
+      "id": 4,
+      "idDisciplina": 4,
+      "nome": "Paulo"
+    },
+    {
+      "id": 5,
+      "idDisciplina": 2,
+      "nome": "Thaiana"
+    },
+    {
+      "id": 6,
+      "idDisciplina": 1,
+      "nome": "Débora"
+    },
+    {
+      "id": 7,
+      "idDisciplina": 5,
+      "nome": "Fernando"
+    },
+    {
+      "id": 8,
+      "idDisciplina": 7,
+      "nome": "Sarah"
+    },
+    {
+      "id": 9,
+      "idDisciplina": 9,
+      "nome": "Mateus"
+    }
+  ],
+  "disciplinas": [
+    {
+      "id": 1,
+      "nome": "Matemática"
+    },
+    {
+      "id": 2,
+      "nome": "Sociologia"
+    },
+    {
+      "id": 3,
+      "nome": "Física"
+    },
+    {
+      "id": 4,
+      "nome": "Educação Física"
+    },
+    {
+      "id": 5,
+      "nome": "Química"
+    },
+    {
+      "id": 6,
+      "nome": "Biologia"
+    },
+    {
+      "id": 7,
+      "nome": "Literatura"
+    },
+    {
+      "id": 8,
+      "nome": "Português"
+    },
+    {
+      "id": 9,
+      "nome": "História"
+    }
+  ]
+}

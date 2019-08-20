@@ -102,6 +102,8 @@ Pronto, já pode iniciar o seu estudo de testes de API.
 
 ## Consumindo os endpoints
 
+> **Dica:** As alterações são persistidas, ou seja, os dados não estarão lá caso faça uma requisição de DELETE e reinicie o servidor. Por esse motivo os arquivos ```db.json``` e ```users.json``` possuem backup nesse [diretório](/data/backup/).
+
 Para poder consumir os serviços disponibilizados e listados [aqui](#Recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
 
 Dessa forma, terá que lidar com os endpoints ```login``` e/ou ```registrar``` para que consiga o token que é enviado via resposta dos mesmos.
