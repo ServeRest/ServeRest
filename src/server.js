@@ -6,6 +6,7 @@ const jsonServer = require("json-server");
 const createToken = require("./token.js").createToken;
 const overwriteDataFilesWithbackupFiles = require("./readWriteFiles.js").overwriteDataFilesWithbackupFiles;
 const porta = require("../conf.js").porta;
+const printDebugInfoOnConsole = require("./debug.js").printDebugInfoOnConsole;
 const readUserFile = require("./readWriteFiles.js").readUserFile;
 const verifyToken = require("./token.js").verifyToken;
 const zoeira = require("../conf.js").zoeira;
@@ -18,6 +19,7 @@ server.use(bodyParser.json());
 server.use(jsonServer.defaults());
 
 server.post("/auth/registrar", (req, res) => {
+  printDebugInfoOnConsole(req);
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -63,6 +65,7 @@ server.post("/auth/registrar", (req, res) => {
 });
 
 server.post("/auth/login", (req, res) => {
+  printDebugInfoOnConsole(req);
   const { email, password } = req.body;
   const existEmailAndPassword =
     readUserFile().users.findIndex(user => user.email === email && user.password === password) !== -1;
@@ -75,6 +78,7 @@ server.post("/auth/login", (req, res) => {
 });
 
 server.use(/^(?!\/auth).*$/, (req, res, next) => {
+  printDebugInfoOnConsole(req);
   if (req.headers.authorization === undefined) {
     res.status(401).json({ message: "Autenticação necessária" });
     return;

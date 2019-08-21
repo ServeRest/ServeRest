@@ -19,6 +19,8 @@ Todos os endpoints disponíveis aceitam os verbos *GET, POST, PUT, PATCH* e *DEL
 - [Subindo o servidor REST \o/](#Subindo-o-servidor-REST-\o/)
 - [Consumindo os endpoints](#Consumindo-os-endpoints)
 - [Arquivo de configuração](#Arquivo-de-configuração)
+- [Debug](#Debug)
+- [Exemplo de teste utilizando o REST Server](#Exemplo-de-teste-utilizando-o-REST-Server)
 - [Preciso de ajuda](#Preciso-de-ajuda)
 
 ## Recursos existentes 
@@ -101,7 +103,7 @@ Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
 ## Consumindo os endpoints
 
-> **Dica:** As alterações são persistidas, porém ao reiniciar o servidor os dados irão voltar ao estado inicial.
+> **Dica:** As alterações são persistidas, porém ao reiniciar o servidor os dados irão voltar ao estado inicial. Veja mais na seção [Arquivo de configuração](#Arquivo-de-configuração).
 
 Para poder consumir os serviços disponibilizados e listados [aqui](#Recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
 
@@ -166,12 +168,33 @@ No terminal do servidor REST é apresentada algumas informações úteis das req
 
 ## Arquivo de configuração
 
-Foram disponibilizadas 3 configurações no arquivo [conf.js](/conf.js):
+Foram disponibilizadas as seguintes configurações no arquivo [conf.js](/conf.js):
 - Tempo de expiração do token. ```(Default: "1h")```
   - Ex.: ```"1000ms"```, ```60```, ```"60m"```, ```"24h"```, ```"365d"```, ```"1y"```. 
   - Um valor numérico é interpretado como segundos. Se você usar string informe a unidade de tempo (ms, s, m, h, d, y).
 - Porta de acesso ao servidor. ```(Default: 3000)```
+- Reiniciar os dados em [db.json](/data/db.json) e [users.json](/data/users.json) ao subir o servidor. ```(Default: true)```
+- Opções de debug, que imprime informações úteis no console.  Veja mais na seção [Debug](#Debug).
+  - Imprimir header da requisição ```(Default: false)```
+  - Imprimir corpo da requisição ```(Default: false)```
+  - Imprimir hora da requisição ```(Default: true)```
+  - Imprimir IP que efetuou a requisição ```(Default: true)```
 - Zoeira. O que será? Sete como true e inicie o servidor. ```(Default: false)```
+
+## Debug
+ Foi implementado debug que imprime no console as informações da requisição feita ao endpoint.
+
+> Atente que a opção de debug imprime apenas os dados da requisição, e não da resposta.
+
+*Exemplo de informação impressa no console com o modo debug ativado:*
+
+ ![Debug da requisição](/img/terminalDebugMode.jpg)
+
+ A informação de debug fica sempre logo acima da informação de resposta. Como pode ver no print acima, a requisição que teve o header e o body impressos foi finalizada com status 200.
+
+## Exemplo de teste utilizando o REST Server
+
+ Caso queira testar esse servidor REST disponibilizado mas não tem tempo para criar testes de API, visite [esse repositório](https://github.com/PauloGoncalvesBH/api-test). Em poucos minutos terá o servidor de pé e os testes sendo executados.
 
 ## Preciso de ajuda
 
