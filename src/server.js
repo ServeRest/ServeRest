@@ -25,6 +25,13 @@ server.post("/auth/registrar", (req, res) => {
     return;
   }
 
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  if (!emailIsValid) {
+    res.status(400).json({ message: "Email inválido" });
+    return;
+  }
+
   const emailAlreadyExist = readUserFile().users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
@@ -40,7 +47,7 @@ server.post("/auth/registrar", (req, res) => {
 
     var data = JSON.parse(data.toString());
 
-    let idOfLastItem = data.users[data.users.length - 1].id;
+    const idOfLastItem = data.users[data.users.length - 1].id;
 
     data.users.push({ id: idOfLastItem + 1, email: email, password: password });
     fs.writeFile("./data/users.json", JSON.stringify(data), err => {
@@ -99,11 +106,11 @@ server.listen(porta, () => {
 
   if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
 
-  var jsonDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
+  const jsonDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
 
   console.log(`\nEndpoints disponíveis que necessitam de autenticação:`.gray);
 
-  for (var endpoint in jsonDb) {
+  for (let endpoint in jsonDb) {
     console.log(`  http://localhost:${porta}/${endpoint}`.gray);
   }
   console.log("\nEndpoints exclusivos de autenticação:".gray);
