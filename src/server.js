@@ -6,7 +6,7 @@ const jsonServer = require("json-server");
 const createToken = require("./token.js").createToken;
 const overwriteDataFilesWithbackupFiles = require("./readWriteFiles.js").overwriteDataFilesWithbackupFiles;
 const porta = require("../conf.js").porta;
-const printDebugInfoOnConsole = require("./debug.js").printDebugInfoOnConsole;
+const printDebugInfoOnConsole = require("./debug.js");
 const readUserFile = require("./readWriteFiles.js").readUserFile;
 const verifyToken = require("./token.js").verifyToken;
 const zoeira = require("../conf.js").zoeira;
@@ -104,8 +104,7 @@ server.use(router);
 server.listen(porta, () => {
   overwriteDataFilesWithbackupFiles();
   console.log(
-    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server"
-      .cyan
+    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server".cyan
   );
 
   if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
