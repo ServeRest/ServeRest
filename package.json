@@ -3,7 +3,7 @@
   "description": "Servidor REST para o QA estudar testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "scripts": {
-    "rest-server": "node ./src/server.js",
+    "rest-server": "node -r esm ./src/server.js",
     "prettify": "prettier --write **/*.js  **/*.json --ignore-path ./.node_modules --print-width 120"
   },
   "license": "MIT",
@@ -13,6 +13,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "colors": "^1.3.3",
+    "esm": "^3.2.25",
     "json-server": "^0.15.0",
     "jsonwebtoken": "^8.5.1"
   },

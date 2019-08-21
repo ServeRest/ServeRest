@@ -1,15 +1,12 @@
-const bodyParser = require("body-parser");
-const colors = require("colors");
-const fs = require("fs");
-const jsonServer = require("json-server");
+import bodyParser from "body-parser";
+import colors from "colors";
+import fs from "fs";
+import jsonServer from "json-server";
 
-const createToken = require("./token.js").createToken;
-const overwriteDataFilesWithbackupFiles = require("./readWriteFiles.js").overwriteDataFilesWithbackupFiles;
-const porta = require("../conf.js").porta;
-const printDebugInfoOnConsole = require("./debug.js");
-const readUserFile = require("./readWriteFiles.js").readUserFile;
-const verifyToken = require("./token.js").verifyToken;
-const zoeira = require("../conf.js").zoeira;
+import { porta, zoeira } from "../conf.js";
+import printDebugInfoOnConsole from "./debug.js";
+import { overwriteDataFilesWithbackupFiles, readUserFile } from "./readWriteFiles.js";
+import { createToken, verifyToken } from "./token.js";
 
 const server = jsonServer.create();
 const router = jsonServer.router("./data/db.json");

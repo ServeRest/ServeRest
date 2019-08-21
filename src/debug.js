@@ -1,10 +1,12 @@
-const getHour = require("./utils.js");
-let printRequestHeader = require("../conf.js").debug.imprimirHeaderDaRequisicao;
-let printRequestBody = require("../conf.js").debug.imprimirCorpoDaRequisicao;
-let printHour = require("../conf.js").debug.imprimirHoraDaRequisicao;
-let printRequestIP = require("../conf.js").debug.imprimirIpQueEfetuouARequisicao;
+import getHour from "./utils.js";
+import { debug } from "../conf.js";
 
-module.exports = function printDebugInfoOnConsole(req) {
+const printRequestHeader = debug.imprimirHeaderDaRequisicao;
+const printRequestBody = debug.imprimirCorpoDaRequisicao;
+const printHour = debug.imprimirHoraDaRequisicao;
+const printRequestIP = debug.imprimirIpQueEfetuouARequisicao;
+
+export default function printDebugInfoOnConsole(req) {
   if (printRequestBody || printRequestHeader) {
     const hour = printHour ? `[${getHour()}]` : "";
     console.log(`\nDEBUG REQUISIÇÃO ${hour}\n${req.method} ${req.hostname} ${req.originalUrl}`.magenta);
@@ -23,4 +25,4 @@ module.exports = function printDebugInfoOnConsole(req) {
       console.log("<<< Fim do corpo".magenta);
     }
   }
-};
+}
