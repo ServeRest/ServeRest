@@ -1,7 +1,7 @@
 
 
 
-# Fake API School
+# REST Server
 
 ### **Servidor REST para o QA estudar testes de API**
 ---
