@@ -92,7 +92,7 @@ npm install --production
 Para iniciar o servidor e poder consumir os endpoints disponíveis é preciso enviar o seguinte comando:
 
 ```sh
-npm run rest-server
+npm start
 ```
 
 Após isso surgirá as seguintes mensagens no terminal:

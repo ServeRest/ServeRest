@@ -8,7 +8,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "rest-server": "node -r esm ./src/server.js",
+    "start": "node -r esm ./src/server.js",
     "prettify": "prettier --write **/*.js  **/*.json --ignore-path ./.node_modules --print-width 120"
   },
   "pre-commit": [
