@@ -104,7 +104,7 @@ server.use(router);
 server.listen(porta, () => {
   overwriteDataFilesWithbackupFiles();
   console.log(
-    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/fake-api-school"
+    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server"
       .cyan
   );
 
