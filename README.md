@@ -101,6 +101,8 @@ Após isso surgirá as seguintes mensagens no terminal:
 
 Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
+> Não tem teste de API pronto pra executar e testar o servidor? Visite a seção [Exemplo de teste utilizando o REST Server](#Exemplo-de-teste-utilizando-o-REST-Server).
+
 ## Consumindo os endpoints
 
 > **Dica:** As alterações são persistidas, porém ao reiniciar o servidor os dados irão voltar ao estado inicial. Veja mais na seção [Arquivo de configuração](#Arquivo-de-configuração).
