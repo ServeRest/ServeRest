@@ -78,7 +78,7 @@ Todos os comandos abaixo são feitos no _terminal_.
 **1** - Faça um clone do repositório e acesse o diretório criado pelo clone:
 
 ```sh
-git clone https://github.com/PauloGoncalvesBH/fake-api-school.git && cd fake-api-school
+git clone https://github.com/PauloGoncalvesBH/rest-server.git && cd rest-server
 ```
 
 **2** - Execute o comando para instalar as dependências necessárias.
@@ -198,7 +198,7 @@ Foram disponibilizadas as seguintes configurações no arquivo [conf.js](/conf.j
 
 ## Preciso de ajuda
 
-Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://github.com/PauloGoncalvesBH/fake-api-school/issues) detalhando a sua situação e irei te ajudar 😊.
+Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://github.com/PauloGoncalvesBH/rest-server/issues) detalhando a sua situação e irei te ajudar 😊.
 
 ---
 
