@@ -20,6 +20,11 @@ server.use(jsonServer.defaults());
 server.post("/auth/registrar", (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    res.status(400).json({ message: "Email ou password em branco" });
+    return;
+  }
+
   const emailAlreadyExist = readUserFile().users.findIndex(user => user.email === email) !== -1;
 
   if (emailAlreadyExist) {
