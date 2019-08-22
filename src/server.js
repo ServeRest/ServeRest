@@ -43,11 +43,9 @@ server.post("/auth/registrar", (req, res) => {
       res.status(500).json({ err });
       return;
     }
-
     var data = JSON.parse(data.toString());
-
     data.users.push({ id: data.users.length + 1, email: email, password: password });
-    fs.writeFile("./data/users.json", JSON.stringify(data), "utf-8", err => {
+    fs.writeFile("./data/users.json", JSON.stringify(data, null, "  "), "utf-8", err => {
       if (err) {
         res.status(500).json({ err });
         return;
