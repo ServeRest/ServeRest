@@ -1,6 +1,7 @@
 /** Configuração - REST SERVER
  * -- PARA A ALTERAÇÃO SER APLICADA É NECESSÁRIO REINICIAR O SERVIDOR. --
  */
+
 /* Tempo de validade do token. (Default: "1h") */
 const tokenTimeout = "1h";
 

@@ -1,9 +1,9 @@
 import bodyParser from "body-parser";
-import colors from "colors";
 import fs from "fs";
 import jsonServer from "json-server";
 
-import { porta, zoeira } from "../conf.js";
+import { porta } from "../conf.js";
+import printStartServerMessage from "./consoleMessage.js";
 import printDebugInfoOnConsole from "./debug.js";
 import { overwriteDataFilesWithbackupFiles, readUserFile } from "./readWriteFiles.js";
 import { createToken, verifyToken } from "./token.js";
@@ -96,21 +96,5 @@ server.use(router);
 
 server.listen(porta, () => {
   overwriteDataFilesWithbackupFiles();
-  console.log(
-    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server".cyan
-  );
-
-  if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
-
-  const jsonDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
-
-  console.log(`\nEndpoints disponíveis que necessitam de autenticação:`.gray);
-
-  for (let endpoint in jsonDb) {
-    console.log(`  http://localhost:${porta}/${endpoint}`.gray);
-  }
-  console.log("\nEndpoints exclusivos de autenticação:".gray);
-  console.log(`  http://localhost:${porta}/auth/login`.gray);
-  console.log(`  http://localhost:${porta}/auth/registrar\n`.gray);
-  console.log(`O servidor está de pé e em execução na porta ${porta}!`.green);
+  printStartServerMessage();
 });
