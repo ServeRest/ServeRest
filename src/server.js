@@ -38,7 +38,7 @@ server.post("/auth/registrar", (req, res) => {
     return;
   }
 
-  fs.readFile("./data/users.json", (err, data) => {
+  fs.readFile("./data/users.json", "utf-8", (err, data) => {
     if (err) {
       res.status(500).json({ err });
       return;
@@ -46,10 +46,8 @@ server.post("/auth/registrar", (req, res) => {
 
     var data = JSON.parse(data.toString());
 
-    const idOfLastItem = data.users[data.users.length - 1].id;
-
-    data.users.push({ id: idOfLastItem + 1, email: email, password: password });
-    fs.writeFile("./data/users.json", JSON.stringify(data), err => {
+    data.users.push({ id: data.users.length + 1, email: email, password: password });
+    fs.writeFile("./data/users.json", JSON.stringify(data), "utf-8", err => {
       if (err) {
         res.status(500).json({ err });
         return;
