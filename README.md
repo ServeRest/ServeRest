@@ -180,7 +180,7 @@ Foram disponibilizadas as seguintes configurações no arquivo [conf.js](/conf.j
   - Imprimir header da requisição ```(Default: false)```
   - Imprimir corpo da requisição ```(Default: false)```
   - Imprimir hora da requisição ```(Default: true)```
-  - Imprimir IP que efetuou a requisição ```(Default: true)```
+  - Imprimir IP que efetuou a requisição ```(Default: false)```
 - Zoeira. O que será? Sete como true e inicie o servidor. ```(Default: false)```
 
 ## Debug

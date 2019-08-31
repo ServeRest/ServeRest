@@ -23,13 +23,13 @@ const reiniciarDadosAoSubirServidor = true;
  * imprimirHeaderDaRequisicao: false,
  * imprimirCorpoDaRequisicao: false,
  * imprimirHoraDaRequisicao: true,
- * imprimirIpQueEfetuouARequisicao: true
+ * imprimirIpQueEfetuouARequisicao: false
  */
 const debug = {
   imprimirHeaderDaRequisicao: false,
   imprimirCorpoDaRequisicao: false,
   imprimirHoraDaRequisicao: true,
-  imprimirIpQueEfetuouARequisicao: true
+  imprimirIpQueEfetuouARequisicao: false
 };
 
 /* Uma pequena brincadeira em arte ASCII no console. (Default: false) */
