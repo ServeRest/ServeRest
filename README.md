@@ -1,9 +1,10 @@
 
-
-
 # REST Server
 
 ### **Servidor REST para o QA estudar testes de API**
+
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+
 ---
 
  Esse material disponibiliza um servidor REST com dados de uma escola fictícia permitindo o estudo do uso de token no header, manipulação de resposta, requisições aninhadas e todos os principais verbos.
