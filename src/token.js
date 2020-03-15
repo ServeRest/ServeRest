@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-import { tokenTimeout as expiresIn } from "../conf.js";
+const { tokenTimeout: expiresIn } = require("../conf.js");
 
 const SECRET_KEY = "123456789";
 
@@ -12,4 +12,4 @@ function verifyToken(token) {
   return jwt.verify(token, SECRET_KEY, (err, decode) => (decode !== undefined ? decode : err));
 }
 
-export { createToken, verifyToken };
+module.exports = { createToken, verifyToken };

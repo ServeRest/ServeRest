@@ -35,4 +35,4 @@ const debug = {
 /* Uma pequena brincadeira em arte ASCII no console. (Default: false) */
 const zoeira = false;
 
-export { tokenTimeout, porta, reiniciarDadosAoSubirServidor, debug, zoeira };
+module.exports = { tokenTimeout, porta, reiniciarDadosAoSubirServidor, debug, zoeira };

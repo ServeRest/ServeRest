@@ -1,6 +1,6 @@
-import fs from "fs";
+const fs = require("fs");
 
-import { reiniciarDadosAoSubirServidor as restartFilesBeforeUpServer } from "../conf.js";
+const { reiniciarDadosAoSubirServidor: restartFilesBeforeUpServer } = require("../conf.js");
 
 function readAndOverwriteFile(readPath, writePath) {
   fs.readFile(readPath, (err, data) => {
@@ -27,4 +27,4 @@ function readUserFile() {
   return JSON.parse(fs.readFileSync("./data/users.json", "UTF-8"));
 }
 
-export { overwriteDataFilesWithbackupFiles, readUserFile };
+module.exports = { overwriteDataFilesWithbackupFiles, readUserFile };

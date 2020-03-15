@@ -1,12 +1,12 @@
-import bodyParser from "body-parser";
-import fs from "fs";
-import jsonServer from "json-server";
+const bodyParser = require("body-parser");
+const fs = require("fs");
+const jsonServer = require("json-server");
 
-import { porta } from "../conf.js";
-import printStartServerMessage from "./consoleMessage.js";
-import printDebugInfoOnConsole from "./debug.js";
-import { overwriteDataFilesWithbackupFiles, readUserFile } from "./readWriteFiles.js";
-import { createToken, verifyToken } from "./token.js";
+const { porta } = require("../conf.js");
+const printStartServerMessage = require("./consoleMessage.js");
+const printDebugInfoOnConsole = require("./debug.js");
+const { overwriteDataFilesWithbackupFiles, readUserFile } = require("./readWriteFiles.js");
+const { createToken, verifyToken } = require("./token.js");
 
 const server = jsonServer.create();
 const router = jsonServer.router("./data/db.json");
