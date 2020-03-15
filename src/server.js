@@ -1,100 +1,99 @@
-const bodyParser = require("body-parser");
-const fs = require("fs");
-const jsonServer = require("json-server");
+const bodyParser = require('body-parser')
+const fs = require('fs')
+const jsonServer = require('json-server')
 
-const { porta } = require("../conf.js");
-const printStartServerMessage = require("./consoleMessage.js");
-const printDebugInfoOnConsole = require("./debug.js");
-const { overwriteDataFilesWithbackupFiles, readUserFile } = require("./readWriteFiles.js");
-const { createToken, verifyToken } = require("./token.js");
+const { porta } = require('../conf.js')
+const printStartServerMessage = require('./consoleMessage.js')
+const printDebugInfoOnConsole = require('./debug.js')
+const { overwriteDataFilesWithbackupFiles, readUserFile } = require('./readWriteFiles.js')
+const { createToken, verifyToken } = require('./token.js')
 
-const server = jsonServer.create();
-const router = jsonServer.router("./data/db.json");
+const server = jsonServer.create()
+const router = jsonServer.router('./data/db.json')
 
-server.use(bodyParser.urlencoded({ extended: true }));
-server.use(bodyParser.json());
-server.use(jsonServer.defaults());
+server.use(bodyParser.urlencoded({ extended: true }))
+server.use(bodyParser.json())
+server.use(jsonServer.defaults())
 
-server.post("/auth/registrar", (req, res) => {
-  printDebugInfoOnConsole(req);
-  const { email, password } = req.body;
+server.post('/auth/registrar', (req, res) => {
+  printDebugInfoOnConsole(req)
+  const { email, password } = req.body
 
   if (!email || !password) {
-    res.status(400).json({ message: "Email ou password em branco" });
-    return;
+    res.status(400).json({ message: 'Email ou password em branco' })
+    return
   }
 
-  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
   if (!emailIsValid) {
-    res.status(400).json({ message: "Email inválido" });
-    return;
+    res.status(400).json({ message: 'Email inválido' })
+    return
   }
 
-  const emailAlreadyExist = readUserFile().users.findIndex(user => user.email === email) !== -1;
+  const emailAlreadyExist = readUserFile().users.findIndex(user => user.email === email) !== -1
 
   if (emailAlreadyExist) {
-    res.status(400).json({ message: "Email já cadastrado" });
-    return;
+    res.status(400).json({ message: 'Email já cadastrado' })
+    return
   }
 
-  fs.readFile("./data/users.json", "utf-8", (err, data) => {
+  fs.readFile('./data/users.json', 'utf-8', (err, data) => {
     if (err) {
-      res.status(500).json({ err });
-      return;
+      res.status(500).json({ err })
+      return
     }
-    var data = JSON.parse(data.toString());
-    data.users.push({ id: data.users.length + 1, email: email, password: password });
-    fs.writeFile("./data/users.json", JSON.stringify(data, null, "  "), "utf-8", err => {
+    data = JSON.parse(data.toString())
+    data.users.push({ id: data.users.length + 1, email: email, password: password })
+    fs.writeFile('./data/users.json', JSON.stringify(data, null, '  '), 'utf-8', err => {
       if (err) {
-        res.status(500).json({ err });
-        return;
+        res.status(500).json({ err })
       }
-    });
-  });
+    })
+  })
 
-  const token = createToken({ email, password });
-  res.status(201).json({ token });
-});
+  const token = createToken({ email, password })
+  res.status(201).json({ token })
+})
 
-server.post("/auth/login", (req, res) => {
-  printDebugInfoOnConsole(req);
-  const { email, password } = req.body;
+server.post('/auth/login', (req, res) => {
+  printDebugInfoOnConsole(req)
+  const { email, password } = req.body
   const existEmailAndPassword =
-    readUserFile().users.findIndex(user => user.email === email && user.password === password) !== -1;
+    readUserFile().users.findIndex(user => user.email === email && user.password === password) !== -1
   if (!existEmailAndPassword) {
-    res.status(400).json({ message: "Email ou password incorreto" });
-    return;
+    res.status(400).json({ message: 'Email ou password incorreto' })
+    return
   }
-  const token = createToken({ email, password });
-  res.status(200).json({ token });
-});
+  const token = createToken({ email, password })
+  res.status(200).json({ token })
+})
 
 server.use(/^(?!\/auth).*$/, (req, res, next) => {
-  printDebugInfoOnConsole(req);
+  printDebugInfoOnConsole(req)
   if (req.headers.authorization === undefined) {
-    res.status(401).json({ message: "Autenticação necessária" });
-    return;
+    res.status(401).json({ message: 'Autenticação necessária' })
+    return
   }
-  if (req.headers.authorization.split(" ")[0] !== "Bearer") {
-    res.status(401).json({ message: "Tipo de autenticação deve ser Bearer" });
-    return;
+  if (req.headers.authorization.split(' ')[0] !== 'Bearer') {
+    res.status(401).json({ message: 'Tipo de autenticação deve ser Bearer' })
+    return
   }
-  const token = req.headers.authorization.split(" ")[1];
-  if (token == undefined) {
-    res.status(401).json({ message: "Token de acesso vazio" });
-    return;
+  const token = req.headers.authorization.split(' ')[1]
+  if (token === undefined) {
+    res.status(401).json({ message: 'Token de acesso vazio' })
+    return
   }
   if (verifyToken(token) instanceof Error) {
-    res.status(401).json({ message: "Token de acesso não é válido" });
-    return;
+    res.status(401).json({ message: 'Token de acesso não é válido' })
+    return
   }
-  next();
-});
+  next()
+})
 
-server.use(router);
+server.use(router)
 
 server.listen(porta, () => {
-  overwriteDataFilesWithbackupFiles();
-  printStartServerMessage();
-});
+  overwriteDataFilesWithbackupFiles()
+  printStartServerMessage()
+})

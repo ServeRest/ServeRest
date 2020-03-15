@@ -1,24 +1,24 @@
-const fs = require("fs");
+const fs = require('fs')
 
-const colors = require("colors");
-const { porta, zoeira } = require("../conf.js");
+const colors = require('colors')
+const { porta, zoeira } = require('../conf.js')
 
-module.exports = function printStartServerMessage() {
+module.exports = function printStartServerMessage () {
   console.log(
-    "Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server".cyan
-  );
+    colors.cyan('Servidor REST para estudo de testes de API.\nDúvidas? Acesse: https://github.com/PauloGoncalvesBH/rest-server')
+  )
 
-  if (zoeira) console.log("\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻".yellow);
+  if (zoeira) console.log(colors.yellow('\n✧*｡٩(ˊᗜˋ*)و✧*｡ BORA ESTUDAR (╯°□°）╯︵ ┻━┻'))
 
-  const objectDb = JSON.parse(fs.readFileSync("./data/db.json", "UTF-8"));
+  const objectDb = JSON.parse(fs.readFileSync('./data/db.json', 'UTF-8'))
 
-  console.log(`\nEndpoints disponíveis que necessitam de autenticação:`.gray);
+  console.log(colors.gray('\nEndpoints disponíveis que necessitam de autenticação:'))
 
-  for (let endpoint in objectDb) {
-    console.log(`  http://localhost:${porta}/${endpoint}`.gray);
+  for (const endpoint in objectDb) {
+    console.log(colors.gray(`  http://localhost:${porta}/${endpoint}`))
   }
-  console.log("\nEndpoints exclusivos de autenticação:".gray);
-  console.log(`  http://localhost:${porta}/auth/login`.gray);
-  console.log(`  http://localhost:${porta}/auth/registrar\n`.gray);
-  console.log(`O servidor está de pé e em execução na porta ${porta}!`.green);
-};
+  console.log(colors.gray('\nEndpoints exclusivos de autenticação:'))
+  console.log(colors.gray(`  http://localhost:${porta}/auth/login`))
+  console.log(colors.gray(`  http://localhost:${porta}/auth/registrar\n`))
+  console.log(colors.green(`O servidor está de pé e em execução na porta ${porta}!`))
+}
