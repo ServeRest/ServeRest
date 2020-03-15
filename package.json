@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "body-parser": "^1.19.0",
-    "colors": "^1.3.3",
+    "colors": "^1.4.0",
     "json-server": "^0.15.0",
     "jsonwebtoken": "^8.5.1"
   },
