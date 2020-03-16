@@ -1,7 +1,9 @@
+'use strict'
+
 const fs = require('fs')
 
 const colors = require('colors')
-const { porta, zoeira } = require('../conf.js')
+const { porta, zoeira } = require('../../conf.js')
 
 module.exports = function printStartServerMessage () {
   console.log(

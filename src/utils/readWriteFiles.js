@@ -1,6 +1,8 @@
+'use strict'
+
 const fs = require('fs')
 
-const { reiniciarDadosAoSubirServidor: restartFilesBeforeUpServer } = require('../conf.js')
+const { reiniciarDadosAoSubirServidor: restartFilesBeforeUpServer } = require('../../conf.js')
 
 function readAndOverwriteFile (readPath, writePath) {
   fs.readFile(readPath, (err, data) => {

@@ -9,7 +9,7 @@
   "license": "MIT",
   "scripts": {
     "commit": "git-cz",
-    "start": "node ./src/server.js",
+    "start": "node index.js",
     "lint": "standard",
     "lint:fix": "standard --fix"
   },

@@ -1,11 +1,13 @@
+'use strict'
+
 const jwt = require('jsonwebtoken')
 
-const { tokenTimeout: expiresIn } = require('../conf.js')
+const { tokenTimeout } = require('../../conf.js')
 
 const SECRET_KEY = '123456789'
 
 function createToken (payload) {
-  return jwt.sign(payload, SECRET_KEY, { expiresIn })
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: tokenTimeout })
 }
 
 function verifyToken (token) {

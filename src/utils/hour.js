@@ -1,3 +1,5 @@
+'use strict'
+
 function addZeroToLeft (number, wantedNumberOfCharacters) {
   while (number.toString().length < wantedNumberOfCharacters) {
     number = '0' + number
