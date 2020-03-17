@@ -2,6 +2,7 @@
 
 const bodyParser = require('body-parser')
 const jsonServer = require('json-server')
+const { join } = require('path')
 
 const { autenticacao } = require('./authentication')
 const { conf } = require('./conf')
@@ -10,8 +11,10 @@ const printStartServerMessage = require('./utils/consoleMessage.js')
 const { overwriteDataFilesWithbackupFiles } = require('./utils/readWriteFiles.js')
 const { login, registrar } = require('./routes/index')
 
+const dirDbJson = join(__dirname, '../data/db.json')
+
 const server = jsonServer.create()
-const router = jsonServer.router('./data/db.json')
+const router = jsonServer.router(dirDbJson)
 
 module.exports = function serverest () {
   server.use(bodyParser.urlencoded({ extended: true }))
