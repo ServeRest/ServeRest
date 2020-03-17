@@ -1,9 +1,12 @@
 'use strict'
 
 const fs = require('fs')
+const { join } = require('path')
 
 const { readUserFile } = require('../utils/readWriteFiles.js')
 const { createToken } = require('../utils/token.js')
+
+const dirUsersJson = join(__dirname, '../../data/users.json')
 
 module.exports = function registrar (req, res) {
   const { email, password } = req.body
@@ -27,14 +30,14 @@ module.exports = function registrar (req, res) {
     return
   }
 
-  fs.readFile('./data/users.json', 'utf-8', (err, data) => {
+  fs.readFile(dirUsersJson, 'utf-8', (err, data) => {
     if (err) {
       res.status(500).json({ err })
       return
     }
     data = JSON.parse(data.toString())
     data.users.push({ id: data.users.length + 1, email: email, password: password })
-    fs.writeFile('./data/users.json', JSON.stringify(data, null, '  '), 'utf-8', err => {
+    fs.writeFile(dirUsersJson, JSON.stringify(data, null, '  '), 'utf-8', err => {
       if (err) {
         res.status(500).json({ err })
       }

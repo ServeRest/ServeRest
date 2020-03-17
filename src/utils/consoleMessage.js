@@ -1,9 +1,12 @@
 'use strict'
 
 const fs = require('fs')
+const { join } = require('path')
 
 const colors = require('colors')
 const { conf } = require('../conf')
+
+const dirDbJson = join(__dirname, '../../data/db.json')
 
 module.exports = function printStartServerMessage () {
   console.log(colors.blue.bold('\n=== ServeRest ===\n'))
@@ -14,7 +17,7 @@ module.exports = function printStartServerMessage () {
   debug: ${conf.debug}
 }`))
 
-  const objectDb = JSON.parse(fs.readFileSync('./data/db.json', 'UTF-8'))
+  const objectDb = JSON.parse(fs.readFileSync(dirDbJson, 'UTF-8'))
 
   console.log(colors.yellow.bold('\nEndpoints disponíveis que necessitam de autenticação:'))
 
