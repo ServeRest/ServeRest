@@ -25,19 +25,19 @@ Após isso surgirão as seguintes mensagens no terminal:
 
 Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
-> Não tem teste de API pronto pra executar e testar o servidor? Visite a seção [Exemplo de teste utilizando o ServeRest](#Exemplo-de-teste-utilizando-o-ServeRest).
+> Não tem teste de API pronto pra executar e testar o servidor? Visite a seção [Exemplo de teste utilizando o ServeRest](#exemplo-de-teste-utilizando-o-ServeRest).
 
 ## Sumário
-- [Executando o ServeRest](#Executando-o-ServeRest)
-- [Ajuda](#Ajuda)
-- [Configuração](#Configuração)
-    - [Exemplos](#Exemplos)
-- [Recursos existentes](#Recursos-existentes)
-- [Consumindo os endpoints](#Consumindo-os-endpoints)
-- [Dica](#Dica)
-- [Debug](#Debug)
-- [Exemplo de teste utilizando o ServeRest](#Exemplo-de-teste-utilizando-o-ServeRest)
-- [Preciso de ajuda](#Preciso-de-ajuda)
+- [Executando o ServeRest](#executando-o-serverest)
+- [Ajuda](#ajuda)
+- [Configuração](#config)
+    - [Exemplos](#exemplos)
+- [Recursos existentes](#recursos-existentes)
+- [Consumindo os endpoints](#consumindo-os-endpoints)
+- [Dica](#dica)
+- [Debug](#debug)
+- [Exemplo de teste utilizando o ServeRest](#exemplo-de-teste-utilizando-o-serverest)
+- [Preciso de ajuda](#preciso-de-ajuda)
 
 ## Ajuda
 
@@ -47,13 +47,13 @@ Para visualizar todos os comandos existentes, como utilizar e exemplos, execute 
 npx serverest -h
 ```
 
-## Configuração
+## Config
 
 É possível definir algumas configurações, que são:
 - Tempo de expiração do token em segundos. ```(Default: 60)```
 - Porta utilizada pelo servidor. ```(Default: 3000)```
 - Debug, que imprime dados de requisições no console. ```(Default: false)```
-> Sobre debug, veja mais na seção [Debug](#Debug).
+> Sobre debug, veja mais na seção [Debug](#debug).
 
 Para subir o **ServeRest** com determinada configuração, envie o comando de início do servidor com
 - Timeout do token: `-t` ou `--timeout`
@@ -124,7 +124,7 @@ npx serverest -d --timeout 30
 
 > **Dica:** As alterações são persistidas, para voltar ao estado inicial reinicie o **ServeRest**.
 
-Para poder consumir os serviços disponibilizados e listados [aqui](#Recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
+Para poder consumir os serviços disponibilizados e listados [aqui](#recursos-existentes) é preciso que esteja autenticado. Ou seja, consiga o token de acesso e passe ele no header da requisição.
 
 Dessa forma, terá que lidar com os endpoints ```login``` e/ou ```registrar``` para que consiga o token que é enviado via resposta dos mesmos.
 
@@ -158,7 +158,7 @@ Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
 
 > **Observaçôes:**
 > - O tipo de autenticação utilizado é o Bearer.
-> - O token possui tempo de duração. Veja mais na seção [configuração](#configuração).
+> - O token possui tempo de duração. Veja mais na seção [configuração](#config).
 > - Os usuários ficam armazenados no arquivo [users.json](/data/users.json).
 
 Exemplo de requisição fazendo o login e passando o token de autenticação retornado no header para uma requisição de GET no endpoint turmas:
