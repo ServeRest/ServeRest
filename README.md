@@ -55,13 +55,15 @@ npx serverest -h
 - Debug, que imprime dados de requisições no console. ```(Default: false)```
 > Sobre debug, veja mais na seção [Debug](#debug).
 
-Para subir o **ServeRest** com determinada configuração, envie o comando de início do servidor com
+Para subir o **ServeRest** com determinada configuração, envie o comando de início do servidor com a respectiva configuração, como:
 - Timeout do token: `-t` ou `--timeout`
   - `npx serverest --timeout 20`
 - Porta: `-p` ou `--porta`
   - `npx serverest --porta 3030`
 - Debug: `-d` ou `--debug`
   - `npx serverest -d`
+
+Os comandos de timeout, porta e debug podem ser combinados e a ordem não importa.
 
 > As configurações são apresentadas no terminal ao subir o servidor
 
@@ -157,7 +159,7 @@ Envie esse token no header das requisições para que esteja autenticado:
 Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
 
 > **Observaçôes:**
-> - O tipo de autenticação utilizado é o Bearer.
+> - O tipo de autenticação utilizado é o `Bearer`.
 > - O token possui tempo de duração. Veja mais na seção [configuração](#config).
 > - Os usuários ficam armazenados no arquivo [users.json](/data/users.json).
 
