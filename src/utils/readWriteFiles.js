@@ -2,8 +2,6 @@
 
 const fs = require('fs')
 
-const { reiniciarDadosAoSubirServidor: restartFilesBeforeUpServer } = require('../../conf.js')
-
 function readAndOverwriteFile (readPath, writePath) {
   fs.readFile(readPath, (err, data) => {
     if (err) {
@@ -19,10 +17,8 @@ function readAndOverwriteFile (readPath, writePath) {
 }
 
 function overwriteDataFilesWithbackupFiles () {
-  if (restartFilesBeforeUpServer) {
-    readAndOverwriteFile('./data/backup/db.json', './data/db.json')
-    readAndOverwriteFile('./data/backup/users.json', './data/users.json')
-  }
+  readAndOverwriteFile('./data/backup/db.json', './data/db.json')
+  readAndOverwriteFile('./data/backup/users.json', './data/users.json')
 }
 
 function readUserFile () {

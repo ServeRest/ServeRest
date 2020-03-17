@@ -2,12 +2,12 @@
 
 const jwt = require('jsonwebtoken')
 
-const { tokenTimeout } = require('../../conf.js')
+const { conf } = require('../conf.js')
 
 const SECRET_KEY = '123456789'
 
 function createToken (payload) {
-  return jwt.sign(payload, SECRET_KEY, { expiresIn: tokenTimeout })
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: conf.tokenTimeout })
 }
 
 function verifyToken (token) {

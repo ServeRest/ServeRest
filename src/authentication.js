@@ -1,10 +1,8 @@
 'use strict'
 
-const printDebugInfoOnConsole = require('./utils/debug.js')
 const { verifyToken } = require('./utils/token.js')
 
 function autenticacao (req, res) {
-  printDebugInfoOnConsole(req)
   if (req.headers.authorization === undefined) {
     res.status(401).json({ message: 'Autenticação necessária' })
     return

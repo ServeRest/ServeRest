@@ -2,12 +2,10 @@
 
 const fs = require('fs')
 
-const printDebugInfoOnConsole = require('../utils/debug.js')
 const { readUserFile } = require('../utils/readWriteFiles.js')
 const { createToken } = require('../utils/token.js')
 
 module.exports = function registrar (req, res) {
-  printDebugInfoOnConsole(req)
   const { email, password } = req.body
 
   if (!email || !password) {
