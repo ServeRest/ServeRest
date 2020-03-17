@@ -34,7 +34,8 @@ Pronto, já pode iniciar o seu estudo de testes de API \o/.
     - [Exemplos](#exemplos)
 - [Recursos existentes](#recursos-existentes)
 - [Consumindo os endpoints](#consumindo-os-endpoints)
-- [Dica](#dica)
+    - [Dica](#dica)
+- [Performance](#performance)
 - [Debug](#debug)
 - [Exemplo de teste utilizando o ServeRest](#exemplo-de-teste-utilizando-o-serverest)
 - [Preciso de ajuda](#preciso-de-ajuda)
@@ -186,6 +187,17 @@ Exemplo de requisição fazendo o login e passando o token de autenticação ret
 No terminal são apresentadas algumas informações úteis das requisições realizadas.
 
 ![Requests no terminal](/img/terminalRequests.png)
+
+## Performance
+
+A cada inicialização do servidor utilizando `npx` é realizado o download e a instalação das dependências necessárias, demandando tempo próximo de 20 segundos (boa conexão de rede e SSD).
+
+Para ter rápido início do servidor, instale o **ServeRest** globalmente:
+
+```sh
+npm install -g serverest@latest
+```
+Dessa forma, ao iniciar o servidor não haverá download e instalação, ocorrendo apenas o consumo do pacote baixado globalmente.
 
 ## Debug
  Foi implementado debug que imprime no console as informações da requisição feita ao endpoint.
