@@ -51,14 +51,14 @@ npx serverest -h
 ## Config
 
 É possível definir algumas configurações, que são:
-- Tempo de expiração do token em segundos. ```(Default: 60)```
+- Tempo de expiração do token em milissegundos. ```(Default: 1000)```
 - Porta utilizada pelo servidor. ```(Default: 3000)```
 - Debug, que imprime dados de requisições no console. ```(Default: false)```
 > Sobre debug, veja mais na seção [Debug](#debug).
 
 Para subir o **ServeRest** com determinada configuração, envie o comando de início do servidor com a respectiva configuração, como:
 - Timeout do token: `-t` ou `--timeout`
-  - `npx serverest --timeout 20`
+  - `npx serverest --timeout 4000`
 - Porta: `-p` ou `--porta`
   - `npx serverest --porta 3030`
 - Debug: `-d` ou `--debug`
@@ -75,9 +75,9 @@ Servidor na `porta` 3030 e em modo de `debug`:
 npx serverest -p 3030 -d
 ```
 
-Servidor em modo de `debug` e 30 segundos de `timeout`:
+Servidor em modo de `debug` e 2 segundos de `timeout`:
 ```sh
-npx serverest -d --timeout 30
+npx serverest -d --timeout 2000
 ```
 
 ## Recursos existentes 

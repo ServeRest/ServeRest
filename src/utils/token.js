@@ -7,7 +7,7 @@ const { conf } = require('../conf.js')
 const SECRET_KEY = '123456789'
 
 function createToken (payload) {
-  return jwt.sign(payload, SECRET_KEY, { expiresIn: conf.tokenTimeout })
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: `${conf.tokenTimeout}ms` })
 }
 
 function verifyToken (token) {

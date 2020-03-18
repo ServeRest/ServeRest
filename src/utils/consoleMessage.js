@@ -13,7 +13,7 @@ module.exports = function printStartServerMessage () {
 
   console.log(colors.yellow(`Configuração = {
   porta: ${conf.porta}
-  token-timeout: ${conf.tokenTimeout}s
+  token-timeout: ${conf.tokenTimeout}ms
   debug: ${conf.debug}
 }`))
 
