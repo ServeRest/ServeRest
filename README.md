@@ -48,6 +48,12 @@ Para visualizar todos os comandos existentes, como utilizar e exemplos, execute 
 npx serverest -h
 ```
 
+<details><summary>Abra para ver imagem do terminal após o comando de ajuda</summary>
+
+![Informação de opções e exemplos fornecidos no terminal](./img/terminalHelp.png)
+
+</details>
+
 ## Config
 
 É possível definir algumas configurações, que são:
