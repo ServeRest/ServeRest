@@ -18,14 +18,15 @@ Para iniciar o _ServeRest_ envie o seguinte comando:
 ```sh
 npx serverest
 ```
-
-Após isso surgirão as seguintes mensagens no terminal:
+<details><summary>Abra para ver imagem do terminal com o ServeRest de pé</summary>
 
 ![Mensagem de execução com sucesso no terminal](./img/terminalServidorDePe.png)
 
 Pronto, já pode iniciar o seu estudo de testes de API \o/.
 
-> Não tem teste de API pronto pra executar e testar o servidor? Visite a seção [Exemplo de teste utilizando o ServeRest](#exemplo-de-teste-utilizando-o-ServeRest).
+</details>
+
+> Não tem teste de API pronto pra executar e testar o servidor? Visite a seção [Exemplo de teste utilizando o ServeRest](#exemplo-de-teste-utilizando-o-serverest).
 
 ## Sumário
 - [Executando o ServeRest](#executando-o-serverest)
@@ -72,7 +73,7 @@ Para subir o **ServeRest** com determinada configuração, envie o comando de in
 
 Os comandos de timeout, porta e debug podem ser combinados e a ordem não importa.
 
-> As configurações são apresentadas no terminal ao subir o servidor
+> As configurações são apresentadas no terminal ao subir o servidor.
 
 ### Exemplos
 
@@ -218,7 +219,7 @@ Dessa forma, ao iniciar o servidor não haverá download e instalação, ocorren
 
 ## Exemplo de teste utilizando o ServeRest
 
- Caso queira testar o **ServeRest** e não tem tempo para criar testes de API, visite [esse repositório](https://github.com/PauloGoncalvesBH/api-test). Em poucos minutos terá o servidor de pé e os testes sendo executados.
+ Caso queira testar o **ServeRest** de forma rápida, sem criar testes de API, visite [esse repositório](https://github.com/PauloGoncalvesBH/api-test). Em poucos minutos terá o servidor de pé e os testes sendo executados.
 
 ## Preciso de ajuda
 
