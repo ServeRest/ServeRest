@@ -16,6 +16,12 @@
     "type": "git",
     "url": "git://github.com/PauloGoncalvesBH/serverest.git"
   },
+  "keywords": [
+    "testing",
+    "server",
+    "rest",
+    "api"
+  ],
   "scripts": {
     "commit": "git-cz",
     "start": "node index.js",
