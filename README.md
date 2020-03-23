@@ -1,10 +1,10 @@
-
 # ServeRest
 
 ### **Servidor REST local para estudo de testes de API**
 
 [![npm version](https://badge.fury.io/js/serverest.svg)](https://npmjs.com/package/serverest)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_shield)
 
 ---
 
@@ -231,3 +231,7 @@ Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://githu
 _Made with ♥ by npx paulogoncalves_
 
 [MIT License](./LICENSE)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_large)
