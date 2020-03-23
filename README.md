@@ -15,6 +15,7 @@ Todos os endpoints disponíveis aceitam os verbos *GET, POST, PUT, PATCH* e *DEL
 ## Links
 
 - **[Documentação](https://serverest.js.org/)**
+- [Código de conduta](/CODE_OF_CONDUCT.md)
 
 ## Executando o ServeRest
 
