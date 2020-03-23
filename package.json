@@ -1,7 +1,7 @@
 {
   "name": "serverest",
   "version": "1.1.4",
-  "description": "Servidor REST local para estudo de testes de API",
+  "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "MIT",
   "main": "index.js",
@@ -16,6 +16,7 @@
     "type": "git",
     "url": "git://github.com/PauloGoncalvesBH/serverest.git"
   },
+  "homepage": "https://serverest.js.org/",
   "keywords": [
     "testing",
     "server",

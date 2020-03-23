@@ -210,6 +210,4 @@ Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://githu
 
 ---
 
-_Made with ♥ by npx paulogoncalves_
-
 [MIT License](./LICENSE)
