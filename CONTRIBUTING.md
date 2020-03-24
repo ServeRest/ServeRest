@@ -56,3 +56,12 @@ Usamos o [commitizen](https://github.com/commitizen/cz-cli) para tornar o reposi
 Utilizamos o [Better Code Hub](https://bettercodehub.com/) na análise da qualidade do repositório.
 
 Caso o seu Pull Request reduza a pontuação do repositório, o mesmo será automaticamente reprovado.
+
+## Documentação
+
+A documentação, hospedada em https://serverest.js.org/, está toda concentrada dentro do diretório [docs/](./docs) e foi criada utilizando o [Docsify](https://docsify.js.org/).
+
+Para verificar o resultado da alteração da documentação execute o comando
+`docsify serve docs`. A documentação estará disponível em `localhost:3000`.
+
+ Faça o Pull Request quando a alteração atender ao seu objetivo.
