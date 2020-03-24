@@ -131,8 +131,8 @@ POST http://localhost:3000/auth/registrar
 Passando o seguinte corpo:
 ``` json
 {
-  email: "paulo@email.com",
-  password: "paulo"
+  "email": "paulo@email.com",
+  "password": "paulo"
 }
 ```
 Receberá o token na resposta:
