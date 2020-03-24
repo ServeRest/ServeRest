@@ -111,7 +111,7 @@ npx serverest -d --timeout 2000
 
 </p> </details>
 
-> **Dica:** Pode ver os endpoints, exceto os de autenticação, direto no arquivo fonte [db.json](/data/db.json).
+> **Dica:** Pode ver os endpoints, exceto os de autenticação, direto no arquivo fonte [db.json](https://github.com/PauloGoncalvesBH/serverest/blob/master/data/db.json).
 
 ## Consumindo os endpoints
 
@@ -152,7 +152,7 @@ Pronto, agora conseguirá consumir todos os endpoints disponibilizados.
 > **Observaçôes:**
 > - O tipo de autenticação utilizado é o `Bearer`.
 > - O token possui tempo de duração. Veja mais na seção [configuração](#config).
-> - Os usuários ficam armazenados no arquivo [users.json](/data/users.json).
+> - Os usuários ficam armazenados no arquivo [users.json](https://github.com/PauloGoncalvesBH/serverest/blob/master/data/users.json).
 
 Exemplo de requisição fazendo o login e passando o token de autenticação retornado no header para uma requisição de GET no endpoint turmas:
 ``` javascript
@@ -210,4 +210,4 @@ Está com algum problema e precisa de ajuda? Abra uma [issue aqui](https://githu
 
 ---
 
-[MIT License](./LICENSE)
+[Licença MIT](https://github.com/PauloGoncalvesBH/serverest/blob/master/LICENSE)
