@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "commit": "git-cz",
+    "doc": "npx docsify serve docs",
     "start": "node index.js",
     "lint": "standard",
     "lint:fix": "standard --fix"
@@ -48,6 +49,7 @@
     "@commitlint/config-conventional": "^8.3.4",
     "commitizen": "^4.0.3",
     "cz-conventional-changelog": "^3.1.0",
+    "docsify-cli": "^4.4.0",
     "husky": "^4.2.3",
     "standard": "^14.3.2"
   },

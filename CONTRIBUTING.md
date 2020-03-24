@@ -62,6 +62,6 @@ Caso o seu Pull Request reduza a pontuação do repositório, o mesmo será auto
 A documentação, hospedada em https://serverest.js.org/, está toda concentrada dentro do diretório [docs/](./docs) e foi criada utilizando o [Docsify](https://docsify.js.org/).
 
 Para verificar o resultado da alteração da documentação execute o comando
-`docsify serve docs`. A documentação estará disponível em `localhost:3000`.
+`npm run doc`. A documentação estará disponível em `localhost:3000`.
 
  Faça o Pull Request quando a alteração atender ao seu objetivo.
