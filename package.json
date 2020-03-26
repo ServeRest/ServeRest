@@ -28,7 +28,9 @@
     "doc": "npx docsify serve docs",
     "start": "node index.js",
     "lint": "standard",
-    "lint:fix": "standard --fix"
+    "lint:fix": "standard --fix",
+    "prerelease": "npm run lint",
+    "release": "npx standard-version --no-verify"
   },
   "husky": {
     "hooks": {
