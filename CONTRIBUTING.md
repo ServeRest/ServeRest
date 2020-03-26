@@ -3,6 +3,7 @@
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 ---
 
@@ -40,10 +41,13 @@ Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrado
 ### Commit
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
-As mensagens de commit devem seguir o padrão do [versionamento semântico](https://semver.org/).
+As mensagens de commit devem seguir o padrão do [versionamento semântico](https://www.conventionalcommits.org/).
 
 Caso não conheça o padrão, use `git commit` ou `npm run commit` para ter um painel interativo que permite seguir o padrão de commit.
+
+> Não inserir a extensão do arquivo ao preencher o escopo
 
 Usamos o [commitizen](https://github.com/commitizen/cz-cli) para tornar o repositório commitizen friendly.
 
