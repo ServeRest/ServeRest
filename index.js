@@ -10,7 +10,7 @@ const argv = require('yargs')
     debug: conf.debug,
     timeout: conf.tokenTimeout
   })
-  .boolean(['debug', 'zoeira'])
+  .boolean('debug')
   .number(['timeout', 'porta'])
   .alias('v', 'version')
   .alias('p', 'porta')
