@@ -9,6 +9,6 @@
 
 - Pode ser utilizado para estudo de testes de API REST
 
-[NPM](https://npmjs.com/package/serverest)
-[GitHub](https://github.com/PauloGoncalvesBH/serverest)
-[Comece agora](?id=comece-agora)
+[**NPM**](https://npmjs.com/package/serverest)
+[**GitHub**](https://github.com/PauloGoncalvesBH/serverest)
+**[Comece agora](?id=comece-agora)**
