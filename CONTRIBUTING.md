@@ -74,6 +74,40 @@ Utilizamos o [Better Code Hub](https://bettercodehub.com/) na análise da qualid
 
 Caso o seu Pull Request reduza a pontuação do repositório, o mesmo será automaticamente reprovado.
 
+## Execução do Projeto via Makefile
+
+Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, build e parar o projeto usando o docker. Pode ser executados o seguintes comandos:
+
+### Build 
+Pra fazer o build da imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make build
+```
+
+### Build/run 
+Pra fazer o build e executar a imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make build/run
+```
+
+### Run 
+Pra executar a imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make run
+```
+
+### Stop 
+Pra  parar a execução da imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make stop
+```
+
+### Clean
+Pra apagar a imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make clean
+```
+
 ## Documentação
 
 A documentação, hospedada em https://serverest.js.org/, está toda concentrada dentro do diretório [docs/](./docs) e foi criada utilizando o [Docsify](https://docsify.js.org/).
