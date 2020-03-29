@@ -1,0 +1,20 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  continuous_integration:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup 
+      uses: actions/setup-node@v1.1.0
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Lint
+      run: npm run lint
+    - name: Unit tests
+      run: npm test

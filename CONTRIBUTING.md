@@ -1,6 +1,7 @@
 
 # Como contribuir
 
+[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/serverest/actions)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
@@ -25,7 +26,9 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 3. Faça as alterações necessárias;
 4. Execute os testes e validação de estilo com `npm run validate`;
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
-6. Aguarde feedback ou aprovação.
+6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
+
+> Pull Requests que não passarem nas validações da integração contínua não serão revisados.
 
 ## Testes
  Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
