@@ -47,7 +47,7 @@ function cadastrarUsuario (email, password) {
   })
 }
 
-module.exports = function registrar (request, response) {
+function registrar (request, response) {
   const { email, password } = request.body
 
   const emailESenhaValido = validarEmailESenha(email, password)
@@ -59,4 +59,11 @@ module.exports = function registrar (request, response) {
   cadastrarUsuario(email, password)
 
   response.status(201).json({ token: createToken({ email, password }) })
+}
+
+module.exports = {
+  emailAlreadyExist,
+  emailIsValid,
+  registrar,
+  validarEmailESenha
 }

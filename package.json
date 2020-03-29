@@ -27,16 +27,18 @@
     "commit": "git-cz",
     "doc": "npx docsify serve docs",
     "start": "node index.js",
+    "test": "mocha",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "prerelease": "npm run lint",
+    "validate": "npm run lint && npm test",
+    "prerelease": "npm run validate",
     "release": "npx standard-version --no-verify"
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
-      "pre-commit": "npm run lint"
+      "pre-commit": "npm run validate"
     }
   },
   "dependencies": {
@@ -49,10 +51,12 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
+    "chai": "^4.2.0",
     "commitizen": "^4.0.3",
     "cz-conventional-changelog": "^3.1.0",
     "docsify-cli": "^4.4.0",
     "husky": "^4.2.3",
+    "mocha": "^7.1.1",
     "standard": "^14.3.2"
   },
   "config": {

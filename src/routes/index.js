@@ -2,5 +2,5 @@
 
 module.exports = {
   login: require('./login'),
-  registrar: require('./registrar')
+  registrar: require('./registrar').registrar
 }

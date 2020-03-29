@@ -7,6 +7,8 @@
 
 ---
 
+**Esse documento apresenta todas as informações necessárias para que possa colaborar com o projeto de forma independente.**
+
 Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes:
 
 - Localizando e relatando bugs
@@ -21,8 +23,16 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub e, em seguida, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador;
 2. Instale as dependências de desenvolvimento: `npm install`;
 3. Faça as alterações necessárias;
-4. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
-5. Aguarde feedback ou aprovação.
+4. Execute os testes e validação de estilo com `npm run validate`;
+5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
+6. Aguarde feedback ou aprovação.
+
+## Testes
+ Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
+
+ Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e validados com [chai](https://www.npmjs.com/package/chai).
+
+ Para executá-los, execute o comando `npm test`.
 
 ## Estilo
 
