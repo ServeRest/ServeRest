@@ -2,13 +2,11 @@
 
 const express = require('express')
 
-const validateSchema = require('../services/validateSchema-service')
+const controller = require('../controllers/login-controller')
 const model = require('../models/login-model')
+const validateSchema = require('../services/validateSchema-service')
 
 const router = express.Router()
-
-const controller = require('../controllers/login-controller')
-
 router.post('/', validateSchema(model.schemaPost), controller.post)
 
 module.exports = router
