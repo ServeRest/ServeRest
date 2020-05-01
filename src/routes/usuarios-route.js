@@ -7,7 +7,6 @@ const model = require('../models/usuarios-model')
 
 const router = express.Router()
 
-// const authService = require('../services/auth-service')
 const controller = require('../controllers/usuarios-controller')
 
 router.get('/', validateSchema(model.schemaGet), controller.get)
