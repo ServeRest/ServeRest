@@ -26,7 +26,7 @@
   "scripts": {
     "commit": "git-cz",
     "doc": "npx docsify serve docs",
-    "start": "node index.js",
+    "start": "nodemon ./bin/server.js",
     "test": "mocha",
     "lint": "standard",
     "lint:fix": "standard --fix",
@@ -42,22 +42,28 @@
     }
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
     "colors": "^1.4.0",
-    "json-server": "^0.16.1",
+    "express": "^4.17.1",
+    "express-query-int": "^3.0.0",
+    "express-validation": "^3.0.2",
     "jsonwebtoken": "^8.5.1",
-    "yargs": "^15.3.0"
+    "morgan": "^1.10.0",
+    "nedb": "^1.8.0",
+    "open": "^7.0.3",
+    "swagger-ui-express": "^4.1.4",
+    "yargs": "^15.3.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
     "chai": "^4.2.0",
-    "commitizen": "^4.0.3",
+    "commitizen": "^4.0.4",
     "cz-conventional-changelog": "^3.1.0",
     "docsify-cli": "^4.4.0",
-    "husky": "^4.2.3",
-    "mocha": "^7.1.1",
-    "standard": "^14.3.2"
+    "husky": "^4.2.5",
+    "mocha": "^7.1.2",
+    "nodemon": "^2.0.3",
+    "standard": "^14.3.3"
   },
   "config": {
     "commitizen": {
