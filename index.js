@@ -6,7 +6,7 @@ const { conf } = require('./src/conf')
 
 const argv = require('yargs')
   .default({
-    porta: conf.porta,
+    porta: conf.porta || 1,
     debug: conf.debug,
     timeout: conf.tokenTimeout
   })
