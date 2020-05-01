@@ -18,7 +18,7 @@ app.disable('x-powered-by')
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.use(logger('dev'))
 
-// app.use('/login',  require('./routes/turmas-route'))
+app.use('/login', require('./routes/login-route'))
 app.use('/usuarios', require('./routes/usuarios-route'))
 // app.use('/carrinhos',  require('./routes/turmas-route'))
 // app.use('/produtos',  require('./routes/turmas-route'))
