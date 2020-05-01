@@ -5,5 +5,7 @@ module.exports = {
   POST_SUCESS: 'Cadastro realizado com sucesso',
   DELETE_SUCESS: 'Registro excluído com sucesso',
   DELETE_NONE: 'Nenhum registro excluído',
-  PUT_SUCESS: 'Registro alterado com sucesso'
+  PUT_SUCESS: 'Registro alterado com sucesso',
+  LOGIN_SUCESS: 'Login realizado com sucesso',
+  LOGIN_FAIL: 'Email e/ou senha inválidos'
 }

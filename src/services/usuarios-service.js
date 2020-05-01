@@ -23,6 +23,15 @@ exports.existeUsuarioComEsseEmail = email => {
   })
 }
 
+exports.existeUsuarioComEsseEmailESenha = emailSenha => {
+  return new Promise((resolve, reject) => {
+    datastore.count(emailSenha, (err, count) => {
+      if (err) reject(err)
+      else resolve(count !== 0)
+    })
+  })
+}
+
 exports.createUser = async body => {
   return new Promise((resolve, reject) => {
     datastore.insert(body, (err, novoUsuario) => {
