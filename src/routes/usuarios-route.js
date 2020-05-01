@@ -2,13 +2,11 @@
 
 const express = require('express')
 
-const validateSchema = require('../services/validateSchema-service')
+const controller = require('../controllers/usuarios-controller')
 const model = require('../models/usuarios-model')
+const validateSchema = require('../services/validateSchema-service')
 
 const router = express.Router()
-
-const controller = require('../controllers/usuarios-controller')
-
 router.get('/', validateSchema(model.schemaGet), controller.get)
 router.post('/', validateSchema(model.schemaPost), controller.post)
 router.delete('/:id', validateSchema(model.schemaDelete), controller.delete)
