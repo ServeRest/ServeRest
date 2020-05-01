@@ -1,5 +1,6 @@
 'use strict'
 
+const timeout = require('connect-timeout')
 const express = require('express')
 const logger = require('morgan')
 const queryParser = require('express-query-int')
@@ -12,6 +13,7 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
+app.use(timeout())
 app.disable('x-powered-by')
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.use(logger('dev'))
