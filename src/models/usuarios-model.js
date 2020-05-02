@@ -28,13 +28,6 @@ exports.schemaDelete = {
 }
 
 exports.schemaPut = {
-  params: Joi.object({
-    id: Joi.string().required()
-  }),
-  body: Joi.object({
-    nome: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-    administrador: Joi.any().valid('true', 'false').required()
-  })
+  params: this.schemaDelete.params,
+  body: this.schemaPost.body
 }
