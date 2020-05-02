@@ -28,13 +28,6 @@ exports.schemaDelete = {
 }
 
 exports.schemaPut = {
-  params: Joi.object({
-    id: Joi.string().required()
-  }),
-  body: Joi.object({
-    nome: Joi.string().required(),
-    preco: Joi.number().positive().integer().required(),
-    descricao: Joi.string().required(),
-    quantidade: Joi.number().min(0).integer().required()
-  })
+  params: this.schemaDelete.params,
+  body: this.schemaPost.body
 }
