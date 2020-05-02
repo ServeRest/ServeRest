@@ -14,56 +14,48 @@ exports.getAll = queryString => {
   })
 }
 
-// exports.existeUsuarioComEsseEmail = email => {
-//   return new Promise((resolve, reject) => {
-//     datastore.count({ email }, (err, count) => {
-//       if (err) reject(err)
-//       else resolve(count !== 0)
-//     })
-//   })
-// }
+exports.existeProdutoComEsseNome = nome => {
+  nome = nome.trim()
+  return new Promise((resolve, reject) => {
+    datastore.count({ nome }, (err, count) => {
+      if (err) reject(err)
+      else resolve(count !== 0)
+    })
+  })
+}
 
-// exports.existeUsuarioComEsseEmailESenha = emailSenha => {
-//   return new Promise((resolve, reject) => {
-//     datastore.count(emailSenha, (err, count) => {
-//       if (err) reject(err)
-//       else resolve(count !== 0)
-//     })
-//   })
-// }
+exports.criarProduto = async body => {
+  body = formatarValores(body)
+  return new Promise((resolve, reject) => {
+    datastore.insert(body, (err, novoProduto) => {
+      if (err) reject(err)
+      else resolve(novoProduto)
+    })
+  })
+}
 
-// exports.createUser = async body => {
-//   return new Promise((resolve, reject) => {
-//     datastore.insert(body, (err, novoUsuario) => {
-//       if (err) reject(err)
-//       else resolve(novoUsuario)
-//     })
-//   })
-// }
+exports.deleteById = async id => {
+  return new Promise((resolve, reject) => {
+    datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
+      if (err) reject(err)
+      else resolve(quantidadeRegistrosExcluidos)
+    })
+  })
+}
 
-// exports.deleteById = async id => {
-//   return new Promise((resolve, reject) => {
-//     datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
-//       if (err) reject(err)
-//       else resolve(quantidadeRegistrosExcluidos)
-//     })
-//   })
-// }
+exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
+  body = formatarValores(body)
+  return new Promise((resolve, reject) => {
+    datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
+      if (err) reject(err)
+      else resolve(registroCriado)
+    })
+  })
+}
 
-// exports.existeRegistroComEsseID = _id => {
-//   return new Promise((resolve, reject) => {
-//     datastore.count({ _id }, (err, count) => {
-//       if (err) reject(err)
-//       else resolve(count !== 0)
-//     })
-//   })
-// }
-
-// exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
-//   return new Promise((resolve, reject) => {
-//     datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
-//       if (err) reject(err)
-//       else resolve(registroCriado)
-//     })
-//   })
-// }
+function formatarValores (body) {
+  body.nome = body.nome.trim()
+  body.preco = parseInt(body.preco)
+  body.quantidade = parseInt(body.quantidade)
+  return body
+}

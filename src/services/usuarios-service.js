@@ -23,6 +23,15 @@ exports.existeUsuarioComEsseEmail = email => {
   })
 }
 
+exports.usuarioEhAdministrador = ({ email, password }) => {
+  return new Promise((resolve, reject) => {
+    datastore.find({ email, password }, (err, resultado) => {
+      if (err) reject(err)
+      else resolve(JSON.parse(resultado[0].administrador))
+    })
+  })
+}
+
 exports.existeUsuarioComEsseEmailESenha = emailSenha => {
   return new Promise((resolve, reject) => {
     datastore.count(emailSenha, (err, count) => {
@@ -46,15 +55,6 @@ exports.deleteById = async id => {
     datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
       if (err) reject(err)
       else resolve(quantidadeRegistrosExcluidos)
-    })
-  })
-}
-
-exports.existeRegistroComEsseID = _id => {
-  return new Promise((resolve, reject) => {
-    datastore.count({ _id }, (err, count) => {
-      if (err) reject(err)
-      else resolve(count !== 0)
     })
   })
 }

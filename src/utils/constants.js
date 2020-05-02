@@ -8,5 +8,8 @@ module.exports = {
   PUT_SUCESS: 'Registro alterado com sucesso',
   LOGIN_SUCESS: 'Login realizado com sucesso',
   LOGIN_FAIL: 'Email e/ou senha inválidos',
-  EMAIL_JA_USADO: 'Este email já está sendo usado'
+  EMAIL_JA_USADO: 'Este email já está sendo usado',
+  NOME_JA_USADO: 'Já existe produto com esse nome',
+  NECESSARIO_ADM: 'Rota exclusiva para administradores',
+  TOKEN_INVALID: 'Token de acesso inválido'
 }
