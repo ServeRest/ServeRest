@@ -38,15 +38,3 @@ exports.schemaPut = {
     administrador: Joi.any().valid('true', 'false').required()
   })
 }
-
-exports.schemaPatch = {
-  params: Joi.object({
-    id: Joi.string().required()
-  }),
-  body: Joi.object({
-    nome: Joi.string(),
-    email: Joi.string().email(),
-    password: Joi.string(),
-    administrador: Joi.any().valid('true', 'false')
-  })
-}
