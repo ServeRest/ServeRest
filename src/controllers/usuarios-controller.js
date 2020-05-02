@@ -3,8 +3,6 @@
 const service = require('../services/usuarios-service')
 const constant = require('../utils/constants')
 
-const EMAIL_JA_USADO = 'Este email já está sendo usado'
-
 exports.get = async (req, res) => {
   try {
     const usuarios = await service.getAll(req.query)
@@ -17,7 +15,7 @@ exports.get = async (req, res) => {
 exports.post = async (req, res) => {
   try {
     if (await service.existeUsuarioComEsseEmail(req.body.email)) {
-      return res.status(400).send({ message: EMAIL_JA_USADO })
+      return res.status(400).send({ message: constant.EMAIL_JA_USADO })
     }
     const dadosCadastrados = await service.createUser(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
