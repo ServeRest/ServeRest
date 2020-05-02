@@ -11,5 +11,5 @@ module.exports = {
   EMAIL_JA_USADO: 'Este email já está sendo usado',
   NOME_JA_USADO: 'Já existe produto com esse nome',
   NECESSARIO_ADM: 'Rota exclusiva para administradores',
-  TOKEN_INVALID: 'Token de acesso inválido'
+  TOKEN_INVALID: 'Token de acesso inválido ou expirado'
 }
