@@ -8,7 +8,7 @@ exports.post = async (req, res) => {
   try {
     if (await usuariosService.existeUsuarioComEsseEmailESenha(req.body)) {
       const token = authService.createToken(req.body)
-      return res.status(200).send({ message: constant.LOGIN_SUCESS, token })
+      return res.status(200).send({ message: constant.LOGIN_SUCESS, authorization: `Bearer ${token}` })
     }
     res.status(401).send({ message: constant.LOGIN_FAIL })
   } catch (error) {
