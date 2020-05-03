@@ -14,10 +14,11 @@ exports.getAll = queryString => {
   })
 }
 
-exports.existeProdutoComEsseNome = nome => {
-  nome = nome.trim()
+exports.existeProduto = pesquisa => {
+  console.log(pesquisa)
+
   return new Promise((resolve, reject) => {
-    datastore.count({ nome }, (err, count) => {
+    datastore.count(pesquisa, (err, count) => {
       if (err) reject(err)
       else resolve(count !== 0)
     })

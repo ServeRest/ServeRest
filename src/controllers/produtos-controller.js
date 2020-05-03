@@ -14,7 +14,7 @@ exports.get = async (req, res) => {
 
 exports.post = async (req, res) => {
   try {
-    if (await service.existeProdutoComEsseNome(req.body.nome)) {
+    if (await service.existeProduto({ nome: req.body.nome.trim() })) {
       return res.status(400).send({ message: constant.NOME_JA_USADO })
     }
     const dadosCadastrados = await service.criarProduto(req.body)
@@ -36,6 +36,10 @@ exports.delete = async (req, res) => {
 
 exports.put = async (req, res) => {
   try {
+    const idInexistenteENomeRepetido = await service.existeProduto({ nome: req.body.nome.trim(), $not: { _id: req.params.id } })
+    if (idInexistenteENomeRepetido) {
+      return res.status(400).send({ message: constant.NOME_JA_USADO })
+    }
     const registroCriado = await service.createOrUpdateById(req.params.id, req.body)
     if (registroCriado) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
     res.status(200).send({ message: constant.PUT_SUCESS })

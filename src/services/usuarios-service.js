@@ -14,9 +14,9 @@ exports.getAll = queryString => {
   })
 }
 
-exports.existeUsuarioComEsseEmail = email => {
+exports.existeUsuario = pesquisa => {
   return new Promise((resolve, reject) => {
-    datastore.count({ email }, (err, count) => {
+    datastore.count(pesquisa, (err, count) => {
       if (err) reject(err)
       else resolve(count !== 0)
     })
@@ -28,15 +28,6 @@ exports.usuarioEhAdministrador = ({ email, password }) => {
     datastore.find({ email, password }, (err, resultado) => {
       if (err) reject(err)
       else resolve(JSON.parse(resultado[0].administrador))
-    })
-  })
-}
-
-exports.existeUsuarioComEsseEmailESenha = emailSenha => {
-  return new Promise((resolve, reject) => {
-    datastore.count(emailSenha, (err, count) => {
-      if (err) reject(err)
-      else resolve(count !== 0)
     })
   })
 }
