@@ -14,6 +14,15 @@ exports.getAll = queryString => {
   })
 }
 
+exports.getDadosDoUsuario = queryString => {
+  return new Promise((resolve, reject) => {
+    datastore.findOne(queryString, (err, resultado) => {
+      if (err) reject(err)
+      else resolve(resultado)
+    })
+  })
+}
+
 exports.existeUsuario = pesquisa => {
   return new Promise((resolve, reject) => {
     datastore.count(pesquisa, (err, count) => {

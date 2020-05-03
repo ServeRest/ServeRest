@@ -11,5 +11,8 @@ module.exports = {
   EMAIL_JA_USADO: 'Este email já está sendo usado',
   NOME_JA_USADO: 'Já existe produto com esse nome',
   NECESSARIO_ADM: 'Rota exclusiva para administradores',
-  TOKEN_INVALID: 'Token de acesso inválido ou expirado'
+  TOKEN_INVALID: 'Token de acesso inexistente, inválido ou expirado',
+  USUARIO_POSSUI_CARRINHO: 'Não é permitido ter mais de 1 carrinho',
+  IDPRODUTO_INVALIDO: 'Id de produto inexistente',
+  ESTOQUE_INSUFICIENTE: 'Produto não possui quantidade suficiente'
 }

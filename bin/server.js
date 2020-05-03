@@ -21,7 +21,7 @@ server.on('listening', onListening)
 console.log(colors.blue.bold(`\nServeRest está em execução na porta ${port}`))
 console.log(colors.cyan('Made with'), colors.red('♥'), colors.cyan('by'), colors.cyan.italic('npx paulogoncalves\n'))
 
-open(`http://localhost:${port}/swagger`)
+// open(`http://localhost:${port}/swagger`)
 
 function normalizePort (val) {
   const port = parseInt(val, 10)
