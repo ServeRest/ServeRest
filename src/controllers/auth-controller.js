@@ -19,3 +19,14 @@ exports.checkAdm = async (req, res, next) => {
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
+
+exports.checkToken = async (req, res, next) => {
+  try {
+    if (!tokenValido(req.headers)) {
+      return res.status(401).send({ message: constant.TOKEN_INVALID })
+    }
+    next()
+  } catch (error) {
+    res.status(500).send({ message: constant.INTERNAL_ERROR, error })
+  }
+}

@@ -21,7 +21,7 @@ app.use(logger('dev'))
 app.use('/login', require('./routes/login-route'))
 app.use('/usuarios', require('./routes/usuarios-route'))
 app.use('/produtos', require('./routes/produtos-route'))
-// app.use('/carrinhos',  require('./routes/turmas-route'))
+app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use((error, req, res, next) => {
   const ocorreuErroNaValidacaoDoSchema = error.name === 'ValidationError'

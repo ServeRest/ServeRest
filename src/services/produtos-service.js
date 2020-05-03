@@ -14,9 +14,16 @@ exports.getAll = queryString => {
   })
 }
 
-exports.existeProduto = pesquisa => {
-  console.log(pesquisa)
+exports.getDadosDoProduto = queryString => {
+  return new Promise((resolve, reject) => {
+    datastore.findOne(queryString, (err, resultado) => {
+      if (err) reject(err)
+      else resolve(resultado)
+    })
+  })
+}
 
+exports.existeProduto = pesquisa => {
   return new Promise((resolve, reject) => {
     datastore.count(pesquisa, (err, count) => {
       if (err) reject(err)
@@ -44,10 +51,14 @@ exports.deleteById = async id => {
   })
 }
 
-exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
+exports.createOrUpdateById = async (idDoProdutoQueSeraAlterado, body) => {
   body = formatarValores(body)
+  return this.updateById(idDoProdutoQueSeraAlterado, body)
+}
+
+exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {
   return new Promise((resolve, reject) => {
-    datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
+    datastore.update({ _id: idDoProdutoQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
       if (err) reject(err)
       else resolve(registroCriado)
     })
