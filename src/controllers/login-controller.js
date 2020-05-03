@@ -6,7 +6,7 @@ const constant = require('../utils/constants')
 
 exports.post = async (req, res) => {
   try {
-    if (await usuariosService.existeUsuarioComEsseEmailESenha(req.body)) {
+    if (await usuariosService.existeUsuario(req.body)) {
       const token = authService.createToken(req.body)
       return res.status(200).send({ message: constant.LOGIN_SUCESS, authorization: `Bearer ${token}` })
     }

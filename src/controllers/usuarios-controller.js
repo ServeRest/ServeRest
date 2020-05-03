@@ -14,7 +14,7 @@ exports.get = async (req, res) => {
 
 exports.post = async (req, res) => {
   try {
-    if (await service.existeUsuarioComEsseEmail(req.body.email)) {
+    if (await service.existeUsuario({ email: req.body.email })) {
       return res.status(400).send({ message: constant.EMAIL_JA_USADO })
     }
     const dadosCadastrados = await service.createUser(req.body)
@@ -36,6 +36,10 @@ exports.delete = async (req, res) => {
 
 exports.put = async (req, res) => {
   try {
+    const idInexistenteEEmailRepetido = await service.existeUsuario({ email: req.body.email, $not: { _id: req.params.id } })
+    if (idInexistenteEEmailRepetido) {
+      return res.status(400).send({ message: constant.EMAIL_JA_USADO })
+    }
     const registroCriado = await service.createOrUpdateById(req.params.id, req.body)
     if (registroCriado) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
     res.status(200).send({ message: constant.PUT_SUCESS })
