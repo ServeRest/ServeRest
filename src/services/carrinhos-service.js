@@ -36,8 +36,8 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
   var sorted_arr = arrayProdutos.slice().sort();
   var produtosDuplicados = [];
   for (var i = 0; i < sorted_arr.length - 1; i++) {
-      if (sorted_arr[i + 1].idproduto === sorted_arr[i].idproduto) {
-          produtosDuplicados.push(sorted_arr[i].idproduto);
+      if (sorted_arr[i + 1].idProduto === sorted_arr[i].idProduto) {
+          produtosDuplicados.push(sorted_arr[i].idProduto);
       }
   }
   return produtosDuplicados;

@@ -27,11 +27,11 @@ exports.post = async (req, res) => {
 
 exports.delete = async (req, res) => {
   try {
-    const carrinhoDoUsuario = await carrinhosService.getAll({ produtos: { $elemMatch: { idproduto: req.params.id } } })
+    const carrinhoDoUsuario = await carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: req.params.id } } })
     const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
     if (usuarioTemCarrinho) {
-      const idcarrinhos = carrinhoDoUsuario.map((carrinhos) => { return carrinhos._id })
-      return res.status(400).send({ message: constant.EXCLUIR_PRODUTO_COM_CARRINHO, idcarrinhos })
+      const idCarrinhos = carrinhoDoUsuario.map((carrinhos) => { return carrinhos._id })
+      return res.status(400).send({ message: constant.EXCLUIR_PRODUTO_COM_CARRINHO, idCarrinhos })
     }
     const quantidadeRegistrosExcluidos = await service.deleteById(req.params.id)
     const message = quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCESS
