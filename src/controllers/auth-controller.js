@@ -7,7 +7,7 @@ const { tokenValido } = require('../utils/authentication')
 
 exports.checkAdm = async (req, res, next) => {
   try {
-    if (!tokenValido(req.headers)) {
+    if (!await tokenValido(req.headers)) {
       return res.status(401).send({ message: constant.TOKEN_INVALID })
     }
     const tokenDecodificado = authService.verifyToken(req.headers.authorization)
@@ -22,7 +22,7 @@ exports.checkAdm = async (req, res, next) => {
 
 exports.checkToken = async (req, res, next) => {
   try {
-    if (!tokenValido(req.headers)) {
+    if (!await tokenValido(req.headers)) {
       return res.status(401).send({ message: constant.TOKEN_INVALID })
     }
     next()
