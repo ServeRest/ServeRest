@@ -5,11 +5,7 @@ const { Joi } = require('express-validation')
 exports.schemaGet = {
   query: Joi.object({
     _id: Joi.any(),
-    produtos: Joi.any(),
     idusuario: Joi.any(),
-    idproduto: Joi.any(),
-    quantidade: Joi.any(),
-    precounitario: Joi.any(),
     precototal: Joi.any()
   })
 }
