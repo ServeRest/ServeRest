@@ -13,7 +13,7 @@ exports.schemaGet = {
 
 exports.schemaPost = {
   body: Joi.object({
-    produtos: Joi.array().unique('idproduto').items(
+    produtos: Joi.array().items(
       Joi.object({
         idproduto: Joi.string().required(),
         quantidade: Joi.number().positive().integer().required()
