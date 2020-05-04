@@ -1,8 +1,9 @@
 'use strict'
 
 const authService = require('../services/auth-service')
+const { existeUsuario } = require('../services/usuarios-service')
 
-function tokenValido ({ authorization }) {
+async function tokenValido ({ authorization }) {
   if (authorization === undefined) return false
 
   const semBearer = authorization.split(' ')[0] !== 'Bearer'
@@ -17,7 +18,7 @@ function tokenValido ({ authorization }) {
     return false
   }
 
-  return true
+  return await existeUsuario({ email: tokenDecodificado.email, password: tokenDecodificado.password })
 }
 
 module.exports = {
