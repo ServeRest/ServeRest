@@ -24,7 +24,6 @@ exports.existeCarrinho = pesquisa => {
 }
 
 exports.criarCarrinho = async body => {
-  // body = formatarValores(body)
   return new Promise((resolve, reject) => {
     datastore.insert(body, (err, novoProduto) => {
       if (err) reject(err)
@@ -50,11 +49,4 @@ exports.criarCarrinho = async body => {
 //       else resolve(registroCriado)
 //     })
 //   })
-// }
-
-// function formatarValores (body) {
-//   body.nome = body.nome.trim()
-//   body.preco = parseInt(body.preco)
-//   body.quantidade = parseInt(body.quantidade)
-//   return body
 // }
