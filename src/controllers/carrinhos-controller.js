@@ -17,7 +17,7 @@ exports.get = async (req, res) => {
 
 /*
 X 1 carrinho por user
-X validar idproduto
+X validar idProduto
 X verificar estoque do produto
 X subtrair estoque do produto
 X pegar e cadastrar idUsuario
@@ -28,7 +28,7 @@ exports.post = async (req, res) => {
   try {
     const { email, password } = authService.verifyToken(req.headers.authorization)
     const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
-    const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idusuario: _id })
+    const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idUsuario: _id })
     if (usuarioJaPossuiCarrinho) {
       return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
     }
@@ -42,29 +42,29 @@ exports.post = async (req, res) => {
     const produtos = req.body.produtos
     for (let index = 0; index < produtos.length; index++) {
       produtos[index].quantidade = parseInt(produtos[index].quantidade)
-      const { idproduto, quantidade } = produtos[index]
-      if (!await produtosService.existeProduto({ _id: idproduto })) {
-        return res.status(400).send({ message: constant.IDPRODUTO_INVALIDO, item: { index, idproduto, quantidade } })
+      const { idProduto, quantidade } = produtos[index]
+      if (!await produtosService.existeProduto({ _id: idProduto })) {
+        return res.status(400).send({ message: constant.IDPRODUTO_INVALIDO, item: { index, idProduto, quantidade } })
       }
 
-      const { quantidade: quantidadeestoque, preco } = await produtosService.getDadosDoProduto({ _id: idproduto })
-      if (quantidade > quantidadeestoque) {
-        return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idproduto, quantidade, quantidadeestoque } })
+      const { quantidade: quantidadeEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
+      if (quantidade > quantidadeEstoque) {
+        return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idProduto, quantidade, quantidadeEstoque } })
       }
-      Object.assign(produtos[index], { precounitario: preco })
+      Object.assign(produtos[index], { precoUnitario: preco })
     }
-    let precototal = 0
-    let quantidadetotal = 0
+    let precoTotal = 0
+    let quantidadeTotal = 0
     for (let index = 0; index < produtos.length; index++) {
-      const { idproduto, quantidade } = produtos[index]
-      const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idproduto })
+      const { idProduto, quantidade } = produtos[index]
+      const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
       const novaQuantidade = quantidadeEmEstoque - quantidade
-      await produtosService.updateById(idproduto, { $set: { quantidade: novaQuantidade } })
-      precototal += preco * quantidade
-      quantidadetotal += quantidade
+      await produtosService.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
+      precoTotal += preco * quantidade
+      quantidadeTotal += quantidade
     }
 
-    Object.assign(req.body, { precototal, quantidadetotal, idusuario: _id })
+    Object.assign(req.body, { precoTotal, quantidadeTotal, idUsuario: _id })
 
     const dadosCadastrados = await service.criarCarrinho(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
