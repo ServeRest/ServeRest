@@ -29,9 +29,9 @@ exports.post = async (req, res) => {
     const { email, password } = authService.verifyToken(req.headers.authorization)
     const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
     const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idusuario: _id })
-    
+
     if (usuarioJaPossuiCarrinho) {
-      return res.status(400).send({ message: constant.USUARIO_POSSUI_CARRINHO })
+      return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
     }
 
     const produtos = req.body.produtos
@@ -57,7 +57,7 @@ exports.post = async (req, res) => {
     }
 
     Object.assign(req.body, { precototal, idusuario: _id })
-    
+
     const dadosCadastrados = await service.criarCarrinho(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
   } catch (error) {
