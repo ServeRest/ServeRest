@@ -13,7 +13,7 @@ module.exports = {
   NECESSARIO_ADM: 'Rota exclusiva para administradores',
   TOKEN_INVALID: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais',
   LIMITE_1_CARRINHO: 'Não é permitido ter mais de 1 carrinho',
-  IDPRODUTO_INVALIDO: 'Id de produto inexistente',
+  IDPRODUTO_INVALIDO: 'Produto não encontrado',
   ESTOQUE_INSUFICIENTE: 'Produto não possui quantidade suficiente',
   EXCLUIR_USUARIO_COM_CARRINHO: 'Não é permitido excluir usuário com carrinho cadastrado',
   EXCLUIR_PRODUTO_COM_CARRINHO: 'Não é permitido excluir produto que faz parte de carrinho'

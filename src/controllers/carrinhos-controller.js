@@ -36,27 +36,30 @@ exports.post = async (req, res) => {
 
     const produtos = req.body.produtos
     for (let index = 0; index < produtos.length; index++) {
+      produtos[index].quantidade = parseInt(produtos[index].quantidade)
       const { idproduto, quantidade } = produtos[index]
       if (!await produtosService.existeProduto({ _id: idproduto })) {
         return res.status(400).send({ message: constant.IDPRODUTO_INVALIDO, item: { index, idproduto, quantidade } })
       }
 
-      const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idproduto })
-      if (quantidade > quantidadeEmEstoque) {
-        return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idproduto, quantidade, quantidadeEmEstoque } })
+      const { quantidade: quantidadeestoque, preco } = await produtosService.getDadosDoProduto({ _id: idproduto })
+      if (quantidade > quantidadeestoque) {
+        return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idproduto, quantidade, quantidadeestoque } })
       }
       Object.assign(produtos[index], { precounitario: preco })
     }
     let precototal = 0
+    let quantidadetotal = 0
     for (let index = 0; index < produtos.length; index++) {
       const { idproduto, quantidade } = produtos[index]
       const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idproduto })
       const novaQuantidade = quantidadeEmEstoque - quantidade
       await produtosService.updateById(idproduto, { $set: { quantidade: novaQuantidade } })
       precototal += preco * quantidade
+      quantidadetotal += quantidade
     }
 
-    Object.assign(req.body, { precototal, idusuario: _id })
+    Object.assign(req.body, { precototal, quantidadetotal, idusuario: _id })
 
     const dadosCadastrados = await service.criarCarrinho(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
@@ -65,7 +68,10 @@ exports.post = async (req, res) => {
   }
 }
 
-// user tem que ser dono do carrinho
+/*
+user tem que ser dono do carrinho ou adm
+somar estoque do produto
+*/
 
 // exports.delete = async (req, res) => {
 //   try {
