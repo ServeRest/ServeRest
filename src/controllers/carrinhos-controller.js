@@ -29,9 +29,14 @@ exports.post = async (req, res) => {
     const { email, password } = authService.verifyToken(req.headers.authorization)
     const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
     const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idusuario: _id })
-
     if (usuarioJaPossuiCarrinho) {
       return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
+    }
+
+    const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
+    const temProdutosDuplicados = typeof idProdutosDuplicados[0] !== 'undefined'
+    if (temProdutosDuplicados) {
+      return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
     }
 
     const produtos = req.body.produtos
