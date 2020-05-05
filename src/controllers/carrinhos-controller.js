@@ -15,15 +15,6 @@ exports.get = async (req, res) => {
   }
 }
 
-/*
-X 1 carrinho por user
-X validar idProduto
-X verificar estoque do produto
-X subtrair estoque do produto
-X pegar e cadastrar idUsuario
-X pegar e cadastrar preço do produto
-*/
-
 exports.post = async (req, res) => {
   try {
     const { email, password } = authService.verifyToken(req.headers.authorization)
@@ -73,35 +64,40 @@ exports.post = async (req, res) => {
   }
 }
 
-/*
-user tem que ser dono do carrinho ou adm
-somar estoque do produto
-*/
+exports.cancelarCompra = async (req, res) => {
+  try {
+    const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
+    const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
 
-// exports.delete = async (req, res) => {
-//   try {
-//     const quantidadeRegistrosExcluidos = await service.deleteById(req.params.id)
-//     const message = quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCESS
-//     res.status(200).send({ message })
-//   } catch (error) {
-//     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
-//   }
-// }
+    if (usuarioTemCarrinho) {
+      const produtos = carrinhoDoUsuario[0].produtos
 
-/*
-se user tiver carrinho > edita
-se user n tiver carrinho > cadastra
-verificar estoque do produto
-pegar e cadastrar idUsuario
-pegar e cadastrar preço do produto
-*/
+      produtos.forEach(async (produto) => {
+        const { idProduto, quantidade } = produto
+        const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
+        await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
+      })
 
-// exports.put = async (req, res) => {
-//   try {
-//     const registroCriado = await service.createOrUpdateById(req.params.id, req.body)
-//     if (registroCriado) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
-//     res.status(200).send({ message: constant.PUT_SUCESS })
-//   } catch (error) {
-//     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
-//   }
-// }
+      await service.deleteById(carrinhoDoUsuario[0]._id)
+      return res.status(200).send({ message: `${constant.DELETE_SUCESS}. ${constant.ESTOQUE_REABASTECIDO}` })
+    }
+
+    res.status(200).send({ message: constant.SEM_CARRINHO })
+  } catch (error) {
+    res.status(500).send({ message: constant.INTERNAL_ERROR, error })
+  }
+}
+
+exports.concluirCompra = async (req, res) => {
+  try {
+    const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
+    const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+    if (usuarioTemCarrinho) {
+      await service.deleteById(carrinhoDoUsuario[0]._id)
+      return res.status(200).send({ message: constant.DELETE_SUCESS })
+    }
+    res.status(200).send({ message: constant.SEM_CARRINHO })
+  } catch (error) {
+    res.status(500).send({ message: constant.INTERNAL_ERROR, error })
+  }
+}

@@ -18,7 +18,7 @@ async function tokenValido ({ authorization }) {
     return false
   }
 
-  return await existeUsuario({ email: tokenDecodificado.email, password: tokenDecodificado.password })
+  return existeUsuario({ email: tokenDecodificado.email, password: tokenDecodificado.password })
 }
 
 module.exports = {
