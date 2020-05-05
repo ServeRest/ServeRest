@@ -6,11 +6,11 @@
   "license": "MIT",
   "main": "index.js",
   "files": [
-    "data/",
+    "bin/",
     "src/"
   ],
   "bin": {
-    "serverest": "./index.js"
+    "serverest": "./bin/server.js"
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,8 @@
   "scripts": {
     "commit": "git-cz",
     "doc": "npx docsify serve docs",
-    "start": "nodemon ./bin/server.js",
+    "start": "node ./bin/server.js",
+    "dev": "nodemon ./bin/server.js",
     "test": "mocha",
     "lint": "standard",
     "lint:fix": "standard --fix",
