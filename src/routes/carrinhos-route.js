@@ -10,7 +10,7 @@ const validateSchema = require('../services/validateSchema-service')
 const router = express.Router()
 router.get('/', validateSchema(model.schemaGet), controller.get)
 router.post('/', authController.checkToken, validateSchema(model.schemaPost), controller.post)
-// router.delete('/:id', authController.checkAdm, validateSchema(model.schemaDelete), controller.delete)
-// router.put('/:id', authController.checkAdm, validateSchema(model.schemaPut), controller.put)
+router.delete('/concluir-compra', authController.checkToken, controller.concluirCompra)
+router.delete('/cancelar-compra', authController.checkToken, controller.cancelarCompra)
 
 module.exports = router

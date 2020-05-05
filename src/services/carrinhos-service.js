@@ -3,6 +3,9 @@
 const Nedb = require('nedb')
 const { join } = require('path')
 
+const authService = require('../services/auth-service')
+const usuariosService = require('../services/usuarios-service')
+
 const datastore = new Nedb({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
 
 exports.getAll = queryString => {
@@ -33,31 +36,27 @@ exports.criarCarrinho = async body => {
 }
 
 exports.extrairProdutosDuplicados = arrayProdutos => {
-  var sorted_arr = arrayProdutos.slice().sort();
-  var produtosDuplicados = [];
-  for (var i = 0; i < sorted_arr.length - 1; i++) {
-      if (sorted_arr[i + 1].idProduto === sorted_arr[i].idProduto) {
-          produtosDuplicados.push(sorted_arr[i].idProduto);
-      }
+  var sortedArr = arrayProdutos.slice().sort()
+  var produtosDuplicados = []
+  for (var i = 0; i < sortedArr.length - 1; i++) {
+    if (sortedArr[i + 1].idProduto === sortedArr[i].idProduto) {
+      produtosDuplicados.push(sortedArr[i].idProduto)
+    }
   }
-  return produtosDuplicados;
+  return produtosDuplicados
 }
 
-// exports.deleteById = async id => {
-//   return new Promise((resolve, reject) => {
-//     datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
-//       if (err) reject(err)
-//       else resolve(quantidadeRegistrosExcluidos)
-//     })
-//   })
-// }
+exports.deleteById = async id => {
+  return new Promise((resolve, reject) => {
+    datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
+      if (err) reject(err)
+      else resolve(quantidadeRegistrosExcluidos)
+    })
+  })
+}
 
-// exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
-//   body = formatarValores(body)
-//   return new Promise((resolve, reject) => {
-//     datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
-//       if (err) reject(err)
-//       else resolve(registroCriado)
-//     })
-//   })
-// }
+exports.getCarrinhoDoUsuario = async (authorization) => {
+  const { email, password } = authService.verifyToken(authorization)
+  const { _id: idUsuario } = await usuariosService.getDadosDoUsuario({ email, password })
+  return this.getAll({ idUsuario })
+}
