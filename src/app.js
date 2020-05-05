@@ -6,6 +6,7 @@ const logger = require('morgan')
 const queryParser = require('express-query-int')
 const swaggerUi = require('swagger-ui-express')
 
+const { conf } = require('./conf')
 const swaggerDocument = require('./swagger.json')
 
 const app = express()
@@ -31,7 +32,7 @@ app.use((error, req, res, next) => {
 
 app.use((req, res, next) => {
   res.status(404).send({
-    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse /swagger para ver as rotas disponíveis e como utilizá-las.`
+    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse http://localhost:${conf.porta}/swagger para ver as rotas disponíveis e como utilizá-las.`
   })
 })
 
