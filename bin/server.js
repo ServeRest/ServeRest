@@ -24,12 +24,13 @@ const argv = require('yargs')
   .alias('v', 'version')
   .describe('p', 'Porta que será utilizada (default: 3000)')
   .describe('t', 'Timeout do token em milissegundos (default: 1000)')
-  .describe('n', 'Desabilitar o início automático da documentação')
-  .example('$0 -p 3500')
-  .example('$0 --nodoc -t 20000')
+  .describe('n', 'Desabilitar o início automático do swagger')
+  .example('npx serverest -p 3500', 'Em execução na porta 3500')
+  .example('npx serverest --nodoc -t 20000', 'Swagger não abrirá e token terá 20 segundos de timeout')
   .help('h')
+  .epilog('As rotas disponíveis estão listadas no swagger.')
   .epilog('Precisa de ajuda?')
-  .epilog('github.com/PauloGoncalvesBH/serverest/issues')
+  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/serverest')
   .argv
 
 conf.tokenTimeout = argv.timeout
@@ -45,8 +46,9 @@ server.listen(port)
 server.on('error', onError)
 server.on('listening', onListening)
 
-console.log(colors.blue.bold(`\nServeRest está em execução na porta ${port}`))
-console.log(colors.cyan('Made with'), colors.red('♥'), colors.cyan('by'), colors.cyan.italic('npx paulogoncalves\n'))
+console.log(colors.white.bold(`\nServeRest está em execução na porta ${port}`))
+console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs'))
+console.log(colors.yellow.bold('Dúvidas?'), colors.white.bold('npx serverest -h\n'))
 
 if (!argv.nodoc) {
   open(`http://localhost:${port}/swagger`)
@@ -79,7 +81,9 @@ function onError (error) {
       process.exit(1)
 
     case 'EADDRINUSE':
-      console.error(bind, 'já está em uso.\nFeche o programa/serviço que está usando a porta ou crie a variável de ambiente PORT para executar o ServeRest em outra porta.\n')
+      console.error(bind, `já está em uso.
+Feche o programa/serviço que está usando a porta ${port} ou execute o ServeRest em outra porta.
+Execute 'npx serverest -h' para saber como executar em outra porta.`)
       process.exit(1)
 
     default:
