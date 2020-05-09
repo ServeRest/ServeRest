@@ -6,7 +6,7 @@ const logger = require('morgan')
 const queryParser = require('express-query-int')
 const swaggerUi = require('swagger-ui-express')
 
-const { conf } = require('./conf')
+const { conf } = require('./utils/conf')
 const swaggerDocument = require('./swagger.json')
 
 const app = express()
