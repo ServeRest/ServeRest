@@ -8,7 +8,7 @@ const http = require('http')
 const open = require('open')
 
 const app = require('../src/app')
-const { conf } = require('../src/conf')
+const { conf } = require('../src/utils/conf')
 
 const argv = require('yargs')
   .default({
