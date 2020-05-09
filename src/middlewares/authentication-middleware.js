@@ -3,7 +3,6 @@
 const authService = require('../services/auth-service')
 const constant = require('../utils/constants')
 const usuariosService = require('../services/usuarios-service')
-const { tokenValido } = require('../utils/authentication')
 
 exports.checkAdm = async (req, res, next) => {
   try {
@@ -29,4 +28,22 @@ exports.checkToken = async (req, res, next) => {
   } catch (error) {
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
+}
+
+async function tokenValido ({ authorization }) {
+  if (authorization === undefined) return false
+
+  const semBearer = authorization.split(' ')[0] !== 'Bearer'
+  const semToken = authorization.split(' ')[1] === undefined
+
+  if (semBearer || semToken) {
+    return false
+  }
+
+  const tokenDecodificado = authService.verifyToken(authorization)
+  if (tokenDecodificado.email === undefined || tokenDecodificado.password === undefined) {
+    return false
+  }
+
+  return usuariosService.existeUsuario({ email: tokenDecodificado.email, password: tokenDecodificado.password })
 }
