@@ -15,7 +15,6 @@
     "type": "git",
     "url": "git://github.com/PauloGoncalvesBH/serverest.git"
   },
-  "homepage": "https://serverest.js.org",
   "keywords": [
     "testing",
     "server",
