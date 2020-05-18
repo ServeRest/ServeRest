@@ -1,6 +1,6 @@
 {
   "name": "serverest",
-  "version": "1.1.7",
+  "version": "2.0.0",
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "MIT",
@@ -30,14 +30,13 @@
     "test": "mocha",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "validate": "npm run lint && npm test",
+    "validate": "npm run lint",
     "prerelease": "npm run validate",
     "release": "npx standard-version --no-verify"
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "pre-commit": "npm run validate"
     }
   },
