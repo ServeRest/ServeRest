@@ -37,7 +37,7 @@ Ao iniciar o _ServeRest_ automaticamente a rota `/api-doc` é executada, abrindo
 
 <details><summary>Abra para ver imagem das rotas disponíveis</summary>
 
-![Lista de rotas disponibilizdas pelo ServeRest](./img/rotas.png)
+<img alt="Lista de rotas disponibilizdas pelo ServeRest" src="./img/rotas.png" height="700">
 
 ---
 
