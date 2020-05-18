@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/PauloGoncalvesBH/serverest/compare/v1.1.7...v2.0.0) (2020-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **routes:** Alteração de todas as rotas
+
+### Features
+
+* **middleware:** inclusão do middleware 'authentication' ([05c204a](https://github.com/PauloGoncalvesBH/serverest/commit/05c204aba74152eacd6af79324b6a966cb98c059))
+* alterado ponto de entrada do ServeRest ([5ed2650](https://github.com/PauloGoncalvesBH/serverest/commit/5ed26504e5ee41be8e393eae8e1f348f17a7e90e))
+* implementado DELETE 'cancelar-compra' e '/concluir-compra' ([203c9ea](https://github.com/PauloGoncalvesBH/serverest/commit/203c9eab19383cbc005f750ae6262208890f0c27))
+* **carrinhos:** inclusão da chave 'quantidadetotal' ([d2b695b](https://github.com/PauloGoncalvesBH/serverest/commit/d2b695b7d80918a41de7c91c4ea2b4cd4bb2af6c))
+* proibição de DELETE caso usuario/produto tenha carrinho ([9bc92c1](https://github.com/PauloGoncalvesBH/serverest/commit/9bc92c1361b60902b75a8da5595eec2483cf5089))
+* **carrinhos:** implementação do GET e POST da rota /carrinhos ([b888561](https://github.com/PauloGoncalvesBH/serverest/commit/b888561dea85c9edc6a160b67214759ff42ee5fa))
+* alteração da entrega do token para ficar mais claro para o usuario ([3aa7d69](https://github.com/PauloGoncalvesBH/serverest/commit/3aa7d69f70c4e0f869c73ab1f333ee41f173ccdb))
+* **docker:** adicionar os arquivos Dockerfile e Makefile ([8664b6b](https://github.com/PauloGoncalvesBH/serverest/commit/8664b6b14af81d9622476c7e129ee6a490ffa221)), closes [#10](https://github.com/PauloGoncalvesBH/serverest/issues/10)
+* **login:** implementado a rota 'login' ([51eb300](https://github.com/PauloGoncalvesBH/serverest/commit/51eb300ae4254d60fd4173fd66a15365440463cd))
+* **produtos:** implementado o GET da rota 'produtos' ([62df306](https://github.com/PauloGoncalvesBH/serverest/commit/62df306478bfb63936109f281826ee199af67a5a))
+* **produtos:** implementado rotas restantes e autenticação ([85c6738](https://github.com/PauloGoncalvesBH/serverest/commit/85c6738c779cdcb21c86eecb3c90f29631aa22ad))
+* **usuarios:** implementado a rota 'usuarios' ([adc4e38](https://github.com/PauloGoncalvesBH/serverest/commit/adc4e38d864126512ea49f25fa3c4aecb5ecd3da))
+
+
+### Bug Fixes
+
+* **authentication:** validação se o token pertence a usuário existente ([3036f43](https://github.com/PauloGoncalvesBH/serverest/commit/3036f438335a92193f60e0fa4ced232d4d074ecf))
+* **carrinhos-model:** ajuste de chavs permitidas em GET ([1a0e14c](https://github.com/PauloGoncalvesBH/serverest/commit/1a0e14c9bc6d22847c3134a1e26751e9272d36dc))
+
+
+* **readme:** atualização do readme e exclusão da página ([f118c36](https://github.com/PauloGoncalvesBH/serverest/commit/f118c367e4300e9adbad4593c00b162b70f15e66)), closes [#12](https://github.com/PauloGoncalvesBH/serverest/issues/12) [#5](https://github.com/PauloGoncalvesBH/serverest/issues/5) [#3](https://github.com/PauloGoncalvesBH/serverest/issues/3) [#2](https://github.com/PauloGoncalvesBH/serverest/issues/2)
+
 ## [1.1.7](https://github.com/PauloGoncalvesBH/serverest/compare/v1.1.6...v1.1.7) (2020-03-26)
 
 
