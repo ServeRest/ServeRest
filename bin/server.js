@@ -24,11 +24,11 @@ const argv = require('yargs')
   .alias('v', 'version')
   .describe('p', 'Porta que será utilizada (default: 3000)')
   .describe('t', 'Timeout do token em milissegundos (default: 1000)')
-  .describe('n', 'Desabilitar o início automático do swagger')
+  .describe('n', 'Desabilitar o início automático da documentação')
   .example('npx serverest -p 3500', 'Em execução na porta 3500')
-  .example('npx serverest --nodoc -t 20000', 'Swagger não abrirá e token terá 20 segundos de timeout')
+  .example('npx serverest --nodoc -t 20000', 'Documentação não abrirá e token terá 20 segundos de timeout')
   .help('h')
-  .epilog('As rotas disponíveis estão listadas no swagger.')
+  .epilog('As rotas disponíveis estão listadas na documentação.')
   .epilog('Precisa de ajuda?')
   .epilog('Abra uma issue em github.com/PauloGoncalvesBH/serverest')
   .argv
@@ -51,7 +51,7 @@ console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.b
 console.log(colors.yellow.bold('Dúvidas?'), colors.white.bold('npx serverest -h\n'))
 
 if (!argv.nodoc) {
-  open(`http://localhost:${port}/swagger`)
+  open(`http://localhost:${port}/api-doc`)
 }
 
 function normalizePort (val) {
