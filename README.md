@@ -1,5 +1,5 @@
 
-<h1 align="center">ServeRest@2.0.0</h1>
+<h1 align="center">ServeRest v2</h1>
 
 **Servidor REST local de forma rápida e simples para estudo de testes de API**
 
