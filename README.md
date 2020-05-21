@@ -1,5 +1,5 @@
 
-<h1 align="center">ServeRest v2</h1>
+<h1 align="center">ServeRest</h1>
 
 **Servidor REST local de forma rápida e simples para estudo de testes de API**
 
@@ -14,7 +14,7 @@
 ## Executando o ServeRest
 
 ```sh
-npx serverest
+npx serverest@2
 ```
 
 Dispõe de um servidor REST com dados de e-commerce fictício, permitindo o estudo do uso de:
@@ -61,9 +61,23 @@ npx serverest -h
 
 </details>
 
-## Preciso de ajuda
+## (Dica) Gerenciando versão
 
-Está com algum problema e precisa de ajuda? Abra uma [issue](https://github.com/PauloGoncalvesBH/serverest/issues) detalhando a sua situação.
+Como o comando `npx serverest` sempre executa a última versão disponibilizada, é interessante fixar qual versão que deseja utilizar, pois pode ocorrer da sua automação funcionar na versão `2.X.X` e ter sido disponibilizada a versão `3.X.X`, o que pode resultar na quebra dos seus testes.
+
+#### Para utilizar a versão major 2.X.X
+
+_Essa é a versão atual do ServeRest_
+
+```sh
+npx serverest@2
+```
+
+#### Para utilizar a versão major 1.X.X
+
+```sh
+npx serverest@1
+```
 
 ## Licença
 
