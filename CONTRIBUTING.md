@@ -107,12 +107,3 @@ Pra apagar a imagem Docker com o projeto local,  use o comando no terminal:
 ```sh
 make clean
 ```
-
-## Documentação
-
-A documentação, hospedada em https://serverest.js.org/, está toda concentrada dentro do diretório [docs/](./docs) e foi criada utilizando o [Docsify](https://docsify.js.org/).
-
-Para verificar o resultado da alteração da documentação execute o comando
-`npm run doc`. A documentação estará disponível em `localhost:3000`.
-
- Faça o Pull Request quando a alteração atender ao seu objetivo.
