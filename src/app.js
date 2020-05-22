@@ -1,9 +1,10 @@
 'use strict'
 
-const timeout = require('connect-timeout')
 const express = require('express')
+const helmet = require('helmet')
 const logger = require('morgan')
 const queryParser = require('express-query-int')
+const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
 
@@ -13,7 +14,10 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
-app.disable('x-powered-by')
+
+if (conf.utilizarHeaderDeSeguranca) {
+  app.use(helmet())
+}
 
 app.get('/api-doc', (req, res) => {
   res.sendFile('./doc/api-doc.html', { root: __dirname })

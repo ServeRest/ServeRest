@@ -20,16 +20,11 @@ npx serverest@2
 Dispõe de um servidor REST com dados de e-commerce fictício, permitindo o estudo do uso de:
 - Verbos *GET, POST, PUT* e *DELETE*
 - Autenticação no header
+- Boas práticas de segurança
 - Query string
 - Contrato
-- Manipulação de resposta
-- Requisições aninhadas
 
-## Links
-
-- **[Histórico de alterações](/CHANGELOG.md)**
-- [Código de conduta](/CODE_OF_CONDUCT.md)
-- [Como contribuir](/CONTRIBUTING.md)
+---
 
 ## Rotas disponíveis
 
@@ -57,9 +52,28 @@ npx serverest -h
 
 ![Informação de opções e exemplos fornecidos no terminal](./img/terminalHelp.png)
 
----
-
 </details>
+
+### Segurança (`--nosec`)
+
+É boa prática que as APIs, na resposta, enviem determinados cabeçalhos e suprimam outros visando a segurança da aplicação.
+
+Por default, o _ServeRest_ irá fazer as seguintes alterações de segurança, que podem ser desabilitadas com `npx serverest --nosec`:
+
+**Cabeçalhos adicionados:**
+- `Strict-Transport-Security: max-age=15552000; includeSubDomains`
+- `X-Content-Type-Options: nosniff`
+- `X-DNS-Prefetch-Control: off`
+- `X-Download-Options: noopen`
+- `X-Frame-Options: SAMEORIGIN`
+- `X-XSS-Protection: 1; mode=block`
+
+**Cabeçalho removido:**
+- `X-Powered-By: Express`
+
+Utilize esse comportamento para realizar testes de segurança, validando a presença/ausência desses cabeçalhos.
+
+> Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
 ## (Dica) Gerenciando versão
 
@@ -78,6 +92,12 @@ npx serverest@2
 ```sh
 npx serverest@1
 ```
+
+## Links
+
+- [Histórico de alterações](/CHANGELOG.md)
+- [Código de conduta](/CODE_OF_CONDUCT.md)
+- [Como contribuir](/CONTRIBUTING.md)
 
 ## Licença
 

@@ -7,7 +7,6 @@ const debug = require('debug')('nodestr:server')
 const http = require('http')
 const open = require('open')
 
-const app = require('../src/app')
 const { conf } = require('../src/utils/conf')
 
 const argv = require('yargs')
@@ -15,26 +14,32 @@ const argv = require('yargs')
     porta: conf.porta,
     timeout: conf.tokenTimeout
   })
-  .boolean('nodoc')
+  .boolean(['nodoc', 'nosec'])
   .number(['timeout', 'porta'])
   .alias('p', 'porta')
   .alias('t', 'timeout')
   .alias('n', 'nodoc')
+  .alias('s', 'nosec')
   .alias('h', 'help')
   .alias('v', 'version')
+  .usage('\nAjuda do ServeRest')
   .describe('p', 'Porta que será utilizada (default: 3000)')
   .describe('t', 'Timeout do token em milissegundos (default: 1000)')
+  .describe('s', 'Não enviar os headers de segurança na resposta')
   .describe('n', 'Desabilitar o início automático da documentação')
   .example('npx serverest -p 3500', 'Em execução na porta 3500')
   .example('npx serverest --nodoc -t 20000', 'Documentação não abrirá e token terá 20 segundos de timeout')
   .help('h')
-  .epilog('As rotas disponíveis estão listadas na documentação.')
   .epilog('Precisa de ajuda?')
-  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/serverest')
+  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/serverest/issues')
   .argv
 
 conf.tokenTimeout = argv.timeout
+conf.utilizarHeaderDeSeguranca = !argv.nosec
 const DEFAULT_PORT = 3000
+
+// app tem que ser importado após o conf.utilizarHeaderDeSeguranca para que ele funcione corretamente
+const app = require('../src/app')
 
 const port = normalizePort(argv.porta)
 conf.porta = port
@@ -47,8 +52,8 @@ server.on('error', onError)
 server.on('listening', onListening)
 
 console.log(colors.white.bold(`\nServeRest está em execução na porta ${port}`))
-console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs'))
-console.log(colors.yellow.bold('Dúvidas?'), colors.white.bold('npx serverest -h\n'))
+console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h'))
+console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 
 if (!argv.nodoc) {
   open(`http://localhost:${port}/api-doc`)
