@@ -16,7 +16,11 @@ app.use(timeout())
 app.disable('x-powered-by')
 
 app.get('/api-doc', (req, res) => {
-  res.sendFile('./api-doc.html', { root: __dirname })
+  res.sendFile('./doc/api-doc.html', { root: __dirname })
+})
+
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile('./doc/favicon.png', { root: __dirname })
 })
 
 app.use(logger('dev'))
