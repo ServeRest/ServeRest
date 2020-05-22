@@ -30,7 +30,7 @@
     "lint:fix": "standard --fix",
     "validate": "npm run lint",
     "prerelease": "npm run validate",
-    "release": "npx standard-version --no-verify"
+    "release": "standard-version --no-verify"
   },
   "husky": {
     "hooks": {
@@ -60,7 +60,8 @@
     "husky": "^4.2.5",
     "mocha": "^7.1.2",
     "nodemon": "^2.0.3",
-    "standard": "^14.3.3"
+    "standard": "^14.3.3",
+    "standard-version": "^8.0.0"
   },
   "config": {
     "commitizen": {
