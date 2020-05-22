@@ -2,10 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.3](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.1...v2.0.3) (2020-05-22)
+
+
+### Bug Fixes
+
+* **doc:** incluir ícone na documentação ([1fb4321](https://github.com/PauloGoncalvesBH/serverest/commit/1fb43214f4cb0f3c23b9be42f97ef5d72f1183df))
+
 ### [2.0.2](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.1...v2.0.2) (2020-05-18)
 
 #### Docs
-* **api-doc:** alteração do contraste da documentação ([68314f9](https://github.com/PauloGoncalvesBH/serverest/commit/68314f92bde7145617392b042558083915bb8813))
+* **api-doc:** alteração do contraste da documentação ([68314f9](https://github.com/PauloGoncalvesBH/serverest/commit/8cdfe7d45064771e1b7726c60ddfb10ad28c8087))
 
 
 ### [2.0.1](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.0...v2.0.1) (2020-05-18)
