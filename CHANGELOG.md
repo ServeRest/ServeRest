@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.1...v2.1.0) (2020-05-22)
+
+
+### Features
+
+* **security:** incluir cabeçalhos de segurança e configuração ([9342cac](https://github.com/PauloGoncalvesBH/serverest/commit/9342cac41a0af7435104c26f44fb628375ecad6b))
+
+
+### Bug Fixes
+
+* **doc:** incluir ícone na documentação ([1fb4321](https://github.com/PauloGoncalvesBH/serverest/commit/1fb43214f4cb0f3c23b9be42f97ef5d72f1183df))
+
 ### [2.0.3](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.1...v2.0.3) (2020-05-22)
 
 
