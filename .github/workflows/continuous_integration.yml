@@ -3,7 +3,7 @@ name: Continuous Integration
 on: push
 
 jobs:
-  continuous_integration:
+  lint:
 
     runs-on: ubuntu-latest
 
@@ -16,5 +16,3 @@ jobs:
       run: npm ci
     - name: Lint
       run: npm run lint
-    - name: Unit tests
-      run: npm test
