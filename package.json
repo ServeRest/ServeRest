@@ -23,7 +23,6 @@
   ],
   "scripts": {
     "commit": "git-cz",
-    "doc": "npx docsify serve docs",
     "start": "node ./bin/server.js",
     "dev": "nodemon ./bin/server.js",
     "test": "mocha",
@@ -36,7 +35,6 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "pre-commit": "npm run validate"
     }
   },
@@ -59,7 +57,6 @@
     "chai": "^4.2.0",
     "commitizen": "^4.0.4",
     "cz-conventional-changelog": "^3.1.0",
-    "docsify-cli": "^4.4.0",
     "husky": "^4.2.5",
     "mocha": "^7.1.2",
     "nodemon": "^2.0.3",
