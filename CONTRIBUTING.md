@@ -74,6 +74,16 @@ Utilizamos o [Better Code Hub](https://bettercodehub.com/) na análise da qualid
 
 Caso o seu Pull Request reduza a pontuação do repositório, o mesmo será automaticamente reprovado.
 
+## Documentação (api-doc)
+
+A documentação, disponibilizada através da rota `api-doc`, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
+
+Para atualizar:
+1. Acesse o [editor do ServeRest no Apiary](https://app.apiary.io/serverest/editor) e faça as alterações necessárias.
+    - É preciso ter permissão de edição.
+2. Realize o download do arquivo `serverest.apib` e salve esse arquivo na raiz do _ServeRest_.
+3. Execute o comando `npm run generate-doc`
+
 ## Execução do Projeto via Makefile
 
 Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, build e parar o projeto usando o docker. Pode ser executados o seguintes comandos:

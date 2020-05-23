@@ -28,6 +28,7 @@
     "test": "mocha",
     "lint": "standard",
     "lint:fix": "standard --fix",
+    "generate-doc": "aglio -i serverest.apib --theme-variables flatly --theme-template triple -o src/doc/api-doc.html",
     "validate": "npm run lint",
     "prerelease": "npm run validate",
     "release": "standard-version --no-verify"
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
+    "aglio": "^2.3.0",
     "chai": "^4.2.0",
     "commitizen": "^4.0.4",
     "cz-conventional-changelog": "^3.1.0",
