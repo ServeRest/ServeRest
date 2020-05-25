@@ -11,8 +11,25 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js Setup 
-      uses: actions/setup-node@v1.1.0
+      uses: actions/setup-node@v1
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Lint
       run: npm run lint
+
+  commit-lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup 
+      uses: actions/setup-node@v1
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Commit Lint
+      uses: wagoid/commitlint-github-action@v1
+      with:
+        failOnWarnings: true
+        helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/CONTRIBUTING.md#commit
