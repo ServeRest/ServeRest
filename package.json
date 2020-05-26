@@ -25,18 +25,17 @@
     "commit": "git-cz",
     "start": "node ./bin/server.js",
     "dev": "nodemon ./bin/server.js",
-    "test": "mocha",
+    "test": "mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "generate-doc": "aglio -i serverest.apib --theme-variables flatly --theme-template triple -o src/doc/api-doc.html",
-    "validate": "npm run lint",
-    "prerelease": "npm run validate",
+    "prerelease": "npm run lint && npm test",
     "release": "standard-version --no-verify"
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run validate"
+      "pre-commit": "npm run lint"
     }
   },
   "dependencies": {
@@ -55,19 +54,30 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
+    "@hapi/joi": "^17.1.1",
     "aglio": "^2.3.0",
     "chai": "^4.2.0",
     "commitizen": "^4.0.4",
     "cz-conventional-changelog": "^3.1.0",
+    "faker": "^4.1.0",
     "husky": "^4.2.5",
-    "mocha": "^7.1.2",
+    "mocha": "^7.2.0",
     "nodemon": "^2.0.3",
     "standard": "^14.3.3",
-    "standard-version": "^8.0.0"
+    "standard-version": "^8.0.0",
+    "supertest": "^4.0.2"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "request",
+      "joiAssert"
+    ]
   }
 }
