@@ -32,3 +32,17 @@ jobs:
     - uses: wagoid/commitlint-github-action@v1
       with:
         helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/CONTRIBUTING.md
+
+  test-api:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup 
+      uses: actions/setup-node@v1
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: API Test
+      run: npm test
