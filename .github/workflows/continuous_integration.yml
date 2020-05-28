@@ -31,5 +31,4 @@ jobs:
     - name: Commit Lint
       uses: wagoid/commitlint-github-action@v1
       with:
-        failOnWarnings: true
         helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/CONTRIBUTING.md#commit
