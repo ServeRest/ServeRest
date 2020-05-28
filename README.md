@@ -9,22 +9,33 @@
 [![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npmjs.com/package/serverest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_shield)
 
----
-
 ## Executando o ServeRest
 
 ```sh
-npx serverest@2
+npx serverest
 ```
 
-Dispõe de um servidor REST com dados de e-commerce fictício, permitindo o estudo do uso de:
+<details><summary>Abra para ver imagem do <i>ServeRest</i> iniciado e com algumas requests realizadas</summary>
+
+<img alt="Print do ServeRest iniciado no terminal" src="./img/terminalServerest.png" height="250">
+
+</details>
+
+Permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
 - Autenticação no header
 - Boas práticas de segurança
 - Query string
 - Contrato
+- Requisições aninhadas
 
 ---
+
+## Links
+
+- [Histórico de alterações](/CHANGELOG.md)
+- [Como contribuir](/CONTRIBUTING.md)
+- [Código de conduta](/CODE_OF_CONDUCT.md)
 
 ## Rotas disponíveis
 
@@ -54,7 +65,7 @@ npx serverest -h
 
 </details>
 
-### Segurança (`--nosec`)
+#### Segurança (`--nosec`)
 
 É boa prática que as APIs, na resposta, enviem determinados cabeçalhos e suprimam outros visando a segurança da aplicação.
 
@@ -75,7 +86,7 @@ Utilize esse comportamento para realizar testes de segurança, validando a prese
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
-## (Dica) Gerenciando versão
+## Dica - Gerenciando versão
 
 Como o comando `npx serverest` sempre executa a última versão disponibilizada, é interessante fixar qual versão que deseja utilizar, pois pode ocorrer da sua automação funcionar na versão `2.X.X` e ter sido disponibilizada a versão `3.X.X`, o que pode resultar na quebra dos seus testes.
 
@@ -92,12 +103,6 @@ npx serverest@2
 ```sh
 npx serverest@1
 ```
-
-## Links
-
-- [Histórico de alterações](/CHANGELOG.md)
-- [Código de conduta](/CODE_OF_CONDUCT.md)
-- [Como contribuir](/CONTRIBUTING.md)
 
 ## Licença
 
