@@ -13,60 +13,61 @@
 Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes:
 
 - Localizando e relatando bugs
+- Sugerindo melhorias
 - Tirando dúvidas dos outros usuários
 - Corrigindo bugs ou implementando novos recursos
 - Melhorando a documentação
 - Traduzindo a documentação
 - Melhorando a estrutura do código
 
-## Etapas para contribuir
+# Etapas para contribuir
 
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub e, em seguida, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador;
 2. Instale as dependências de desenvolvimento: `npm install`;
 3. Faça as alterações necessárias;
-4. Execute os testes e validação de estilo com `npm run validate`;
+4. Execute os testes com `npm test`;
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
+### Pull Requests que não passarem nas validações da integração contínua não serão revisados.
 
-> Pull Requests que não passarem nas validações da integração contínua não serão revisados.
+### Legenda
+#### 💥 > Validação realizada na integração contínua
+#### 💻 > Validação realizada no pré-commit
 
-## Testes
- Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
- Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e validados com [chai](https://www.npmjs.com/package/chai).
+## 💥 Testes
+Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
- Para executá-los, execute o comando `npm test`.
+Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e validados com [chai](https://www.npmjs.com/package/chai).
 
-## Estilo
+Para executá-los, execute o comando `npm test`.
 
-**Prefira o uso do terminal em detrimento da interface gráfica** do Git ou VS Code. Pois dessa forma as validações de _Lint_ e _Commit_ serão realizadas no seu ambiente local, impedindo a quebra desses quesitos na pipeline do repositório.
+## 💥💻 Lint
 
-### Lint
-
-Usamos a configuração básica do ESLint como nosso guia de estilo de codificação, junto com o [Standard-version](https://www.npmjs.com/package/standard-version).
+Usamos o [standard](https://www.npmjs.com/package/standard) como linter e formatter do código.
 
 Execute `npm run lint` para padronizar os arquivos.
 
 Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrados pelo lint.
 
-> Commit é abortado caso esse padrão não seja seguido
+> O commit é abortado caso esse padrão não seja seguido
 
-### Commit
+## 💥💻 Commit
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
-As mensagens de commit devem seguir o padrão do [versionamento semântico](https://www.conventionalcommits.org/).
+As mensagens de commit devem seguir o padrão do _conventional commit_.
 
-Caso não conheça o padrão, use `git commit` ou `npm run commit` para ter um painel interativo que permite seguir o padrão de commit.
+Para saber mais, acesse esses links:
+- [Especificação do Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/)
+- [Regras do @commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional).
 
-> Não inserir a extensão do arquivo ao preencher o escopo
+Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
 
-Usamos o [commitizen](https://github.com/commitizen/cz-cli) para tornar o repositório commitizen friendly.
+> O commit é abortado caso esse padrão não seja seguido
 
-> Commit é abortado caso esse padrão não seja seguido
-
-### Better Code Hub
+## Better Code Hub
 
 [![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
 
@@ -86,7 +87,7 @@ Para atualizar:
 
 ## Execução do Projeto via Makefile
 
-Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, build e parar o projeto usando o docker. Pode ser executados o seguintes comandos:
+Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, buildar e parar o projeto usando o docker. Pode ser executados o seguintes comandos:
 
 ### Build 
 Pra fazer o build da imagem Docker com o projeto local,  use o comando no terminal:
