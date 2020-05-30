@@ -40,8 +40,8 @@ app.use((error, req, res, next) => {
   return res.status(500).json({ error })
 })
 
-app.use((req, res, next) => {
-  res.status(404).send({
+app.use((req, res) => {
+  res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse http://localhost:${conf.porta}/api-doc para ver as rotas disponíveis e como utilizá-las.`
   })
 })
