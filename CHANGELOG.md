@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.2](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.1...v2.1.2) (2020-05-30)
+
+
+### Bug Fixes
+
+* ajuste de status code ao realizar request em rota inexistente ([7b5d878](https://github.com/PauloGoncalvesBH/serverest/commit/7b5d878267060f7d2976b667335f844c2c2260e8)), closes [#26](https://github.com/PauloGoncalvesBH/serverest/issues/26)
+
 ### [2.1.1](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.0...v2.1.1) (2020-05-23)
 
 ## [2.1.0](https://github.com/PauloGoncalvesBH/serverest/compare/v2.0.1...v2.1.0) (2020-05-22)
