@@ -28,9 +28,9 @@
     "test": "mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "generate-doc": "aglio -i serverest.apib --theme-variables flatly --theme-template triple -o src/doc/api-doc.html",
+    "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o src/doc/api-doc.html",
     "prerelease": "npm run lint && npm test",
-    "release": "standard-version --no-verify"
+    "release": "npx standard-version@8 --no-verify"
   },
   "husky": {
     "hooks": {
@@ -55,7 +55,6 @@
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
     "@hapi/joi": "^17.1.1",
-    "aglio": "^2.3.0",
     "chai": "^4.2.0",
     "commitizen": "^4.0.4",
     "cz-conventional-changelog": "^3.1.0",
@@ -64,7 +63,6 @@
     "mocha": "^7.2.0",
     "nodemon": "^2.0.3",
     "standard": "^14.3.3",
-    "standard-version": "^8.0.0",
     "supertest": "^4.0.2"
   },
   "config": {
