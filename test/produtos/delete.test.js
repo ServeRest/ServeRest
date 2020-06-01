@@ -5,7 +5,7 @@ const utils = require('../utils')
 
 describe(rotaProdutos + ' DELETE', () => {
   let authorizationAdministrador
-  before(async () => {
+  beforeEach(async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
     authorizationAdministrador = authorization
