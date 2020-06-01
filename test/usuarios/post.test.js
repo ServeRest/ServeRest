@@ -2,7 +2,6 @@ const chai = require('chai')
 const faker = require('faker')
 
 const rotaUsuarios = '/usuarios'
-const utils = require('../utils')
 
 describe(rotaUsuarios + ' POST', () => {
   it('Cadastro com sucesso', async () => {
@@ -14,7 +13,6 @@ describe(rotaUsuarios + ' POST', () => {
     }).expect(201)
 
     chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
-    await utils.excluirUsuario(body._id)
   })
 
   it('Email já utilizado', async () => {
@@ -29,7 +27,6 @@ describe(rotaUsuarios + ' POST', () => {
     const { body } = await request.post(rotaUsuarios).send(usuario).expect(400)
 
     chai.assert.deepEqual(body, { message: 'Este email já está sendo usado' })
-    await utils.excluirUsuario(body._id)
   })
 
   it('Bad request', async () => {

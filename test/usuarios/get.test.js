@@ -26,7 +26,6 @@ describe(rotaUsuarios + ' GET', () => {
         }
       ]
     })
-    await utils.excluirUsuario(usuario._id)
   })
 
   it('Query string - Nenhum usuário encontrado', async () => {
