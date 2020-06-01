@@ -72,11 +72,10 @@
   },
   "standard": {
     "globals": [
-      "beforeEach",
+      "before",
       "describe",
       "it",
-      "request",
-      "joiAssert"
+      "request"
     ]
   }
 }
