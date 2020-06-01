@@ -66,11 +66,6 @@ function dadosProduto () {
   }
 }
 
-async function excluirUsuario (id) {
-  const { body } = await request.del('/usuarios/' + id).expect(200)
-  return body
-}
-
 async function login (email, password) {
   const { body } = await request.post('/login').send({
     email,
@@ -84,6 +79,5 @@ module.exports = {
   cadastrarProduto,
   cadastrarUsuario,
   dadosProduto,
-  excluirUsuario,
   login
 }
