@@ -1,35 +1,24 @@
 const chai = require('chai')
-const faker = require('faker')
 
 const rotaProdutos = '/produtos'
 const utils = require('../utils')
 
 describe(rotaProdutos + ' POST', () => {
   let authorizationAdministrador
-  before(async () => {
+  beforeEach(async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
     authorizationAdministrador = authorization
   })
 
   it('Cadastro com sucesso', async () => {
-    const { body } = await request.post(rotaProdutos).send({
-      nome: faker.commerce.productName(),
-      preco: faker.random.number(),
-      descricao: faker.random.words(),
-      quantidade: faker.random.number()
-    }).set('authorization', authorizationAdministrador).expect(201)
+    const { body } = await request.post(rotaProdutos).send(utils.dadosProduto()).set('authorization', authorizationAdministrador).expect(201)
 
     chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
   })
 
   it('Nome já utilizado', async () => {
-    const produto = {
-      nome: faker.commerce.productName(),
-      preco: faker.random.number(),
-      descricao: faker.random.words(),
-      quantidade: faker.random.number()
-    }
+    const produto = utils.dadosProduto()
 
     await request
       .post(rotaProdutos)
@@ -46,12 +35,7 @@ describe(rotaProdutos + ' POST', () => {
   })
 
   it('Token inválido', async () => {
-    const { body } = await request.post(rotaProdutos).send({
-      nome: faker.commerce.productName(),
-      preco: faker.random.number(),
-      descricao: faker.random.words(),
-      quantidade: faker.random.number()
-    }).set('authorization', 'a').expect(401)
+    const { body } = await request.post(rotaProdutos).send(utils.dadosProduto()).set('authorization', 'a').expect(401)
 
     chai.assert.deepEqual(body, {
       message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais'
@@ -61,12 +45,7 @@ describe(rotaProdutos + ' POST', () => {
   it('Rota para administradores', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'false' })
     const { authorization } = await utils.login(email, password)
-    const { body } = await request.post(rotaProdutos).send({
-      nome: faker.commerce.productName(),
-      preco: faker.random.number(),
-      descricao: faker.random.words(),
-      quantidade: faker.random.number()
-    }).set('authorization', authorization).expect(403)
+    const { body } = await request.post(rotaProdutos).send(utils.dadosProduto()).set('authorization', authorization).expect(403)
 
     chai.assert.deepEqual(body, {
       message: 'Rota exclusiva para administradores'

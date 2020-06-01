@@ -72,7 +72,7 @@
   },
   "standard": {
     "globals": [
-      "before",
+      "beforeEach",
       "describe",
       "it",
       "request"

@@ -1,13 +1,5 @@
 const faker = require('faker')
 
-async function login (email, password) {
-  const { body } = await request.post('/login').send({
-    email,
-    password
-  })
-  return body
-}
-
 async function cadastrarCarrinho ({ idProduto, quantidade = 1, authorization }) {
   if (idProduto === undefined) {
     const { body: bodyProdutos } = await request.get('/produtos')
@@ -23,7 +15,7 @@ async function cadastrarCarrinho ({ idProduto, quantidade = 1, authorization }) 
 }
 
 async function cadastrarProduto ({
-  nome = faker.commerce.productName(),
+  nome = faker.commerce.productName() + faker.random.number() + faker.random.number(),
   preco = faker.random.number(),
   descricao = faker.random.words(),
   quantidade = faker.random.number(),
@@ -45,7 +37,7 @@ async function cadastrarProduto ({
 }
 
 async function cadastrarUsuario ({
-  nome = faker.name.firstName(),
+  nome = faker.name.firstName() + ' ' + faker.name.lastName(),
   email = faker.internet.email(),
   password = faker.internet.password(),
   administrador = `${faker.random.boolean()}`
@@ -65,8 +57,25 @@ async function cadastrarUsuario ({
   }
 }
 
+function dadosProduto () {
+  return {
+    nome: faker.commerce.productName() + faker.random.number() + faker.random.number(),
+    preco: faker.random.number(),
+    descricao: faker.random.words(),
+    quantidade: faker.random.number()
+  }
+}
+
 async function excluirUsuario (id) {
   const { body } = await request.del('/usuarios/' + id).expect(200)
+  return body
+}
+
+async function login (email, password) {
+  const { body } = await request.post('/login').send({
+    email,
+    password
+  })
   return body
 }
 
@@ -74,6 +83,7 @@ module.exports = {
   cadastrarCarrinho,
   cadastrarProduto,
   cadastrarUsuario,
+  dadosProduto,
   excluirUsuario,
   login
 }
