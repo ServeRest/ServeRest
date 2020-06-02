@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.3](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.2...v2.1.3) (2020-06-02)
+
+
+### Bug Fixes
+
+* **api-doc:** correção do status code de erro ao logar ([6da4aed](https://github.com/PauloGoncalvesBH/serverest/commit/6da4aedc599eb84aba9b51e7945436515de80c8c))
+
 ### [2.1.2](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.1...v2.1.2) (2020-05-30)
 
 
