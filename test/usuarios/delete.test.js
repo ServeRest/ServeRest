@@ -27,9 +27,10 @@ describe(rotaUsuarios + ' DELETE', () => {
   })
 
   it('Usuário com carrinho cadastrado', async () => {
-    const { email, password, _id: idUsuario } = await utils.cadastrarUsuario()
+    const { email, password, _id: idUsuario } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
-    const { _id: idCarrinho } = await utils.cadastrarCarrinho({ authorization })
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization })
+    const { _id: idCarrinho } = await utils.cadastrarCarrinho({ idProduto, authorization })
 
     const { body } = await request.del(`${rotaUsuarios}/${idUsuario}`).expect(400)
     const { body: bodyGet } = await request.get(rotaUsuarios).query({ _id: idUsuario })

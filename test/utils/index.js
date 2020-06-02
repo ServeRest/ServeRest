@@ -5,10 +5,6 @@ async function cadastrarCarrinho ({
   quantidade = 1,
   authorization
 }) {
-  if (idProduto === undefined) {
-    const { body: bodyProdutos } = await request.get('/produtos')
-    idProduto = bodyProdutos.produtos[0]._id
-  }
   const { body } = await request.post('/carrinhos').set('authorization', authorization).send({
     produtos: [{
       idProduto,
