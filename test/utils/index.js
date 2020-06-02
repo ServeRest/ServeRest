@@ -1,6 +1,10 @@
 const faker = require('faker')
 
-async function cadastrarCarrinho ({ idProduto, quantidade = 1, authorization }) {
+async function cadastrarCarrinho ({
+  idProduto,
+  quantidade = 1,
+  authorization
+}) {
   if (idProduto === undefined) {
     const { body: bodyProdutos } = await request.get('/produtos')
     idProduto = bodyProdutos.produtos[0]._id
@@ -11,7 +15,11 @@ async function cadastrarCarrinho ({ idProduto, quantidade = 1, authorization }) 
       quantidade
     }]
   }).expect(201)
-  return body
+  return {
+    idProduto,
+    quantidade,
+    _id: body._id
+  }
 }
 
 async function cadastrarProduto ({
@@ -70,7 +78,7 @@ async function login (email, password) {
   const { body } = await request.post('/login').send({
     email,
     password
-  })
+  }).expect(200)
   return body
 }
 
