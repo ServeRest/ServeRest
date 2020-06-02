@@ -39,7 +39,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 ## 💥 Testes
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
-Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e validados com [chai](https://www.npmjs.com/package/chai).
+Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e [supertest](https://www.npmjs.com/package/supertest) e validados com [chai](https://www.npmjs.com/package/chai).
 
 Para executá-los, execute o comando `npm test`.
 
