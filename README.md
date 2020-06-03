@@ -33,9 +33,9 @@ Permite o estudo de:
 
 ## Rotas disponíveis
 
-Ao iniciar o _ServeRest_ automaticamente a rota `/api-doc` é executada, abrindo a documentação, que lista todas as rotas, verbos, contratos e repostas possíveis.
+Acesse <https://paulogoncalvesbh.github.io/ServeRest> para ter acesso à documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
-<details><summary>Abra para ver imagem das rotas disponíveis</summary>
+<details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
 <img alt="Lista de rotas disponibilizdas pelo ServeRest" src="./img/rotas.png" height="700">
 
@@ -43,7 +43,11 @@ Ao iniciar o _ServeRest_ automaticamente a rota `/api-doc` é executada, abrindo
 
 </details>
 
-> Para evitar que a documentação seja aberta automaticamente envie o comando `npx serverest --nodoc`
+#### Documentação local
+
+Ao iniciar o _ServeRest_ automaticamente a rota `/api-doc` é executada, abrindo a documentação localmente em `http://localhost:{porta}/api-doc`
+
+Para evitar que a documentação seja aberta automaticamente envie o comando `npx serverest --nodoc`
 
 ## Configuração
 
@@ -53,7 +57,7 @@ Para visualizar as configurações que são possíveis de serem feitas execute o
 npx serverest -h
 ```
 
-<details><summary>Abra para ver imagem do terminal com os comandos de configuração</summary>
+<details><summary><i>Abra para ver imagem do terminal com os comandos de configuração</i></summary>
 
 ![Informação de opções e exemplos fornecidos no terminal](./img/terminalHelp.png)
 
