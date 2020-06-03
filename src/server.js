@@ -31,7 +31,7 @@ const argv = require('yargs')
   .example('npx serverest --nodoc -t 20000', 'Documentação não abrirá e token terá 20 segundos de timeout')
   .help('h')
   .epilog('Precisa de ajuda?')
-  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/serverest/issues')
+  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/ServeRest/issues')
   .argv
 
 conf.tokenTimeout = argv.timeout
