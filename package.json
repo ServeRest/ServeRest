@@ -6,6 +6,7 @@
   "license": "MIT",
   "main": "./bin/server.js",
   "files": [
+    "docs/",
     "src/"
   ],
   "bin": {

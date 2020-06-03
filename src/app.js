@@ -3,10 +3,12 @@
 const express = require('express')
 const helmet = require('helmet')
 const logger = require('morgan')
+const path = require('path')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
+const diretorioDocumentacao = path.join(__dirname, '../docs')
 
 const app = express()
 
@@ -20,11 +22,11 @@ if (conf.utilizarHeaderDeSeguranca) {
 }
 
 app.get('/api-doc', (req, res) => {
-  res.sendFile('./doc/api-doc.html', { root: __dirname })
+  res.sendFile('index.html', { root: diretorioDocumentacao })
 })
 
 app.get('/favicon.ico', (req, res) => {
-  res.sendFile('./doc/favicon.png', { root: __dirname })
+  res.sendFile('favicon.png', { root: diretorioDocumentacao })
 })
 
 app.use(logger('dev'))
