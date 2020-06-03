@@ -4,18 +4,17 @@
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "MIT",
-  "main": "./bin/server.js",
+  "main": "./src/server.js",
+  "bin": "./src/server.js",
   "files": [
     "docs/",
     "src/"
   ],
-  "bin": {
-    "serverest": "./bin/server.js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/PauloGoncalvesBH/serverest.git"
   },
+  "homepage": "https://paulogoncalvesbh.github.io/ServeRest/",
   "keywords": [
     "testing",
     "server",
@@ -24,8 +23,8 @@
   ],
   "scripts": {
     "commit": "git-cz",
-    "start": "node ./bin/server.js",
-    "dev": "nodemon ./bin/server.js",
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js",
     "test": "mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",

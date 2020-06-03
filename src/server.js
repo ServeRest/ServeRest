@@ -7,7 +7,7 @@ const debug = require('debug')('nodestr:server')
 const http = require('http')
 const open = require('open')
 
-const { conf } = require('../src/utils/conf')
+const { conf } = require('./utils/conf')
 
 const argv = require('yargs')
   .default({
@@ -39,7 +39,7 @@ conf.utilizarHeaderDeSeguranca = !argv.nosec
 const DEFAULT_PORT = 3000
 
 // app tem que ser importado após o conf.utilizarHeaderDeSeguranca para que ele funcione corretamente
-const app = require('../src/app')
+const app = require('./app')
 
 const port = normalizePort(argv.porta)
 conf.porta = port
