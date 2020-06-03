@@ -1,6 +1,6 @@
 ---
 name: Solicitação de feature
-about: Sugira uma ideia para o projeto
+about: Sugira uma melhoria que sentiu falta no ServeRest
 title: ''
 labels: enhancement, new issue
 assignees: ''
