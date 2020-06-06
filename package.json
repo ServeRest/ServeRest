@@ -28,7 +28,7 @@
     "test": "mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o src/doc/api-doc.html",
+    "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o docs/index.html",
     "prerelease": "npm run lint && npm test",
     "release": "npx standard-version@8 --no-verify"
   },
