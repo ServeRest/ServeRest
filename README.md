@@ -84,24 +84,6 @@ Utilize esse comportamento para realizar testes de segurança, validando a prese
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
-## Dica - Gerenciando versão
-
-Como o comando `npx serverest` sempre executa a última versão disponibilizada, é interessante fixar qual versão que deseja utilizar, pois pode ocorrer da sua automação funcionar na versão `2.X.X` e ter sido disponibilizada a versão `3.X.X`, o que pode resultar na quebra dos seus testes.
-
-#### Para utilizar a versão major 2.X.X
-
-_Essa é a versão atual do ServeRest_
-
-```sh
-npx serverest@2
-```
-
-#### Para utilizar a versão major 1.X.X
-
-```sh
-npx serverest@1
-```
-
 ## Licença
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_large)
