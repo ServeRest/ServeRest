@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.5...v2.2.0) (2020-06-06)
+
+
+### Features
+
+* **conf:** timeout de token alterado de milissegundos para segundos ([dd333f9](https://github.com/PauloGoncalvesBH/serverest/commit/dd333f94bf7661381d60ca2705395653aff2c29a))
+
+
+### Bug Fixes
+
+* **package:** ajustar caminho de destino da doc html gerada ([ece00a0](https://github.com/PauloGoncalvesBH/serverest/commit/ece00a000a75a3fec33c95a6ce059a5fa6952999))
+
 ### [2.1.5](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.4...v2.1.5) (2020-06-04)
 
 ### [2.1.4](https://github.com/PauloGoncalvesBH/serverest/compare/v2.1.3...v2.1.4) (2020-06-03)
