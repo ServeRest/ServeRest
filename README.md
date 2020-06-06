@@ -19,7 +19,7 @@ npx serverest
 
 <details><summary>Abra para ver imagem do <i>ServeRest</i> iniciado e com algumas requests realizadas</summary>
 
-<img alt="Print do ServeRest iniciado no terminal" src="./img/terminalServerest.png" height="250">
+<img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
 
 </details>
 
@@ -37,7 +37,7 @@ Acesse <https://serverest.js.org> para ter acesso à documentação de todas as 
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
-<img alt="Lista de rotas disponibilizdas pelo ServeRest" src="./img/rotas.png" height="700">
+<img alt="Lista de rotas disponibilizdas pelo ServeRest" src="https://user-images.githubusercontent.com/29241659/83936398-ba8f2680-a799-11ea-8689-dea126b74874.png" height="700">
 
 ---
 
@@ -59,7 +59,7 @@ npx serverest -h
 
 <details><summary><i>Abra para ver imagem do terminal com os comandos de configuração</i></summary>
 
-![Informação de opções e exemplos fornecidos no terminal](./img/terminalHelp.png)
+![Informação de opções e exemplos fornecidos no terminal](https://user-images.githubusercontent.com/29241659/83936452-13f75580-a79a-11ea-8bea-3414f9bf31a2.png)
 
 </details>
 
