@@ -33,7 +33,7 @@ Permite o estudo de:
 
 ## Rotas disponíveis
 
-Acesse <https://serverest.js.org> para ter acesso à documentação de todas as rotas, verbos, contratos e respostas possíveis.
+Acesse [serverest.js.org](https://serverest.js.org) para ter acesso à documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
