@@ -1,10 +1,7 @@
-name: Continuous Integration
+name: Continuous Delivery
 
 on:
   push:
-    branches-ignore:
-      - master
-  pull_request:
     branches:
       - master
 
@@ -52,3 +49,23 @@ jobs:
       run: npm ci
     - name: API Test
       run: npm test
+
+  release:
+    needs: [lint, commit-lint, test-api]
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup 
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npx semantic-release
