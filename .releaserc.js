@@ -6,21 +6,18 @@ module.exports = {
       releaseRules: [
         { type: 'docs', scope: 'readme', release: 'patch' },
         { type: 'docs', scope: 'api-doc', release: 'patch' },
-        { subject: 'no-release', release: false }
-      ],
-      parserOpts: {
-        noteKeywords: ['BREAKING CHANGE', 'BREAKING CHANGES']
-      }
+        { subject: '[no-release]', release: false }
+      ]
     }],
     '@semantic-release/release-notes-generator',
     ['@semantic-release/changelog', {
-      changelogTitle: 'Changelog'
+      changelogTitle: '# Changelog'
     }],
     ['@semantic-release/npm', {
       tarballDir: 'dist'
     }],
     ['@semantic-release/git', {
-      message: 'chore(release): ${nextRelease.version}'
+      message: 'chore(release): ${nextRelease.version}\n\nRelease automatically generated through continuous delivery.'
     }],
     ['@semantic-release/github', {
       assets: 'dist/*.tgz'
