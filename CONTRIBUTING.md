@@ -26,7 +26,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub e, em seguida, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador;
 2. Instale as dependências de desenvolvimento: `npm install`;
 3. Faça as alterações necessárias;
-4. Execute os testes com `npm test`;
+4. Faça o seu commit usando `npm run commit`;
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 ### Pull Requests que não passarem nas validações da integração contínua não serão revisados.
