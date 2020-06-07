@@ -1,3 +1,12 @@
+# Changelog
+
+## [2.2.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.2...v2.2.3) (2020-06-07)
+
+
+### Bug Fixes
+
+* **help:** comando de desabilitar documentação alterado de '-n' p/ '-d' ([8f59c9e](https://github.com/PauloGoncalvesBH/ServeRest/commit/8f59c9eb59117ab7ffe22b283a970e3fc820ab65))
+
 ## [2.2.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.1...v2.2.2) (2020-06-07)
 
 ## [2.2.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.0...v2.2.1) (2020-06-07)
