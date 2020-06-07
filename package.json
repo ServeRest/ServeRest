@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/PauloGoncalvesBH/ServeRest.git"
+    "url": "https://github.com/PauloGoncalvesBH/ServeRest.git"
   },
   "homepage": "https://serverest.js.org",
   "keywords": [
