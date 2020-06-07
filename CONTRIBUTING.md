@@ -1,10 +1,10 @@
 
 # Como contribuir
 
-[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/serverest/actions)
+[![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-[![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 ---
@@ -69,14 +69,6 @@ Para saber mais, acesse esses links:
 Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
 
 > O commit é abortado caso esse padrão não seja seguido
-
-## Better Code Hub
-
-[![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
-
-Utilizamos o [Better Code Hub](https://bettercodehub.com/) na análise da qualidade do repositório.
-
-Caso o seu Pull Request reduza a pontuação do repositório, o mesmo será automaticamente reprovado.
 
 ## Documentação (api-doc)
 

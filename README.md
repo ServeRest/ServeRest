@@ -1,13 +1,13 @@
 
 <h1 align="center">ServeRest</h1>
 
-<h5 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5>
+<h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5>
 
 [![npm version](https://badge.fury.io/js/serverest.svg)](https://npmjs.com/package/serverest)
-[![BCH compliance](https://bettercodehub.com/edge/badge/PauloGoncalvesBH/serverest?branch=master)](https://bettercodehub.com/results/PauloGoncalvesBH/serverest)
-[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/serverest/actions)
-[![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npmjs.com/package/serverest)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_shield)
+[![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npm-stat.com/charts.html?package=serverest)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 
 [Histórico de alterações](/CHANGELOG.md) **|** [Como contribuir](/CONTRIBUTING.md) **|** [Código de conduta](/CODE_OF_CONDUCT.md)
 
