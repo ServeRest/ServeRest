@@ -2,16 +2,16 @@
 
 module.exports = {
   plugins: [
-    '@semantic-release/commit-analyzer', {
+    ['@semantic-release/commit-analyzer', {
       releaseRules: [
         { type: 'docs', scope: 'readme', release: 'patch' },
         { type: 'docs', scope: 'api-doc', release: 'patch' },
-        { scope: 'no-release', release: false }
+        { subject: 'no-release', release: false }
       ],
       parserOpts: {
         noteKeywords: ['BREAKING CHANGE', 'BREAKING CHANGES']
       }
-    },
+    }],
     '@semantic-release/release-notes-generator',
     ['@semantic-release/changelog', {
       changelogTitle: 'Changelog'
