@@ -1,16 +1,9 @@
 
 <h1 align="center">ServeRest</h1>
 
-<h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5>
+<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
 
-[![npm version](https://badge.fury.io/js/serverest.svg)](https://npmjs.com/package/serverest)
-[![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npm-stat.com/charts.html?package=serverest)
-[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
-[![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
-
-[Histórico de alterações](/CHANGELOG.md) **|** [Como contribuir](/CONTRIBUTING.md) **|** [Código de conduta](/CODE_OF_CONDUCT.md)
-
-## Executando o ServeRest
+---
 
 **Para iniciar o _ServeRest_ execute o seguinte comando no terminal:**
 
@@ -22,7 +15,14 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 
 ---
 
-Permite o estudo de:
+[![npm version](https://badge.fury.io/js/serverest.svg)](https://npmjs.com/package/serverest)
+[![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npm-stat.com/charts.html?package=serverest)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+
+**[Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/CONTRIBUTING.md) | [Código de conduta](/CODE_OF_CONDUCT.md)**
+
+_ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
 - Autenticação no header
 - Boas práticas de segurança
