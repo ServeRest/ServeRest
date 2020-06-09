@@ -3,12 +3,10 @@
 const express = require('express')
 const helmet = require('helmet')
 const logger = require('morgan')
-const path = require('path')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
-const diretorioDocumentacao = path.join(__dirname, '../docs')
 
 const app = express()
 
@@ -20,14 +18,6 @@ app.use(timeout())
 if (conf.utilizarHeaderDeSeguranca) {
   app.use(helmet())
 }
-
-app.get('/api-doc', (req, res) => {
-  res.sendFile('index.html', { root: diretorioDocumentacao })
-})
-
-app.get('/favicon.ico', (req, res) => {
-  res.sendFile('favicon.png', { root: diretorioDocumentacao })
-})
 
 app.use(logger('dev'))
 
@@ -44,7 +34,7 @@ app.use((error, req, res, next) => {
 
 app.use((req, res) => {
   res.status(405).send({
-    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse http://localhost:${conf.porta}/api-doc para ver as rotas disponíveis e como utilizá-las.`
+    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse https://serverest.js.org para ver as rotas disponíveis e como utilizá-las.`
   })
 })
 
