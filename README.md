@@ -31,9 +31,11 @@ Permite o estudo de:
 - Contrato
 - Requisições aninhadas
 
-## Rotas disponíveis
+## Documentação
 
-Acesse [serverest.js.org](https://serverest.js.org) para ter acesso à documentação de todas as rotas, verbos, contratos e respostas possíveis.
+Acesse **[serverest.js.org](https://serverest.js.org)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
+
+A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar o início automático envie o comando `npx serverest --nodoc`.
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
@@ -43,15 +45,9 @@ Acesse [serverest.js.org](https://serverest.js.org) para ter acesso à documenta
 
 </details>
 
-#### Documentação local
-
-Ao iniciar o _ServeRest_ automaticamente a rota `/api-doc` é executada, abrindo a documentação localmente em `http://localhost:{porta}/api-doc`
-
-Para evitar que a documentação seja aberta automaticamente envie o comando `npx serverest --nodoc`
-
 ## Configuração
 
-Para visualizar as configurações que são possíveis de serem feitas execute o comando
+Para visualizar as configurações que são possíveis de serem feitas execute o comando:
 
 ```sh
 npx serverest -h

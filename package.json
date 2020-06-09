@@ -7,7 +7,6 @@
   "main": "./src/server.js",
   "bin": "./src/server.js",
   "files": [
-    "docs/",
     "src/"
   ],
   "repository": {

@@ -57,7 +57,7 @@ console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h
 console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 
 if (!argv.nodoc) {
-  open(`http://localhost:${port}/api-doc`)
+  open('https://serverest.js.org')
 }
 
 function normalizePort (val) {
