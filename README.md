@@ -7,21 +7,20 @@
 [![npm total downloads](https://img.shields.io/npm/dt/serverest.svg)](https://npm-stat.com/charts.html?package=serverest)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
-[![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 
 [Histórico de alterações](/CHANGELOG.md) **|** [Como contribuir](/CONTRIBUTING.md) **|** [Código de conduta](/CODE_OF_CONDUCT.md)
 
 ## Executando o ServeRest
 
+**Para iniciar o _ServeRest_ execute o seguinte comando no terminal:**
+
 ```sh
 npx serverest
 ```
 
-<details><summary>Abra para ver imagem do <i>ServeRest</i> iniciado e com algumas requests realizadas</summary>
+Não é preciso fazer instalação com `npm install` antes da execução.
 
-<img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
-
-</details>
+---
 
 Permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
@@ -30,6 +29,12 @@ Permite o estudo de:
 - Query string
 - Contrato
 - Requisições aninhadas
+
+<details><summary><i>Abra para ver imagem do <i>ServeRest</i> iniciado e com algumas requests realizadas</i></summary>
+
+<img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
+
+</details>
 
 ## Documentação
 
