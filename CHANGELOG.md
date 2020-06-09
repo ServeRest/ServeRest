@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.3...v2.2.4) (2020-06-09)
+
+
+### Bug Fixes
+
+* **api-doc:** remover documentação local e excluir rota 'api-doc' ([3976c71](https://github.com/PauloGoncalvesBH/ServeRest/commit/3976c715f8a116cc8d84f9d3e1abed4bb03c26cc))
+
 ## [2.2.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.2...v2.2.3) (2020-06-07)
 
 
