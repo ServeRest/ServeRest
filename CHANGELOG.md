@@ -1,5 +1,7 @@
 # Changelog
 
+## [2.2.7](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.6...v2.2.7) (2020-06-10)
+
 ## [2.2.6](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.5...v2.2.6) (2020-06-10)
 
 ## [2.2.5](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.4...v2.2.5) (2020-06-09)
