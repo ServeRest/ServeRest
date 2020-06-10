@@ -14,19 +14,21 @@ const argv = require('yargs')
     porta: conf.porta,
     timeout: conf.tokenTimeout
   })
-  .boolean(['nodoc', 'nosec'])
+  .boolean(['nobearer', 'nodoc', 'nosec'])
   .number(['timeout', 'porta'])
   .alias('p', 'porta')
   .alias('t', 'timeout')
   .alias('d', 'nodoc')
+  .alias('b', 'nobearer')
   .alias('s', 'nosec')
   .alias('h', 'help')
   .alias('v', 'version')
   .usage('\nAjuda do ServeRest')
   .describe('p', 'Porta que será utilizada (default: 3000)')
   .describe('t', 'Timeout da autenticação em segundos (default: 1)')
-  .describe('s', 'Desabilitar os headers de segurança na resposta')
   .describe('d', 'Desabilitar o início automático da documentação')
+  .describe('b', 'Não retornar "Bearer" no authorization de /login')
+  .describe('s', 'Desabilitar os headers de segurança na resposta')
   .example('npx serverest --nodoc -t 20', 'Documentação não abrirá e token de autenticação gerado no login terá 20 segundos de duração')
   .example('npx serverest -p 3500', 'Em execução na porta 3500')
   .help('h')
@@ -37,6 +39,7 @@ const argv = require('yargs')
 
 conf.tokenTimeout = argv.timeout
 conf.utilizarHeaderDeSeguranca = !argv.nosec
+conf.semBearer = argv.nobearer
 const DEFAULT_PORT = 3000
 
 // app tem que ser importado após o conf.utilizarHeaderDeSeguranca para que ele funcione corretamente
