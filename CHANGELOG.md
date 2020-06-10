@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.3.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.7...v2.3.0) (2020-06-10)
+
+
+### Features
+
+* **login:** opção de desabilitar 'Bearer' do retorno de '/login' ([ba9a60b](https://github.com/PauloGoncalvesBH/ServeRest/commit/ba9a60b7952997a1929fa776f34b6f52e73dc4c9))
+
 ## [2.2.7](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.6...v2.2.7) (2020-06-10)
 
 ## [2.2.6](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.5...v2.2.6) (2020-06-10)
