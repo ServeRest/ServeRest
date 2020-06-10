@@ -3,9 +3,7 @@
 
 <i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
 
----
-
-**Para iniciar o _ServeRest_ execute o seguinte comando no terminal:**
+Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
 
 ```sh
 npx serverest
