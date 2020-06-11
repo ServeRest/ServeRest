@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.0...v2.4.1) (2020-06-11)
+
+
+### Performance Improvements
+
+* retirar dependência 'helmet' ([8f4d1e0](https://github.com/PauloGoncalvesBH/ServeRest/commit/8f4d1e0b69c7589557f34bbf234d7120bb9ac05d))
+
 # [2.4.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.3.0...v2.4.0) (2020-06-11)
 
 
