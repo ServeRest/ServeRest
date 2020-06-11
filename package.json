@@ -41,7 +41,6 @@
     "express": "^4.17.1",
     "express-query-int": "^3.0.0",
     "express-validation": "^3.0.2",
-    "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",

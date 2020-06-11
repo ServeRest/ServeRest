@@ -42,7 +42,7 @@ const argv = require('yargs')
   .argv
 
 conf.tokenTimeout = argv.timeout
-conf.utilizarHeaderDeSeguranca = !argv.nosec
+conf.semHeaderDeSeguranca = argv.nosec
 conf.semBearer = argv.nobearer
 const DEFAULT_PORT = 3000
 

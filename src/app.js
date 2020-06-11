@@ -1,7 +1,6 @@
 'use strict'
 
 const express = require('express')
-const helmet = require('helmet')
 const logger = require('morgan')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
@@ -15,8 +14,18 @@ app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
 
-if (conf.utilizarHeaderDeSeguranca) {
-  app.use(helmet())
+if (!conf.semHeaderDeSeguranca) {
+  app.disable('x-powered-by')
+  app.use((req, res, next) => {
+    res.set('x-dns-prefetch-control', 'off')
+    res.set('x-frame-options', 'SAMEORIGIN')
+    res.set('strict-transport-security', 'max-age=15552000; includeSubDomains')
+    res.set('x-download-options', 'noopen')
+    res.set('x-content-type-options', 'nosniff')
+    res.set('x-xss-protection', '1; mode=block')
+    res.set('content-type', 'application/json; charset=utf-8')
+    next()
+  })
 }
 
 app.use(logger('dev'))
