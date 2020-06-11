@@ -58,7 +58,9 @@ npx serverest -h
 
 <details><summary><i>Abra para ver imagem do terminal com os comandos de configuração</i></summary>
 
-![Informação de opções e exemplos fornecidos no terminal](https://user-images.githubusercontent.com/29241659/84222328-b15dcc80-aaad-11ea-8165-d3ce52672ee7.png)
+![Informação de opções e exemplos fornecidos no terminal](https://user-images.githubusercontent.com/29241659/84348644-d45eae00-ab8b-11ea-89a4-d8cda3b32b74.png)
+
+---
 
 </details>
 
