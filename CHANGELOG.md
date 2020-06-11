@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.4.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.3.0...v2.4.0) (2020-06-11)
+
+
+### Features
+
+* **timeout:** duração padrão do timeout alterada de 1 segundo para 600 ([e6595ec](https://github.com/PauloGoncalvesBH/ServeRest/commit/e6595ec73b3df28b1716e7889ea1b93fd0cf9ec2)), closes [#42](https://github.com/PauloGoncalvesBH/ServeRest/issues/42)
+
 # [2.3.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.2.7...v2.3.0) (2020-06-10)
 
 
