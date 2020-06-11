@@ -8,6 +8,8 @@ const http = require('http')
 const open = require('open')
 
 const { conf } = require('./utils/conf')
+const DEFAULT_PORT = 3000
+const { DOC_URL } = require('./utils/constants')
 
 const argv = require('yargs')
   .default({
@@ -44,9 +46,7 @@ const argv = require('yargs')
 conf.tokenTimeout = argv.timeout
 conf.semHeaderDeSeguranca = argv.nosec
 conf.semBearer = argv.nobearer
-const DEFAULT_PORT = 3000
 
-// app tem que ser importado após o conf.utilizarHeaderDeSeguranca para que ele funcione corretamente
 const app = require('./app')
 
 const port = normalizePort(argv.porta)
@@ -64,7 +64,7 @@ console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h
 console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 
 if (!argv.nodoc) {
-  open('https://serverest.js.org')
+  open(DOC_URL)
 }
 
 function normalizePort (val) {

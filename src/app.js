@@ -6,6 +6,7 @@ const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
+const { DOC_URL } = require('./utils/constants')
 
 const app = express()
 
@@ -43,7 +44,7 @@ app.use((error, req, res, next) => {
 
 app.use((req, res) => {
   res.status(405).send({
-    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse https://serverest.js.org para ver as rotas disponíveis e como utilizá-las.`
+    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${DOC_URL} para ver as rotas disponíveis e como utilizá-las.`
   })
 })
 
