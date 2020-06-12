@@ -67,6 +67,9 @@
     "standard": "^14.3.3",
     "supertest": "^4.0.2"
   },
+  "engines": {
+    "node": ">= 8"
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"

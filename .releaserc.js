@@ -5,8 +5,7 @@ module.exports = {
     ['@semantic-release/commit-analyzer', {
       releaseRules: [
         { type: 'docs', scope: 'readme', release: 'patch' },
-        { type: 'perf', release: 'patch' },
-        { subject: '[no-release]', release: false }
+        { scope: 'no-release', release: false }
       ]
     }],
     '@semantic-release/release-notes-generator',
