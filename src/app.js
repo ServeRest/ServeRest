@@ -29,6 +29,8 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
+app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
+
 app.use(logger('dev'))
 
 app.use('/login', require('./routes/login-route'))
