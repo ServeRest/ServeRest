@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "PauloGoncalvesBH",
+      "name": "Paulo Gonçalves",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/29241659?v=4",
+      "profile": "http://linkedin.com/in/paulo-goncalves/",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "ServeRest",
+  "projectOwner": "PauloGoncalvesBH",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
