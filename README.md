@@ -1,4 +1,7 @@
 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <h1 align="center">ServeRest</h1>
 
 <i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
@@ -90,3 +93,22 @@ Utilize esse comportamento para realizar testes de segurança, validando a prese
 ## Licença
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPauloGoncalvesBH%2Fserverest?ref=badge_large)
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="http://linkedin.com/in/paulo-goncalves/"><img src="https://avatars1.githubusercontent.com/u/29241659?v=4" width="100px;" alt=""/><br /><sub><b>Paulo Gonçalves</b></sub></a><br /><a href="https://github.com/PauloGoncalvesBH/ServeRest/commits?author=PauloGoncalvesBH" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
