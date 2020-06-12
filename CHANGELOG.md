@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.1...v2.4.2) (2020-06-12)
+
+
+### Bug Fixes
+
+* suprimir request em /favicon.ico ([0e5f78d](https://github.com/PauloGoncalvesBH/ServeRest/commit/0e5f78dd2691286c68286fb477f7d3384cc328fd))
+
 ## [2.4.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.0...v2.4.1) (2020-06-11)
 
 
