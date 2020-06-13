@@ -11,8 +11,9 @@ const datastore = new Nedb({ filename: join(__dirname, '../data/carrinhos.db'), 
 exports.getAll = queryString => {
   return new Promise((resolve, reject) => {
     datastore.find(queryString, (err, resultado) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(resultado)
+      resolve(resultado)
     })
   })
 }
@@ -20,8 +21,9 @@ exports.getAll = queryString => {
 exports.existeCarrinho = pesquisa => {
   return new Promise((resolve, reject) => {
     datastore.count(pesquisa, (err, count) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(count !== 0)
+      resolve(count !== 0)
     })
   })
 }
@@ -29,8 +31,9 @@ exports.existeCarrinho = pesquisa => {
 exports.criarCarrinho = async body => {
   return new Promise((resolve, reject) => {
     datastore.insert(body, (err, novoProduto) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(novoProduto)
+      resolve(novoProduto)
     })
   })
 }
@@ -49,8 +52,9 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
 exports.deleteById = async id => {
   return new Promise((resolve, reject) => {
     datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(quantidadeRegistrosExcluidos)
+      resolve(quantidadeRegistrosExcluidos)
     })
   })
 }

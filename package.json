@@ -24,7 +24,8 @@
     "commit": "git-cz",
     "start": "node ./src/server.js",
     "dev": "nodemon ./src/server.js",
-    "test": "mocha --config test/.mocharc.js",
+    "test": "nyc mocha --config test/.mocharc.js",
+    "posttest": "nyc report --reporter=text-lcov > coverage.lcov",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o docs/index.html"
@@ -64,6 +65,7 @@
     "husky": "^4.2.5",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.3",
+    "nyc": "^15.1.0",
     "standard": "^14.3.3",
     "supertest": "^4.0.2"
   },

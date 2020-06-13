@@ -3,6 +3,7 @@
 
 [![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 [![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/master/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
@@ -36,13 +37,23 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 #### 💥 > Validação realizada na integração contínua
 #### 💻 > Validação realizada no pré-commit
 
-
 ## 💥 Testes
+
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
 Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e [supertest](https://www.npmjs.com/package/supertest) e validados com [chai](https://www.npmjs.com/package/chai).
 
 Para executá-los, execute o comando `npm test`.
+
+## 💥 Cobertura de código
+
+[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/master/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
+
+Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de código.
+
+É importante que todo o código esteja com 100% de cobertura para podermos ter segurança que toda alteração no código será validada.
+
+Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src` (exceto `server.js`). Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
 
 ## 💥💻 Lint
 
@@ -73,7 +84,7 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 ## Documentação (api-doc)
 
-A documentação, disponibilizada através da rota `api-doc`, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
+A documentação, disponibilizada na url <https://serverest.js.org>, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
 
 Para atualizar:
 1. Acesse o [editor do ServeRest no Apiary](https://app.apiary.io/serverest/editor) e faça as alterações necessárias.
