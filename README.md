@@ -7,7 +7,7 @@
 <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
 <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
 <img alt="support - node version" src="https://img.shields.io/node/v/serverest?style=for-the-badge">
-<a href="https://github.com/PauloGoncalvesBH/ServeRest/actions"><img alt="Github - Deploy status" src="https://img.shields.io/github/workflow/status/PauloGoncalvesBH/ServeRest/Continuous%20Integration?label=Deploy&style=for-the-badge"></a>
+<a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/master?style=for-the-badge"></a>
 </p>
 
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
