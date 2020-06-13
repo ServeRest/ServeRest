@@ -9,6 +9,7 @@ exports.get = async (req, res) => {
     const usuarios = await service.getAll(req.query)
     res.status(200).send({ quantidade: usuarios.length, usuarios })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -21,6 +22,7 @@ exports.post = async (req, res) => {
     const dadosCadastrados = await service.createUser(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -36,6 +38,7 @@ exports.delete = async (req, res) => {
     const message = quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCESS
     res.status(200).send({ message })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -50,6 +53,7 @@ exports.put = async (req, res) => {
     if (registroCriado) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
     res.status(200).send({ message: constant.PUT_SUCESS })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }

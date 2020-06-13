@@ -8,8 +8,9 @@ const datastore = new Nedb({ filename: join(__dirname, '../data/usuarios.db'), a
 exports.getAll = queryString => {
   return new Promise((resolve, reject) => {
     datastore.find(queryString, (err, resultado) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(resultado)
+      resolve(resultado)
     })
   })
 }
@@ -17,8 +18,9 @@ exports.getAll = queryString => {
 exports.getDadosDoUsuario = queryString => {
   return new Promise((resolve, reject) => {
     datastore.findOne(queryString, (err, resultado) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(resultado)
+      resolve(resultado)
     })
   })
 }
@@ -26,8 +28,9 @@ exports.getDadosDoUsuario = queryString => {
 exports.existeUsuario = pesquisa => {
   return new Promise((resolve, reject) => {
     datastore.count(pesquisa, (err, count) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(count !== 0)
+      resolve(count !== 0)
     })
   })
 }
@@ -35,8 +38,9 @@ exports.existeUsuario = pesquisa => {
 exports.usuarioEhAdministrador = ({ email, password }) => {
   return new Promise((resolve, reject) => {
     datastore.find({ email, password }, (err, resultado) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(JSON.parse(resultado[0].administrador))
+      resolve(JSON.parse(resultado[0].administrador))
     })
   })
 }
@@ -44,8 +48,9 @@ exports.usuarioEhAdministrador = ({ email, password }) => {
 exports.createUser = async body => {
   return new Promise((resolve, reject) => {
     datastore.insert(body, (err, novoUsuario) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(novoUsuario)
+      resolve(novoUsuario)
     })
   })
 }
@@ -53,8 +58,9 @@ exports.createUser = async body => {
 exports.deleteById = async id => {
   return new Promise((resolve, reject) => {
     datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(quantidadeRegistrosExcluidos)
+      resolve(quantidadeRegistrosExcluidos)
     })
   })
 }
@@ -62,8 +68,9 @@ exports.deleteById = async id => {
 exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
   return new Promise((resolve, reject) => {
     datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true }, (err, quantidadeRegistrosAlterados, registroCriado) => {
+      /* istanbul ignore if */
       if (err) reject(err)
-      else resolve(registroCriado)
+      resolve(registroCriado)
     })
   })
 }

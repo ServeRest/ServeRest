@@ -15,6 +15,7 @@ exports.checkAdm = async (req, res, next) => {
     }
     next()
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -26,6 +27,7 @@ exports.checkToken = async (req, res, next) => {
     }
     next()
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }

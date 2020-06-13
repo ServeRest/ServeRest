@@ -11,6 +11,7 @@ exports.get = async (req, res) => {
     const carrinhos = await service.getAll(req.query)
     res.status(200).send({ quantidade: carrinhos.length, carrinhos })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -60,6 +61,7 @@ exports.post = async (req, res) => {
     const dadosCadastrados = await service.criarCarrinho(req.body)
     res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -84,6 +86,7 @@ exports.cancelarCompra = async (req, res) => {
 
     res.status(200).send({ message: constant.SEM_CARRINHO })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }
@@ -98,6 +101,7 @@ exports.concluirCompra = async (req, res) => {
     }
     res.status(200).send({ message: constant.SEM_CARRINHO })
   } catch (error) {
+    /* istanbul ignore next */
     res.status(500).send({ message: constant.INTERNAL_ERROR, error })
   }
 }

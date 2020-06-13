@@ -15,6 +15,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
 
+/* istanbul ignore else */
 if (!conf.semHeaderDeSeguranca) {
   app.disable('x-powered-by')
   app.use((req, res, next) => {
@@ -40,8 +41,10 @@ app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use((error, req, res, next) => {
   const ocorreuErroNaValidacaoDoSchema = error.name === 'ValidationError'
-  if (ocorreuErroNaValidacaoDoSchema) { return res.status(400).json({ error }) }
-  return res.status(500).json({ error })
+  /* istanbul ignore else */
+  if (ocorreuErroNaValidacaoDoSchema) { return res.status(400).json({ error }) } else {
+    return res.status(500).json({ error })
+  }
 })
 
 app.use((req, res) => {

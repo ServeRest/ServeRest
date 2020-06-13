@@ -11,6 +11,7 @@ function createToken (emailSenha) {
 }
 
 function verifyToken (authorization) {
+  /* istanbul ignore next */
   return jwt.verify(authorization.split(' ')[1], PRIVATE_KEY, (err, decode) => (decode === undefined ? err : decode))
 }
 
