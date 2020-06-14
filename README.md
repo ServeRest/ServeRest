@@ -20,7 +20,7 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 
 ---
 
-**[Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/CONTRIBUTING.md) | [Código de conduta](/CODE_OF_CONDUCT.md)**
+**[Documentação das rotas](https://serverest.js.org) | [Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/CONTRIBUTING.md) | [Código de conduta](/CODE_OF_CONDUCT.md)**
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
@@ -40,8 +40,6 @@ _ServeRest_ permite o estudo de:
 
 Acesse **[serverest.js.org](https://serverest.js.org)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
-A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar o início automático envie o comando `npx serverest --nodoc`.
-
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
 <img alt="Lista de rotas disponibilizdas pelo ServeRest" src="https://user-images.githubusercontent.com/29241659/83936398-ba8f2680-a799-11ea-8689-dea126b74874.png" height="700">
@@ -49,6 +47,8 @@ A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar
 ---
 
 </details>
+
+A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar o início automático envie o comando `npx serverest --nodoc`.
 
 ## Configuração
 
@@ -58,19 +58,11 @@ Para visualizar as configurações que são possíveis de serem feitas execute o
 npx serverest -h
 ```
 
-<details><summary><i>Abra para ver imagem do terminal com os comandos de configuração</i></summary>
-
 ![Informação de opções e exemplos fornecidos no terminal](https://user-images.githubusercontent.com/29241659/84348644-d45eae00-ab8b-11ea-89a4-d8cda3b32b74.png)
-
----
-
-</details>
 
 #### Segurança (`--nosec`)
 
-É boa prática que as APIs, na resposta, enviem determinados cabeçalhos e suprimam outros visando a segurança da aplicação.
-
-Por default, o _ServeRest_ irá fazer as seguintes alterações de segurança, que podem ser desabilitadas com `npx serverest --nosec`:
+Por default, o _ServeRest_ irá fazer as seguintes alterações no cabeçalho, que podem ser desabilitadas com `npx serverest --nosec`:
 
 **Cabeçalhos adicionados:**
 - `Strict-Transport-Security: max-age=15552000; includeSubDomains`
@@ -83,7 +75,7 @@ Por default, o _ServeRest_ irá fazer as seguintes alterações de segurança, q
 **Cabeçalho removido:**
 - `X-Powered-By: Express`
 
-Utilize esse comportamento para realizar testes de segurança, validando a presença/ausência desses cabeçalhos.
+Utilize esse comportamento nos seus testes, validando a presença/ausência desses cabeçalhos.
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
