@@ -55,13 +55,13 @@ app.set('port', port)
 
 const server = http.createServer(app)
 
-server.listen(port)
+server.listen(port, () => {
+  console.log(colors.white.bold(`\nServeRest está em execução na porta ${port}`))
+  console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h'))
+  console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
+})
 server.on('error', onError)
 server.on('listening', onListening)
-
-console.log(colors.white.bold(`\nServeRest está em execução na porta ${port}`))
-console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h'))
-console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 
 if (!argv.nodoc) {
   open(DOC_URL)
@@ -90,13 +90,13 @@ function onError (error) {
 
   switch (error.code) {
     case 'EACCESS':
-      console.error(bind, 'requires elevated privileges')
+      console.error(colors.red.bold(bind, 'requires elevated privileges'))
       process.exit(1)
 
     case 'EADDRINUSE':
-      console.error(bind, `já está em uso.
+      console.error(colors.red.bold(bind, `já está em uso.
 Feche o programa/serviço que está usando a porta ${port} ou execute o ServeRest em outra porta.
-Execute 'npx serverest -h' para saber como executar em outra porta.`)
+Execute 'npx serverest -h' para saber como executar em outra porta.\n`))
       process.exit(1)
 
     default:
