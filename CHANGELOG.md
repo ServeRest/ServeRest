@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.5.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.5...v2.5.0) (2020-06-29)
+
+
+### Bug Fixes
+
+* apresentar mensagem de início apenas ao iniciar o ServeRest ([b895764](https://github.com/PauloGoncalvesBH/ServeRest/commit/b89576401e2c8fa366a38480cd750e95c33ffba5))
+
+
+### Features
+
+* jSON da resposta será identado com 4 espaços ([9e10467](https://github.com/PauloGoncalvesBH/ServeRest/commit/9e1046734ab66d99fea7f38ce8d95e99799b8dc5))
+
 ## [2.4.5](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.4...v2.4.5) (2020-06-14)
 
 ## [2.4.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.4.3...v2.4.4) (2020-06-13)
