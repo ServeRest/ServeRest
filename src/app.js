@@ -10,6 +10,7 @@ const { DOC_URL } = require('./utils/constants')
 
 const app = express()
 
+app.set('json spaces', 4)
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
