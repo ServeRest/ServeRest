@@ -8,6 +8,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](https://allcontributors.org/docs/en/bot/usage)
 
 ---
 
@@ -91,6 +92,16 @@ Para atualizar:
     - É preciso ter permissão de edição.
 2. Realize o download do arquivo `serverest.apib` e salve esse arquivo na raiz do _ServeRest_.
 3. Execute o comando `npm run generate-doc`
+
+## Reconhecimento de contribuição
+
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](https://allcontributors.org/docs/en/bot/usage)
+
+Todos aqueles que contribuíram com o projeto, independente do tipo de contribuição, devem ser reconhecidos.
+
+Por isso, utilizamos o bot [@all-contributors](https://allcontributors.org/docs/en/bot/overview), que cria um Pull Request atualizando a seção de [contribuidores no README](./README.md/#contributors-).
+
+Para entender como utilizar, basta acessar as [intruções de uso do bot](https://allcontributors.org/docs/en/bot/usage). 
 
 ## Execução do Projeto via Makefile
 
