@@ -50,7 +50,7 @@ jobs:
     - name: API Test
       run: npm test
     - name: Update Codecov Report
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1.0.7
 
   release:
     needs: [lint, commit-lint, test-api]
