@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js Setup 
+    - name: Node.js Setup
       uses: actions/setup-node@v2.1.0
     - name: Installation of Node.js dependencies
       run: npm ci
@@ -35,7 +35,7 @@ jobs:
         fetch-depth: 0
     - uses: wagoid/commitlint-github-action@v1
       with:
-        helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/CONTRIBUTING.md
+        helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/.github/CONTRIBUTING.md
 
   test-api:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -44,7 +44,7 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js Setup 
+    - name: Node.js Setup
       uses: actions/setup-node@v2.1.0
     - name: Installation of Node.js dependencies
       run: npm ci
