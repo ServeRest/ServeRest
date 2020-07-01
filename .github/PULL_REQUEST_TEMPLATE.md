@@ -9,7 +9,7 @@
 ### How can the user experience this change?
 
 <!--
-  Describe here how to reproduce the changes made. A way to do this is by wrinting a step by step guide.
+  Describe here how to reproduce the changes made. A way to do this is by writing a step by step guide.
 
   e.g.
   # Create a new user;
