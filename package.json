@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^9.0.1",
-    "@commitlint/config-conventional": "^8.3.4",
+    "@commitlint/config-conventional": "^9.0.1",
     "@hapi/joi": "^17.1.1",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/commit-analyzer": "^8.0.1",
