@@ -20,7 +20,7 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 
 ---
 
-**[Documentação das rotas](https://serverest.js.org) | [Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/CONTRIBUTING.md) | [Código de conduta](/CODE_OF_CONDUCT.md)**
+**[Documentação das rotas](https://serverest.js.org) | [Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/.github/CONTRIBUTING.md) | [Código de conduta](/.github/CODE_OF_CONDUCT.md)**
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
