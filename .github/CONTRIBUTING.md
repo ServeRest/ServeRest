@@ -8,7 +8,6 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](https://allcontributors.org/docs/en/bot/usage)
 
 ---
 
@@ -94,8 +93,6 @@ Para atualizar:
 3. Execute o comando `npm run generate-doc`
 
 ## Reconhecimento de contribuição
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](https://allcontributors.org/docs/en/bot/usage)
 
 Todos aqueles que contribuíram com o projeto, independente do tipo de contribuição, devem ser reconhecidos.
 
