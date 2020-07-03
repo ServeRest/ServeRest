@@ -23,6 +23,16 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "doamaral",
+      "name": "Lucas Amaral",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/7451330?v=4",
+      "profile": "https://github.com/doamaral",
+      "contributions": [
+        "talk",
+        "bug"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
