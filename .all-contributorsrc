@@ -1,6 +1,7 @@
 {
   "files": [
-    "README.md"
+    "README.md",
+    ".github/CONTRIBUTING.md"
   ],
   "imageSize": 100,
   "commit": false,
