@@ -94,9 +94,13 @@ Para atualizar:
 
 ## Reconhecimento de contribuição
 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=for-the-badge)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 Todos aqueles que contribuíram com o projeto, independente do tipo de contribuição, devem ser reconhecidos.
 
-Por isso, utilizamos o bot [@all-contributors](https://allcontributors.org/docs/en/bot/overview), que cria um Pull Request atualizando a seção de [contribuidores no README](./README.md/#contributors-).
+Por isso, utilizamos o bot [@all-contributors](https://allcontributors.org/docs/en/bot/overview), que cria um Pull Request atualizando a seção de [contribuidores no README](../README.md/#contributors-).
 
 Para entender como utilizar, basta acessar as [intruções de uso do bot](https://allcontributors.org/docs/en/bot/usage). 
 
