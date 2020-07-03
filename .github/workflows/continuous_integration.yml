@@ -5,7 +5,7 @@ on:
 
 jobs:
   lint:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +19,7 @@ jobs:
       run: npm run lint
 
   commit-lint:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
     runs-on: ubuntu-latest
 
     env:
@@ -35,7 +35,7 @@ jobs:
         helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/.github/CONTRIBUTING.md
 
   test-api:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
     runs-on: ubuntu-latest
 
     strategy:
