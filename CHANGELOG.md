@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.2...v2.5.3) (2020-07-03)
+
+
+### Reverts
+
+* Revert "ci: inserir forma de não executar CI" ([0bf32ee](https://github.com/PauloGoncalvesBH/ServeRest/commit/0bf32ee923c9a623bb25c3707dfb9a795ab42d46))
+
 ## [2.5.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.1...v2.5.2) (2020-07-02)
 
 ## [2.5.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.0...v2.5.1) (2020-07-01)
