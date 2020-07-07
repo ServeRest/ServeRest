@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.6.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.3...v2.6.0) (2020-07-07)
+
+
+### Features
+
+* **server:** apresentar versão do ServeRest no help e ao iniciar ([557fbb9](https://github.com/PauloGoncalvesBH/ServeRest/commit/557fbb9c0d6ec4014257c89c561cdc7bf9f2c98b))
+
 ## [2.5.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.2...v2.5.3) (2020-07-03)
 
 
