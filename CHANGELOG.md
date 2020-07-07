@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.6.0...v2.6.1) (2020-07-07)
+
+
+### Reverts
+
+* Revert "feat(server): apresentar versão do ServeRest no help e ao iniciar" ([78cb5e2](https://github.com/PauloGoncalvesBH/ServeRest/commit/78cb5e23049c88d46c3879cb82f0eb6468352b03))
+
 # [2.6.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.5.3...v2.6.0) (2020-07-07)
 
 
