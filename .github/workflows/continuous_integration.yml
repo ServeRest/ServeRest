@@ -12,7 +12,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js Setup
-      uses: actions/setup-node@v2.1.0
+      uses: actions/setup-node@v2.1.1
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Lint
@@ -46,7 +46,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js v${{ matrix.node }} Setup
-      uses: actions/setup-node@v2.1.0
+      uses: actions/setup-node@v2.1.1
       with:
         node-version: ${{ matrix.node }}
     - name: Installation of Node.js dependencies
