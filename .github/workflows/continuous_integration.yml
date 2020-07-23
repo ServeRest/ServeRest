@@ -32,7 +32,7 @@ jobs:
         fetch-depth: 0
     - uses: wagoid/commitlint-github-action@v1
       with:
-        helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/master/.github/CONTRIBUTING.md
+        helpURL: https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md
 
   test-api:
 
