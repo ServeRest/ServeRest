@@ -3,7 +3,8 @@
 module.exports = {
   branches: [
     // https://github.com/semantic-release/semantic-release/blob/master/docs/usage/workflow-configuration.md#workflow-configuration
-    {name: 'trunk'}
+    {name: 'trunk'},
+    {name: 'beta', channel: 'beta', prerelease: 'beta'}
   ],
   plugins: [
     ['@semantic-release/commit-analyzer', {
