@@ -1,5 +1,5 @@
 <!--
-  Have any questions? Check out the contributing docs at https://github.com/PauloGoncalvesBH/ServeRest/blob/master/.github/CONTRIBUTING.md :)
+  Have any questions? Check out the contributing docs at https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md :)
 -->
 
 ## Description
@@ -25,7 +25,7 @@
   - If docs exist:
     - Update any references, if relevant.
   - If no docs exist:
-    - Create documentation using the existing one as a reference. A guide on how to create the documentation can be found on https://github.com/PauloGoncalvesBH/ServeRest/blob/master/.github/CONTRIBUTING.md#documenta%C3%A7%C3%A3o-api-doc
+    - Create documentation using the existing one as a reference. A guide on how to create the documentation can be found on https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md#documenta%C3%A7%C3%A3o-api-doc
 -->
 
 ## Related Issues

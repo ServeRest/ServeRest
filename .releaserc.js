@@ -1,6 +1,10 @@
 /* eslint no-template-curly-in-string: 0 */
 
 module.exports = {
+  branches: [
+    // https://github.com/semantic-release/semantic-release/blob/master/docs/usage/workflow-configuration.md#workflow-configuration
+    {name: 'trunk'}
+  ],
   plugins: [
     ['@semantic-release/commit-analyzer', {
       releaseRules: [
