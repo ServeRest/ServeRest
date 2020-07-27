@@ -1,0 +1,19 @@
+name: Check links [.md, HTML]
+
+on:
+  schedule:
+    - cron: "0 15,21 * * *"
+  workflow_dispatch:
+  push:
+
+jobs:
+  check-link:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        config-file: '.github/mlc_config.json'

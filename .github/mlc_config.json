@@ -1,0 +1,23 @@
+{
+	"ignorePatterns": [
+		{
+			"pattern": "https://github.com/PauloGoncalvesBH/ServeRest/commit"
+		},
+		{
+			"pattern": "https://github.com/PauloGoncalvesBH/ServeRest/compare"
+		},
+		{
+			"pattern": "https://github.com/PauloGoncalvesBH/ServeRest/issues"
+		}
+	],
+	"replacementPatterns": [
+		{
+			"pattern": "^/CHANGELOG.md",
+			"replacement": "https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md"
+		},
+		{
+			"pattern": "^/.github",
+			"replacement": "https://github.com/PauloGoncalvesBH/ServeRest/tree/trunk/.github"
+		}
+	]
+}

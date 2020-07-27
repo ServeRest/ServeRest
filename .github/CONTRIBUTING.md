@@ -75,8 +75,8 @@ Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrado
 As mensagens de commit devem seguir o padrão do _conventional commit_.
 
 Para saber mais, acesse esses links:
-- [Especificação do Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/)
-- [Regras do @commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/trunk/%40commitlint/config-conventional).
+- [Especificação do Conventional Commit](https://www.conventionalcommits.org/)
+- [Regras do @commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional).
 
 Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
 
