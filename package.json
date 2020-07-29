@@ -86,7 +86,6 @@
     ]
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "tag": "latest"
+    "registry": "https://registry.npmjs.org/"
   }
 }

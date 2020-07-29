@@ -2,8 +2,7 @@ name: Continuous Delivery
 
 on:
   push:
-    branches:
-      - trunk
+    branches: [trunk, beta]
 
 jobs:
   lint:
