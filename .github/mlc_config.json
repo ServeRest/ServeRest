@@ -8,6 +8,9 @@
 		},
 		{
 			"pattern": "https://github.com/PauloGoncalvesBH/ServeRest/issues"
+		},
+		{
+			"pattern": "https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg"
 		}
 	],
 	"replacementPatterns": [
