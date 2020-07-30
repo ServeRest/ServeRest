@@ -14,9 +14,9 @@
  <b>
    <a href="https://serverest.js.org">Documentação das rotas</a> |
    <a href="/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
- </b>
-   <a href="/.github/CONTRIBUTING.md">Como contribuir</a> <b>|</b>
+   <a href="/.github/CONTRIBUTING.md">Como contribuir</a> |
    <a href="/CHANGELOG.md">Histórico de alterações</a>
+ </b>
 </p>
 
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
