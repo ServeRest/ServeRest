@@ -146,16 +146,9 @@ describe(rotaCarrinhos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          produtos: '"produtos" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+
+      produtos: 'produtos é obrigatório',
+      inexistente: 'inexistente não é permitido'
     })
   })
 
@@ -167,17 +160,76 @@ describe(rotaCarrinhos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          idProduto: '"produtos[0].idProduto" is required',
-          quantidade: '"produtos[0].quantidade" is required',
-          produtos: '"produtos" does not contain 1 required value(s)'
+      'produtos[0].idProduto': 'produtos[0].idProduto é obrigatório',
+      'produtos[0].quantidade': 'produtos[0].quantidade é obrigatório',
+      produtos: 'produtos não contém 1 valor obrigatório'
+    })
+  })
+
+  it('Bad request - produtos deve ser array', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({ produtos: {} })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      produtos: 'produtos deve ser um array'
+    })
+  })
+
+  it('Bad request - idProduto deve ser string e quantidade deve ser número', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto: 0,
+          quantidade: 'a'
         }]
-      }
+      })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      produtos: 'produtos não contém 1 valor obrigatório',
+      'produtos[0].idProduto': 'produtos[0].idProduto deve ser uma string',
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número'
+    })
+  })
+
+  it('Bad request - quantidade deve ser inteiro', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto: 'basdasd',
+          quantidade: -1.1
+        }]
+      })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      produtos: 'produtos não contém 1 valor obrigatório',
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um inteiro'
+    })
+  })
+
+  it('Bad request - quantidade deve ser um número positivo', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto: 'asdasd',
+          quantidade: 0
+        }]
+      })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      produtos: 'produtos não contém 1 valor obrigatório',
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número positivo'
     })
   })
 })

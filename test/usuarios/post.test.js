@@ -29,23 +29,37 @@ describe(rotaUsuarios + ' POST', () => {
     chai.assert.deepEqual(body, { message: 'Este email já está sendo usado' })
   })
 
-  it('Bad request', async () => {
+  it('Bad request - Campos de preenchimento obrigatório', async () => {
     const { body } = await request.post(rotaUsuarios).send({ inexistente: '1' }).expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          nome: '"nome" is required',
-          email: '"email" is required',
-          password: '"password" is required',
-          administrador: '"administrador" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+      nome: 'nome é obrigatório',
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+      administrador: 'administrador é obrigatório',
+      inexistente: 'inexistente não é permitido'
+    })
+  })
+
+  it('Bad request - administrador deve ser "true" ou "false" - não deve aceitar número booleano', async () => {
+    const { body } = await request.post(rotaUsuarios).send({ administrador: 1 }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome é obrigatório',
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+      administrador: "administrador deve ser 'true' ou 'false'"
+    })
+  })
+
+  it('Bad request - administrador deve ser "true" ou "false" - não deve aceitar boolean fora de aspas', async () => {
+    const { body } = await request.post(rotaUsuarios).send({ administrador: false }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome é obrigatório',
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+      administrador: "administrador deve ser 'true' ou 'false'"
     })
   })
 })

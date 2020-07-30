@@ -3,5 +3,5 @@
 const { validate } = require('express-validation')
 
 module.exports = schema => {
-  return validate(schema, { keyByField: true }, { abortEarly: false })
+  return validate(schema, { keyByField: false }, { abortEarly: false })
 }

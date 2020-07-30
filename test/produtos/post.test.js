@@ -52,7 +52,7 @@ describe(rotaProdutos + ' POST', () => {
     })
   })
 
-  it('Bad request', async () => {
+  it('Bad request - Campos de preenchimento obrigatório', async () => {
     const { body } = await request
       .post(rotaProdutos)
       .send({ inexistente: 'teste' })
@@ -60,19 +60,40 @@ describe(rotaProdutos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          nome: '"nome" is required',
-          preco: '"preco" is required',
-          descricao: '"descricao" is required',
-          quantidade: '"quantidade" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+      nome: 'nome é obrigatório',
+      preco: 'preco é obrigatório',
+      descricao: 'descricao é obrigatório',
+      quantidade: 'quantidade é obrigatório',
+      inexistente: 'inexistente não é permitido'
+    })
+  })
+
+  it('Bad request - quantidade deve ser maior ou igual a 0 - Não deve permitir valor negativo', async () => {
+    const { body } = await request
+      .post(rotaProdutos)
+      .send({ quantidade: -1 })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome é obrigatório',
+      preco: 'preco é obrigatório',
+      descricao: 'descricao é obrigatório',
+      quantidade: 'quantidade deve ser maior ou igual a 0'
+    })
+  })
+
+  it('Bad request - quantidade deve ser maior ou igual a 0 - Deve permitir 0', async () => {
+    const { body } = await request
+      .post(rotaProdutos)
+      .send({ quantidade: 0 })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome é obrigatório',
+      preco: 'preco é obrigatório',
+      descricao: 'descricao é obrigatório'
     })
   })
 })

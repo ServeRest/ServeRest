@@ -87,19 +87,11 @@ describe(rotaProdutos + ' PUT', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          nome: '"nome" is required',
-          preco: '"preco" is required',
-          descricao: '"descricao" is required',
-          quantidade: '"quantidade" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+      nome: 'nome é obrigatório',
+      preco: 'preco é obrigatório',
+      descricao: 'descricao é obrigatório',
+      quantidade: 'quantidade é obrigatório',
+      inexistente: 'inexistente não é permitido'
     })
   })
 })

@@ -51,13 +51,7 @@ describe(rotaCarrinhos + ' GET', () => {
     const { body } = await request.get(rotaCarrinhos).query({ inexistente: 'a' }).expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{ inexistente: '"inexistente" is not allowed' }]
-      }
+      inexistente: 'inexistente não é permitido'
     })
   })
 })
