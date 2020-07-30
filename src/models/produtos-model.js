@@ -6,9 +6,9 @@ exports.schemaGet = {
   query: Joi.object({
     _id: Joi.any(),
     nome: Joi.any(),
-    preco: Joi.any(),
+    preco: Joi.number().positive().integer(),
     descricao: Joi.any(),
-    quantidade: Joi.any()
+    quantidade: Joi.number().min(0).integer()
   })
 }
 

@@ -31,4 +31,31 @@ describe(rotaProdutos + ' GET', () => {
       inexistente: 'inexistente não é permitido'
     })
   })
+
+  it('Query string - preco e quantidade devem ser número', async () => {
+    const { body } = await request.get(rotaProdutos).query({ preco: 'a', quantidade: 'a' }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      preco: 'preco deve ser um número',
+      quantidade: 'quantidade deve ser um número'
+    })
+  })
+
+  it('Query string - preco e quantidade devem ser inteiro', async () => {
+    const { body } = await request.get(rotaProdutos).query({ preco: 0.1, quantidade: 0.1 }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      preco: 'preco deve ser um inteiro',
+      quantidade: 'quantidade deve ser um inteiro'
+    })
+  })
+
+  it('Query string - preco deve ser positivo e quantidade deve ser maior que 0', async () => {
+    const { body } = await request.get(rotaProdutos).query({ preco: 0, quantidade: -1 }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      preco: 'preco deve ser um número positivo',
+      quantidade: 'quantidade deve ser maior ou igual a 0'
+    })
+  })
 })
