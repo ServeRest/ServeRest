@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.0...v2.7.1) (2020-07-30)
+
+
+### Bug Fixes
+
+* validar tipos enviados na query string em /carrinhos e /produtos ([7fd7c13](https://github.com/PauloGoncalvesBH/ServeRest/commit/7fd7c1343647963f9af14f7313637f5b8d20c88d))
+
 # [2.7.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.6.1...v2.7.0) (2020-07-30)
 
 
