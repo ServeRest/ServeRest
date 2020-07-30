@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.7.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.6.1...v2.7.0) (2020-07-30)
+
+
+### Features
+
+* mensagens de erro de schema serão mais claras e em PT-BR ([#82](https://github.com/PauloGoncalvesBH/ServeRest/issues/82)) ([d482ae6](https://github.com/PauloGoncalvesBH/ServeRest/commit/d482ae60b59bd9f4b12a46eec9fa31852f250f30)), closes [#72](https://github.com/PauloGoncalvesBH/ServeRest/issues/72)
+
 # [2.7.0-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.6.1...v2.7.0-beta.1) (2020-07-30)
 
 
