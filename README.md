@@ -4,10 +4,19 @@
 <i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
 
 <p align="center">
-<a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
-<img alt="support - node version" src="https://img.shields.io/node/v/serverest?style=for-the-badge">
-<a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
-<a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
+  <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
+  <img alt="support - node version" src="https://img.shields.io/node/v/serverest?style=for-the-badge">
+  <a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
+  <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+ <b>
+   <a href="https://serverest.js.org">Documentação das rotas</a> |
+   <a href="/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
+ </b>
+   <a href="/.github/CONTRIBUTING.md">Como contribuir</a> <b>|</b>
+   <a href="/CHANGELOG.md">Histórico de alterações</a>
 </p>
 
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
@@ -18,9 +27,11 @@ npx serverest
 
 Não é preciso fazer instalação com `npm install` antes da execução.
 
----
+<p align="center">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
+</p>
 
-**[Documentação das rotas](https://serverest.js.org) | [Histórico de alterações](/CHANGELOG.md) | [Como contribuir](/.github/CONTRIBUTING.md) | [Código de conduta](/.github/CODE_OF_CONDUCT.md)**
+---
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
@@ -29,12 +40,6 @@ _ServeRest_ permite o estudo de:
 - Query string
 - Contrato
 - Requisições aninhadas
-
-<details><summary><i>Abra para ver imagem do <i>ServeRest</i> iniciado e com algumas requests realizadas</i></summary>
-
-<img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
-
-</details>
 
 ## Documentação
 
