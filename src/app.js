@@ -7,6 +7,7 @@ const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
 const { DOC_URL } = require('./utils/constants')
+const montarMensagemDeErroDeSchema = require('./utils/montarMensagemDeErroDeSchema')
 
 const app = express()
 
@@ -41,9 +42,11 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use((error, req, res, next) => {
-  const ocorreuErroNaValidacaoDoSchema = error.name === 'ValidationError'
+  const erroDeSchema = error.name === 'ValidationError'
   /* istanbul ignore else */
-  if (ocorreuErroNaValidacaoDoSchema) { return res.status(400).json({ error }) } else {
+  if (erroDeSchema) {
+    return res.status(400).json(montarMensagemDeErroDeSchema(error))
+  } else {
     return res.status(500).json({ error })
   }
 })

@@ -30,17 +30,9 @@ describe(rotaLogin + ' POST', () => {
     const { body } = await request.post(rotaLogin).send({ inexistente: '1' }).expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          email: '"email" is required',
-          password: '"password" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+      inexistente: 'inexistente não é permitido'
     })
   })
 
@@ -48,16 +40,8 @@ describe(rotaLogin + ' POST', () => {
     const { body } = await request.post(rotaLogin).send({ email: 'a' }).expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          email: '"email" must be a valid email',
-          password: '"password" is required'
-        }]
-      }
+      email: 'email deve ser um email válido',
+      password: 'password é obrigatório'
     })
   })
 })

@@ -20,33 +20,13 @@ const get = Joi.object().keys({
 })
 
 const postSemBody = Joi.object().keys({
-  error: Joi.object().keys({
-    name: Joi.string().required(),
-    message: Joi.string().required(),
-    statusCode: Joi.number().required(),
-    error: Joi.string().required(),
-    details: Joi.array().items(
-      Joi.object({
-        produtos: Joi.string().required()
-      })
-    )
-  }).required()
+  produtos: Joi.string().required()
 })
 
 const postSemProdutos = Joi.object().keys({
-  error: Joi.object().keys({
-    name: Joi.string().required(),
-    message: Joi.string().required(),
-    statusCode: Joi.number().required(),
-    error: Joi.string().required(),
-    details: Joi.array().items(
-      Joi.object({
-        quantidade: Joi.string().required(),
-        produtos: Joi.string().required(),
-        idProduto: Joi.string().required()
-      })
-    )
-  }).required()
+  'produtos[0].quantidade': Joi.string().required(),
+  produtos: Joi.string().required(),
+  'produtos[0].idProduto': Joi.string().required()
 })
 
 module.exports = {

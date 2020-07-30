@@ -14,20 +14,10 @@ const get = Joi.object().keys({
 })
 
 const post = Joi.object().keys({
-  error: Joi.object().keys({
-    name: Joi.string().required(),
-    message: Joi.string().required(),
-    statusCode: Joi.number().required(),
-    error: Joi.string().required(),
-    details: Joi.array().items(
-      Joi.object({
-        nome: Joi.string().required(),
-        preco: Joi.string().required(),
-        descricao: Joi.string().required(),
-        quantidade: Joi.string().required()
-      })
-    )
-  }).required()
+  nome: Joi.string().required(),
+  preco: Joi.string().required(),
+  descricao: Joi.string().required(),
+  quantidade: Joi.string().required()
 })
 
 module.exports = {

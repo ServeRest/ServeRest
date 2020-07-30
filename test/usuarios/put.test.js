@@ -33,19 +33,11 @@ describe(rotaUsuarios + ' PUT', () => {
     const { body } = await request.put(rotaUsuarios + '/a').send({ inexistente: '1' }).expect(400)
 
     chai.assert.deepEqual(body, {
-      error: {
-        name: 'ValidationError',
-        message: 'Validation Failed',
-        statusCode: 400,
-        error: 'Bad Request',
-        details: [{
-          nome: '"nome" is required',
-          email: '"email" is required',
-          password: '"password" is required',
-          administrador: '"administrador" is required',
-          inexistente: '"inexistente" is not allowed'
-        }]
-      }
+      nome: 'nome é obrigatório',
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+      administrador: 'administrador é obrigatório',
+      inexistente: 'inexistente não é permitido'
     })
   })
 

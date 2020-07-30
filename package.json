@@ -1,6 +1,6 @@
 {
   "name": "serverest",
-  "version": "2.6.1",
+  "version": "2.7.0-beta.3",
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "MIT",
@@ -23,7 +23,7 @@
   "scripts": {
     "commit": "git-cz",
     "start": "node ./src/server.js",
-    "dev": "nodemon ./src/server.js",
+    "dev": "nodemon ./src/server.js --nodoc",
     "test": "nyc mocha --config test/.mocharc.js",
     "posttest": "nyc report --reporter=text-lcov > coverage.lcov",
     "lint": "standard",
