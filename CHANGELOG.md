@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.3-alpha.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.2...v2.7.3-alpha.1) (2020-08-03)
+
+
+### Documentation
+
+* **readme:** teste ([f551291](https://github.com/PauloGoncalvesBH/ServeRest/commit/f5512916e4dff38fe080798279c45b7ba52bb048))
+
 ## [2.7.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2) (2020-07-30)
 
 ## [2.7.2-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2-beta.1) (2020-07-30)
