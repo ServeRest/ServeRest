@@ -102,7 +102,11 @@ module.exports = {
       message: 'chore(release): ${nextRelease.version} [skip ci]\n\nRelease automatically generated through continuous delivery.'
     }],
     ['@semantic-release/github', {
-      assets: 'dist/*.tgz'
+      assets: 'dist/*.tgz',
+      releasedLabels: [
+        'released on @${nextRelease.channel}',
+        'released on ${nextRelease.gitTag}'
+      ]
     }]
   ]
 }
