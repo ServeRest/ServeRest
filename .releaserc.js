@@ -21,7 +21,7 @@ module.exports = {
       tarballDir: 'dist'
     }],
     ['@semantic-release/git', {
-      message: 'chore(release): ${nextRelease.version}\n\nRelease automatically generated through continuous delivery.'
+      message: 'chore(release): ${nextRelease.version} [skip ci]\n\nRelease automatically generated through continuous delivery.'
     }],
     ['@semantic-release/github', {
       assets: 'dist/*.tgz'
