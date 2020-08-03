@@ -1,10 +1,85 @@
 /* eslint no-template-curly-in-string: 0 */
 
+// https://github.com/conventional-changelog/conventional-changelog/blob/master/packages/conventional-changelog-angular/writer-opts.js
+customTransform = (commit, context) => {
+  const issues = []
+
+  commit.notes.forEach(note => {
+    note.title = 'BREAKING CHANGES'
+  })
+
+  if (commit.type === 'feat') {
+    commit.type = 'Features'
+  } else if (commit.type === 'fix') {
+    commit.type = 'Bug Fixes'
+  } else if (commit.type === 'perf') {
+    commit.type = 'Performance Improvements'
+  } else if (commit.type === 'revert' || commit.revert) {
+    commit.type = 'Reverts'
+  } else if (commit.type === 'docs') {
+    commit.type = 'Documentation'
+  } else if (commit.type === 'style') {
+    commit.type = 'Styles'
+  } else if (commit.type === 'refactor') {
+    commit.type = 'Code Refactoring'
+  } else if (commit.type === 'test') {
+    commit.type = 'Tests'
+  } else if (commit.type === 'build') {
+    commit.type = 'Build System'
+  } else if (commit.type === 'ci') {
+    commit.type = 'Continuous Integration'
+  } else {
+    return
+  }
+
+  if (commit.scope === '*') {
+    commit.scope = ''
+  }
+
+  if (typeof commit.hash === 'string') {
+    commit.shortHash = commit.hash.substring(0, 7)
+  }
+
+  if (typeof commit.subject === 'string') {
+    let url = context.repository
+      ? `${context.host}/${context.owner}/${context.repository}`
+      : context.repoUrl
+    if (url) {
+      url = `${url}/issues/`
+      // Issue URLs.
+      commit.subject = commit.subject.replace(/#([0-9]+)/g, (_, issue) => {
+        issues.push(issue)
+        return `[#${issue}](${url}${issue})`
+      })
+    }
+    if (context.host) {
+      // User URLs.
+      commit.subject = commit.subject.replace(/\B@([a-z0-9](?:-?[a-z0-9/]){0,38})/g, (_, username) => {
+        if (username.includes('/')) {
+          return `@${username}`
+        }
+        return `[@${username}](${context.host}/${username})`
+      })
+    }
+  }
+
+  // remove references that already appear in the subject
+  commit.references = commit.references.filter(reference => {
+    if (issues.indexOf(reference.issue) === -1) {
+      return true
+    }
+    return false
+  })
+
+  return commit
+}
+
 module.exports = {
   branches: [
     // https://github.com/semantic-release/semantic-release/blob/master/docs/usage/workflow-configuration.md#workflow-configuration
-    {name: 'trunk', channel: 'latest'},
-    {name: 'beta', channel: 'beta', prerelease: 'beta'}
+    { name: 'trunk', channel: 'latest' },
+    { name: 'beta', channel: 'beta', prerelease: 'beta' },
+    { name: 'alpha', channel: 'alpha', prerelease: 'alpha' }
   ],
   plugins: [
     ['@semantic-release/commit-analyzer', {
@@ -13,7 +88,11 @@ module.exports = {
         { scope: 'no-release', release: false }
       ]
     }],
-    '@semantic-release/release-notes-generator',
+    ['@semantic-release/release-notes-generator', {
+      writerOpts: {
+        transform: customTransform
+      }
+    }],
     ['@semantic-release/changelog', {
       changelogTitle: '# Changelog'
     }],
@@ -21,7 +100,7 @@ module.exports = {
       tarballDir: 'dist'
     }],
     ['@semantic-release/git', {
-      message: 'chore(release): ${nextRelease.version}\n\nRelease automatically generated through continuous delivery.'
+      message: 'chore(release): ${nextRelease.version} [skip ci]\n\nRelease automatically generated through continuous delivery.'
     }],
     ['@semantic-release/github', {
       assets: 'dist/*.tgz'
