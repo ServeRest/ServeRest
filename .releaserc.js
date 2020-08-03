@@ -96,7 +96,7 @@ module.exports = {
       changelogTitle: '# Changelog'
     }],
     ['@semantic-release/npm', {
-      tarballDir: 'dist'
+      tarballDir: 'dist' 
     }],
     ['@semantic-release/git', {
       message: 'chore(release): ${nextRelease.version} [skip ci]\n\nRelease automatically generated through continuous delivery.'
