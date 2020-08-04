@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.7.3-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.2...v2.7.3-beta.1) (2020-08-04)
+
+
+### Continuous Integration
+
+* **release:** inserir label de versão publicada nas issues e PRs ([af5c878](https://github.com/PauloGoncalvesBH/ServeRest/commit/af5c87818769d3ea7b466f4d548a56267c1b4f7f))
+* **releaserc:** gerar nota de release para todos os tipos de commit ([bd35834](https://github.com/PauloGoncalvesBH/ServeRest/commit/bd358348309b093efebd98477219f45d5956aeda))
+* **releaserc:** não rodar CI em commit de release ([8edd76b](https://github.com/PauloGoncalvesBH/ServeRest/commit/8edd76b7b6f11a37f130b9ba43fd72ebb2f89824))
+
+
+### Documentation
+
+* **readme:** teste ([a0dd9a0](https://github.com/PauloGoncalvesBH/ServeRest/commit/a0dd9a0dbc87895563973b093689b1f6085fafef)), closes [#85](https://github.com/PauloGoncalvesBH/ServeRest/issues/85)
+
 ## [2.7.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2) (2020-07-30)
 
 ## [2.7.2-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2-beta.1) (2020-07-30)
