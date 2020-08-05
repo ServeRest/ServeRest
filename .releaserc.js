@@ -1,36 +1,32 @@
 /* eslint no-template-curly-in-string: 0 */
 
 // https://github.com/conventional-changelog/conventional-changelog/blob/master/packages/conventional-changelog-angular/writer-opts.js
-customTransform = (commit, context) => {
+const transformCommitType = type => {
+  const commitTypeMapping = {
+    feat: 'Features',
+    fix: 'Bug Fixes',
+    perf: 'Performance Improvements',
+    revert: 'Reverts',
+    docs: 'Documentation',
+    style: 'Styles',
+    refactor: 'Code Refactoring',
+    test: 'Tests',
+    build: 'Build System',
+    ci: 'Continuous Integration',
+    chore: 'Chores',
+    default: 'Miscellaneous'
+  }
+  return commitTypeMapping[type] || commitTypeMapping.default
+}
+
+const customTransform = (commit, context) => {
   const issues = []
 
   commit.notes.forEach(note => {
     note.title = 'BREAKING CHANGES'
   })
 
-  if (commit.type === 'feat') {
-    commit.type = 'Features'
-  } else if (commit.type === 'fix') {
-    commit.type = 'Bug Fixes'
-  } else if (commit.type === 'perf') {
-    commit.type = 'Performance Improvements'
-  } else if (commit.type === 'revert' || commit.revert) {
-    commit.type = 'Reverts'
-  } else if (commit.type === 'docs') {
-    commit.type = 'Documentation'
-  } else if (commit.type === 'style') {
-    commit.type = 'Styles'
-  } else if (commit.type === 'refactor') {
-    commit.type = 'Code Refactoring'
-  } else if (commit.type === 'test') {
-    commit.type = 'Tests'
-  } else if (commit.type === 'build') {
-    commit.type = 'Build System'
-  } else if (commit.type === 'ci') {
-    commit.type = 'Continuous Integration'
-  } else {
-    return
-  }
+  commit.type = transformCommitType(commit.type)
 
   if (commit.scope === '*') {
     commit.scope = ''
@@ -77,8 +73,8 @@ customTransform = (commit, context) => {
 module.exports = {
   branches: [
     // https://github.com/semantic-release/semantic-release/blob/master/docs/usage/workflow-configuration.md#workflow-configuration
-    {name: 'trunk', channel: 'latest'},
-    {name: 'beta', channel: 'beta', prerelease: 'beta'}
+    { name: 'trunk', channel: 'latest' },
+    { name: 'beta', channel: 'beta', prerelease: 'beta' }
   ],
   plugins: [
     ['@semantic-release/commit-analyzer', {
