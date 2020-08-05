@@ -34,7 +34,10 @@ if (!conf.semHeaderDeSeguranca) {
 
 app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
 
-app.use(logger('dev'))
+/* istanbul ignore if */
+if (process.env.NODE_ENV !== 'serverest-development') {
+  app.use(logger('dev'))
+}
 
 app.use('/login', require('./routes/login-route'))
 app.use('/usuarios', require('./routes/usuarios-route'))
