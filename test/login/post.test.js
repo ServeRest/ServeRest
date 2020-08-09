@@ -6,7 +6,7 @@ const utils = require('../utils')
 describe(rotaLogin + ' POST', () => {
   it('Login com sucesso', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
-    const { body } = await request.post('/login').send({
+    const { body } = await request.post(rotaLogin).send({
       email,
       password
     }).expect(200)
@@ -18,7 +18,7 @@ describe(rotaLogin + ' POST', () => {
   })
 
   it('Email e/ou senha inválidos', async () => {
-    const { body } = await request.post('/login').send({
+    const { body } = await request.post(rotaLogin).send({
       email: 'paulo@a.com',
       password: 'a'
     }).expect(401)
