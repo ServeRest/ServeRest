@@ -24,6 +24,7 @@
     "commit": "git-cz",
     "start": "node ./src/server.js",
     "dev": "nodemon ./src/server.js --nodoc",
+    "test:mutation": "stryker run ./test/stryker.conf.js",
     "test": "cross-env NODE_ENV=serverest-development nyc mocha --config test/.mocharc.js",
     "posttest": "nyc report --reporter=text-lcov > coverage.lcov",
     "lint": "standard",
@@ -49,7 +50,7 @@
     "yargs": "^15.3.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^9.0.1",
+    "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^9.0.1",
     "@hapi/joi": "^17.1.1",
     "@semantic-release/changelog": "^5.0.1",
@@ -58,6 +59,10 @@
     "@semantic-release/github": "^7.0.7",
     "@semantic-release/npm": "^7.0.5",
     "@semantic-release/release-notes-generator": "^9.0.1",
+    "@stryker-mutator/core": "^3.3.1",
+    "@stryker-mutator/javascript-mutator": "^3.3.1",
+    "@stryker-mutator/mocha-framework": "^3.3.1",
+    "@stryker-mutator/mocha-runner": "^3.3.1",
     "chai": "^4.2.0",
     "commitizen": "^4.0.4",
     "cross-env": "^7.0.2",
