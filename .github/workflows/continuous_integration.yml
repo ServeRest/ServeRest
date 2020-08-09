@@ -56,3 +56,17 @@ jobs:
       run: npm test
     - name: Update Codecov Report
       uses: codecov/codecov-action@v1.0.12
+
+  test-mutation:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup
+      uses: actions/setup-node@v2.1.1
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Mutation Test
+      run: npm run test:mutation

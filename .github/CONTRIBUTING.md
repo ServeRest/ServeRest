@@ -34,16 +34,24 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 ### Pull Requests que não passarem nas validações da integração contínua não serão revisados.
 
 ### Legenda
-#### 💥 > Validação realizada na integração contínua
+#### 💥 > Validação realizada na integração contínua e entrega contínua
 #### 💻 > Validação realizada no pré-commit
 
-## 💥 Testes
+## 💥 Testes de API
 
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
 Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e [supertest](https://www.npmjs.com/package/supertest) e validados com [chai](https://www.npmjs.com/package/chai).
 
 Para executá-los, execute o comando `npm test`.
+
+## 💥 Teste de Mutação
+
+O teste de mutação garante que os testes de API são efetivos e complementa a cobertura de código.
+
+A lib utilizada é a [Stryker](http://stryker-mutator.io/).
+
+Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
 
 ## 💥 Cobertura de código
 
