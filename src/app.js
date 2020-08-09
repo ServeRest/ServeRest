@@ -27,7 +27,6 @@ if (!conf.semHeaderDeSeguranca) {
     res.set('x-download-options', 'noopen')
     res.set('x-content-type-options', 'nosniff')
     res.set('x-xss-protection', '1; mode=block')
-    res.set('content-type', 'application/json; charset=utf-8')
     next()
   })
 }
