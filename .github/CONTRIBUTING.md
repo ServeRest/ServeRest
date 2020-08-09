@@ -13,6 +13,8 @@
 
 **Esse documento apresenta todas as informações necessárias para que possa colaborar com o projeto de forma independente.**
 
+> Não tenha receio em contribuir se achar muito complexo as etapas para contribuir. **Basta pedir apoio em issue ou PR e receberá auxílio no que precisar.**
+
 Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes:
 
 - Localizando e relatando bugs
@@ -31,11 +33,37 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 4. Faça o seu commit usando `npm run commit`;
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
-### Pull Requests que não passarem nas validações da integração contínua não serão revisados.
 
 ### Legenda
 #### 💥 > Validação realizada na integração contínua e entrega contínua
 #### 💻 > Validação realizada no pré-commit
+
+## 💥💻 Lint
+
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+
+Usamos o [standard](https://www.npmjs.com/package/standard) como linter e formatter do código e [lint-staged](https://www.npmjs.com/package/lint-staged) para forçar lint das alterações que estão em staged do git.
+
+Execute `npm run lint` para padronizar os arquivos.
+
+Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrados pelo lint.
+
+> O commit é abortado caso esse padrão não seja seguido
+
+## 💥💻 Commit
+
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+
+As mensagens de commit devem seguir o padrão do _conventional commit_.
+
+Para saber mais, acesse esses links:
+- [Especificação do Conventional Commit](https://www.conventionalcommits.org/)
+- [Regras do @commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional).
+
+Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
+
+> O commit é abortado caso esse padrão não seja seguido
 
 ## 💥 Testes de API
 
@@ -63,32 +91,7 @@ Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de c�
 
 Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src` (exceto `server.js`). Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
 
-## 💥💻 Lint
-
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-Usamos o [standard](https://www.npmjs.com/package/standard) como linter e formatter do código.
-
-Execute `npm run lint` para padronizar os arquivos.
-
-Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrados pelo lint.
-
-> O commit é abortado caso esse padrão não seja seguido
-
-## 💥💻 Commit
-
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
-
-As mensagens de commit devem seguir o padrão do _conventional commit_.
-
-Para saber mais, acesse esses links:
-- [Especificação do Conventional Commit](https://www.conventionalcommits.org/)
-- [Regras do @commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional).
-
-Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
-
-> O commit é abortado caso esse padrão não seja seguido
+---
 
 ## Documentação (api-doc)
 
