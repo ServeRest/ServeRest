@@ -13,7 +13,7 @@ module.exports = {
   },
   packageManager: 'npm',
   reporters: ['html', 'dashboard', 'clear-text', 'progress'],
-  timeoutMS: 30000,
+  timeoutMS: 8000,
   testRunner: 'command',
   commandRunner: {
     command: 'cross-env NODE_ENV=serverest-development mocha --config test/.mocharc.js'
