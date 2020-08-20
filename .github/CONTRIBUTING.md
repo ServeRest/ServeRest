@@ -69,11 +69,13 @@ Para executá-los, execute o comando `npm test`.
 
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
 
-O teste de mutação garante que os testes de API são efetivos e complementa a cobertura de código.
+O teste de mutação garante que os testes de API são efetivos e complementa a [cobertura de código](#-cobertura-de-código).
 
 A lib utilizada é a [Stryker](http://stryker-mutator.io/).
 
 Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
+
+Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[Teste de mutação 👽: O que é e como fica a cobertura de código?](https://github.com/PauloGoncalvesBH/teste-de-mutacao)'.
 
 ## 💥💻 Lint
 
@@ -127,7 +129,7 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 | @latest | master
 | @beta | beta
 
-Para aprofundar sobre como é feita a publicação, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
+Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o meu texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
 
 ## Documentação (serverest.js)
 
