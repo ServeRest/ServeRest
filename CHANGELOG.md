@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.8.0-beta.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.0-beta.1...v2.8.0-beta.2) (2020-09-04)
+
+
+### Features
+
+* bora ([ef7d59a](https://github.com/PauloGoncalvesBH/ServeRest/commit/ef7d59a434a75f56c3079b0b1adca0023a4822a9))
+
+
+### Tests
+
+* **monitoramento:** não alterar a configuração de monitoramento no teste de mutação ([a88de8f](https://github.com/PauloGoncalvesBH/ServeRest/commit/a88de8f23274533dd2fede69de2774d40a1c315b))
+
 # [2.8.0-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.2...v2.8.0-beta.1) (2020-09-04)
 
 
