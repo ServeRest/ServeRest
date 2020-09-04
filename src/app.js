@@ -2,12 +2,22 @@
 
 const express = require('express')
 const logger = require('morgan')
+const moesif = require('moesif-express')
+const os = require('os')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
 const { DOC_URL } = require('./utils/constants')
 const montarMensagemDeErroDeSchema = require('./utils/montarMensagemDeErroDeSchema')
+
+const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
+const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
+/* istanbul ignore next */
+const moesifMiddleware = moesif({
+  applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
+  identifyUser: (req, res) => { return os.userInfo().username }
+})
 
 const app = express()
 
@@ -34,7 +44,12 @@ if (!conf.semHeaderDeSeguranca) {
 app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
 
 /* istanbul ignore if */
-if (process.env.NODE_ENV !== 'serverest-development') {
+if (!ehAmbienteDeDesenvolvimento && !ehAmbienteDeTestes) {
+  app.use(moesifMiddleware)
+}
+
+/* istanbul ignore if */
+if (!ehAmbienteDeTestes) {
   app.use(logger('dev'))
 }
 
