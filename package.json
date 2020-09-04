@@ -65,7 +65,7 @@
     "@stryker-mutator/mocha-framework": "^3.3.1",
     "@stryker-mutator/mocha-runner": "^3.3.1",
     "chai": "^4.2.0",
-    "commitizen": "^4.0.4",
+    "commitizen": "^4.2.1",
     "cross-env": "^7.0.2",
     "cz-conventional-changelog": "^3.1.0",
     "faker": "^4.1.0",
