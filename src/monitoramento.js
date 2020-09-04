@@ -15,11 +15,11 @@ const moesifMiddleware = moesif({
   identifyUser: (req, res) => { return os.userInfo().username }
 })
 
-module.exports = () => {
-  const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
+module.exports = app => {
+  const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-developmenat'
   const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
   if (!ehAmbienteDeDesenvolvimento && !ehAmbienteDeTestes) {
-    return moesifMiddleware
+    app.use(moesifMiddleware)
   }
 }

@@ -10,7 +10,6 @@ const { DOC_URL } = require('./utils/constants')
 const montarMensagemDeErroDeSchema = require('./utils/montarMensagemDeErroDeSchema')
 const monitoramento = require('./monitoramento')
 
-const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
 const app = express()
@@ -37,10 +36,7 @@ if (!conf.semHeaderDeSeguranca) {
 
 app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
 
-/* istanbul ignore if */
-if (!ehAmbienteDeDesenvolvimento && !ehAmbienteDeTestes) {
-  app.use(monitoramento())
-}
+monitoramento(app)
 
 /* istanbul ignore if */
 if (!ehAmbienteDeTestes) {
