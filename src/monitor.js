@@ -7,7 +7,7 @@ para não ser afetado pelo teste de mutação.
 Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
 */
 
-const moesif = require('moesif-express')
+const moesif = require('moesif-nodejs')
 const os = require('os')
 
 const moesifMiddleware = moesif({

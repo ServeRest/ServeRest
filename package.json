@@ -44,7 +44,7 @@
     "express-query-int": "^3.0.0",
     "express-validation": "^3.0.2",
     "jsonwebtoken": "^8.5.1",
-    "moesif-express": "^2.9.19",
+    "moesif-nodejs": "^3.0.0",
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^7.0.3",
