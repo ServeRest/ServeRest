@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.8.0-beta.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.0-beta.2...v2.8.0-beta.3) (2020-09-04)
+
+
+### Features
+
+* testando monitoramento ([c026793](https://github.com/PauloGoncalvesBH/ServeRest/commit/c02679387105efdbad68145ab0bc92262d0be958))
+
+
+### Miscellaneous
+
+* Merge branch 'beta' of https://github.com/PauloGoncalvesBH/ServeRest into beta ([b2e07e4](https://github.com/PauloGoncalvesBH/ServeRest/commit/b2e07e46ae219ec76be82a4ee15600a7fb82231d))
+
 # [2.8.0-beta.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.0-beta.1...v2.8.0-beta.2) (2020-09-04)
 
 
