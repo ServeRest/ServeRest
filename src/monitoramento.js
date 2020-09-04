@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 
 /*
 O monitoramento está em arquivo apartado (monitoramento.js), e não no 'app.js',
