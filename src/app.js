@@ -8,6 +8,9 @@ const timeout = require('connect-timeout')
 const { conf } = require('./utils/conf')
 const { DOC_URL } = require('./utils/constants')
 const montarMensagemDeErroDeSchema = require('./utils/montarMensagemDeErroDeSchema')
+const monitor = require('./monitor')
+
+const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
 const app = express()
 
@@ -33,8 +36,10 @@ if (!conf.semHeaderDeSeguranca) {
 
 app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
 
+monitor(app)
+
 /* istanbul ignore if */
-if (process.env.NODE_ENV !== 'serverest-development') {
+if (!ehAmbienteDeTestes) {
   app.use(logger('dev'))
 }
 
