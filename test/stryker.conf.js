@@ -4,7 +4,8 @@
 module.exports = {
   mutate: [
     'src/**/*.js',
-    '!src/server.js'
+    '!src/server.js',
+    '!src/monitoramento.js'
   ],
   thresholds: {
     high: 90,
