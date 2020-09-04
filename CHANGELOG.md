@@ -1,5 +1,50 @@
 # Changelog
 
+# [2.8.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.2...v2.8.0) (2020-09-04)
+
+
+### Chores
+
+* **deps:** bump codecov/codecov-action from v1.0.12 to v1.0.13 ([e29531c](https://github.com/PauloGoncalvesBH/ServeRest/commit/e29531c276d764251ef567f8bd30245a7d79e03c))
+* **deps:** bump wagoid/commitlint-github-action from v1 to v2.0.2 ([553c58d](https://github.com/PauloGoncalvesBH/ServeRest/commit/553c58dd1c678541d41f590595dba658452874da))
+* **deps-dev:** bump mocha from 8.0.1 to 8.1.0 ([d2f9547](https://github.com/PauloGoncalvesBH/ServeRest/commit/d2f95470769a7fabaeb3cfbcc756ac9da6a749e6))
+
+
+### Code Refactoring
+
+* remover configuração desnecessária de header ([6c569fb](https://github.com/PauloGoncalvesBH/ServeRest/commit/6c569fbadb8dbb5ba8e7b0110bb80b1049873d5c))
+* simplificar mapeamento de erro de schema para melhor manutenibilidade ([cf3f694](https://github.com/PauloGoncalvesBH/ServeRest/commit/cf3f69455a8085c0cdab9f341eafe5b538948631))
+* **releaserc:** simplificar o mapeamento de commit para melhor manutenibilidade ([cf7e6ea](https://github.com/PauloGoncalvesBH/ServeRest/commit/cf7e6ea26878364ed20e4a6452a0bd41bec87e08))
+* executar lint no pre-commit apenas nos arquivos em staged ([bac398d](https://github.com/PauloGoncalvesBH/ServeRest/commit/bac398dce06bbb4d7be5a47bc485ee19af2c1c76))
+* suprimir log na execução dos testes ([c540a0d](https://github.com/PauloGoncalvesBH/ServeRest/commit/c540a0df8a3ff2323f1efdfac9f6f7faebce5925)), closes [#87](https://github.com/PauloGoncalvesBH/ServeRest/issues/87)
+
+
+### Continuous Integration
+
+* permitir trigger manual da pipeline de CI ([8d26e45](https://github.com/PauloGoncalvesBH/ServeRest/commit/8d26e45500f0c0edb1878c2934e6db7b568140d3))
+* separar testes de mutação em workflow próprio e ajustar dashboard ([c5b999a](https://github.com/PauloGoncalvesBH/ServeRest/commit/c5b999a599889def48a6d02b750b66278d12a73f))
+* **releaserc:** gerar nota de release para todos os tipos de commit ([bd35834](https://github.com/PauloGoncalvesBH/ServeRest/commit/bd358348309b093efebd98477219f45d5956aeda))
+* **releaserc:** inserir label de versão publicada nas issues e PRs ([01c8549](https://github.com/PauloGoncalvesBH/ServeRest/commit/01c854968a4f50787660498d388b769024404f9b))
+* **releaserc:** não rodar CI em commit de release ([8edd76b](https://github.com/PauloGoncalvesBH/ServeRest/commit/8edd76b7b6f11a37f130b9ba43fd72ebb2f89824))
+
+
+### Documentation
+
+* **contributing:** documentar publicação no NPM e criar sumário ([603834f](https://github.com/PauloGoncalvesBH/ServeRest/commit/603834fe60af19b1ff37546e6f12a5e4967263e0)), closes [#89](https://github.com/PauloGoncalvesBH/ServeRest/issues/89)
+* **contributing:** incluir material sobre 'teste de mutação' ([6d77040](https://github.com/PauloGoncalvesBH/ServeRest/commit/6d77040c53c8bc8d8d0f33b7928eb70a3054d027))
+* **contributing:** reordenar seção e explicitar possibilidade de apoio ([f0700a4](https://github.com/PauloGoncalvesBH/ServeRest/commit/f0700a4b3b50e53bdaa400eb2691c42a71ecd385))
+
+
+### Features
+
+* **monitoramento:** monitoramento do consumo das rotas ([4e612cd](https://github.com/PauloGoncalvesBH/ServeRest/commit/4e612cd03ec091066bd083698f2a24bc0f853f04)), closes [#88](https://github.com/PauloGoncalvesBH/ServeRest/issues/88)
+
+
+### Tests
+
+* **mutation:** implementar testes de mutação ([4548095](https://github.com/PauloGoncalvesBH/ServeRest/commit/45480950a4195350997dc50973581ee37ef5df77)), closes [#86](https://github.com/PauloGoncalvesBH/ServeRest/issues/86)
+* **stryker:** reduzir timeout do teste de mutação ([15068ea](https://github.com/PauloGoncalvesBH/ServeRest/commit/15068ea7fa57c3414cf024800e1875dfa07f0f19))
+
 ## [2.7.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2) (2020-07-30)
 
 ## [2.7.2-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.1...v2.7.2-beta.1) (2020-07-30)
