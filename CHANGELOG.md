@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.0...v2.8.1) (2020-09-04)
+
+
+### Bug Fixes
+
+* suprimir mensagem de alerta de método obsoleto ([9efdcd5](https://github.com/PauloGoncalvesBH/ServeRest/commit/9efdcd56ccd06115c27498dfcf56e4e598dcff70))
+
 # [2.8.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.7.2...v2.8.0) (2020-09-04)
 
 
