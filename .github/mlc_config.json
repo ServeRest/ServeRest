@@ -11,6 +11,9 @@
 		},
 		{
 			"pattern": "https://codecov.io/gh/PauloGoncalvesBH/ServeRest"
+		},
+		{
+			"pattern": "mailto:"
 		}
 	],
 	"replacementPatterns": [
