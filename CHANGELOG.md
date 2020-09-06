@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.8.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.1...v2.8.2) (2020-09-06)
+
+
+### Chores
+
+* **moesif:** atualizar nome da dependência ([e0fea0c](https://github.com/PauloGoncalvesBH/ServeRest/commit/e0fea0c5a7ad45e1630b0ff33c4511a21cbb1e48))
+* **seguranca:** atualizar versão do commitizen ([781f10e](https://github.com/PauloGoncalvesBH/ServeRest/commit/781f10ef731c7918b306f4a6095b9ab28bbd00b2))
+
+
+### Code Refactoring
+
+* **monitor:** melhorar legibilidade de quando o monitoramento é habilitado ([1e647b3](https://github.com/PauloGoncalvesBH/ServeRest/commit/1e647b397f602ff10cbfea8c9ec937799b9957f5))
+
+
+### Continuous Integration
+
+* **check-link:** não validar link de e-mail ([c8645da](https://github.com/PauloGoncalvesBH/ServeRest/commit/c8645da0d685c75ba4f0f00a38e1860101b24c65))
+
+
+### Documentation
+
+* **readme:** corrigir links quebrados ([57b651d](https://github.com/PauloGoncalvesBH/ServeRest/commit/57b651ddd942b987ecaeb2c872f34a8b61cbeb99))
+
 ## [2.8.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.0...v2.8.1) (2020-09-04)
 
 
