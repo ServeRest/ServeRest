@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.9.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.2...v2.9.0) (2020-09-11)
+
+
+### Features
+
+* **monitoramento:** identificar versão utilizada ([8b1abb7](https://github.com/PauloGoncalvesBH/ServeRest/commit/8b1abb75550138d0107e9c99278bed14ffc7ec7d))
+
 ## [2.8.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.1...v2.8.2) (2020-09-06)
 
 
