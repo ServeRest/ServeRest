@@ -17,7 +17,8 @@ const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 const moesifMiddleware = moesif({
   applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
   identifyUser: (req, res) => { return os.userInfo().username },
-  identifyCompany: (req, res) => { return serverestVersion }
+  identifyCompany: (req, res) => { return serverestVersion },
+  getApiVersion: (req, res) => { return serverestVersion }
 })
 
 module.exports = app => {
