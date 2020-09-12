@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.1-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.0...v2.9.1-beta.1) (2020-09-12)
+
+
+### Bug Fixes
+
+* get api version ([fac17f8](https://github.com/PauloGoncalvesBH/ServeRest/commit/fac17f80dfcfdda03c51ca39eb30f494c6628c47))
+
 # [2.9.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.2...v2.9.0) (2020-09-11)
 
 
