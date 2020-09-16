@@ -84,6 +84,18 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
+## Empresas que utilizam o ServeRest
+
+<table>
+  <tr>
+    <td align="center"><a href="https://www.globo.com/"><img alt="Logo da empresa Globo.com" src="https://user-images.githubusercontent.com/29241659/93280011-0725cd00-f79f-11ea-8eab-b20be4430cc9.png" height="60"></a></td>
+    <td align="center"><a href="https://www.totvs.com/"><img alt="Logo da TOTVS" src="https://user-images.githubusercontent.com/29241659/93278632-9fba4e00-f79b-11ea-88a0-076745447848.png" height="100"></a></td>
+    <td align="center"><a href="https://www.noesis.pt/"><img alt="Logo da Noesis" src="https://user-images.githubusercontent.com/29241659/93278486-30dcf500-f79b-11ea-82da-16fb562df247.png" height="60"></a></td>
+  </tr>
+</table>
+
+Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https://github.com/PauloGoncalvesBH/ServeRest/issues/new?assignees=&labels=enhancement%2C+new+issue&template=solicita--o-de-feature.md&title=) informando o nome dela.
+
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
