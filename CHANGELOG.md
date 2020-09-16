@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.0...v2.9.1) (2020-09-16)
+
+
+### Documentation
+
+* **readme:** informar empresas que usam o projeto ([2e9aaba](https://github.com/PauloGoncalvesBH/ServeRest/commit/2e9aabae80a9e569161b56115373cca9abf14c54))
+
 # [2.9.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.8.2...v2.9.0) (2020-09-11)
 
 
