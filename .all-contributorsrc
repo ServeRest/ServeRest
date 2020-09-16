@@ -45,6 +45,15 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "brunobatista25",
+      "name": "bruno batista",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/8673550?v=4",
+      "profile": "https://www.linkedin.com/in/bruno-batista-87734464/?locale=en_US",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
