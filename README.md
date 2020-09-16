@@ -99,7 +99,7 @@ Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=for-the-badge)
+![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=for-the-badge)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -113,6 +113,7 @@ Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/doc
     <td align="center"><a href="https://github.com/fejsrodrigues"><img src="https://avatars3.githubusercontent.com/u/8000936?v=4" width="100px;" alt=""/><br /><sub><b>Felipe Rodrigues</b></sub></a><br /><a href="#infra-fejsrodrigues" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://github.com/doamaral"><img src="https://avatars0.githubusercontent.com/u/7451330?v=4" width="100px;" alt=""/><br /><sub><b>Lucas Amaral</b></sub></a><br /><a href="#talk-doamaral" title="Talks">📢</a> <a href="https://github.com/PauloGoncalvesBH/ServeRest/issues?q=author%3Adoamaral" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://www.linkedin.com/in/ulucasfraga/"><img src="https://avatars2.githubusercontent.com/u/23031781?v=4" width="100px;" alt=""/><br /><sub><b>lucas.fraga</b></sub></a><br /><a href="#ideas-uLucasFraga" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/PauloGoncalvesBH/ServeRest/issues?q=author%3AuLucasFraga" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/bruno-batista-87734464/?locale=en_US"><img src="https://avatars3.githubusercontent.com/u/8673550?v=4" width="100px;" alt=""/><br /><sub><b>bruno batista</b></sub></a><br /><a href="#ideas-brunobatista25" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
