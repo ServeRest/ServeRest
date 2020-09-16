@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.9.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.1...v2.9.2) (2020-09-16)
+
+
+### Documentation
+
+* **readme:** remover badge de licença ([5ce8bcb](https://github.com/PauloGoncalvesBH/ServeRest/commit/5ce8bcbea3f502159981e05d5052a03d2e57014d))
+* add brunobatista25 as a contributor ([#113](https://github.com/PauloGoncalvesBH/ServeRest/issues/113)) ([685d6ac](https://github.com/PauloGoncalvesBH/ServeRest/commit/685d6ac782635f3f59c1f2929c7c5d857d277528))
+* update .all-contributorsrc ([a8e5c01](https://github.com/PauloGoncalvesBH/ServeRest/commit/a8e5c0178d76dca1d77046b9cea03bf92930d881))
+* update README.md ([8c84aab](https://github.com/PauloGoncalvesBH/ServeRest/commit/8c84aab0d592c368905cfbf996e8091cc2db6be8))
+* **license:** tornar o ServeRest copyleft ([b392feb](https://github.com/PauloGoncalvesBH/ServeRest/commit/b392febb90d62bee5a1980153d763f278b56898d))
+
 ## [2.9.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.0...v2.9.1) (2020-09-16)
 
 
