@@ -8,6 +8,7 @@ module.exports = error => {
     const mapeamentoDoErro = {
       'any.required': `${propriedade} é obrigatório`,
       'string.email': `${propriedade} deve ser um email válido`,
+      'string.empty': `${propriedade} não pode ficar em branco`,
       'string.base': `${propriedade} deve ser uma string`,
       'object.unknown': `${propriedade} não é permitido`,
       'array.includesRequiredUnknowns': `${propriedade} não contém 1 valor obrigatório`,
