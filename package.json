@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "commit": "git-cz",
-    "start": "cross-env NODE_ENV=serverest-development node ./src/server.js",
+    "start": "node ./src/server.js",
     "dev": "cross-env NODE_ENV=serverest-development nodemon ./src/server.js --nodoc",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/.mocharc.js",
