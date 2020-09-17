@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.9.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.2...v2.9.3) (2020-09-17)
+
+
+### Bug Fixes
+
+* detalhar mensagem de erro de schema não mapeado para facilitar correção ([0cbd5b0](https://github.com/PauloGoncalvesBH/ServeRest/commit/0cbd5b05423a543460cd6783e9dcbd72e3253b1d))
+
+
+### Chores
+
+* **package:** alterar licença do pacote ([27fa117](https://github.com/PauloGoncalvesBH/ServeRest/commit/27fa117d8024f366f50286b60538990cc9c5bf81))
+
 ## [2.9.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.1...v2.9.2) (2020-09-16)
 
 
