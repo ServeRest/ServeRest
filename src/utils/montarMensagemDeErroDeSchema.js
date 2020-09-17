@@ -17,7 +17,7 @@ module.exports = error => {
       'number.positive': `${propriedade} deve ser um número positivo`,
       'number.min': `${propriedade} deve ser maior ou igual a 0`,
       'any.only': `${propriedade} deve ser 'true' ou 'false'`,
-      default: erro.message
+      default: `${erro.message} - Erro ${erro.type} - Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues`
     }
     /* istanbul ignore next */
     mensagemDeErro[propriedade] = mapeamentoDoErro[erro.type] || mapeamentoDoErro.default
