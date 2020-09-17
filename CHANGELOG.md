@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.9.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.3...v2.9.4) (2020-09-17)
+
+
+### Bug Fixes
+
+* **montarMensagemDeErroDeSchema:** traduzir 'string.empty' ([333f273](https://github.com/PauloGoncalvesBH/ServeRest/commit/333f273cb651c062a6a669072d86a500da188b2e))
+
+
+### Tests
+
+* mapear propriedade em branco ([20ef057](https://github.com/PauloGoncalvesBH/ServeRest/commit/20ef05701549ea0cebe859decdd3c6ae934dba2f))
+
 ## [2.9.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.2...v2.9.3) (2020-09-17)
 
 
