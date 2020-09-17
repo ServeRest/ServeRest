@@ -44,4 +44,13 @@ describe(rotaLogin + ' POST', () => {
       password: 'password é obrigatório'
     })
   })
+
+  it('Bad request - Email em branco', async () => {
+    const { body } = await request.post(rotaLogin).send({ email: '' }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      email: 'email não pode ficar em branco',
+      password: 'password é obrigatório'
+    })
+  })
 })
