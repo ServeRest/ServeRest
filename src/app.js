@@ -53,8 +53,10 @@ app.use((error, req, res, next) => {
   /* istanbul ignore else */
   if (erroDeSchema) {
     return res.status(400).json(montarMensagemDeErroDeSchema(error))
+  } else if (error instanceof SyntaxError && error.status === 400) {
+    return res.sendStatus(400)
   } else {
-    return res.status(500).json({ error })
+    return res.status(500).json({ message: 'Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues', error })
   }
 })
 
