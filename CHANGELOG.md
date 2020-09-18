@@ -1,5 +1,18 @@
 # Changelog
 
+# [2.10.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.4...v2.10.0) (2020-09-18)
+
+
+### Bug Fixes
+
+* suprimir erro 'entity.parse.failed' ([9880631](https://github.com/PauloGoncalvesBH/ServeRest/commit/9880631778667b2115ccb6d41fe891247ff14220)), closes [#36](https://github.com/PauloGoncalvesBH/ServeRest/issues/36)
+* traduzir mensagem 'must be of type object'  ([#118](https://github.com/PauloGoncalvesBH/ServeRest/issues/118)) ([974303e](https://github.com/PauloGoncalvesBH/ServeRest/commit/974303e13403ca57deb572c6ffc5a01ca9690aff)), closes [#114](https://github.com/PauloGoncalvesBH/ServeRest/issues/114)
+
+
+### Features
+
+* habilitar cross-origin resource sharing (CORS) ([ebf1501](https://github.com/PauloGoncalvesBH/ServeRest/commit/ebf1501f1423730a3fdc47573c0ab498e77a3a99)), closes [#108](https://github.com/PauloGoncalvesBH/ServeRest/issues/108)
+
 ## [2.9.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.3...v2.9.4) (2020-09-17)
 
 
