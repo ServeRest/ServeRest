@@ -1,5 +1,6 @@
 const chai = require('chai')
 const joi = require('@hapi/joi')
+const Joi = require('@hapi/joi')
 
 describe('GENERICO', () => {
   it('Mensagem de rota inexistente', async () => {
@@ -35,6 +36,7 @@ describe('GENERICO', () => {
     const { headers } = await request.get(rotaAleatoria).expect(200)
 
     chai.assert.include(headers, {
+      'access-control-allow-origin': '*',
       'x-dns-prefetch-control': 'off',
       'x-frame-options': 'SAMEORIGIN',
       'strict-transport-security': 'max-age=15552000; includeSubDomains',
@@ -45,6 +47,7 @@ describe('GENERICO', () => {
     })
 
     joi.assert(headers, joi.object().keys({
+      'access-control-allow-origin': Joi.any(),
       'x-dns-prefetch-control': joi.any(),
       'x-frame-options': joi.any(),
       'strict-transport-security': joi.any(),

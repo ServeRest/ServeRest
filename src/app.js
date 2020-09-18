@@ -1,5 +1,6 @@
 'use strict'
 
+const cors = require('cors')
 const express = require('express')
 const logger = require('morgan')
 const queryParser = require('express-query-int')
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
+app.use(cors())
 
 /* istanbul ignore else */
 if (!conf.semHeaderDeSeguranca) {
