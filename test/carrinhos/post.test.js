@@ -232,4 +232,16 @@ describe(rotaCarrinhos + ' POST', () => {
       'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número positivo'
     })
   })
+
+  it('Bad request - deve ser um objeto', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send([null])
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      value: 'value deve ser um objeto'
+    })
+  })
 })
