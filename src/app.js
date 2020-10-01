@@ -1,5 +1,7 @@
 'use strict'
 
+require('express-async-errors')
+
 const cors = require('cors')
 const express = require('express')
 const logger = require('morgan')
@@ -8,7 +10,7 @@ const timeout = require('connect-timeout')
 
 const { conf } = require('./utils/conf')
 const { DOC_URL } = require('./utils/constants')
-const montarMensagemDeErroDeSchema = require('./utils/montarMensagemDeErroDeSchema')
+const errorHandler = require('./middlewares/error-handler')
 const monitor = require('./monitor')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
@@ -50,18 +52,7 @@ app.use('/usuarios', require('./routes/usuarios-route'))
 app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
-app.use((error, req, res, next) => {
-  const erroDeSchema = error.name === 'ValidationError'
-  /* istanbul ignore else */
-  if (erroDeSchema) {
-    return res.status(400).json(montarMensagemDeErroDeSchema(error))
-  } else if (error instanceof SyntaxError && error.status === 400) {
-    return res.sendStatus(400)
-  } else {
-    return res.status(500).json({ message: 'Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues', error })
-  }
-})
-
+app.use(errorHandler)
 app.use((req, res) => {
   res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${DOC_URL} para ver as rotas disponíveis e como utilizá-las.`
