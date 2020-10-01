@@ -44,12 +44,19 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [Stop](#stop)
     - [Clean](#clean)
 
+## Pré-requisitos
+
+É preciso ter os seguintes programas instalados:
+
+- [Git](https://git-scm.com/downloads)
+- [Node.js](https://nodejs.org/pt-br/download/)
+
 ## Etapas para contribuir
 
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub e, em seguida, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador;
-2. Instale as dependências de desenvolvimento: `npm install`;
+2. Instale as dependências de desenvolvimento: `npm install`
 3. Faça as alterações necessárias;
-4. Faça o seu commit usando `npm run commit`;
+4. Faça o seu commit usando `npm run commit`
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 
