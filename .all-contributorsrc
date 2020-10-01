@@ -54,6 +54,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "eliasreis54",
+      "name": "Elias Reis",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/29265526?v=4",
+      "profile": "https://github.com/eliasreis54",
+      "contributions": [
+        "maintenance"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
