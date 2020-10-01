@@ -17,6 +17,15 @@ describe(rotaProdutos + ' POST', () => {
     chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
   })
 
+  it('Cadastro sem imagem do produto com sucesso', async () => {
+    const produto = utils.dadosProduto()
+    delete produto.imagem
+
+    const { body } = await request.post(rotaProdutos).send(produto).set('authorization', authorizationAdministrador).expect(201)
+
+    chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
+  })
+
   it('Nome já utilizado', async () => {
     const produto = utils.dadosProduto()
 
