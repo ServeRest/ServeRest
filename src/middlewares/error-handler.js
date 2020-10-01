@@ -10,7 +10,7 @@ function errorHandler (error, _req, res, _next) {
     return res.sendStatus(400)
   } else {
     console.error(error)
-    return res.status(500).json({ message: INTERNAL_ERROR })
+    return res.status(500).json({ message: INTERNAL_ERROR, error })
   }
 }
 
