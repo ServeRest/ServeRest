@@ -83,7 +83,14 @@ Por default, o _ServeRest_ irá fazer as seguintes alterações no cabeçalho, q
 Utilize esse comportamento nos seus testes, validando a presença/ausência desses cabeçalhos.
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
+## Demonstre seu apoio ao ServeRest
 
+Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
+
+[![ServeRest API](https://img.shields.io/badge/ServeRest-API-green?style=for-the-badge)](https://serverest.js.org/)
+```markdown
+[![ServeRest API](https://img.shields.io/badge/ServeRest-API-green?style=for-the-badge)](https://serverest.js.org/)
+```
 ## Empresas que utilizam o ServeRest
 
 <table>
