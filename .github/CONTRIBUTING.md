@@ -29,11 +29,11 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 ## Sumário
 - [Etapas para contribuir](#etapas-para-contribuir)
     - [Legenda](#legenda)
-    - [💥 Testes de API](#-testes-de-api)
+    - [💥💻 Testes de API](#-testes-de-api)
+        - [💥💻 Cobertura de código](#-cobertura-de-código)
     - [💥 Testes de Mutação](#-testes-de-mutação)
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
-    - [💥💻 Cobertura de código](#-cobertura-de-código)
 - [Publicação no NPM](#publicação-no-npm)
 - [Documentação (serverest.js)](#documentação-serverestjs)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
@@ -55,15 +55,27 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 
 ### Legenda
 #### 💥 > Validação realizada na integração contínua e entrega contínua
-#### 💻 > Validação realizada no pré-commit
+#### 💻 > Validação realizada localmente
 
-## 💥 Testes de API
+## 💥💻 Testes de API
 
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
 Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e [supertest](https://www.npmjs.com/package/supertest) e validados com [chai](https://www.npmjs.com/package/chai).
 
 Para executá-los, execute o comando `npm test`.
+
+> O commit é abortado caso esse padrão não seja seguido
+
+### 💥💻 Cobertura de código
+
+[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
+
+Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de código.
+
+É importante que todo o código esteja com 100% de cobertura para podermos ter segurança que toda alteração no código será validada.
+
+Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src` (exceto `server.js`). Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
 
 ## 💥 Testes de Mutação
 
@@ -103,16 +115,6 @@ Para saber mais, acesse esses links:
 Execute `npm run commit` para ter um painel interativo que permite seguir o padrão de commit de forma fácil.
 
 > O commit é abortado caso esse padrão não seja seguido
-
-## 💥💻 Cobertura de código
-
-[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
-
-Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de código.
-
-É importante que todo o código esteja com 100% de cobertura para podermos ter segurança que toda alteração no código será validada.
-
-Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src` (exceto `server.js`). Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
 
 ---
 
