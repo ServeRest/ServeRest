@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = {
-  INTERNAL_ERROR: 'Falha ao processar sua requisição',
+  INTERNAL_ERROR: 'Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues',
   POST_SUCESS: 'Cadastro realizado com sucesso',
   DELETE_SUCESS: 'Registro excluído com sucesso',
   DELETE_NONE: 'Nenhum registro excluído',
