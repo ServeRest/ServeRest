@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.10.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.10.0...v2.10.1) (2020-10-01)
+
+
+### Chores
+
+* **deps-dev:** bump @commitlint/config-conventional ([#128](https://github.com/PauloGoncalvesBH/ServeRest/issues/128)) ([c9794f2](https://github.com/PauloGoncalvesBH/ServeRest/commit/c9794f27c81b174fdab58e9c3a8edcd832c2259e))
+* **deps-dev:** bump @semantic-release/npm from 7.0.5 to 7.0.6 ([#124](https://github.com/PauloGoncalvesBH/ServeRest/issues/124)) ([1c653ba](https://github.com/PauloGoncalvesBH/ServeRest/commit/1c653bac10385e66c18917f34e7dbc3661240114))
+* **deps-dev:** bump lint-staged from 10.2.11 to 10.4.0 ([#127](https://github.com/PauloGoncalvesBH/ServeRest/issues/127)) ([2e51e77](https://github.com/PauloGoncalvesBH/ServeRest/commit/2e51e77f2c095e10f7ddef732a09545f58e5528c))
+* **package:** run tests on pre-push ([#129](https://github.com/PauloGoncalvesBH/ServeRest/issues/129)) ([0ed6afe](https://github.com/PauloGoncalvesBH/ServeRest/commit/0ed6afe5f426791a30312af4941e97af0e7abb68))
+
+
+### Code Refactoring
+
+* extrair tratamento de erro para um middleware ([#137](https://github.com/PauloGoncalvesBH/ServeRest/issues/137)) ([3532c2a](https://github.com/PauloGoncalvesBH/ServeRest/commit/3532c2a8ba4d1ccedbc7450f45718acaed1831e9)), closes [#120](https://github.com/PauloGoncalvesBH/ServeRest/issues/120)
+
+
+### Documentation
+
+* **readme:** adicionar a seção de apoio e badge do projeto ([#135](https://github.com/PauloGoncalvesBH/ServeRest/issues/135)) ([0480c02](https://github.com/PauloGoncalvesBH/ServeRest/commit/0480c02c6f9768edc4a3e2ec05e8c41da021d492)), closes [#121](https://github.com/PauloGoncalvesBH/ServeRest/issues/121)
+* add doamaral as a contributor ([#136](https://github.com/PauloGoncalvesBH/ServeRest/issues/136)) ([c9dfd31](https://github.com/PauloGoncalvesBH/ServeRest/commit/c9dfd31d7e6043c6d169a68c6d823263b8b60243))
+* add gabriel-pinheiro as a contributor ([#138](https://github.com/PauloGoncalvesBH/ServeRest/issues/138)) ([a60b9f2](https://github.com/PauloGoncalvesBH/ServeRest/commit/a60b9f2c305cf216719020b85d241b7e331a87ec))
+* **contributing:** incluir git e node como pré-requisitos ([d9a86db](https://github.com/PauloGoncalvesBH/ServeRest/commit/d9a86dbd5fcc5d8d1c9c69374b800e46686cc6b4))
+* add eliasreis54 as a contributor ([#130](https://github.com/PauloGoncalvesBH/ServeRest/issues/130)) ([46229c6](https://github.com/PauloGoncalvesBH/ServeRest/commit/46229c6920e426a2437ee073ba63c830bd992f57))
+
 # [2.10.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.9.4...v2.10.0) (2020-09-18)
 
 
