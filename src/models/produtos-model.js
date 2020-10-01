@@ -8,7 +8,8 @@ exports.schemaGet = {
     nome: Joi.any(),
     preco: Joi.number().positive().integer(),
     descricao: Joi.any(),
-    quantidade: Joi.number().min(0).integer()
+    quantidade: Joi.number().min(0).integer(),
+    imagem: Joi.any()
   })
 }
 
@@ -17,7 +18,8 @@ exports.schemaPost = {
     nome: Joi.string().required(),
     preco: Joi.number().positive().integer().required(),
     descricao: Joi.string().required(),
-    quantidade: Joi.number().min(0).integer().required()
+    quantidade: Joi.number().min(0).integer().required(),
+    imagem: Joi.string().optional()
   })
 }
 
