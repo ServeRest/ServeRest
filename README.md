@@ -92,6 +92,7 @@ Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu a
 ```markdown
 [![ServeRest API](https://img.shields.io/badge/ServeRest-API-green?style=for-the-badge)](https://serverest.js.org/)
 ```
+
 ## Empresas que utilizam o ServeRest
 
 <table>
