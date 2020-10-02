@@ -105,4 +105,37 @@ describe(rotaProdutos + ' POST', () => {
       descricao: 'descricao é obrigatório'
     })
   })
+
+  it('Bad request - imagem deve ser uma string', async () => {
+    let produto = utils.dadosProduto()
+    produto = {
+      ...produto,
+      imagem: 1
+    }
+
+    const numberRequest = await request
+      .post(rotaProdutos)
+      .send(produto)
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(numberRequest.body, {
+      imagem: 'imagem deve ser uma string'
+    })
+
+    produto = {
+      ...produto,
+      imagem: null
+    }
+
+    const nullRequest = await request
+      .post(rotaProdutos)
+      .send(produto)
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(nullRequest.body, {
+      imagem: 'imagem deve ser uma string'
+    })
+  })
 })
