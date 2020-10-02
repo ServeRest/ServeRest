@@ -74,6 +74,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "gomex",
+      "name": "Rafael Gomes",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/95132?v=4",
+      "profile": "http://gomex.me",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
