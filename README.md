@@ -35,7 +35,7 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 
 ---
 
-Ou, você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
+Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
 
 ```sh
 docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
