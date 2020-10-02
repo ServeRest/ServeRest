@@ -1,4 +1,5 @@
 /* eslint no-template-curly-in-string: 0 */
+const { env } = process
 
 module.exports = {
   branches: [
@@ -7,11 +8,9 @@ module.exports = {
     { name: 'beta', channel: 'beta', prerelease: 'beta' }
   ],
   plugins: [
-    ['@semantic-release/exec', {
-      prepareCmd: 'docker build -t eliasreis54/ServeRest .'
-    }],
+    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/ServeRest .` }],
     ['semantic-release-docker', {
-      name: 'eliasreis54/ServeRest'
+      name: `${env.DOCKER_USERNAME}/ServeRest`
     }]
   ]
 }
