@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 21 */14 * *'
+  pull_request:
 
 jobs:
   analyse:
