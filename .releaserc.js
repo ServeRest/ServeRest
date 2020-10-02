@@ -8,6 +8,12 @@ module.exports = {
     { name: 'beta', channel: 'beta', prerelease: 'beta' }
   ],
   plugins: [
+    ['@semantic-release/commit-analyzer', {
+      releaseRules: [
+        { type: 'docs', scope: 'readme', release: 'patch' },
+        { scope: 'no-release', release: false }
+      ]
+    }],
     ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/ServeRest .` }],
     ['semantic-release-docker', {
       name: `${env.DOCKER_USERNAME}/ServeRest`
