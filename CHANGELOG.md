@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.0...v2.12.1) (2020-10-02)
+
+
+### Bug Fixes
+
+* **docker:** habilitar monitoramento ([e005133](https://github.com/PauloGoncalvesBH/ServeRest/commit/e0051330da299b694ab884cf8acef46813c1e1a1))
+
 # [2.12.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.11.0...v2.12.0) (2020-10-02)
 
 
