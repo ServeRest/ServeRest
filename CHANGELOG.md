@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.11.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.10.1...v2.11.0) (2020-10-02)
+
+
+### Features
+
+* incluir propriedade imagem na rota /produtos ([#134](https://github.com/PauloGoncalvesBH/ServeRest/issues/134)) ([6669cf2](https://github.com/PauloGoncalvesBH/ServeRest/commit/6669cf206ee9ce8b5041ceae448dba51b01e55cf)), closes [#107](https://github.com/PauloGoncalvesBH/ServeRest/issues/107)
+
 ## [2.10.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.10.0...v2.10.1) (2020-10-01)
 
 
