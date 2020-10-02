@@ -42,7 +42,7 @@ docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 ```
 
 Com esse comando você sempre utilizará a última versão disponível. Caso queira utilizar alguma versão específica basta substituir o `latest` pela versão desejada.
-Você pode encontrar as versões disponíveis no [link](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags)
+Você pode encontrar as versões disponíveis na [lista de tags no docker](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags).
 
 ---
 
