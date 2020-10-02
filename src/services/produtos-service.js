@@ -75,5 +75,8 @@ function formatarValores (body) {
   body.nome = body.nome.trim()
   body.preco = parseInt(body.preco)
   body.quantidade = parseInt(body.quantidade)
+  if (body.imagem) {
+    body.imagem = body.imagem.trim()
+  }
   return body
 }

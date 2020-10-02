@@ -66,7 +66,8 @@ function dadosProduto () {
     nome: faker.commerce.productName() + faker.random.number() + faker.random.number(),
     preco: faker.random.number(),
     descricao: faker.random.words(),
-    quantidade: faker.random.number()
+    quantidade: faker.random.number(),
+    imagem: faker.random.words()
   }
 }
 
