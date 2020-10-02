@@ -41,7 +41,7 @@ Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte co
 docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 ```
 
-Com esse comando, você sempre utilizará a última versão disponível. Caso queria utilizar alguma versão específica, basta substituir o `latest` pela versão desejada.
+Com esse comando você sempre utilizará a última versão disponível. Caso queira utilizar alguma versão específica basta substituir o `latest` pela versão desejada.
 Você pode encontrar as versões disponíveis no [link](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags)
 
 ---
