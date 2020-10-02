@@ -33,7 +33,6 @@ Não é preciso fazer instalação com `npm install` antes da execução.
  <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
 </p>
 
-
 Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
 
 ```sh
