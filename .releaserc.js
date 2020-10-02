@@ -14,7 +14,7 @@ module.exports = {
         { scope: 'no-release', release: false }
       ]
     }],
-    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/ServeRest .` }],
+    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/serverest .` }],
     ['semantic-release-docker', {
       name: `${env.DOCKER_USERNAME}/serverest`
     }]
