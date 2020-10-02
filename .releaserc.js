@@ -103,6 +103,12 @@ module.exports = {
         'released on @${nextRelease.channel}',
         'released on ${nextRelease.gitTag}'
       ]
+    }],
+    ['@semantic-release/exec', {
+      prepareCmd: 'docker build -t eliasreis54/ServeRest .'
+    }],
+    ['semantic-release-docker', {
+      name: 'eliasreis54/ServeRest'
     }]
   ]
 }
