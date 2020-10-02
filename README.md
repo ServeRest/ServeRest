@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
-  <img alt="support - node version" src="https://img.shields.io/node/v/serverest?style=for-the-badge">
+  <a href="https://hub.docker.com/r/paulogoncalvesbh/serverest"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/paulogoncalvesbh/serverest?style=for-the-badge"></a>
   <a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
   <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
 </p>
@@ -19,6 +19,8 @@
  </b>
 </p>
 
+## Inicialização do projeto
+
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
 
 ```sh
@@ -30,6 +32,15 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 <p align="center">
  <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
 </p>
+
+Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
+
+```sh
+docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
+```
+
+Com esse comando você sempre utilizará a última versão disponível. Caso queira utilizar alguma versão específica basta substituir o `latest` pela versão desejada.
+Você pode encontrar as versões disponíveis na [lista de tags no docker](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags).
 
 ---
 

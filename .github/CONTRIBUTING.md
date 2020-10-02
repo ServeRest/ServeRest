@@ -34,7 +34,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥 Testes de Mutação](#-testes-de-mutação)
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
-- [Publicação no NPM](#publicação-no-npm)
+- [Publicação das releases](#publicação-das-releases)
 - [Documentação (serverest.js)](#documentação-serverestjs)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
 - [Execução do projeto via Makefile](#execução-do-projeto-via-makefile)
@@ -125,11 +125,11 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 ---
 
-## Publicação no NPM
+## Publicação das releases
 
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-A publicação de novas versões no [NPM](https://www.npmjs.com/package/serverest) são feitas automaticamente após a execução com sucesso de todas as etapas da pipeline de [entrega contínua](./workflows/continuous_delivery.yml).
+A publicação de novas versões no [NPM](https://www.npmjs.com/package/serverest) e no [Docker](https://hub.docker.com/r/paulogoncalvesbh/serverest) é feita automaticamente após a execução com sucesso de todas as etapas da pipeline de [entrega contínua](./workflows/continuous_delivery.yml).
 
 É utilizada a lib [Semantic-release](https://github.com/semantic-release/semantic-release) com personalizações no arquivo [.releaserc.js](../.releaserc.js).
 
@@ -138,7 +138,7 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 | @latest | master
 | @beta | beta
 
-Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o meu texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
+Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
 
 ## Documentação (serverest.js)
 

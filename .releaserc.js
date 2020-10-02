@@ -1,4 +1,5 @@
 /* eslint no-template-curly-in-string: 0 */
+const { env } = process
 
 // https://github.com/conventional-changelog/conventional-changelog/blob/master/packages/conventional-changelog-angular/writer-opts.js
 const transformCommitType = type => {
@@ -103,6 +104,10 @@ module.exports = {
         'released on @${nextRelease.channel}',
         'released on ${nextRelease.gitTag}'
       ]
+    }],
+    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/serverest .` }],
+    ['semantic-release-docker', {
+      name: `${env.DOCKER_USERNAME}/serverest`
     }]
   ]
 }
