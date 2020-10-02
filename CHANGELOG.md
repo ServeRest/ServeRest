@@ -1,5 +1,25 @@
 # Changelog
 
+# [2.12.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.11.0...v2.12.0) (2020-10-02)
+
+
+### Continuous Integration
+
+* run mutation test, check-link and codeql workflows on pull requests ([#140](https://github.com/PauloGoncalvesBH/ServeRest/issues/140)) ([6e11498](https://github.com/PauloGoncalvesBH/ServeRest/commit/6e1149868b350b9d8a3f87baeed6c15626d7c324))
+* usar versão específica do ubuntu ([#141](https://github.com/PauloGoncalvesBH/ServeRest/issues/141)) ([9439309](https://github.com/PauloGoncalvesBH/ServeRest/commit/9439309af085760db230d947d8409dff29c96a8f))
+
+
+### Documentation
+
+* add eliasreis54 as a infra contributor ([#145](https://github.com/PauloGoncalvesBH/ServeRest/issues/145)) ([e65bbe1](https://github.com/PauloGoncalvesBH/ServeRest/commit/e65bbe134ed3389ad073862e1829bf2e29574d8f))
+* add gomex as a contributor ([#143](https://github.com/PauloGoncalvesBH/ServeRest/issues/143)) ([631c6cf](https://github.com/PauloGoncalvesBH/ServeRest/commit/631c6cf344396db01b9141232c22fdfb43484454))
+* add rustnnes as a contributor ([#144](https://github.com/PauloGoncalvesBH/ServeRest/issues/144)) ([cd4da26](https://github.com/PauloGoncalvesBH/ServeRest/commit/cd4da26c52bb0c6f809fd5a46feb9fce9e7c0504))
+
+
+### Features
+
+* add ServeRest on docker hub ([#146](https://github.com/PauloGoncalvesBH/ServeRest/issues/146)) ([4d750b8](https://github.com/PauloGoncalvesBH/ServeRest/commit/4d750b89bf305f2a31b18700c9ae9ca6efccc94c)), closes [#47](https://github.com/PauloGoncalvesBH/ServeRest/issues/47)
+
 # [2.11.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.10.1...v2.11.0) (2020-10-02)
 
 
