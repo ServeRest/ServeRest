@@ -7,7 +7,7 @@ on:
 jobs:
   lint:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - name: Project checkout
@@ -21,7 +21,7 @@ jobs:
 
   commit-lint:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +37,7 @@ jobs:
 
   test-api:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
@@ -60,7 +60,7 @@ jobs:
   release:
     needs: [lint, commit-lint, test-api]
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - name: Project checkout
