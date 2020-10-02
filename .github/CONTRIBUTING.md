@@ -153,7 +153,7 @@ Para atualizar:
 ## Reconhecimento de contribuição
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)
+![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=for-the-badge)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Todos aqueles que contribuíram com o projeto, independente do tipo de contribuição, devem ser reconhecidos.

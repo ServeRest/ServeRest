@@ -111,7 +111,7 @@ Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=for-the-badge)
+![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=for-the-badge)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -131,6 +131,7 @@ Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/doc
   </tr>
   <tr>
     <td align="center"><a href="http://gomex.me"><img src="https://avatars3.githubusercontent.com/u/95132?v=4" width="100px;" alt=""/><br /><sub><b>Rafael Gomes</b></sub></a><br /><a href="#infra-gomex" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://about.me/rustnnes"><img src="https://avatars1.githubusercontent.com/u/638445?v=4" width="100px;" alt=""/><br /><sub><b>Diego Bandeira</b></sub></a><br /><a href="#infra-rustnnes" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
   </tr>
 </table>
 

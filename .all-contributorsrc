@@ -83,6 +83,15 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "rustnnes",
+      "name": "Diego Bandeira",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/638445?v=4",
+      "profile": "https://about.me/rustnnes",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
