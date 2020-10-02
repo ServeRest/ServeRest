@@ -19,6 +19,8 @@
  </b>
 </p>
 
+## Inicialização do projeto
+
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
 
 ```sh
@@ -30,6 +32,16 @@ Não é preciso fazer instalação com `npm install` antes da execução.
 <p align="center">
  <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
 </p>
+
+---
+
+Ou, você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
+
+```sh
+docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
+```
+
+Com esse comando, você sempre utilizará a última versão disponível. Caso queria utilizar alguma versão específica, basta substituir o `latest` pelo número da versão desejada.
 
 ---
 
