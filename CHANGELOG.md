@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.12.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.1...v2.12.2) (2020-10-03)
+
+
+### Documentation
+
+* **contributing:** comando 'ci' não altera versão no package-lock.json ([d4134cb](https://github.com/PauloGoncalvesBH/ServeRest/commit/d4134cbad4c9b9816a95051ac4b229ae008fe8df))
+* **contributing:** sugerir teste local utilizando docker ([c8f6b73](https://github.com/PauloGoncalvesBH/ServeRest/commit/c8f6b73bd34247cdd31cf67bafb071846b4d2f8a))
+* **readme:** alterar link da badge da página js.org para o repositório ([8d8d840](https://github.com/PauloGoncalvesBH/ServeRest/commit/8d8d8408259465976e586c14e69b2bea38682df0))
+
 ## [2.12.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.0...v2.12.1) (2020-10-02)
 
 
