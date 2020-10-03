@@ -100,10 +100,10 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
 
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://serverest.js.org/)
+[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
 ```markdown
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://serverest.js.org/)
+[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
 
 
