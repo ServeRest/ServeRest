@@ -60,6 +60,8 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 
+**Etapa extra e opcional:** Caso possua docker e alterou código dentro de `src/`, suba uma imagem docker e faça alguns testes manuais. Para saber como consulte a seção [Execução do projeto via Makefile](#execução-do-projeto-via-makefile).
+
 ### Legenda
 #### 💥 > Validação realizada na integração contínua e entrega contínua
 #### 💻 > Validação realizada localmente
@@ -164,7 +166,7 @@ Para entender como utilizar, basta acessar as [intruções de uso do bot](https:
 
 ## Execução do Projeto via Makefile
 
-Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, buildar e parar o projeto usando o docker. Os seguintes comandos estão disponíveis:1
+Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, buildar e parar o projeto usando o docker. Os seguintes comandos estão disponíveis:
 
 ### Build 
 Pra fazer o build da imagem Docker com o projeto local,  use o comando no terminal:
@@ -172,16 +174,16 @@ Pra fazer o build da imagem Docker com o projeto local,  use o comando no termin
 make build
 ```
 
-### Build/run 
-Pra fazer o build e executar a imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make build/run
-```
-
 ### Run 
 Pra executar a imagem Docker com o projeto local,  use o comando no terminal:
 ```sh
 make run
+```
+
+### Build/run 
+Pra fazer o build e executar a imagem Docker com o projeto local,  use o comando no terminal:
+```sh
+make build/run
 ```
 
 ### Stop 
