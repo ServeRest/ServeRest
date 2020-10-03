@@ -53,8 +53,8 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 
 ## Etapas para contribuir
 
-1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub e, em seguida, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador;
-2. Instale as dependências de desenvolvimento: `npm install`
+1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador e, em seguida, acesse o diretório criado;
+2. Instale as dependências de desenvolvimento: `npm ci`
 3. Faça as alterações necessárias;
 4. Faça o seu commit usando `npm run commit`
 5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
