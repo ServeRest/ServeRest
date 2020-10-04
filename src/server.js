@@ -56,8 +56,10 @@ app.set('port', port)
 const server = http.createServer(app)
 
 server.listen(port, () => {
-  console.log(colors.white.bold(`\nServeRest está em execução na porta ${port}`))
-  console.log(colors.white.bold('Dúvidas?'), colors.yellow.bold('npx serverest -h'))
+  console.log(colors.green.bold(`\nServeRest está em execução em http://localhost:${port}\n`))
+  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold('https://serverest.js.org'))
+  console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
+  console.log(colors.white.bold('Outras dúvidas? Acesse'), colors.yellow.bold('https://github.com/PauloGoncalvesBH/ServeRest'))
   console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 })
 server.on('error', onError)

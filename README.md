@@ -30,7 +30,7 @@ npx serverest
 Não é preciso fazer instalação com `npm install` antes da execução.
 
 <p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/83936435-ff1ac200-a799-11ea-9b54-91fbd6b43cdc.png" height="250">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
 </p>
 
 Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
