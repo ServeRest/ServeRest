@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.13.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.2...v2.13.0) (2020-10-04)
+
+
+### Features
+
+* **terminal:** tornar o terminal mais informativo ([0953977](https://github.com/PauloGoncalvesBH/ServeRest/commit/09539779a2b5725a9ab69410d3a4c44ef1af4f8c))
+
 ## [2.12.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.1...v2.12.2) (2020-10-03)
 
 
