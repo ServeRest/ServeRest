@@ -1,4 +1,4 @@
 .git
 .github
-.ny_output
+.nyc_output
 node_modules/
