@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.0...v2.13.1) (2020-10-05)
+
+
+### Bug Fixes
+
+* **docker:** change node image to alpine image ([#149](https://github.com/PauloGoncalvesBH/ServeRest/issues/149)) ([5b52c72](https://github.com/PauloGoncalvesBH/ServeRest/commit/5b52c7276bdb4266a96cd40d9459931261ee8b4f))
+
 # [2.13.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.12.2...v2.13.0) (2020-10-04)
 
 
