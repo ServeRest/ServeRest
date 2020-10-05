@@ -1,0 +1,11 @@
+.git
+.github
+.nyc_output
+docs/
+test/
+reports/
+CHANGELOG.md
+.stryker-tmp
+stryker.log
+coverage.lcov
+node_modules/
