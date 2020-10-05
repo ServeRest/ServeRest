@@ -95,17 +95,22 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
+## Exemplo de automação
+
+Os repositórios abaixo são bons exemplos de automação com boas práticas, com CI configurada e que consome o ServeRest.
+
+- [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
+- [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 
 ## Demonstre seu apoio ao ServeRest
 
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
 
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
 ```markdown
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
-
 
 ## Empresas que utilizam o ServeRest
 
