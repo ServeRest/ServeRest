@@ -19,11 +19,11 @@
  </b>
 </p>
 
-## Inicialização do projeto
-
 <p align="center">
  <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
 </p>
+
+## Inicialização do projeto
 
 ### Com Node
 
