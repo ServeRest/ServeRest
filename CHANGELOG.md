@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.13.2-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.1...v2.13.2-beta.1) (2020-10-05)
+
+
+### Documentation
+
+* **readme:** incluir exemplo de repositórios que consomem o ServeRest ([9cf9e71](https://github.com/PauloGoncalvesBH/ServeRest/commit/9cf9e7163bc5d19f8334ddfe023dc5c73c44675b))
+* **readme:** mover imagem ([00d01a4](https://github.com/PauloGoncalvesBH/ServeRest/commit/00d01a41062412bc22c538a826c88897d42e639a))
+* **readme:** separação seção de inicialização com node e docker ([3032c12](https://github.com/PauloGoncalvesBH/ServeRest/commit/3032c12f306676d96f7063ab9750b6a94c55df70))
+
 ## [2.13.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.0...v2.13.1) (2020-10-05)
 
 
