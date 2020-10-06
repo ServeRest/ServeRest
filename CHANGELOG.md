@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.1...v2.13.2) (2020-10-06)
+
+
+### Documentation
+
+* **readme:** incluir exemplos de repositórios que consomem o ServeRest ([9a6de7d](https://github.com/PauloGoncalvesBH/ServeRest/commit/9a6de7d38daf51a743913764d2b72abd5820a673))
+
 ## [2.13.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.0...v2.13.1) (2020-10-05)
 
 
