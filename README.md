@@ -30,7 +30,7 @@
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
 
 ```sh
-npx serverest
+npx serverest@latest
 ```
 
 Não é preciso fazer instalação com `npm install` antes da execução.
