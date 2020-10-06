@@ -23,7 +23,7 @@
  <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
 </p>
 
-## Inicialização do projeto
+## Inicializar o ServeRest
 
 ### Com Node
 
@@ -42,9 +42,6 @@ Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte co
 ```sh
 docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 ```
-
-Com esse comando você sempre utilizará a última versão disponível. Caso queira utilizar alguma versão específica basta substituir o `latest` pela versão desejada.
-Você pode encontrar as versões disponíveis na [lista de tags no docker](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags).
 
 ---
 
