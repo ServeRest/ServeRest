@@ -19,28 +19,29 @@
  </b>
 </p>
 
-## Inicialização do projeto
+<p align="center">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
+</p>
+
+## Inicializar o ServeRest
+
+### Com Node
 
 Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
 
 ```sh
-npx serverest
+npx serverest@latest
 ```
 
 Não é preciso fazer instalação com `npm install` antes da execução.
 
-<p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
-</p>
+### Com Docker
 
 Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
 
 ```sh
 docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 ```
-
-Com esse comando você sempre utilizará a última versão disponível. Caso queira utilizar alguma versão específica basta substituir o `latest` pela versão desejada.
-Você pode encontrar as versões disponíveis na [lista de tags no docker](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags).
 
 ---
 
@@ -95,17 +96,22 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
+## Exemplo de automação
+
+Os repositórios abaixo são bons exemplos de automação com boas práticas, com CI configurada e que consome o ServeRest.
+
+- [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
+- [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 
 ## Demonstre seu apoio ao ServeRest
 
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
 
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
 ```markdown
-[![ServeRest API](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
-
 
 ## Empresas que utilizam o ServeRest
 
