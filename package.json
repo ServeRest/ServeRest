@@ -72,7 +72,7 @@
     "commitizen": "^4.2.1",
     "cross-env": "^7.0.2",
     "cz-conventional-changelog": "^3.1.0",
-    "faker": "^4.1.0",
+    "faker": "^5.1.0",
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "mocha": "^8.1.3",
