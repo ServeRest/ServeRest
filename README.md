@@ -105,6 +105,8 @@ Os repositórios abaixo são bons exemplos de automação com boas práticas, co
 
 ## Demonstre seu apoio ao ServeRest
 
+### Badge
+
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
 
 [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
@@ -112,6 +114,10 @@ Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu a
 ```markdown
 [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
+
+### Doação
+
+![Doação - Open Collective](https://opencollective.com/serverest/tiers/doacao-recorrente.svg)
 
 ## Empresas que utilizam o ServeRest
 
