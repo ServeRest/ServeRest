@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/96160448-5bca7e00-0eec-11eb-94d7-8222311e34c4.png" height="190">
 </p>
 
 ## Inicializar o ServeRest
