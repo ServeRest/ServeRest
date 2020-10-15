@@ -2,7 +2,9 @@
 # Como contribuir
 
 [![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)
 [![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
+
 [![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
@@ -143,6 +145,8 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
 
 ## Documentação (serverest.dev)
+
+![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)
 
 A documentação, disponibilizada na url <https://serverest.dev>, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
 
