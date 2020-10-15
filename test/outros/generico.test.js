@@ -7,7 +7,7 @@ describe('GENERICO', () => {
     const rotaInexistente = '/api-doc'
     const { body } = await request.get(rotaInexistente).expect(405)
 
-    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse https://serverest.js.org para ver as rotas disponíveis e como utilizá-las.`
+    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.`
     chai.assert.deepEqual(body, { message })
   })
 

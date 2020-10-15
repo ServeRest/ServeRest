@@ -38,7 +38,7 @@ const argv = require('yargs')
   .example('npx serverest --porta 3500', 'Será iniciado na porta 3500')
   .example('npx serverest -s -p 4200 -t 120 -b', 'É possível combinar as opções')
   .help('h')
-  .epilog('Acesse serverest.js.org para ver as rotas disponíveis')
+  .epilog('Acesse serverest.dev para ver as rotas disponíveis')
   .epilog('Precisa de ajuda?')
   .epilog('Abra uma issue em github.com/PauloGoncalvesBH/ServeRest/issues')
   .argv
@@ -57,7 +57,7 @@ const server = http.createServer(app)
 
 server.listen(port, () => {
   console.log(colors.green.bold(`\nServeRest está em execução em http://localhost:${port}\n`))
-  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold('https://serverest.js.org'))
+  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold('https://serverest.dev'))
   console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
   console.log(colors.white.bold('Outras dúvidas? Acesse'), colors.yellow.bold('https://github.com/PauloGoncalvesBH/ServeRest'))
   console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))

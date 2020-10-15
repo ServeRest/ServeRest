@@ -20,7 +20,7 @@
 ### Documentation
 
 <!--
-  Where is this API documented? Check out our documentation at https://serverest.js.org/
+  Where is this API documented? Check out our documentation at https://serverest.dev/
 
   - If docs exist:
     - Update any references, if relevant.

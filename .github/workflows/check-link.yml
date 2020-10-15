@@ -2,7 +2,7 @@ name: Check links [.md, HTML]
 
 on:
   schedule:
-    - cron: "0 15,21 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
   push:
   pull_request:
