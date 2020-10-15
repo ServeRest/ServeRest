@@ -6,8 +6,8 @@
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
   <a href="https://hub.docker.com/r/paulogoncalvesbh/serverest"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/paulogoncalvesbh/serverest?style=for-the-badge"></a>
-  <a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
-  <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
+  <a href="https://opencollective.com/serverest"><img alt="Quantidade de doadores" src="https://img.shields.io/opencollective/all/serverest?color=orange&label=Doadores%20%24&style=for-the-badge"></a>
+  <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?color=blue&style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -129,14 +129,14 @@ Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu a
 
 ### Fazendo doação
 
-Faça doação única ou mensal a partir de 1 dólar.
+Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio e a hospedagem de <https://serverest.dev>.
 
 [![Doação - Open Collective](https://opencollective.com/serverest/tiers/doacao-recorrente.svg)](https://opencollective.com/serverest)
 
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=for-the-badge)
+![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?color=blue&style=for-the-badge)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
