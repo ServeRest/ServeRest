@@ -2,7 +2,7 @@
 # Como contribuir
 
 [![Continuous Delivery](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
-![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)
+[![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 [![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 
 [![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
@@ -146,7 +146,7 @@ Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto 
 
 ## Documentação (serverest.dev)
 
-![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)
+[![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 
 A documentação, disponibilizada na url <https://serverest.dev>, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
 

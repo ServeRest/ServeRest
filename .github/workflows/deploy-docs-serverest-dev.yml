@@ -2,7 +2,7 @@ name: Deploy docs on serverest.dev
 
 on:
   push:
-    branches: [trunk, umbler]
+    branches: trunk
 
 jobs:
   deploy-doc:
