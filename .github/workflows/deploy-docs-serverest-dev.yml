@@ -1,8 +1,8 @@
-name: Deploy Docs
+name: Deploy docs on serverest.dev
 
 on:
   push:
-    branches: trunk
+    branches: [trunk, umbler]
 
 jobs:
   deploy-doc:
@@ -12,13 +12,7 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js Setup
-      uses: actions/setup-node@v2.1.1
-    - name: Installation of Node.js dependencies
-      run: |
-        cd docs
-        npm ci
-    - name: Upload ftp
+    - name: Upload serverest.dev via ftp
       uses: SamKirkland/FTP-Deploy-Action@3.1.1
       with:
         ftp-server: geonosis02.umbler.host
