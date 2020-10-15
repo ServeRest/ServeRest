@@ -12,7 +12,7 @@
 
 <p align="center">
  <b>
-   <a href="https://serverest.js.org">Documentação das rotas</a> |
+   <a href="https://serverest.dev">Documentação das rotas</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a>
@@ -55,7 +55,7 @@ _ServeRest_ permite o estudo de:
 
 ## Documentação
 
-Acesse **[serverest.js.org](https://serverest.js.org)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
+Acesse **[serverest.dev](https://serverest.dev)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 

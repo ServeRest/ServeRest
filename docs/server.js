@@ -7,4 +7,4 @@ app.get('/', function (req, res) {
   res.sendFile(join(__dirname, 'index.html'))
 })
 
-app.listen(process.env.PORT || 3000)
+app.listen(3000)

@@ -2,9 +2,7 @@ name: Deploy Docs
 
 on:
   push:
-    branches: umbler
-  pull_request:
-    branches: umbler
+    branches: [trunk, umbler]
   workflow_dispatch:
 
 jobs:

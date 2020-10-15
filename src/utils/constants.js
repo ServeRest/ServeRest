@@ -20,5 +20,5 @@ module.exports = {
   CARRINHO_COM_PRODUTO_DUPLICADO: 'Não é permitido possuir produto duplicado',
   SEM_CARRINHO: 'Não foi encontrado carrinho para esse usuário',
   ESTOQUE_REABASTECIDO: 'Estoque dos produtos reabastecido',
-  DOC_URL: 'https://serverest.js.org'
+  DOC_URL: 'https://serverest.dev'
 }
