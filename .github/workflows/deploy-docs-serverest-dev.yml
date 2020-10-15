@@ -3,6 +3,7 @@ name: Deploy docs on serverest.dev
 on:
   push:
     branches: trunk
+  workflow_dispatch:
 
 jobs:
   deploy-doc:
