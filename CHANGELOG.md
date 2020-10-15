@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.13.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.2...v2.13.3) (2020-10-15)
+
+
+### Chores
+
+* **deps-dev:** bump @commitlint/cli from 9.1.2 to 11.0.0 ([#152](https://github.com/PauloGoncalvesBH/ServeRest/issues/152)) ([74bc016](https://github.com/PauloGoncalvesBH/ServeRest/commit/74bc016b86f91dd888242a1bb50ad6bc6a51765a))
+* **deps-dev:** bump faker from 4.1.0 to 5.1.0 ([#155](https://github.com/PauloGoncalvesBH/ServeRest/issues/155)) ([6d040e6](https://github.com/PauloGoncalvesBH/ServeRest/commit/6d040e6fa0dcb876a8d3b440122d128b79f48805))
+* **deps-dev:** bump husky from 4.2.5 to 4.3.0 ([#154](https://github.com/PauloGoncalvesBH/ServeRest/issues/154)) ([77655ad](https://github.com/PauloGoncalvesBH/ServeRest/commit/77655ade1da30591bfd775d0876858196ca5d278))
+* **deps-dev:** bump supertest from 4.0.2 to 5.0.0 ([#156](https://github.com/PauloGoncalvesBH/ServeRest/issues/156)) ([ea8936f](https://github.com/PauloGoncalvesBH/ServeRest/commit/ea8936fb3338efca2c352caefae5cf479aaeba5b))
+
+
+### Documentation
+
+* **readme:** incluir patrocínio do Open Collective ([#160](https://github.com/PauloGoncalvesBH/ServeRest/issues/160)) ([fed28ad](https://github.com/PauloGoncalvesBH/ServeRest/commit/fed28ad2af537a7573160030f872319d02d47040))
+
 ## [2.13.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.1...v2.13.2) (2020-10-06)
 
 
