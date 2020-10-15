@@ -1,6 +1,6 @@
 {
   "name": "serverest",
-  "version": "2.13.3",
+  "version": "2.14.0",
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "GPL-3.0",

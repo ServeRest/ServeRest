@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.14.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.3...v2.14.0) (2020-10-15)
+
+
+### Features
+
+* mover a doc de js.org para o domínio serverest.dev ([#161](https://github.com/PauloGoncalvesBH/ServeRest/issues/161)) ([13df370](https://github.com/PauloGoncalvesBH/ServeRest/commit/13df370e8d29cd0a0c8422b67c11b51a43872779))
+
 ## [2.13.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.2...v2.13.3) (2020-10-15)
 
 
