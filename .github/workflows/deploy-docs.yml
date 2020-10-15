@@ -1,0 +1,30 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: umbler
+  pull_request:
+    branches: umbler
+  workflow_dispatch:
+
+jobs:
+  deploy-doc:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup
+      uses: actions/setup-node@v2.1.1
+    - name: Installation of Node.js dependencies
+      run: |
+        cd docs
+        npm ci
+    - name: Upload ftp
+      uses: SamKirkland/FTP-Deploy-Action@3.1.1
+      with:
+        ftp-server: geonosis02.umbler.host
+        ftp-username: serverest-dev
+        ftp-password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: docs
