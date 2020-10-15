@@ -24,6 +24,10 @@
 		{
 			"pattern": "^/.github",
 			"replacement": "https://github.com/PauloGoncalvesBH/ServeRest/tree/trunk/.github"
+		},
+		{
+			"pattern": "https://api.serverest.dev",
+			"replacement": "https://api.serverest.dev/usuarios?nome=check-link"
 		}
 	]
 }

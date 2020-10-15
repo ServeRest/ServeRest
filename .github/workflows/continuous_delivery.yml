@@ -71,10 +71,17 @@ jobs:
         node-version: 12
     - name: Installation of Node.js dependencies
       run: npm ci
-    - name: Release
+    - name: Release on NPM and Docker
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
+    - name: Release on api.serverest.dev
+      uses: SamKirkland/FTP-Deploy-Action@3.1.1
+      with:
+        ftp-server: geonosis10.umbler.host
+        ftp-username: api-serverest-dev
+        ftp-password: ${{ secrets.FTP_PASSWORD_API }}
+        local-dir: .github/api.serverest.dev

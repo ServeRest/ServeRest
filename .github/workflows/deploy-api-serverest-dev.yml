@@ -1,0 +1,26 @@
+name: Deploy on api.serverest.dev
+
+on:
+  schedule:
+    - cron: "0 07 * * *"
+  push:
+    branches: api-online
+  workflow_dispatch:
+
+jobs:
+  deploy-doc:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Release on api.serverest.dev
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: "geonosis.ssh.umbler.com"
+          REMOTE_USER: "ssh-user"
+          REMOTE_PORT: 47047
+          SOURCE: ".github/api.serverest.dev/"
+          TARGET: "public"

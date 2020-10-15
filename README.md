@@ -1,7 +1,7 @@
 
 <h1 align="center">ServeRest</h1>
 
-<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
+<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h4></i>
 
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
@@ -19,31 +19,11 @@
  </b>
 </p>
 
+<b><i><h3 align="center">Acessse <https://api.serverest.dev> para ter acesso às rotas disponibilizadas pelo ServeRest</h3></i></b>
+
 <p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/96160448-5bca7e00-0eec-11eb-94d7-8222311e34c4.png" height="190">
+  <img alt="Lista de rotas disponibilizdas pelo ServeRest" src="https://user-images.githubusercontent.com/29241659/96181525-89bebb00-0f0a-11eb-9425-0a65cf0205a2.png">
 </p>
-
-## Inicializar o ServeRest
-
-### Com Node
-
-Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
-
-```sh
-npx serverest@latest
-```
-
-Não é preciso fazer instalação com `npm install` antes da execução.
-
-### Com Docker
-
-Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
-
-```sh
-docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
-```
-
----
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
@@ -55,7 +35,7 @@ _ServeRest_ permite o estudo de:
 
 ## Documentação
 
-Acesse **[serverest.dev](https://serverest.dev)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
+Acesse **<https://serverest.dev>** para visualizar a documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
@@ -65,7 +45,25 @@ Acesse **[serverest.dev](https://serverest.dev)** para ter acesso a documentaç�
 
 </details>
 
-A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar o início automático envie o comando `npx serverest --nodoc`.
+## Executar o ServeRest localmente
+
+É possível utilizar de forma local em _localhost:3000_, o que pode ser útil caso precise que os dados não sejam alterados por outros usuários.
+
+<p align="center">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/96160448-5bca7e00-0eec-11eb-94d7-8222311e34c4.png" height="190">
+</p>
+
+### Utilizando NPM
+
+Execute o seguinte comando no terminal:
+
+```sh
+npx serverest@latest
+```
+
+> Não é preciso fazer instalação com `npm install` antes da execução.
+
+<details><summary><i>Abra para ver detalhes de configuração do ServeRest com NPM</i></summary>
 
 ## Configuração
 
@@ -95,6 +93,24 @@ Por default, o _ServeRest_ irá fazer as seguintes alterações no cabeçalho, q
 Utilize esse comportamento nos seus testes, validando a presença/ausência desses cabeçalhos.
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
+
+---
+
+</details>
+
+### Utilizando Docker
+
+Execute o seguinte comando no terminal:
+
+```sh
+docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
+```
+
+### Executando versão específica
+
+Em ambos os comandos você sempre utilizará a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
+
+Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
 
 ## Exemplo de automação
 
