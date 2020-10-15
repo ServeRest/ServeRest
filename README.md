@@ -103,16 +103,6 @@ Os repositórios abaixo são bons exemplos de automação com boas práticas, co
 - [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 
-## Demonstre seu apoio ao ServeRest
-
-Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
-
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
-
-```markdown
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
-```
-
 ## Empresas que utilizam o ServeRest
 
 <table>
@@ -124,6 +114,24 @@ Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu a
 </table>
 
 Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https://github.com/PauloGoncalvesBH/ServeRest/issues/new?assignees=&labels=enhancement%2C+new+issue&template=solicita--o-de-feature.md&title=) informando o nome dela.
+
+## Apoie o ServeRest
+
+### Utilizando badge
+
+Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
+
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+
+```markdown
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+```
+
+### Fazendo doação
+
+Faça doação única ou mensal a partir de 1 dólar.
+
+[![Doação - Open Collective](https://opencollective.com/serverest/tiers/doacao-recorrente.svg)](https://opencollective.com/serverest)
 
 ## Contributors ✨
 
