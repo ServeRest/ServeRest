@@ -15,17 +15,15 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js Setup
-      uses: actions/setup-node@v2.1.1
-    - name: Installation of Node.js dependencies
-      run: npm ci --production
-    - name: Conf SSH
-      uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.SSH_KEY }}
-        name: id_rsa
-        known_hosts: geonosis.deploy.umbler.com
+        fetch-depth: 2
+    - name: Conf SSH
+      uses: shimataro/ssh-key-action@v1.5.0
+      with:
+        private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
+        known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
     - name: Release on api.serverest.dev
       run: |
         git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-serverest-dev.git
-        git push umbler master --force --no-verify
+        git push umbler api-online:master --force --no-verify
