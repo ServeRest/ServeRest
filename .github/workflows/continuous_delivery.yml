@@ -78,18 +78,11 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
-
-  release-on-api-serverest-dev:
-    needs: [release]
-
-    runs-on: ubuntu-18.04
-
-    steps:
     - name: Project checkout
       uses: actions/checkout@v2
       with:
         fetch-depth: 2
-    - name: Conf SSH
+    - name: Setup SSH to use on 'git push umbler'
       uses: shimataro/ssh-key-action@v1.5.0
       with:
         private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -98,4 +91,4 @@ jobs:
     - name: Release on api.serverest.dev
       run: |
         git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-serverest-dev.git
-        git push umbler trunk --no-verify
+        git push umbler trunk:trunk --no-verify
