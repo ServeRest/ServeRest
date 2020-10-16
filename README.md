@@ -12,17 +12,10 @@
 
 <p align="center">
  <b>
-   <a href="https://serverest.dev">Documentação das rotas</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a>
  </b>
-</p>
-
-<b><i><h3 align="center">Acessse <https://api.serverest.dev> para ter acesso às rotas disponibilizadas pelo ServeRest</h3></i></b>
-
-<p align="center">
-  <img alt="Lista de rotas disponibilizdas pelo ServeRest" src="https://user-images.githubusercontent.com/29241659/96181525-89bebb00-0f0a-11eb-9425-0a65cf0205a2.png">
 </p>
 
 _ServeRest_ permite o estudo de:
@@ -33,7 +26,9 @@ _ServeRest_ permite o estudo de:
 - Contrato
 - Requisições aninhadas
 
-## Documentação
+<b><i><h3 align="center">Acessse <https://api.serverest.dev> para ter acesso às rotas disponibilizadas pelo ServeRest</h3></i></b>
+
+## Documentação das rotas
 
 Acesse **<https://serverest.dev>** para visualizar a documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
