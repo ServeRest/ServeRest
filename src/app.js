@@ -38,7 +38,7 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
-app.get('/favicon.ico', (req, res) => { res.sendStatus(200) })
+app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
 
 monitor(app)
 
