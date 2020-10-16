@@ -71,10 +71,24 @@ jobs:
         node-version: 12
     - name: Installation of Node.js dependencies
       run: npm ci
-    - name: Release
+    - name: Release on NPM and Docker
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
+    - name: Project checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Setup SSH to use on 'git push umbler'
+      uses: shimataro/ssh-key-action@v1.5.0
+      with:
+        private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
+        known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+    - name: Release on api.serverest.dev
+      run: |
+        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-serverest-dev.git
+        git push umbler trunk:trunk --no-verify

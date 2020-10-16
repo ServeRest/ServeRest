@@ -1,49 +1,22 @@
 
 <h1 align="center">ServeRest</h1>
 
-<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h5></i>
+<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h4></i>
 
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
   <a href="https://hub.docker.com/r/paulogoncalvesbh/serverest"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/paulogoncalvesbh/serverest?style=for-the-badge"></a>
-  <a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
-  <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?style=for-the-badge"></a>
+  <a href="https://opencollective.com/serverest"><img alt="Quantidade de doadores" src="https://img.shields.io/opencollective/all/serverest?color=orange&label=Doadores%20%24&style=for-the-badge"></a>
+  <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?color=blue&style=for-the-badge"></a>
 </p>
 
 <p align="center">
  <b>
-   <a href="https://serverest.dev">Documentação das rotas</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a>
  </b>
 </p>
-
-<p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/95020650-bb01d600-0642-11eb-80dc-21bd69d80a15.png" height="200">
-</p>
-
-## Inicializar o ServeRest
-
-### Com Node
-
-Para iniciar o _ServeRest_ execute o seguinte comando no terminal:
-
-```sh
-npx serverest@latest
-```
-
-Não é preciso fazer instalação com `npm install` antes da execução.
-
-### Com Docker
-
-Você também pode executar o _ServeRest_ com o docker, utilizando o seguinte comando no terminal:
-
-```sh
-docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
-```
-
----
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE*
@@ -53,9 +26,11 @@ _ServeRest_ permite o estudo de:
 - Contrato
 - Requisições aninhadas
 
-## Documentação
+<b><i><h3 align="center">Acessse <https://api.serverest.dev> para ter acesso às rotas disponibilizadas pelo ServeRest</h3></i></b>
 
-Acesse **[serverest.dev](https://serverest.dev)** para ter acesso a documentação de todas as rotas, verbos, contratos e respostas possíveis.
+## Documentação das rotas
+
+Acesse **<https://serverest.dev>** para visualizar a documentação de todas as rotas, verbos, contratos e respostas possíveis.
 
 <details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
 
@@ -65,7 +40,25 @@ Acesse **[serverest.dev](https://serverest.dev)** para ter acesso a documentaç�
 
 </details>
 
-A documentação é aberta automaticamente ao iniciar o _ServeRest_. Para evitar o início automático envie o comando `npx serverest --nodoc`.
+## Executar o ServeRest localmente
+
+É possível utilizar de forma local em _localhost:3000_, o que pode ser útil caso precise que os dados não sejam alterados por outros usuários.
+
+<p align="center">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/96160448-5bca7e00-0eec-11eb-94d7-8222311e34c4.png" height="190">
+</p>
+
+### Utilizando NPM
+
+Execute o seguinte comando no terminal:
+
+```sh
+npx serverest@latest
+```
+
+> Não é preciso fazer instalação com `npm install` antes da execução.
+
+<details><summary><i>Abra para ver detalhes de configuração do ServeRest com NPM</i></summary>
 
 ## Configuração
 
@@ -96,6 +89,24 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 > Para saber mais leia o [checklist de segurança de API](https://github.com/shieldfy/API-Security-Checklist#api-security-checklist)
 
+---
+
+</details>
+
+### Utilizando Docker
+
+Execute o seguinte comando no terminal:
+
+```sh
+docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
+```
+
+### Executando versão específica
+
+Em ambos os comandos você sempre utilizará a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
+
+Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
+
 ## Exemplo de automação
 
 Os repositórios abaixo são bons exemplos de automação com boas práticas, com CI configurada e que consome o ServeRest.
@@ -117,6 +128,8 @@ Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https
 
 ## Apoie o ServeRest
 
+### Dando star no repositório ⭐
+
 ### Utilizando badge
 
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
@@ -129,14 +142,14 @@ Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu a
 
 ### Fazendo doação
 
-Faça doação única ou mensal a partir de 1 dólar.
+Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio e a hospedagem de <https://serverest.dev>.
 
 [![Doação - Open Collective](https://opencollective.com/serverest/tiers/doacao-recorrente.svg)](https://opencollective.com/serverest)
 
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=for-the-badge)
+![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?color=blue&style=for-the-badge)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Obrigado a essas pessoas incríveis ([emoji key](https://allcontributors.org/docs/en/emoji-key)):

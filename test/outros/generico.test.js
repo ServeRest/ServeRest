@@ -25,7 +25,7 @@ describe('GENERICO', () => {
   it('/favicon.ico', async () => {
     const { body } = await request
       .get('/favicon.ico')
-      .expect(200)
+      .expect(204)
 
     chai.assert.deepEqual(body, {})
   })
