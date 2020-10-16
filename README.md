@@ -133,6 +133,8 @@ Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https
 
 ## Apoie o ServeRest
 
+### Dando star no repositório ⭐
+
 ### Utilizando badge
 
 Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
