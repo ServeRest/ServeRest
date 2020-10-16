@@ -78,6 +78,13 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
+
+  release-on-api-serverest-dev:
+    needs: [release]
+
+    runs-on: ubuntu-18.04
+
+    steps:
     - name: Project checkout
       uses: actions/checkout@v2
       with:
