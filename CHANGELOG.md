@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.16.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.15.0...v2.16.0) (2020-10-16)
+
+
+### Chores
+
+* monitorar acessos em serverest.dev ([#163](https://github.com/PauloGoncalvesBH/ServeRest/issues/163)) ([f0e98d6](https://github.com/PauloGoncalvesBH/ServeRest/commit/f0e98d63d56275378e02206ac5e5042ad87e28d5))
+
+
+### Features
+
+* **lgpd:** identificação do usuário por tipo de execução do serverest ([84a3622](https://github.com/PauloGoncalvesBH/ServeRest/commit/84a3622849baebae9733aba4535f884a3c21348e)), closes [#159](https://github.com/PauloGoncalvesBH/ServeRest/issues/159)
+
 # [2.15.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.14.0...v2.15.0) (2020-10-16)
 
 
