@@ -14,9 +14,21 @@ const { version: serverestVersion } = require('../package.json')
 
 const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
+
+const nomeDoUsuario = os.userInfo().username
+let nomeNoMonitoramento
+
+if (nomeDoUsuario === 'root') {
+  nomeNoMonitoramento = 'docker'
+} else if (nomeDoUsuario === 'ssh-user') {
+  nomeNoMonitoramento = 'api.serverest.dev'
+} else {
+  nomeNoMonitoramento = 'npm'
+}
+
 const moesifMiddleware = moesif({
   applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
-  identifyUser: (req, res) => { return os.userInfo().username },
+  identifyUser: (req, res) => { return nomeNoMonitoramento },
   identifyCompany: (req, res) => { return serverestVersion }
 })
 
