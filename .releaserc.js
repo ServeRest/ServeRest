@@ -80,8 +80,8 @@ module.exports = {
   plugins: [
     ['@semantic-release/commit-analyzer', {
       releaseRules: [
-        { type: 'docs', scope: 'readme', release: 'patch' },
-        { scope: 'no-release', release: false }
+        { scope: 'no-release', release: false },
+        { type: 'docs', scope: 'readme', release: 'patch' }
       ]
     }],
     ['@semantic-release/release-notes-generator', {
