@@ -5,31 +5,21 @@ const constant = require('../utils/constants')
 const usuariosService = require('../services/usuarios-service')
 
 exports.checkAdm = async (req, res, next) => {
-  try {
-    if (!await tokenValido(req.headers)) {
-      return res.status(401).send({ message: constant.TOKEN_INVALID })
-    }
-    const tokenDecodificado = authService.verifyToken(req.headers.authorization)
-    if (!await usuariosService.usuarioEhAdministrador(tokenDecodificado)) {
-      return res.status(403).send({ message: constant.NECESSARIO_ADM })
-    }
-    next()
-  } catch (error) {
-    /* istanbul ignore next */
-    res.status(500).send({ message: constant.INTERNAL_ERROR, error })
+  if (!await tokenValido(req.headers)) {
+    return res.status(401).send({ message: constant.TOKEN_INVALID })
   }
+  const tokenDecodificado = authService.verifyToken(req.headers.authorization)
+  if (!await usuariosService.usuarioEhAdministrador(tokenDecodificado)) {
+    return res.status(403).send({ message: constant.NECESSARIO_ADM })
+  }
+  next()
 }
 
 exports.checkToken = async (req, res, next) => {
-  try {
-    if (!await tokenValido(req.headers)) {
-      return res.status(401).send({ message: constant.TOKEN_INVALID })
-    }
-    next()
-  } catch (error) {
-    /* istanbul ignore next */
-    res.status(500).send({ message: constant.INTERNAL_ERROR, error })
+  if (!await tokenValido(req.headers)) {
+    return res.status(401).send({ message: constant.TOKEN_INVALID })
   }
+  next()
 }
 
 async function tokenValido ({ authorization }) {
