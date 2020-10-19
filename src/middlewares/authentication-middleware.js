@@ -33,7 +33,7 @@ async function tokenValido ({ authorization }) {
   }
 
   const tokenDecodificado = authService.verifyToken(authorization)
-  if (tokenDecodificado.email === undefined || tokenDecodificado.password === undefined) {
+  if (tokenDecodificado.email === undefined) {
     return false
   }
 
