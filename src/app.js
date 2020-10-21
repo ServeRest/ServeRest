@@ -24,6 +24,8 @@ app.use(queryParser())
 app.use(timeout())
 app.use(cors())
 
+app.disable('etag')
+
 /* istanbul ignore else */
 if (!conf.semHeaderDeSeguranca) {
   app.disable('x-powered-by')
