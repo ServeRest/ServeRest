@@ -85,6 +85,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+    - name: Sleep for 1 minute
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '1m'
     - name: Project checkout
       uses: actions/checkout@v2
       with:

@@ -1,6 +1,7 @@
 const chai = require('chai')
 const joi = require('@hapi/joi')
-const Joi = require('@hapi/joi')
+
+const { version } = require('../../package.json')
 
 describe('GENERICO', () => {
   it('Mensagem de rota inexistente', async () => {
@@ -47,7 +48,7 @@ describe('GENERICO', () => {
     })
 
     joi.assert(headers, joi.object().keys({
-      'access-control-allow-origin': Joi.any(),
+      'access-control-allow-origin': joi.any(),
       'x-dns-prefetch-control': joi.any(),
       'x-frame-options': joi.any(),
       'strict-transport-security': joi.any(),
@@ -60,5 +61,13 @@ describe('GENERICO', () => {
       date: joi.any(),
       connection: joi.any()
     }).required())
+  })
+
+  it('/version', async () => {
+    const { body } = await request
+      .get('/version')
+      .expect(200)
+
+    chai.assert.deepEqual(body, { version })
   })
 })

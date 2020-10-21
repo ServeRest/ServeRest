@@ -12,6 +12,7 @@ const { conf } = require('./utils/conf')
 const { DOC_URL } = require('./utils/constants')
 const errorHandler = require('./middlewares/error-handler')
 const monitor = require('./monitor')
+const { version } = require('../package.json')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
@@ -41,6 +42,7 @@ if (!conf.semHeaderDeSeguranca) {
 }
 
 app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
+app.get('/version', (req, res) => { res.status(200).send({ version }) })
 
 monitor(app)
 
