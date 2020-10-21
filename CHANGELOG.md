@@ -1,5 +1,28 @@
 # Changelog
 
+# [2.17.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.16.0...v2.17.0) (2020-10-21)
+
+
+### Code Refactoring
+
+* **authentication-middleware:** remover condicional sem uso ([576f84b](https://github.com/PauloGoncalvesBH/ServeRest/commit/576f84b0de5659075f55f702f4c731613e34a224))
+* remover try/catch suprimido pelo error handler ([c7e70ab](https://github.com/PauloGoncalvesBH/ServeRest/commit/c7e70ab75187be1036998d38eb36db85fabe7bf6))
+
+
+### Continuous Integration
+
+* **continuous_delivery:** garantir push da última versão gerada pela release ([0857a48](https://github.com/PauloGoncalvesBH/ServeRest/commit/0857a48f079c11aef464b759d72b6b58b34eee94))
+
+
+### Documentation
+
+* **no-release:** valorizar as pessoas que colaboram ante empresas ([31d99b8](https://github.com/PauloGoncalvesBH/ServeRest/commit/31d99b8415864da82a948c1eb159040c4f3a1605))
+
+
+### Features
+
+* **app:** suprimir status code 304 em GET ([2295993](https://github.com/PauloGoncalvesBH/ServeRest/commit/22959935260ef919830175f6ebf2ef2b896cae59))
+
 # [2.16.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.15.0...v2.16.0) (2020-10-16)
 
 
