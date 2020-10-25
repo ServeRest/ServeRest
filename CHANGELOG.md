@@ -1,5 +1,18 @@
 # Changelog
 
+# [2.18.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.17.0...v2.18.0) (2020-10-25)
+
+
+### Continuous Integration
+
+* **continuous_delivery:** forçar histórico do repositório atual em api.serverest.dev ([3afcdd1](https://github.com/PauloGoncalvesBH/ServeRest/commit/3afcdd19b6a3127f9e21e82b0cae99829216dbea))
+
+
+### Features
+
+* mover ambiente de api.serverest.dev para serverest.dev e atualizar documentação ([0fac870](https://github.com/PauloGoncalvesBH/ServeRest/commit/0fac870d36c4ae751ade8be0d8a5c1aa545d7748))
+* **no-release:** implementar rota /version ([3ecdb7d](https://github.com/PauloGoncalvesBH/ServeRest/commit/3ecdb7d31a7e11e7e13d603579e5361539a59b0a))
+
 # [2.17.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.16.0...v2.17.0) (2020-10-21)
 
 
