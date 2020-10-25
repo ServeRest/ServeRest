@@ -79,7 +79,7 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
 
-  release-on-api-serverest-dev:
+  release-on-serverest-dev:
     needs: [release]
 
     runs-on: ubuntu-18.04
