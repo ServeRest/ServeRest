@@ -7,9 +7,10 @@ const express = require('express')
 const logger = require('morgan')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
+const { join } = require('path')
 
+const { urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
-const { DOC_URL } = require('./utils/constants')
 const errorHandler = require('./middlewares/error-handler')
 const monitor = require('./monitor')
 const { version } = require('../package.json')
@@ -41,6 +42,12 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
+/* istanbul ignore next */
+app.get('/', async (req, res) => {
+  const url = await urlDocumentacao()
+  const pathDocumentacao = (url === 'https://serverest.dev') ? '../docs/serverest.dev.html' : '../docs/localhost.html'
+  res.sendFile(join(__dirname, pathDocumentacao))
+})
 app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 
@@ -57,9 +64,9 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
-app.use((req, res) => {
+app.use(async (req, res) => {
   res.status(405).send({
-    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${DOC_URL} para ver as rotas disponíveis e como utilizá-las.`
+    message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${await urlDocumentacao()} para ver as rotas disponíveis e como utilizá-las.`
   })
 })
 

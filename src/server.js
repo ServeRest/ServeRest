@@ -7,9 +7,10 @@ const debug = require('debug')('nodestr:server')
 const http = require('http')
 const open = require('open')
 
+const { version } = require('../package.json')
+const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const DEFAULT_PORT = 3000
-const { DOC_URL } = require('./utils/constants')
 
 const argv = require('yargs')
   .default({
@@ -55,18 +56,21 @@ app.set('port', port)
 
 const server = http.createServer(app)
 
-server.listen(port, () => {
-  console.log(colors.green.bold(`\nServeRest está em execução em http://localhost:${port}\n`))
-  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold('https://serverest.dev'))
-  console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
-  console.log(colors.white.bold('Outras dúvidas? Acesse'), colors.yellow.bold('https://github.com/PauloGoncalvesBH/ServeRest'))
+server.listen(port, async () => {
+  console.log(colors.green.bold(`\nServeRest v${version} está em execução`))
+  console.log(colors.white.bold('Teste o funcionamento acessando'), colors.yellow.bold(`http://localhost:${port}/usuarios`), colors.white.bold('no navegador\n'))
+  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold(`http://localhost:${port}`))
+  if (await formaDeExecucao() !== 'docker') {
+    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
+  }
+  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('https://github.com/PauloGoncalvesBH/ServeRest'))
   console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 })
 server.on('error', onError)
 server.on('listening', onListening)
 
 if (!argv.nodoc) {
-  open(DOC_URL)
+  urlDocumentacao().then(url => open(url))
 }
 
 function normalizePort (val) {

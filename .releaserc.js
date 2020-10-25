@@ -81,7 +81,9 @@ module.exports = {
     ['@semantic-release/commit-analyzer', {
       releaseRules: [
         { scope: 'no-release', release: false },
-        { type: 'docs', scope: 'readme', release: 'patch' }
+        { scope: 'patch', release: 'patch' },
+        { type: 'docs', scope: 'readme', release: 'patch' },
+        { type: 'docs', scope: 'serverest', release: 'patch' }
       ]
     }],
     ['@semantic-release/release-notes-generator', {

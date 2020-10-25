@@ -1,7 +1,7 @@
 
 <h1 align="center">ServeRest</h1>
 
-<i><h4 align="center">Servidor REST local de forma rápida e simples para estudo de testes de API</h4></i>
+<i><h4 align="center">Servidor REST para estudo de testes de API</h4></i>
 
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
@@ -19,44 +19,48 @@
 </p>
 
 _ServeRest_ permite o estudo de:
-- Verbos *GET, POST, PUT* e *DELETE*
+- Verbos *GET, POST, PUT* e *DELETE* com persistência de dados
 - Autenticação no header
-- Boas práticas de segurança
 - Query string
-- Contrato
-- Requisições aninhadas
+- Teste de schema json
 
-<b><i><h3 align="center">Acessse <https://api.serverest.dev> para ter acesso às rotas disponibilizadas pelo ServeRest</h3></i></b>
+<b><h2 align="center">Ambientes disponíveis</h2></b>
 
-## Documentação das rotas
-
-Acesse **<https://serverest.dev>** para visualizar a documentação de todas as rotas, verbos, contratos e respostas possíveis.
-
-<details><summary><i>Abra para ver imagem resumida das rotas disponíveis</i></summary>
-
-<img alt="Lista de rotas disponibilizdas pelo ServeRest" src="https://user-images.githubusercontent.com/29241659/83936398-ba8f2680-a799-11ea-8689-dea126b74874.png" height="700">
-
----
-
-</details>
-
-## Executar o ServeRest localmente
-
-É possível utilizar de forma local em _localhost:3000_, o que pode ser útil caso precise que os dados não sejam alterados por outros usuários.
+<table align="center">
+  <tr>
+    <td align="center">Online em serverest.dev<br/><a href="#online"><img alt="Texto serverest.dev" src="https://user-images.githubusercontent.com/29241659/97096352-49b1b380-1641-11eb-9b0a-5bb72e1b3882.png" height="80"></a></td>
+    <td align="center">Local com NPM<br/><br/><a href="#localmente-com-npm"><img alt="Logo do NPM" src="https://user-images.githubusercontent.com/29241659/97096283-4bc74280-1640-11eb-920a-1c145b0c39d4.png" height="60"></a></td>
+    <td align="center">Local com docker<br/><a href="#localmente-com-docker"><img alt="Logo do Docker" src="https://user-images.githubusercontent.com/29241659/97096274-1cb0d100-1640-11eb-9e5e-3f2d57376e63.png" height="100"></a></td>
+  </tr>
+</table>
 
 <p align="center">
- <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/96160448-5bca7e00-0eec-11eb-94d7-8222311e34c4.png" height="190">
+ <img alt="Print do ServeRest iniciado no terminal" src="https://user-images.githubusercontent.com/29241659/97097145-fa24b500-164b-11eb-9a1f-f9cae275ec98.png" height="124">
 </p>
 
-### Utilizando NPM
+## Consumindo o ServeRest
+
+O ServeRest está disponível de forma [online](https://serverest.dev), no [npm](https://www.npmjs.com/package/serverest) e no [docker](https://hub.docker.com/r/paulogoncalvesbh/serverest/).
+
+Todas essas opções possuem as mesmas rotas, regras, dados pré-cadastrados e documentação. Escolha a melhor opção para você.
+
+No ambiente online os dados cadastrados são removidos diariamente, enquanto que no local basta reiniciar o ServeRest.
+
+Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
+
+### Online
+
+Acesse <https://serverest.dev> para visualizar a documentação e as rotas disponíveis.
+
+> Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
+
+### Localmente com NPM
 
 Execute o seguinte comando no terminal:
 
 ```sh
 npx serverest@latest
 ```
-
-> Não é preciso fazer instalação com `npm install` antes da execução.
 
 <details><summary><i>Abra para ver detalhes de configuração do ServeRest com NPM</i></summary>
 
@@ -93,7 +97,7 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 </details>
 
-### Utilizando Docker
+### Localmente com docker
 
 Execute o seguinte comando no terminal:
 
@@ -103,11 +107,11 @@ docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 
 ### Executando versão específica
 
-Em ambos os comandos você sempre utilizará a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
+Em ambos os comandos de subida de ambiente local será utilizado a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
 
 Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
 
-## Exemplo de automação
+## Exemplos de automação
 
 Os repositórios abaixo são bons exemplos de automação com boas práticas, com CI configurada e que consome o ServeRest.
 
