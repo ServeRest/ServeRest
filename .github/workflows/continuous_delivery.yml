@@ -101,5 +101,5 @@ jobs:
         known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
     - name: Release on api.serverest.dev
       run: |
-        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-serverest-dev.git
+        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
         git push umbler trunk:trunk --no-verify --force

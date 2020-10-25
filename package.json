@@ -5,7 +5,9 @@
   "author": "Paulo Gonçalves <paulorochag@hotmail.com> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "GPL-3.0",
   "main": "./src/server.js",
-  "bin": "./src/server.js",
+  "bin": {
+    "serverest": "src/server.js"
+  },
   "files": [
     "src/"
   ],
@@ -55,6 +57,7 @@
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^7.0.3",
+    "username": "^5.1.0",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
