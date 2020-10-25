@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.18.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.0...v2.18.1) (2020-10-25)
+
+
+### Bug Fixes
+
+* **ambiente:** username da máquina de hospedagem estava incorreto ([9a73ca2](https://github.com/PauloGoncalvesBH/ServeRest/commit/9a73ca2b93eedc6377e838b16142622f3ea5f6e1))
+* **npm:** diretorio /docs precisa fazer parte do pacote npm ([774939f](https://github.com/PauloGoncalvesBH/ServeRest/commit/774939f9dc200ae35681a1cb7c62bf37775a0a82))
+
+
+### Continuous Integration
+
+* **continuous_delivery:** corrigir nome do job ([5363749](https://github.com/PauloGoncalvesBH/ServeRest/commit/53637497f071b81ad93955ae3f47e2743a6eb788))
+
 # [2.18.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.17.0...v2.18.0) (2020-10-25)
 
 
