@@ -5,7 +5,7 @@ async function formaDeExecucao () {
   switch (nomeDoUsuario) {
     case 'root':
       return 'docker'
-    case 'd2c2517805206e46be176699782a8820':
+    case 'no-username-3798':
       return 'serverest.dev'
     default:
       return 'npm'

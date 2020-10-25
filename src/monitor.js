@@ -15,15 +15,15 @@ const { formaDeExecucao } = require('./utils/ambiente')
 const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
-const moesifMiddleware = moesif({
-  applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
-  identifyUser: (req, res) => { return formaDeExecucao() },
-  identifyCompany: (req, res) => { return version }
-})
-
-module.exports = app => {
+module.exports = async app => {
   if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes) {
     return
   }
+  const user = await formaDeExecucao()
+  const moesifMiddleware = moesif({
+    applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
+    identifyUser: (req, res) => { return user },
+    identifyCompany: (req, res) => { return version }
+  })
   app.use(moesifMiddleware)
 }
