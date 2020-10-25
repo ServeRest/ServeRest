@@ -9,6 +9,7 @@
     "serverest": "src/server.js"
   },
   "files": [
+    "docs/",
     "src/"
   ],
   "repository": {
