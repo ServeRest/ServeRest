@@ -2,7 +2,7 @@
 
 function formaDeExecucao () {
   switch (process.env.USERNAME) {
-    case 'root':
+    case 'docker':
       return 'docker'
     case 'online':
       return 'serverest.dev'
