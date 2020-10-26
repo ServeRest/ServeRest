@@ -58,7 +58,6 @@
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^7.0.3",
-    "username": "^5.1.0",
     "yargs": "^15.3.1"
   },
   "devDependencies": {

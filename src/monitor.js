@@ -19,10 +19,9 @@ module.exports = async app => {
   if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes) {
     return
   }
-  const user = await formaDeExecucao()
   const moesifMiddleware = moesif({
     applicationId: 'eyJhcHAiOiIxNTA6MTU1MCIsInZlciI6IjIuMCIsIm9yZyI6IjQ5MToxMTIxIiwiaWF0IjoxNTk4OTE4NDAwfQ.e0E6Qhz1o1Jjs5prulHDYEBlv0juruWs_btjq2mong8',
-    identifyUser: (req, res) => { return user },
+    identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version }
   })
   app.use(moesifMiddleware)

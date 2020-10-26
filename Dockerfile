@@ -8,6 +8,8 @@ RUN npm install --production
 
 COPY . .
 
+ENV USERNAME='docker'
+
 EXPOSE 3000
 
 CMD [ "npm", "start" ]

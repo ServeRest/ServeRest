@@ -1,19 +1,18 @@
 /* istanbul ignore file */
 
-async function formaDeExecucao () {
-  const nomeDoUsuario = await require('username')()
-  switch (nomeDoUsuario) {
+function formaDeExecucao () {
+  switch (process.env.USERNAME) {
     case 'root':
       return 'docker'
-    case 'no-username-3798':
+    case 'online':
       return 'serverest.dev'
     default:
       return 'npm'
   }
 }
 
-async function urlDocumentacao () {
-  switch (await formaDeExecucao()) {
+function urlDocumentacao () {
+  switch (formaDeExecucao()) {
     case 'serverest.dev':
       return 'https://serverest.dev'
     default:
