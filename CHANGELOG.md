@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.18.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.1...v2.18.2) (2020-10-26)
+
+
+### Bug Fixes
+
+* **monitor:** monitoramento não estava enviando os dados devido a incompatibilidade com async/await ([5f6034d](https://github.com/PauloGoncalvesBH/ServeRest/commit/5f6034de18ecf6ec352902aa2d56b9109fd5f506))
+
+
+### Continuous Integration
+
+* **continuous_delivery:** corrigir branch origem e erro de 'shallow update' ([38c9bbf](https://github.com/PauloGoncalvesBH/ServeRest/commit/38c9bbf950f7a71803539ed05a1d02ecac4b7fcf))
+
 ## [2.18.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.0...v2.18.1) (2020-10-25)
 
 
