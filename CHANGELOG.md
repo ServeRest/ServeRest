@@ -66,7 +66,7 @@
 
 ### Features
 
-* disponibilizar o ServeRest em https://api.serverest.dev ([#162](https://github.com/PauloGoncalvesBH/ServeRest/issues/162)) ([3c2de9c](https://github.com/PauloGoncalvesBH/ServeRest/commit/3c2de9c5f874f439077436f4f684b82699c26585))
+* disponibilizar o ServeRest em api.serverest.dev ([#162](https://github.com/PauloGoncalvesBH/ServeRest/issues/162)) ([3c2de9c](https://github.com/PauloGoncalvesBH/ServeRest/commit/3c2de9c5f874f439077436f4f684b82699c26585))
 
 # [2.14.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.13.3...v2.14.0) (2020-10-15)
 

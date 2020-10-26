@@ -99,7 +99,8 @@ jobs:
         private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
         known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-    - name: Release on api.serverest.dev
+    - name: Release branch ${GITHUB_REF##*/} on serverest.dev
       run: |
         git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
-        git push umbler trunk:trunk --no-verify --force
+        git fetch --unshallow origin
+        git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
