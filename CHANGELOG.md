@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.2...v2.18.3) (2020-10-26)
+
+
+### Bug Fixes
+
+* **monitor:** execução do ServeRest em 'docker' estava sendo mapeado como 'npm' no monitoramento ([030272a](https://github.com/PauloGoncalvesBH/ServeRest/commit/030272adab16e9a00d83fc598bf02d7a55f20b94))
+
 ## [2.18.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.1...v2.18.2) (2020-10-26)
 
 
