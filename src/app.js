@@ -42,15 +42,16 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
+app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
+app.get('/version', (req, res) => { res.status(200).send({ version }) })
+
+monitor(app)
+
 /* istanbul ignore next */
 app.get('/', async (req, res) => {
   const pathDocumentacao = (urlDocumentacao() === 'https://serverest.dev') ? '../docs/serverest.dev.html' : '../docs/localhost.html'
   res.sendFile(join(__dirname, pathDocumentacao))
 })
-app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
-app.get('/version', (req, res) => { res.status(200).send({ version }) })
-
-monitor(app)
 
 /* istanbul ignore if */
 if (!ehAmbienteDeTestes) {
