@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.3...v2.18.4) (2020-10-29)
+
+
+### Code Refactoring
+
+* **patch:** monitorar os acessos à documentação para ficar a par de possíveis erros ([a7af78d](https://github.com/PauloGoncalvesBH/ServeRest/commit/a7af78d35e07e639539ff2d16f834aa7c4be730a))
+
 ## [2.18.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.2...v2.18.3) (2020-10-26)
 
 
