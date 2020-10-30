@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.19.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.4...v2.19.0) (2020-10-30)
+
+
+### Documentation
+
+* **readme:** incluir nível de patrocínio empresarial com subdomínio e monitoramento como retorno ([6271da3](https://github.com/PauloGoncalvesBH/ServeRest/commit/6271da3ee808c9025506a9870adc7bb4ba3d42e0))
+
+
+### Features
+
+* monitorar consumo da máquina pelo ServeRest através da nova rota /status ([7b2f73a](https://github.com/PauloGoncalvesBH/ServeRest/commit/7b2f73a6225d77735d601482441b2c43a473cb1b))
+
 ## [2.18.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.3...v2.18.4) (2020-10-29)
 
 
