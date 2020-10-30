@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://npmjs.com/package/serverest"><img alt="serverest version" src="https://img.shields.io/npm/v/serverest?style=for-the-badge"></a>
   <a href="https://hub.docker.com/r/paulogoncalvesbh/serverest"><img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/paulogoncalvesbh/serverest?style=for-the-badge"></a>
-  <a href="https://opencollective.com/serverest"><img alt="Quantidade de doadores" src="https://img.shields.io/opencollective/all/serverest?color=orange&label=Doadores%20%24&style=for-the-badge"></a>
+  <a href="https://codecov.io/gh/PauloGoncalvesBH/ServeRest"><img alt="Codecov branch" src="https://img.shields.io/codecov/c/github/PauloGoncalvesBH/ServeRest/trunk?style=for-the-badge"></a>
   <a href="https://npm-stat.com/charts.html?package=serverest"><img alt="serverest total downloads" src="https://img.shields.io/npm/dt/serverest?color=blue&style=for-the-badge"></a>
 </p>
 
@@ -14,7 +14,8 @@
  <b>
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
    <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
-   <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a>
+   <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a> |
+   <a href="https://github.com/PauloGoncalvesBH/ServeRest#patrocinadores">Patrocinadores</a>
  </b>
 </p>
 
@@ -50,7 +51,7 @@ Prefira a opção de ambiente local caso precise que os dados não sejam alterad
 
 ### Online
 
-Acesse <https://serverest.dev> para visualizar a documentação e as rotas disponíveis.
+Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas disponíveis.
 
 > Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
 
@@ -118,37 +119,33 @@ Os repositórios abaixo são bons exemplos de automação com boas práticas, co
 - [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 
-## Apoie o ServeRest
-
-### Dando star no repositório ⭐
-
-### Utilizando badge
-
-Adicione ao README.md do seu repositório o badge do Serverest e demonstre seu apoio ao projeto.
-
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=flat-square)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
 ```markdown
 [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
 
-### Fazendo doação
+## Patrocinadores
 
-Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio e a hospedagem de <https://serverest.dev>.
+### Empresas ($15+/mês)
 
-**Muito obrigado a essas pessoas incríveis ❤️**
+Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se sua empresa estaria interessada em apoiar este projeto e ter os seguintes serviços:
+1. Subdomínio próprio (_nome-escolhido.serverest.dev_)
+1. Acesso a todas as requests e respostas feitas nos últimos 7 dias no subdomínio
 
-[![Doação - Open Collective](https://opencollective.com/serverest/tiers/doacao-recorrente.svg)](https://opencollective.com/serverest)
+[![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/patrocinador.svg)](https://opencollective.com/serverest)
 
-## Contributors ✨
+### Individuais
 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?color=blue&style=for-the-badge)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+Achou o projeto útil? Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio, a hospedagem e a manutenção de <https://serverest.dev>.
+
+[![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/apoiador.svg)](https://opencollective.com/serverest)
+
+Todos os patrocinadores anteriores e atuais podem ser vistos no [Open Collective do ServeRest](https://opencollective.com/serverest#section-contributors).
+
+## Contribuidores ✨
 
 Veja aqui [como você pode contribuir](https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md). Contribuições de qualquer tipo são bem-vindas!
-
-**Muito obrigado a essas pessoas incríveis ❤️**
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -172,15 +169,3 @@ Veja aqui [como você pode contribuir](https://github.com/PauloGoncalvesBH/Serve
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-## Empresas que utilizam o ServeRest
-
-<table>
-  <tr>
-    <td align="center"><a href="https://www.globo.com/"><img alt="Logo da empresa Globo.com" src="https://user-images.githubusercontent.com/29241659/93280011-0725cd00-f79f-11ea-8eab-b20be4430cc9.png" height="60"></a></td>
-    <td align="center"><a href="https://www.totvs.com/"><img alt="Logo da TOTVS" src="https://user-images.githubusercontent.com/29241659/93278632-9fba4e00-f79b-11ea-88a0-076745447848.png" height="100"></a></td>
-    <td align="center"><a href="https://www.noesis.pt/"><img alt="Logo da Noesis" src="https://user-images.githubusercontent.com/29241659/93278486-30dcf500-f79b-11ea-82da-16fb562df247.png" height="60"></a></td>
-  </tr>
-</table>
-
-Sua empresa (ou projeto) utiliza e quer constar na lista? [Abra uma issue](https://github.com/PauloGoncalvesBH/ServeRest/issues/new?assignees=&labels=enhancement%2C+new+issue&template=solicita--o-de-feature.md&title=) informando o nome dela.

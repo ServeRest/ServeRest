@@ -82,7 +82,6 @@ module.exports = {
       releaseRules: [
         { scope: 'no-release', release: false },
         { scope: 'patch', release: 'patch' },
-        { type: 'docs', scope: 'readme', release: 'patch' },
         { type: 'docs', scope: 'serverest', release: 'patch' }
       ]
     }],
