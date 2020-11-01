@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.19.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.19.0...v2.19.1) (2020-11-01)
+
+
+### Bug Fixes
+
+* disponiblizar a rota /status apenas para ambiente online, suprimindo erro de 'event-loop-stats' ([3d9907a](https://github.com/PauloGoncalvesBH/ServeRest/commit/3d9907a63da5f8a1beb9944bc33f87021f612e8b))
+
 # [2.19.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.18.4...v2.19.0) (2020-10-30)
 
 
