@@ -87,7 +87,7 @@
     "nodemon": "^2.0.3",
     "nyc": "^15.1.0",
     "semantic-release-docker": "^2.2.0",
-    "standard": "^14.3.3",
+    "standard": "^16.0.1",
     "supertest": "^5.0.0"
   },
   "engines": {
