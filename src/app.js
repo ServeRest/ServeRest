@@ -4,12 +4,12 @@ require('express-async-errors')
 
 const cors = require('cors')
 const express = require('express')
-const logger = require('morgan')
+const morgan = require('morgan')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { join } = require('path')
 
-const { urlDocumentacao } = require('./utils/ambiente')
+const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
 const monitor = require('./monitor')
@@ -42,8 +42,10 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
-/* istanbul ignore next */
-app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
+/* istanbul ignore if */
+if (formaDeExecucao() === 'serverest.dev') {
+  app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
+}
 
 /* istanbul ignore next */
 app.get('/', async (req, res) => {
@@ -57,7 +59,7 @@ monitor(app)
 
 /* istanbul ignore if */
 if (!ehAmbienteDeTestes) {
-  app.use(logger('dev'))
+  app.use(morgan('dev'))
 }
 
 app.use('/login', require('./routes/login-route'))
