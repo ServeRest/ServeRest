@@ -114,10 +114,11 @@ Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](h
 
 ## Exemplos de automação
 
-Os repositórios abaixo são bons exemplos de automação com boas práticas, com CI configurada e que consome o ServeRest.
+Os repositórios abaixo são exemplos de automação com boas práticas e que consome o ServeRest.
 
 - [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
+- [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 
 ## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=flat-square)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
