@@ -120,10 +120,10 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 - [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 
-## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=flat-square)](https://github.com/PauloGoncalvesBH/ServeRest/)
+## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/PauloGoncalvesBH/ServeRest/)
 
 ```markdown
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green?style=for-the-badge)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/PauloGoncalvesBH/ServeRest/)
 ```
 
 ## Patrocinadores
