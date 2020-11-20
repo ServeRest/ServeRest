@@ -31,7 +31,7 @@
     "prepare": "is-ci || husky install",
     "commit": "cz",
     "start": "node ./src/server.js",
-    "dev": "cross-env NODE_ENV=serverest-development nodemon ./src/server.js --nodoc",
+    "dev": "cross-env NODE_ENV=serverest-development nodemon -e json,js ./src/server.js --nodoc",
     "test:mutation": "cross-env NODE_ENV=serverest-test stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "cross-env NODE_ENV=serverest-test stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/integration/.mocharc.js",
@@ -39,10 +39,6 @@
     "lint": "standard",
     "lint:fix": "standard --fix",
     "lint:staged": "lint-staged",
-    "generate-doc": "aglio -i docs/serverest.apib --theme-variables flatly --theme-template triple",
-    "generate-doc:serverest": "npm run generate-doc -- -o docs/serverest.dev.html",
-    "generate-doc:local": "npm run generate-doc -- -o docs/localhost.html",
-    "generate-doc:agilizei": "npm run generate-doc -- -o docs/agilizei.html",
     "test:contract": "cross-env NODE_ENV=serverest-test mocha test/contract --timeout 60000"
   },
   "dependencies": {
@@ -59,6 +55,7 @@
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^8.0.6",
+    "swagger-ui-express": "^4.1.4",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
@@ -74,7 +71,6 @@
     "@semantic-release/npm": "^7.1.1",
     "@semantic-release/release-notes-generator": "^9.0.2",
     "@stryker-mutator/core": "^4.6.0",
-    "aglio": "^2.3.0",
     "chai": "^4.3.4",
     "commitizen": "^4.2.3",
     "cross-env": "^7.0.3",

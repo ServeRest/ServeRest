@@ -173,11 +173,11 @@ Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto 
 
 ## Documentação
 
-A documentação, disponibilizada nas URLs <https://serverest.dev> e <http://localhost:3000>, é editada no arquivo `serverest.apib` e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
+A documentação, disponibilizada nas URLs <https://serverest.dev> e <http://localhost:3000>, é editada no arquivo [swagger.json](../docs/swagger.json).
 
 Para atualizar:
-1. Acesse o arquivo `serverest.apib` que está dentro de _docs_ e o edite de acordo com sua necessidade.
-1. Execute o comando `npm run generate-doc:AMBIENTE` para gerar o HTML final.
+1. Acesse o arquivo [swagger.json](../docs/swagger.json) e o edite de acordo com sua necessidade.
+1. Execute o comando `npm run dev` para acompanhar o status da documentação alterada na URL <http://localhost:3000>.
 
 ## Reconhecimento de contribuição
 

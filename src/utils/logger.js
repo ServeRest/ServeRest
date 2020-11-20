@@ -29,6 +29,13 @@ module.exports = async app => {
           req.path === '/favicon.ico' ||
           req.path === '/socket.io' ||
           req.path === '/version' ||
+          req.path === '/swagger-ui.css' ||
+          req.path === '/swagger-ui.css.map' ||
+          req.path === '/swagger-ui-init.js' ||
+          req.path === '/swagger-ui-standalone-preset.js' ||
+          req.path === '/swagger-ui-standalone-preset.js.map' ||
+          req.path === '/swagger-ui-bundle.js' ||
+          req.path === '/swagger-ui-bundle.js.map' ||
           req.headers.monitor ||
           (formaDeExecucao() === 'serverest.dev' && req.path === '/') ||
           (formaDeExecucao() === 'agilizei' && req.path === '/')) {
