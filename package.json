@@ -31,7 +31,7 @@
     "prepare": "is-ci || husky install",
     "commit": "cz",
     "start": "node ./src/server.js",
-    "dev": "cross-env NODE_ENV=serverest-development nodemon ./src/server.js --nodoc",
+    "dev": "cross-env NODE_ENV=serverest-development nodemon -e json,js ./src/server.js --nodoc",
     "test:mutation": "cross-env NODE_ENV=serverest-test stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "cross-env NODE_ENV=serverest-test stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/integration/.mocharc.js",
@@ -59,6 +59,7 @@
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^8.0.6",
+    "swagger-ui-express": "^4.1.4",
     "yargs": "^16.2.0"
   },
   "devDependencies": {
