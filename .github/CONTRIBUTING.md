@@ -133,7 +133,7 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-A publicação de novas versões no [NPM](https://www.npmjs.com/package/serverest) e no [Docker](https://hub.docker.com/r/paulogoncalvesbh/serverest) é feita automaticamente após a execução com sucesso de todas as etapas da pipeline de [entrega contínua](./workflows/continuous_delivery.yml).
+A publicação de novas versões no [NPM](https://www.npmjs.com/package/serverest), no [Docker](https://hub.docker.com/r/paulogoncalvesbh/serverest) e no [serverest.dev](https://serverest.dev/) é feita automaticamente após a execução com sucesso de todas as etapas da pipeline de [entrega contínua](./workflows/continuous_delivery.yml).
 
 É utilizada a lib [Semantic-release](https://github.com/semantic-release/semantic-release) com personalizações no arquivo [.releaserc.js](../.releaserc.js).
 
