@@ -54,3 +54,21 @@ jobs:
       run: npm ci
     - name: API Test
       run: npm test
+
+  test-mutation-diff:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup
+      uses: actions/setup-node@v1
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Mutation Test - Changed files in the branch
+      run: |
+        git fetch origin trunk:refs/remotes/origin/trunk
+        npm run test:mutation:diff
+      env:
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
