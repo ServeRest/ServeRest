@@ -1,10 +1,13 @@
 const chai = require('chai')
 const faker = require('faker')
+const sandbox = require('sinon').createSandbox()
 
 const rotaUsuarios = '/usuarios'
-const utils = require('../utils')
+const carrinhosService = require('../../src/services/carrinhos-service.js')
 
 describe(rotaUsuarios + ' DELETE', () => {
+  afterEach(() => sandbox.restore())
+
   it('Registro excluído com sucesso', async () => {
     const { body } = await request.post(rotaUsuarios).send({
       nome: faker.name.firstName() + ' ' + faker.name.lastName(),
@@ -27,15 +30,24 @@ describe(rotaUsuarios + ' DELETE', () => {
   })
 
   it('Usuário com carrinho cadastrado', async () => {
-    const { email, password, _id: idUsuario } = await utils.cadastrarUsuario({ administrador: 'true' })
-    const { authorization } = await utils.login(email, password)
-    const { _id: idProduto } = await utils.cadastrarProduto({ authorization })
-    const { _id: idCarrinho } = await utils.cadastrarCarrinho({ idProduto, authorization })
+    const idUsuario = 'jSlx8zTdhRcoMS64'
+    const idCarrinho = 'IU1c72V7iMKAxqt9'
+
+    sandbox.stub(carrinhosService, 'getAll').returns([{
+      produtos: [{
+        idProduto: 'duYhYQtodnlMCAEr',
+        quantidade: 1,
+        precoUnitario: 17632
+      }],
+      precoTotal: 17632,
+      quantidadeTotal: 1,
+      idUsuario,
+      _id: idCarrinho
+    }])
 
     const { body } = await request.del(`${rotaUsuarios}/${idUsuario}`).expect(400)
-    const { body: bodyGet } = await request.get(rotaUsuarios).query({ _id: idUsuario })
 
+    sandbox.assert.calledOnce(carrinhosService.getAll)
     chai.assert.deepEqual(body, { message: 'Não é permitido excluir usuário com carrinho cadastrado', idCarrinho })
-    chai.assert.equal(bodyGet.quantidade, 1)
   })
 })
