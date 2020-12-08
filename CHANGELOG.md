@@ -1,5 +1,53 @@
 # Changelog
 
+# [2.20.0-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.19.1...v2.20.0-beta.1) (2020-12-08)
+
+
+### Chores
+
+* **deps:** atualizar @semantic-release/github de v7.0.7 para v7.2.0 ([dc3b854](https://github.com/PauloGoncalvesBH/ServeRest/commit/dc3b854419b4ebc694580865a93c311500914868))
+* **deps:** atualizar @semantic-release/npm de v7.0.5 para v7.0.9 ([912c7e0](https://github.com/PauloGoncalvesBH/ServeRest/commit/912c7e0349aaa63ddc915aa3db8d0e8074b6d6e7))
+* **deps:** atualizar commitizen de v4.2.1 para v4.2.2 ([763df54](https://github.com/PauloGoncalvesBH/ServeRest/commit/763df54e1d0344735d34ce78db4ee3643b71cf1e))
+* **deps:** atualizar cross-env de v7.0.2 para v7.0.3 ([cb7ce06](https://github.com/PauloGoncalvesBH/ServeRest/commit/cb7ce06da0e3989b2096afdb9ebc4fe77a9b0f1f))
+* **deps:** atualizar cz-conventional-changelog de v3.1.0 para v3.3.0 ([01680f2](https://github.com/PauloGoncalvesBH/ServeRest/commit/01680f2f81da69049c6ea5d8823cffe753d48c37))
+* **deps:** atualizar express-validation de v3.0.2 para v3.0.6 ([dc4556f](https://github.com/PauloGoncalvesBH/ServeRest/commit/dc4556f1445750088f174f0a91b4018474201f5a))
+* **deps:** atualizar husky de v4.2.5 para v4.3.5 ([45a671e](https://github.com/PauloGoncalvesBH/ServeRest/commit/45a671e4aacfa63016e1d84f63c24eb5d2a5c0ed))
+* **deps:** atualizar lint-staged de v10.2.11 para v10.5.3 ([03c5591](https://github.com/PauloGoncalvesBH/ServeRest/commit/03c5591ed37e70e59c90edcc39cc84c3d7d57966))
+* **deps:** atualizar mocha de v8.1.3 para v8.2.1 ([057d0d8](https://github.com/PauloGoncalvesBH/ServeRest/commit/057d0d8a4fd3ab8cf1d9c5dd1843e7489ff9b7bc))
+* **deps:** atualizar moesif-nodejs de v3.0.0 para v3.1.5 ([895f315](https://github.com/PauloGoncalvesBH/ServeRest/commit/895f315b080d448e7e04e5655c447fe2b7227460))
+* **deps:** atualizar nodemon de v2.0.3 para v2.0.6 ([7a546ee](https://github.com/PauloGoncalvesBH/ServeRest/commit/7a546eec6bd4023ed5120f0e9a6f355329b933af))
+* **deps:** atualizar open de v7.0.3 para v7.3.0 ([ccd4818](https://github.com/PauloGoncalvesBH/ServeRest/commit/ccd481898e53f85cd845f4e854c9c9ccc3fe48fb))
+* **deps:** atualizar standard de v14.3.3 para v16.0.3 ([a39f146](https://github.com/PauloGoncalvesBH/ServeRest/commit/a39f14606d0839ade70f0971243dae222a825e51))
+* **deps:** atualizar supertest de v5.0.0 para v6.0.1 ([52b175c](https://github.com/PauloGoncalvesBH/ServeRest/commit/52b175c6e07aa3ab5fdf94f567335283ae785664))
+* **deps:** atualizar wagoid/commitlint-github-action de v2.0.2 para v2.1.3 ([2d40acb](https://github.com/PauloGoncalvesBH/ServeRest/commit/2d40acb74da4acb5573c68be5578cf641163109b))
+* **deps:** atualizar yargs de v15.3.1 para v16.2.0 ([11f83e2](https://github.com/PauloGoncalvesBH/ServeRest/commit/11f83e2a08ed3d4278257ca7bc3fc867d3feeada))
+* remover o uso de codecov.io por ser spam nos PRs ([fd3f2aa](https://github.com/PauloGoncalvesBH/ServeRest/commit/fd3f2aa7721684952c30d984bd3315a58c3481b7))
+
+
+### Continuous Integration
+
+* **action-node:** versão 2.1.1 da action setup-node está com erro de execução na pipeline ([614eca2](https://github.com/PauloGoncalvesBH/ServeRest/commit/614eca2747f75709e23013cdb0f54257f45d7886))
+
+
+### Documentation
+
+* incluir seção de empresas que utilizam o projeto ([934f1a1](https://github.com/PauloGoncalvesBH/ServeRest/commit/934f1a1dea414c1c5c8d3a89d74af0d604506e15))
+* **contributing:** informar que a entrega contínua também afeta o ambiente serverest.dev ([e95668d](https://github.com/PauloGoncalvesBH/ServeRest/commit/e95668d94ccd2a723911377a0e0b64fc821dd1ce))
+* adicionar exemplo de automação com pytest ([0b646a6](https://github.com/PauloGoncalvesBH/ServeRest/commit/0b646a68e0f70dfd33304827285883e580ae5a87))
+* código do badge a ser copiado estava com estilo incorreto ([e8b28fc](https://github.com/PauloGoncalvesBH/ServeRest/commit/e8b28fc32e50603d2f6c06535769b3e498d116ef))
+
+
+### Features
+
+* **monitor:** monitorar acesso à documentação do projeto ([331c875](https://github.com/PauloGoncalvesBH/ServeRest/commit/331c8757968757ed69057830e12f67e5eb6a7643))
+
+
+### Tests
+
+* **mutation:** atualizar dependência de mutação e retirar configurações que estão em desuso ([3559189](https://github.com/PauloGoncalvesBH/ServeRest/commit/3559189167669da148e9de396834515407df1168))
+* reduzir a complexidade e quantidade de chamadas do teste utilizando stub ([1fd5a1e](https://github.com/PauloGoncalvesBH/ServeRest/commit/1fd5a1e68ff2c4ae2c06be45886f7d1383d7be0e))
+* validar comportamento em cenário de exceção (500) ([b585918](https://github.com/PauloGoncalvesBH/ServeRest/commit/b585918048837325eb5053ecede39901b6e3d2b8)), closes [#182](https://github.com/PauloGoncalvesBH/ServeRest/issues/182)
+
 ## [2.19.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.19.0...v2.19.1) (2020-11-01)
 
 
