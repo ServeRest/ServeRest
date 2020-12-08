@@ -45,6 +45,8 @@ if (!conf.semHeaderDeSeguranca) {
 /* istanbul ignore if */
 if (formaDeExecucao() === 'serverest.dev') {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
+} else {
+  monitor(app)
 }
 
 /* istanbul ignore next */
@@ -55,7 +57,10 @@ app.get('/', async (req, res) => {
 app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 
-monitor(app)
+/* istanbul ignore if */
+if (formaDeExecucao() === 'serverest.dev') {
+  monitor(app)
+}
 
 /* istanbul ignore if */
 if (!ehAmbienteDeTestes) {
