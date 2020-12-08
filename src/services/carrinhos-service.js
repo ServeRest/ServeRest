@@ -39,9 +39,9 @@ exports.criarCarrinho = async body => {
 }
 
 exports.extrairProdutosDuplicados = arrayProdutos => {
-  var sortedArr = arrayProdutos.slice().sort()
-  var produtosDuplicados = []
-  for (var i = 0; i < sortedArr.length - 1; i++) {
+  const sortedArr = arrayProdutos.slice().sort()
+  const produtosDuplicados = []
+  for (let i = 0; i < sortedArr.length - 1; i++) {
     if (sortedArr[i + 1].idProduto === sortedArr[i].idProduto) {
       produtosDuplicados.push(sortedArr[i].idProduto)
     }
