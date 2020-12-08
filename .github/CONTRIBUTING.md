@@ -5,7 +5,6 @@
 [![Deploy docs on serverest.dev](https://github.com/PauloGoncalvesBH/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 [![Continuous Integration](https://github.com/PauloGoncalvesBH/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/PauloGoncalvesBH/ServeRest/actions)
 
-[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
@@ -72,15 +71,13 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
-Os testes são criados com [mocha](https://www.npmjs.com/package/mocha) e [supertest](https://www.npmjs.com/package/supertest) e validados com [chai](https://www.npmjs.com/package/chai).
+Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), validados com [chai](https://www.npmjs.com/package/chai), mockados com [sinon.js](https://www.npmjs.com/package/sinon) e as requests são feitas com [supertest](https://www.npmjs.com/package/supertest).
 
 Para executá-los, execute o comando `npm test`.
 
 > O commit é abortado caso esse padrão não seja seguido
 
 ### 💥💻 Cobertura de código
-
-[![codecov](https://codecov.io/gh/PauloGoncalvesBH/ServeRest/branch/trunk/graph/badge.svg)](https://codecov.io/gh/PauloGoncalvesBH/ServeRest)
 
 Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de código.
 
@@ -99,6 +96,8 @@ A lib utilizada é a [Stryker](http://stryker-mutator.io/).
 Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
 
 Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[Teste de mutação 👽: O que é e como fica a cobertura de código?](https://github.com/PauloGoncalvesBH/teste-de-mutacao)'.
+
+> [Clique aqui para ver o dashboard do teste de mutação.](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
 
 ## 💥💻 Lint
 

@@ -54,8 +54,6 @@ jobs:
       run: npm ci
     - name: API Test
       run: npm test
-    - name: Update Codecov Report
-      uses: codecov/codecov-action@v1.0.13
 
   release:
     needs: [lint, commit-lint, test-api]

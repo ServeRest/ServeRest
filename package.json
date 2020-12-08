@@ -33,7 +33,6 @@
     "dev": "cross-env NODE_ENV=serverest-development nodemon ./src/server.js --nodoc",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/.mocharc.js",
-    "posttest": "nyc report --reporter=text-lcov > coverage.lcov",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o docs/index.html"
