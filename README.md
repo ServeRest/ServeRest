@@ -55,6 +55,8 @@ Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas d
 
 > Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
 
+A base de dados volta ao estado original [diariamente às 3h](https://github.com/PauloGoncalvesBH/ServeRest/actions?query=workflow%3A%22Clean+serverest.dev+database%22).
+
 ### Localmente com NPM
 
 Execute o seguinte comando no terminal:
