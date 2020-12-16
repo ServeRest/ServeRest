@@ -93,6 +93,15 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "maximilianoalves",
+      "name": "Maximiliano Alves",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/11561118?v=4",
+      "profile": "https://github.com/maximilianoalves",
+      "contributions": [
+        "talk"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
