@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.20.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.0...v2.20.1) (2020-12-16)
+
+
+### Chores
+
+* **patch:** bump ini from 1.3.5 to 1.3.7 ([#190](https://github.com/PauloGoncalvesBH/ServeRest/issues/190)) ([dc0439a](https://github.com/PauloGoncalvesBH/ServeRest/commit/dc0439ac9aeb6689abf694c16ec3289482cf0de2))
+
+
+### Continuous Integration
+
+* limpar base de dados do serverest.dev diariamente às 3h ([33e5a1c](https://github.com/PauloGoncalvesBH/ServeRest/commit/33e5a1ce26ed5a420d9cc0f963cd265136c7e3db))
+
+
+### Documentation
+
+* add maximilianoalves as a contributor ([#193](https://github.com/PauloGoncalvesBH/ServeRest/issues/193)) ([e95bb58](https://github.com/PauloGoncalvesBH/ServeRest/commit/e95bb58b5cdd1c2f95f8bdb0c861eeaf509dbd16))
+* **readme:** informar sobre backup da base de serverest.dev ([8a02ce1](https://github.com/PauloGoncalvesBH/ServeRest/commit/8a02ce1c9a4d4a496ac9ce3b3cfaa99762c3478d))
+
 # [2.20.0](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.19.1...v2.20.0) (2020-12-08)
 
 
