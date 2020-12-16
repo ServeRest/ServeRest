@@ -166,6 +166,7 @@ Veja aqui [como você pode contribuir](https://github.com/PauloGoncalvesBH/Serve
   <tr>
     <td align="center"><a href="http://gomex.me"><img src="https://avatars3.githubusercontent.com/u/95132?v=4" width="100px;" alt=""/><br /><sub><b>Rafael Gomes</b></sub></a><br /><a href="#infra-gomex" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://about.me/rustnnes"><img src="https://avatars1.githubusercontent.com/u/638445?v=4" width="100px;" alt=""/><br /><sub><b>Diego Bandeira</b></sub></a><br /><a href="#infra-rustnnes" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/maximilianoalves"><img src="https://avatars3.githubusercontent.com/u/11561118?v=4" width="100px;" alt=""/><br /><sub><b>Maximiliano Alves</b></sub></a><br /><a href="#talk-maximilianoalves" title="Talks">📢</a></td>
   </tr>
 </table>
 
