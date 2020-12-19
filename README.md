@@ -49,13 +49,16 @@ No ambiente online os dados cadastrados são removidos diariamente, enquanto que
 
 Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
 
-### Online
+### Online <a href="https://PauloGoncalvesBH.github.io/serverest-status-uptime"><img alt="7-day uptime 100.00%" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FPauloGoncalvesBH%2Fserverest-status-uptime%2Fmaster%2Fapi%2Fserve-rest-dev%2Fuptime-week.json"></a>
 
 Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas disponíveis.
 
 > Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
 
 A base de dados volta ao estado original [diariamente às 3h](https://github.com/PauloGoncalvesBH/ServeRest/actions?query=workflow%3A%22Clean+serverest.dev+database%22).
+
+O ServeRest online possui monitoramento constante do status e tempo de atividade para garantir que esteja sempre disponível.
+Acesse [ServeRest Status](https://paulogoncalvesbh.github.io/serverest-status-uptime/) para ver detalhes do uptime.
 
 ### Localmente com NPM
 
