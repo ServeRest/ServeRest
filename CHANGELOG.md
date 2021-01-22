@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.20.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.1...v2.20.2) (2021-01-22)
+
+
+### Bug Fixes
+
+* **docker:** habilitar acesso à documentação das rotas ([#204](https://github.com/PauloGoncalvesBH/ServeRest/issues/204)) ([181a182](https://github.com/PauloGoncalvesBH/ServeRest/commit/181a182c1566052e5342f17814e490b0905a8dbd)), closes [#202](https://github.com/PauloGoncalvesBH/ServeRest/issues/202)
+
+
+### Chores
+
+* bump @stryker-mutator/core from 4.1.2 to 4.3.1 ([dd7b1d3](https://github.com/PauloGoncalvesBH/ServeRest/commit/dd7b1d322a43dd0ebabfc06305de3b4b1b419552))
+* bump commitlint-github-action from v2.1.3 to v2.1.6 ([6b44866](https://github.com/PauloGoncalvesBH/ServeRest/commit/6b44866c519cd5617b9d44e50a34b48612d928d3))
+* bump husky from 4.3.5 to 4.3.6 ([6a2f66b](https://github.com/PauloGoncalvesBH/ServeRest/commit/6a2f66bc8619fcd51bdd713a2063b1bf7532488c))
+* bump setup-node from v1 to v2.1.4 ([a3c77b7](https://github.com/PauloGoncalvesBH/ServeRest/commit/a3c77b73124d33710dad92cc1814e795c427e911))
+* bump sinon from 9.2.1 to 9.2.3 ([9f1cbdf](https://github.com/PauloGoncalvesBH/ServeRest/commit/9f1cbdf4fc0a2046671d595517df9c2ecfce02cd))
+
+
+### Continuous Integration
+
+* **mutation test:** executar no pull request o teste de mutação apenas dos arquivos alterados ([#172](https://github.com/PauloGoncalvesBH/ServeRest/issues/172)) ([d2760b8](https://github.com/PauloGoncalvesBH/ServeRest/commit/d2760b8055a8bd16713e6325c2f518d0e5bd7d0b))
+
+
+### Documentation
+
+* **uptime:** informar sobre o monitoramento da disponibilidade do ambiente online ([#194](https://github.com/PauloGoncalvesBH/ServeRest/issues/194)) ([f40d609](https://github.com/PauloGoncalvesBH/ServeRest/commit/f40d609aa581dea12157eb75a2d32db0c0298d4d))
+
 ## [2.20.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.0...v2.20.1) (2020-12-16)
 
 
