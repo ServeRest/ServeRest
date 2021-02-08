@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.20.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.2...v2.20.3) (2021-02-08)
+
+
+### Chores
+
+* **patch:** remover artefato do NPM do container docker ([2e126fb](https://github.com/PauloGoncalvesBH/ServeRest/commit/2e126fb7d8a3bb89fff371771b7c6a8b9460bca9))
+
+
+### Continuous Integration
+
+* criar commit vazio para triggar deploy na Umbler ([2e58cda](https://github.com/PauloGoncalvesBH/ServeRest/commit/2e58cda3a7ba64054625cedc9e844d4f72df80ac))
+
+
+### Documentation
+
+* **readme:** incluir logo de empresas que adotaram o serverest ([db0d75c](https://github.com/PauloGoncalvesBH/ServeRest/commit/db0d75c7268c367251d8af2eca1a3eb2b2761e35)), closes [#201](https://github.com/PauloGoncalvesBH/ServeRest/issues/201)
+* **readme:** referenciar exemplo de automação de API com Robot Framework ([5918c89](https://github.com/PauloGoncalvesBH/ServeRest/commit/5918c8943696864fa31b17f67a98d94a2fc6a83f)), closes [#203](https://github.com/PauloGoncalvesBH/ServeRest/issues/203)
+
 ## [2.20.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.1...v2.20.2) (2021-01-22)
 
 
