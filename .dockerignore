@@ -1,6 +1,7 @@
 .git
 .github
 .nyc_output
+dist/
 test/
 reports/
 CHANGELOG.md
