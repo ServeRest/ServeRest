@@ -5,7 +5,11 @@ on:
     - cron: "0 */4 * * *"
   workflow_dispatch:
   push:
+    paths:
+      - '**.md'
   pull_request:
+    paths:
+      - '**.md'
 
 jobs:
   check-link:
