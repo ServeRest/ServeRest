@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.20.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.3...v2.20.4) (2021-02-25)
+
+
+### Chores
+
+* **patch:** não coletar log das requests de uptime ([e25c63d](https://github.com/PauloGoncalvesBH/ServeRest/commit/e25c63d8e3799769e70f2c8b6c55b32bd495b56c))
+
+
+### Code Refactoring
+
+* **monitor:** deixar de monitorar algumas rotas a partir de configuração do moesif ([d364db4](https://github.com/PauloGoncalvesBH/ServeRest/commit/d364db467794c54070b48872582c9c478c5097e7))
+
+
+### Continuous Integration
+
+* **check-link:** triggar validação de links apenas ao alterar arquivos .md em PR e push ([a529930](https://github.com/PauloGoncalvesBH/ServeRest/commit/a529930feb5a35c5b71980664b53c0bbf305db4d))
+* **deploy:** realizar deploy em serverest.dev ao criar nova release ([f4576f5](https://github.com/PauloGoncalvesBH/ServeRest/commit/f4576f585d3d984f74886ea470d6b5008c20910f))
+* **mutation test:** tornar teste de mutação um gate da entrega contínua ([43b9e79](https://github.com/PauloGoncalvesBH/ServeRest/commit/43b9e79de1dfb987009226eab81bd8f1e209b4e9))
+
 ## [2.20.3](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.2...v2.20.3) (2021-02-08)
 
 
