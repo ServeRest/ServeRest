@@ -2,8 +2,10 @@
 node_modules/
 reports/
 
+.env
 coverage.lcov
 serverest.apib
+
 # stryker temp files
 .stryker-tmp
 stryker.log

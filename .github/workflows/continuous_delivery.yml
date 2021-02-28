@@ -85,6 +85,10 @@ jobs:
         node-version: 12
     - name: Installation of Node.js dependencies
       run: npm ci
+    - name: create env file
+      run: |
+        touch .env
+        echo MOESIF_COLLECTOR_APPLICATION_ID=${{ secrets.MOESIF_COLLECTOR_APPLICATION_ID }} >> .env
     - name: Release on NPM and Docker
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

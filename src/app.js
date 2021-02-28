@@ -1,5 +1,6 @@
 'use strict'
 
+require('dotenv').config()
 require('express-async-errors')
 
 const cors = require('cors')

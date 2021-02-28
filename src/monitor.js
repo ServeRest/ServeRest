@@ -20,6 +20,7 @@ module.exports = async app => {
     return
   }
   const moesifMiddleware = moesif({
+    applicationId: process.env.MOESIF_COLLECTOR_APPLICATION_ID,
     identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version },
     skip: (req, res) => {
