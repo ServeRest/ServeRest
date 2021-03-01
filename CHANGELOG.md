@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.21.0-beta.2](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.21.0-beta.1...v2.21.0-beta.2) (2021-03-01)
+
+
+### Chores
+
+* **patch:** teste ([808a6e8](https://github.com/PauloGoncalvesBH/ServeRest/commit/808a6e8547ac928f39fa40e6299915f6c2a96d63))
+
 # [2.21.0-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.4...v2.21.0-beta.1) (2021-03-01)
 
 
