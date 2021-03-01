@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.20.5](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.4...v2.20.5) (2021-03-01)
+
+
+### Chores
+
+* **patch:** não ofuscar password no monitoramento de log ([39e2ecb](https://github.com/PauloGoncalvesBH/ServeRest/commit/39e2ecbfe7082e25f090f785bed5e0a27e0ebe98))
+* impedir que o teste executado em pre-push altere os arquivos .db ([1804b3f](https://github.com/PauloGoncalvesBH/ServeRest/commit/1804b3fcc497b0b5bdb0d035971d3dd39db1a03c))
+
+
+### Continuous Integration
+
+* unificar as pipelines de deploy no serverest.dev ([9a5fcef](https://github.com/PauloGoncalvesBH/ServeRest/commit/9a5fcef51018391c3fa732ae66636fcb265aac9a))
+
 ## [2.20.4](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.3...v2.20.4) (2021-02-25)
 
 
