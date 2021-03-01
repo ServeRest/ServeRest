@@ -1,5 +1,25 @@
 # Changelog
 
+# [2.21.0-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.4...v2.21.0-beta.1) (2021-03-01)
+
+
+### Chores
+
+* **monitor:** não ofuscar password no monitoramento de log ([5d34653](https://github.com/PauloGoncalvesBH/ServeRest/commit/5d346538707c7a1e0379650b1b314dc385fc55b6))
+* impedir que o teste executado em pre-push altere os arquivos .db ([dab3aab](https://github.com/PauloGoncalvesBH/ServeRest/commit/dab3aab26b23a6e372765c3c60175052e618f69e))
+* **patch:** consumir chave de identificação de log a partir de env gerado na publicação ([6ffacc7](https://github.com/PauloGoncalvesBH/ServeRest/commit/6ffacc7f303cc1f4804599c73f2ea07d5b87ad96))
+* **segurança:** remover chave de identificação de envio de log ([50d69b3](https://github.com/PauloGoncalvesBH/ServeRest/commit/50d69b3b5cc7925b846b3f075f4cef907819eaa2))
+
+
+### Continuous Integration
+
+* unificar as pipelines de deploy no serverest.dev ([9a5fcef](https://github.com/PauloGoncalvesBH/ServeRest/commit/9a5fcef51018391c3fa732ae66636fcb265aac9a))
+
+
+### Features
+
+* 2.20.5-beta.1 ([fd56c15](https://github.com/PauloGoncalvesBH/ServeRest/commit/fd56c154599d761fc5e5e29a627428ec516aba43))
+
 ## [2.20.5-beta.1](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.4...v2.20.5-beta.1) (2021-03-01)
 
 
