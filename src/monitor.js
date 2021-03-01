@@ -27,7 +27,8 @@ module.exports = async app => {
       if (req.path === '/favicon.ico' || req.path === '/version' || (formaDeExecucao() === 'serverest.dev' && req.path === '/') || req.headers.monitor) {
         return true
       }
-    }
+    },
+    noAutoHideSensitive: true
   })
   app.use(moesifMiddleware)
 }
