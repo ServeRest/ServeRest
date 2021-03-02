@@ -65,6 +65,32 @@ jobs:
       run: npm ci
     - name: API Test
       run: npm test
+    - uses: actions/upload-artifact@v2
+      if: ${{ matrix.node-version == '14.x' && matrix.os == 'ubuntu-20.04' }}
+      with:
+        name: source
+        retention-days: 1
+        path: |
+          ${{ github.workspace }}
+          !.nyc_output/**
+          !.github/**
+          !node_modules/**
+          !docs/**
+
+  sonarcloud:
+    needs: test-api
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: source
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   test-mutation:
 
@@ -128,7 +154,7 @@ jobs:
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
-    needs: [lint, commit-lint, dockerfile-lint, test-api, test-mutation, test-infra-docker, test-contract]
+    needs: [lint, commit-lint, dockerfile-lint, test-api, test-mutation, test-infra-docker, test-contract, sonarcloud]
 
     runs-on: ubuntu-18.04
 

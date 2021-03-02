@@ -35,6 +35,7 @@
     "test:mutation": "cross-env NODE_ENV=serverest-test stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "cross-env NODE_ENV=serverest-test stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/integration/.mocharc.js",
+    "posttest": "nyc report --reporter=lcov",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "lint:staged": "lint-staged",
