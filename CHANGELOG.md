@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.20.6](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.5...v2.20.6) (2021-03-07)
+
+
+### Bug Fixes
+
+* informar o usuário sobre como lidar com o erro 'entity.parse.failed' enquanto investigo solução ([06ae564](https://github.com/PauloGoncalvesBH/ServeRest/commit/06ae564cb2951f067562b7481379bd26611f2e6a)), closes [#225](https://github.com/PauloGoncalvesBH/ServeRest/issues/225)
+
 ## [2.20.5](https://github.com/PauloGoncalvesBH/ServeRest/compare/v2.20.4...v2.20.5) (2021-03-01)
 
 
