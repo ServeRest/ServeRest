@@ -19,5 +19,6 @@ module.exports = {
   EXCLUIR_PRODUTO_COM_CARRINHO: 'Não é permitido excluir produto que faz parte de carrinho',
   CARRINHO_COM_PRODUTO_DUPLICADO: 'Não é permitido possuir produto duplicado',
   SEM_CARRINHO: 'Não foi encontrado carrinho para esse usuário',
-  ESTOQUE_REABASTECIDO: 'Estoque dos produtos reabastecido'
+  ESTOQUE_REABASTECIDO: 'Estoque dos produtos reabastecido',
+  USUARIO_NAO_ENCONTRADO: 'Usuário não encontrado'
 }
