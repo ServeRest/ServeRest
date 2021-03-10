@@ -102,6 +102,15 @@
       "contributions": [
         "talk"
       ]
+    },
+    {
+      "login": "murilomaiaa",
+      "name": "Murilo Maia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56596799?v=4",
+      "profile": "https://github.com/murilomaiaa",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
