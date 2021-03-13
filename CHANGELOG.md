@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.20.7](https://github.com/ServeRest/ServeRest/compare/v2.20.6...v2.20.7) (2021-03-13)
+
+
+### Chores
+
+* **patch:** migrar ServeRest de conta pessoal pra org ([#232](https://github.com/ServeRest/ServeRest/issues/232)) ([7247187](https://github.com/ServeRest/ServeRest/commit/7247187f1cf4b2341e820dd7b8d6361cabe187cf))
+
+
+### Documentation
+
+* add murilomaiaa as a contributor ([#231](https://github.com/ServeRest/ServeRest/issues/231)) ([f66d7bc](https://github.com/ServeRest/ServeRest/commit/f66d7bc183ef1c1e58d22f63f95620b98b630adc))
+
 ## [2.20.6](https://github.com/ServeRest/ServeRest/compare/v2.20.5...v2.20.6) (2021-03-07)
 
 
