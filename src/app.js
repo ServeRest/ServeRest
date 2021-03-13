@@ -43,7 +43,7 @@ if (!conf.semHeaderDeSeguranca) {
 }
 
 /* istanbul ignore if */
-if (formaDeExecucao() === 'serverest.dev') {
+if (formaDeExecucao() === 'serverest.dev' || formaDeExecucao() === 'agilizei') {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
@@ -51,7 +51,17 @@ monitor(app)
 
 /* istanbul ignore next */
 app.get('/', async (req, res) => {
-  const pathDocumentacao = (urlDocumentacao() === 'https://serverest.dev') ? '../docs/serverest.dev.html' : '../docs/localhost.html'
+  let pathDocumentacao
+  switch (formaDeExecucao()) {
+    case 'serverest.dev':
+      pathDocumentacao = '../docs/serverest.dev.html'
+      break
+    case 'agilizei':
+      pathDocumentacao = '../docs/agilizei.html'
+      break
+    default:
+      pathDocumentacao = '../docs/localhost.html'
+  }
   res.sendFile(join(__dirname, pathDocumentacao))
 })
 app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
