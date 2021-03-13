@@ -4,6 +4,11 @@ on:
   release:
     types: [released]
   workflow_dispatch:
+    inputs:
+      publicar-no-agilizei:
+        description: 'Publicar a API do Agilizei?'
+        required: false
+        default: 'false'
   schedule:
     - cron: "0 6 * * *"
 
@@ -33,6 +38,30 @@ jobs:
       name: Daily clean - serverest.dev database
       run: |
         git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
+        git fetch --unshallow origin
+        git config --global user.email "deployumbler@github.com"
+        git config --global user.name "deploy umbler"
+        git commit --allow-empty -m "empty commity" --no-verify
+        git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
+
+  deploy-on-api-agilizei:
+    if: github.event_name == 'schedule' || github.event.inputs.publicar-no-agilizei == 'true'
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Setup SSH to use on 'git push umbler'
+      uses: shimataro/ssh-key-action@v1.5.0
+      with:
+        private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
+        known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+    - name: Deploy on Agilizei
+      run: |
+        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-agilizei-com.git
         git fetch --unshallow origin
         git config --global user.email "deployumbler@github.com"
         git config --global user.name "deploy umbler"
