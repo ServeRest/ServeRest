@@ -12,7 +12,7 @@ describe('Error handler', () => {
     const { body } = await request.get('/carrinhos').expect(500)
 
     chai.assert.deepEqual(body, {
-      message: 'Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues',
+      message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
       error: { name: 'Teste de erro 500' }
     })
   })

@@ -41,7 +41,7 @@ const argv = require('yargs')
   .help('h')
   .epilog('Acesse serverest.dev para ver as rotas disponíveis')
   .epilog('Precisa de ajuda?')
-  .epilog('Abra uma issue em github.com/PauloGoncalvesBH/ServeRest/issues')
+  .epilog('Abra uma issue em github.com/ServeRest/ServeRest/issues')
   .argv
 
 conf.tokenTimeout = argv.timeout
@@ -63,7 +63,7 @@ server.listen(port, async () => {
   if (formaDeExecucao() === 'npm') {
     console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
   }
-  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('https://github.com/PauloGoncalvesBH/ServeRest'))
+  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('https://github.com/ServeRest/ServeRest'))
   console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
 })
 server.on('error', onError)

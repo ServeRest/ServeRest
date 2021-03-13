@@ -12,10 +12,10 @@
 
 <p align="center">
  <b>
-   <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
-   <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
-   <a href="https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a> |
-   <a href="https://github.com/PauloGoncalvesBH/ServeRest#patrocinadores">Patrocinadores</a>
+   <a href="https://github.com/ServeRest/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
+   <a href="https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
+   <a href="https://github.com/ServeRest/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a> |
+   <a href="https://github.com/ServeRest/ServeRest#patrocinadores">Patrocinadores</a>
  </b>
 </p>
 
@@ -49,16 +49,16 @@ No ambiente online os dados cadastrados são removidos diariamente, enquanto que
 
 Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
 
-### Online <a href="https://PauloGoncalvesBH.github.io/serverest-status-uptime"><img alt="7-day uptime 100.00%" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FPauloGoncalvesBH%2Fserverest-status-uptime%2Fmaster%2Fapi%2Fserve-rest-dev%2Fuptime-week.json"></a>
+### Online <a href="https://status.serverest.dev"><img alt="7-day uptime 100.00%" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FServeRest%2Fserverest-status-uptime%2Fmaster%2Fapi%2Fserve-rest-dev%2Fuptime-week.json"></a>
 
 Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas disponíveis.
 
 > Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
 
-A base de dados volta ao estado original [diariamente às 3h](https://github.com/PauloGoncalvesBH/ServeRest/actions?query=workflow%3A%22Clean+serverest.dev+database%22).
+A base de dados volta ao estado original [diariamente às 3h](https://github.com/ServeRest/ServeRest/actions?query=workflow%3A%22Clean+serverest.dev+database%22).
 
 O ServeRest online possui monitoramento constante do status e tempo de atividade para garantir que esteja sempre disponível.
-Acesse [ServeRest Status](https://paulogoncalvesbh.github.io/serverest-status-uptime/) para ver detalhes do uptime.
+Acesse [ServeRest Status](https://status.serverest.dev/) para ver detalhes do uptime.
 
 ### Localmente com NPM
 
@@ -126,10 +126,10 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 - [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 - [Robot Framework > Automação com RequestsLibrary - Mayara Fernandes](https://github.com/mayribeirofernandes/testesrobotframework/tree/HEAD/ExemploAPI_ServeRest)
 
-## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/PauloGoncalvesBH/ServeRest/)
+## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
 
 ```markdown
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/PauloGoncalvesBH/ServeRest/)
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
 ```
 
 ## Patrocinadores
@@ -152,26 +152,26 @@ Todos os patrocinadores anteriores e atuais podem ser vistos no [Open Collective
 
 ## Contribuidores ✨
 
-Veja aqui [como você pode contribuir](https://github.com/PauloGoncalvesBH/ServeRest/blob/trunk/.github/CONTRIBUTING.md). Contribuições de qualquer tipo são bem-vindas!
+Veja aqui [como você pode contribuir](https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md). Contribuições de qualquer tipo são bem-vindas!
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/leandromuto"><img src="https://avatars0.githubusercontent.com/u/1757827?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Leandro Muto</b></sub></a><br /><a href="https://github.com/PauloGoncalvesBH/ServeRest/commits?author=leandromuto" title="Documentation">📖</a> <a href="#infra-leandromuto" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/leandromuto"><img src="https://avatars0.githubusercontent.com/u/1757827?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Leandro Muto</b></sub></a><br /><a href="https://github.com/ServeRest/ServeRest/commits?author=leandromuto" title="Documentation">📖</a> <a href="#infra-leandromuto" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://github.com/fejsrodrigues"><img src="https://avatars3.githubusercontent.com/u/8000936?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Felipe Rodrigues</b></sub></a><br /><a href="#infra-fejsrodrigues" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-    <td align="center"><a href="https://github.com/doamaral"><img src="https://avatars0.githubusercontent.com/u/7451330?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lucas Amaral</b></sub></a><br /><a href="#talk-doamaral" title="Talks">📢</a> <a href="https://github.com/PauloGoncalvesBH/ServeRest/issues?q=author%3Adoamaral" title="Bug reports">🐛</a> <a href="https://github.com/PauloGoncalvesBH/ServeRest/commits?author=doamaral" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://www.linkedin.com/in/ulucasfraga/"><img src="https://avatars2.githubusercontent.com/u/23031781?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lucas.fraga</b></sub></a><br /><a href="#ideas-uLucasFraga" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/PauloGoncalvesBH/ServeRest/issues?q=author%3AuLucasFraga" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/doamaral"><img src="https://avatars0.githubusercontent.com/u/7451330?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lucas Amaral</b></sub></a><br /><a href="#talk-doamaral" title="Talks">📢</a> <a href="https://github.com/ServeRest/ServeRest/issues?q=author%3Adoamaral" title="Bug reports">🐛</a> <a href="https://github.com/ServeRest/ServeRest/commits?author=doamaral" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/ulucasfraga/"><img src="https://avatars2.githubusercontent.com/u/23031781?v=4?s=100" width="100px;" alt=""/><br /><sub><b>lucas.fraga</b></sub></a><br /><a href="#ideas-uLucasFraga" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/ServeRest/ServeRest/issues?q=author%3AuLucasFraga" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://www.linkedin.com/in/bruno-batista-87734464/?locale=en_US"><img src="https://avatars3.githubusercontent.com/u/8673550?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bruno batista</b></sub></a><br /><a href="#ideas-brunobatista25" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/eliasreis54"><img src="https://avatars1.githubusercontent.com/u/29265526?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Elias Reis</b></sub></a><br /><a href="#maintenance-eliasreis54" title="Maintenance">🚧</a> <a href="#infra-eliasreis54" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-    <td align="center"><a href="https://github.com/gabriel-pinheiro"><img src="https://avatars2.githubusercontent.com/u/56726395?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gabriel-pinheiro</b></sub></a><br /><a href="https://github.com/PauloGoncalvesBH/ServeRest/commits?author=gabriel-pinheiro" title="Code">💻</a> <a href="#ideas-gabriel-pinheiro" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/gabriel-pinheiro"><img src="https://avatars2.githubusercontent.com/u/56726395?v=4?s=100" width="100px;" alt=""/><br /><sub><b>gabriel-pinheiro</b></sub></a><br /><a href="https://github.com/ServeRest/ServeRest/commits?author=gabriel-pinheiro" title="Code">💻</a> <a href="#ideas-gabriel-pinheiro" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
   <tr>
     <td align="center"><a href="http://gomex.me"><img src="https://avatars3.githubusercontent.com/u/95132?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rafael Gomes</b></sub></a><br /><a href="#infra-gomex" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://about.me/rustnnes"><img src="https://avatars1.githubusercontent.com/u/638445?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Diego Bandeira</b></sub></a><br /><a href="#infra-rustnnes" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://github.com/maximilianoalves"><img src="https://avatars3.githubusercontent.com/u/11561118?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Maximiliano Alves</b></sub></a><br /><a href="#talk-maximilianoalves" title="Talks">📢</a></td>
-    <td align="center"><a href="https://github.com/murilomaiaa"><img src="https://avatars.githubusercontent.com/u/56596799?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Murilo Maia</b></sub></a><br /><a href="https://github.com/PauloGoncalvesBH/ServeRest/commits?author=murilomaiaa" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/murilomaiaa"><img src="https://avatars.githubusercontent.com/u/56596799?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Murilo Maia</b></sub></a><br /><a href="https://github.com/ServeRest/ServeRest/commits?author=murilomaiaa" title="Code">💻</a></td>
   </tr>
 </table>
 

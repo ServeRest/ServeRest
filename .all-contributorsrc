@@ -116,7 +116,7 @@
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
   "contributorsPerLine": 7,
   "projectName": "ServeRest",
-  "projectOwner": "PauloGoncalvesBH",
+  "projectOwner": "ServeRest",
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": false
