@@ -19,7 +19,7 @@ module.exports = error => {
       'string.base': `${propriedade} deve ser uma string`,
       'string.email': `${propriedade} deve ser um email válido`,
       'string.empty': `${propriedade} não pode ficar em branco`,
-      default: `${erro.message} - Erro ${erro.type} - Abra uma issue informando essa resposta. https://github.com/PauloGoncalvesBH/ServeRest/issues`
+      default: `${erro.message} - Erro ${erro.type} - Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues`
     }
     /* istanbul ignore next */
     mensagemDeErro[propriedade] = mapeamentoDoErro[erro.type] || mapeamentoDoErro.default
