@@ -1,12 +1,16 @@
-name: Deploy on serverest.dev
+name: Deploy ServeRest on the web
 
 on:
   release:
     types: [released]
   workflow_dispatch:
     inputs:
+      publicar-no-serverest-dev:
+        description: 'Publicar a API no ServeRest.dev?'
+        required: true
+        default: 'true'
       publicar-no-agilizei:
-        description: 'Publicar a API do Agilizei?'
+        description: 'Publicar a API no Agilizei?'
         required: false
         default: 'false'
   schedule:
@@ -14,6 +18,7 @@ on:
 
 jobs:
   deploy-on-serverest-dev:
+    if: github.event.inputs.publicar-no-serverest-dev == 'true'
 
     runs-on: ubuntu-18.04
 
@@ -28,14 +33,7 @@ jobs:
         private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
         known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-    - if: github.event_name == 'release'
-      name: Deploy new release on serverest.dev
-      run: |
-        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
-        git fetch --unshallow origin
-        git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
-    - if: github.event_name != 'release'
-      name: Daily clean - serverest.dev database
+    - name: Deploy on serverest.dev
       run: |
         git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
         git fetch --unshallow origin
@@ -46,6 +44,7 @@ jobs:
 
   deploy-on-api-agilizei:
     if: github.event_name == 'schedule' || github.event.inputs.publicar-no-agilizei == 'true'
+
     runs-on: ubuntu-18.04
 
     steps:

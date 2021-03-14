@@ -1,9 +1,9 @@
 
 # Como contribuir
 
-[![Continuous Delivery](https://github.com/ServeRest/ServeRest/workflows/Continuous%20Delivery/badge.svg)](https://github.com/ServeRest/ServeRest/actions)
-[![Deploy docs on serverest.dev](https://github.com/ServeRest/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)](https://github.com/ServeRest/ServeRest/actions)
-[![Continuous Integration](https://github.com/ServeRest/serverest/workflows/Continuous%20Integration/badge.svg)](https://github.com/ServeRest/ServeRest/actions)
+[![Continuous Delivery](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_delivery.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_delivery.yml)
+[![Deploy ServeRest on the web](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml)
+[![Continuous Integration](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml)
 
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
