@@ -61,19 +61,8 @@
   "<span class="hljs-attribute">authorization</span>": <span class="hljs-value"><span class="hljs-string">"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZ1bGFub0BxYS5jb20iLCJwYXNzd29yZCI6InRlc3RlIiwiaWF0IjoxNTg5NzU4NzQ2LCJleHAiOjE1ODk3Njg3NDZ9.B6TASHV8k9xBerz4NSeFBlAZGSDhZlqESt767M0567I"</span>
 </span>}</code></pre><div style="height: 1px;"></div></div></div></div><div class="tab"><div><div class="inner"><h5>Body</h5><pre><code>{
   "<span class="hljs-attribute">message</span>": <span class="hljs-value"><span class="hljs-string">"Email e/ou senha inválidos"</span>
-</span>}</code></pre><div style="height: 1px;"></div></div></div></div></div></div></div></div><div class="middle"><div id="login-post" class="action post"><h4 class="action-heading"><div class="name">Realizar login</div><a href="#login-post" class="method post">POST</a><code class="uri">/login</code></h4><p><strong>A configuração abaixo é possível apenas se o ServeRest foi iniciado utilizando NPM.</strong></p>
-<h3 id="header-timeout-da-autenticação">Timeout da autenticação <a class="permalink" href="#header-timeout-da-autenticação" aria-hidden="true">¶</a></h3>
+</span>}</code></pre><div style="height: 1px;"></div></div></div></div></div></div></div></div><div class="middle"><div id="login-post" class="action post"><h4 class="action-heading"><div class="name">Realizar login</div><a href="#login-post" class="method post">POST</a><code class="uri">/login</code></h4>
 <p>A duração padrão do token retornado em <code>authorization</code> é de 600 segundos (10 minutos). Caso esteja expirado irá receber status code <em>401 (Unauthorized)</em>.</p>
-<p>Aumente a duração do token para manter autenticado por um período de tempo maior sem realizar novo <code>/login</code>. Inicie o <em>ServeRest</em> da seguinte forma:</p>
-<pre><code>npx serverest <span class="hljs-comment">--timeout &lt;duracao-do-token-em-segundos&gt;</span>
-npx serverest <span class="hljs-comment">--timeout 3600</span></code></pre>
-<p>No exemplo acima estamos alterando o timeout para 3600 segundos (1 hora).</p>
-<h3 id="header-bearer">Bearer <a class="permalink" href="#header-bearer" aria-hidden="true">¶</a></h3>
-<p>Por padrão o <code>authorization</code> retorna a palavra <code>Bearer</code> no início.</p>
-<p>Caso queira desabilitar e receber apenas o token, inicie o <em>ServeRest</em> da seguinte forma:</p>
-<pre><code>npx serverest --nobearer
-npx serverest -<span class="hljs-tag">b</span></code></pre>
-<p><strong>Atenção:</strong> Ainda será necessário enviar <code>Bearer</code> no header <code>authorization</code> ao utilizar rota que requer autenticação.</p>
 </div></div><hr class="split"><div class="middle"><div id="usuários" class="resource"><h3 class="resource-heading">Usuários <a href="#usuários" class="permalink">&para;</a></h3></div></div><div class="right"><div class="definition"><span class="method get">GET</span>&nbsp;<span class="uri"><span class="hostname">https://api.agilizei.com</span>/usuarios</span></div><div class="tabs"><div class="tabs"><div class="example-names"><span>Responses</span><span class="tab-button">200</span></div><div class="tab"><div><div class="inner"><h5>Body</h5><pre><code>{
   "<span class="hljs-attribute">quantidade</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
   "<span class="hljs-attribute">usuarios</span>": <span class="hljs-value">[
@@ -89,7 +78,7 @@ npx serverest -<span class="hljs-tag">b</span></code></pre>
 <p>Exemplos de uso:</p>
 <ol>
 <li><code>https://api.agilizei.com/usuarios?_id=0uxuPY0cbmQhpEz1</code></li>
-<li><code>https://api.agilizei.com/usuarios?nome=Paulo Gonçalves&amp;administrador=false</code></li>
+<li><code>https://api.agilizei.com/usuarios?nome=Samuel Lucas&amp;administrador=false</code></li>
 </ol>
 <p>Chaves permitidas na <em>query string</em>:</p>
 <ul>
