@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 /*
-O monitoramento está em arquivo apartado (monitor.js), e não no 'app.js',
+O monitoramento está em arquivo apartado (logger.js), e não no 'app.js',
 para não ser afetado pelo teste de mutação.
 
 Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
@@ -9,8 +9,8 @@ Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
 
 const moesif = require('moesif-nodejs')
 
-const { version } = require('../package.json')
-const { formaDeExecucao } = require('./utils/ambiente')
+const { version } = require('../../package.json')
+const { formaDeExecucao } = require('./ambiente')
 
 const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'

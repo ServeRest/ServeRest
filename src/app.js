@@ -12,7 +12,7 @@ const { join } = require('path')
 const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
-const monitor = require('./monitor')
+const logger = require('./utils/logger')
 const { version } = require('../package.json')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
@@ -47,7 +47,7 @@ if (formaDeExecucao() === 'serverest.dev' || formaDeExecucao() === 'agilizei') {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
-monitor(app)
+logger(app)
 
 /* istanbul ignore next */
 app.get('/', async (req, res) => {
