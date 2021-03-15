@@ -18,7 +18,7 @@ on:
 
 jobs:
   deploy-on-serverest-dev:
-    if: github.event.inputs.publicar-no-serverest-dev == 'true'
+    if: github.event.inputs.publicar-no-serverest-dev != 'false'
 
     runs-on: ubuntu-18.04
 
