@@ -18,7 +18,7 @@ function urlDocumentacao () {
     case 'serverest.dev':
       return 'https://serverest.dev'
     case 'agilizei':
-      return 'https://api.agilizei.com/'
+      return 'https://serverest-api.agilizei.com/'
     default:
       return 'http://localhost:3000'
   }

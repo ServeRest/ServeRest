@@ -60,7 +60,7 @@ jobs:
         known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
     - name: Deploy on Agilizei
       run: |
-        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/api-agilizei-com.git
+        git remote add umbler ssh://git@kamino.deploy.umbler.com:9922/jnydrgre/serverest-api-agilizei-com.git
         git fetch --unshallow origin
         git config --global user.email "deployumbler@github.com"
         git config --global user.name "deploy umbler"
