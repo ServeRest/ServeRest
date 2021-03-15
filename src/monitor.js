@@ -24,7 +24,7 @@ module.exports = async app => {
     identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version },
     skip: (req, res) => {
-      if (req.path === '/favicon.ico' || req.path === '/version' || (formaDeExecucao() === 'serverest.dev' && req.path === '/') || req.headers.monitor) {
+      if (req.path === '/favicon.ico' || req.path === '/version' || req.path === '/socket.io' || (formaDeExecucao() === 'serverest.dev' && req.path === '/') || req.headers.monitor) {
         return true
       }
     },
