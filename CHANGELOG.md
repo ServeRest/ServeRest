@@ -1,5 +1,31 @@
 # Changelog
 
+# [2.21.0](https://github.com/ServeRest/ServeRest/compare/v2.20.7...v2.21.0) (2021-03-17)
+
+
+### Chores
+
+* **agilizei:** ajustar agilizei para outro subdomínio ([ce9f44d](https://github.com/ServeRest/ServeRest/commit/ce9f44dd642f0e5fe57b52de33473353c38bc4b8))
+* **agilizei:** configurar uso do ServeRest pela org Agilizei ([#233](https://github.com/ServeRest/ServeRest/issues/233)) ([eba9081](https://github.com/ServeRest/ServeRest/commit/eba90814b9c1b44daa917c781fae68f95bcac2cf))
+* **agilizei:** monitorar os acessos na documentaçao ([63818ce](https://github.com/ServeRest/ServeRest/commit/63818ce6c7bd67f8a6c395063113de03bd361e84))
+* **monitor:** não monitorar as requests de status de uso de recurso da máquina ([bbe9975](https://github.com/ServeRest/ServeRest/commit/bbe9975ec3f8f1333a95beeeba4ed922c09eb63d))
+
+
+### Code Refactoring
+
+* renomear para nomenclatura que faz mais sentido com a sua atuação ([741485e](https://github.com/ServeRest/ServeRest/commit/741485e335cf83e4dfe107fda01d77762308b3e3))
+
+
+### Continuous Integration
+
+* **deploy:** ao realizar deploy manual, fornecer opção para não atualizar o serverest.dev ([6e936f4](https://github.com/ServeRest/ServeRest/commit/6e936f472d9c277c0f5db7abaa36f9925b76f842))
+* **deploy:** não fazer deploy do ServeRest.dev quando pulado ([1622cb8](https://github.com/ServeRest/ServeRest/commit/1622cb8124d5bcee2d6cc9b38dc484a644d01c07))
+
+
+### Features
+
+* **usuarios:** busca de usuario por id ([#230](https://github.com/ServeRest/ServeRest/issues/230)) ([5de9dba](https://github.com/ServeRest/ServeRest/commit/5de9dba7a56340347da2d665274728e54718f1f3))
+
 ## [2.20.7](https://github.com/ServeRest/ServeRest/compare/v2.20.6...v2.20.7) (2021-03-13)
 
 
