@@ -9,6 +9,15 @@ exports.get = async (req, res) => {
   res.status(200).send({ quantidade: usuarios.length, usuarios })
 }
 
+exports.getOne = async (req, res) => {
+  const { id } = req.params
+  const usuario = await service.getOne(id)
+  if (!usuario) {
+    return res.status(400).json({ message: constant.USUARIO_NAO_ENCONTRADO })
+  }
+  return res.status(200).send(usuario)
+}
+
 exports.post = async (req, res) => {
   if (await service.existeUsuario({ email: req.body.email })) {
     return res.status(400).send({ message: constant.EMAIL_JA_USADO })
