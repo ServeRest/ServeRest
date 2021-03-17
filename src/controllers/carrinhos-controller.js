@@ -11,6 +11,15 @@ exports.get = async (req, res) => {
   res.status(200).send({ quantidade: carrinhos.length, carrinhos })
 }
 
+exports.getOne = async (req, res) => {
+  const { id } = req.params
+  const carrinho = await service.getOne(id)
+  if (!carrinho) {
+    return res.status(400).json({ message: constant.CARRINHO_NAO_ENCONTRADO })
+  }
+  return res.status(200).send(carrinho)
+}
+
 exports.post = async (req, res) => {
   const { email, password } = authService.verifyToken(req.headers.authorization)
   const { _id } = await usuariosService.getDadosDoUsuario({ email, password })

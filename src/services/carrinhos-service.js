@@ -18,6 +18,16 @@ exports.getAll = queryString => {
   })
 }
 
+exports.getOne = id => {
+  return new Promise((resolve, reject) => {
+    datastore.findOne({ _id: id }, (err, carrinho) => {
+      /* istanbul ignore if */
+      if (err) reject(err)
+      resolve(carrinho)
+    })
+  })
+}
+
 exports.existeCarrinho = pesquisa => {
   return new Promise((resolve, reject) => {
     datastore.count(pesquisa, (err, count) => {

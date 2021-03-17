@@ -11,6 +11,12 @@ exports.schemaGet = {
   })
 }
 
+exports.schemaGetOne = {
+  params: Joi.object({
+    id: Joi.string().required()
+  })
+}
+
 exports.schemaPost = {
   body: Joi.object({
     produtos: Joi.array().items(
