@@ -36,7 +36,7 @@
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "generate-doc": "npx aglio@2 -i serverest.apib --theme-variables flatly --theme-template triple -o docs/index.html"
+    "generate-doc": "npx aglio -i serverest.apib --theme-variables flatly --theme-template triple -o docs/serverest.dev.html"
   },
   "husky": {
     "hooks": {
