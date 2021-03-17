@@ -7,13 +7,7 @@ const utils = require('../utils')
 describe(`${rotaUsuarios}/:id GET`, () => {
   it('Param - Busca um usuário', async () => {
     const usuario = await utils.cadastrarUsuario()
-    const { body } = await request.get(`${rotaUsuarios}/${usuario._id}`).query({
-      nome: usuario.nome,
-      email: usuario.email,
-      password: usuario.password,
-      administrador: usuario.administrador,
-      _id: usuario._id
-    }).expect(200)
+    const { body } = await request.get(`${rotaUsuarios}/${usuario._id}`).expect(200)
 
     chai.assert.deepEqual(body, {
       nome: usuario.nome,

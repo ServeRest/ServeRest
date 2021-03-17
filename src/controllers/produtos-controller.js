@@ -9,6 +9,15 @@ exports.get = async (req, res) => {
   res.status(200).send({ quantidade: produtos.length, produtos })
 }
 
+exports.getOne = async (req, res) => {
+  const { id } = req.params
+  const produto = await service.getOne(id)
+  if (!produto) {
+    return res.status(400).json({ message: constant.PRODUTO_NAO_ENCONTRADO })
+  }
+  return res.status(200).send(produto)
+}
+
 exports.post = async (req, res) => {
   if (await service.existeProduto({ nome: req.body.nome.trim() })) {
     return res.status(400).send({ message: constant.NOME_JA_USADO })

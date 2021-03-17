@@ -21,5 +21,6 @@ module.exports = {
   SEM_CARRINHO: 'Não foi encontrado carrinho para esse usuário',
   ESTOQUE_REABASTECIDO: 'Estoque dos produtos reabastecido',
   USUARIO_NAO_ENCONTRADO: 'Usuário não encontrado',
-  CARRINHO_NAO_ENCONTRADO: 'Carrinho não encontrado'
+  CARRINHO_NAO_ENCONTRADO: 'Carrinho não encontrado',
+  PRODUTO_NAO_ENCONTRADO: 'Produto não encontrado'
 }

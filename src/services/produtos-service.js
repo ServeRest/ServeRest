@@ -15,6 +15,16 @@ exports.getAll = queryString => {
   })
 }
 
+exports.getOne = id => {
+  return new Promise((resolve, reject) => {
+    datastore.findOne({ _id: id }, (err, produto) => {
+      /* istanbul ignore if */
+      if (err) reject(err)
+      resolve(produto)
+    })
+  })
+}
+
 exports.getDadosDoProduto = queryString => {
   return new Promise((resolve, reject) => {
     datastore.findOne(queryString, (err, resultado) => {
