@@ -1,5 +1,23 @@
 # Changelog
 
+# [2.22.0](https://github.com/ServeRest/ServeRest/compare/v2.21.0...v2.22.0) (2021-03-18)
+
+
+### Bug Fixes
+
+* **docs:** ajustar mensagem de erro quando usuario nao e encontrado ([cea7576](https://github.com/ServeRest/ServeRest/commit/cea75763bf06c4636bc61b2357b0ac67a77afb49))
+
+
+### Chores
+
+* **monitor:** não monitorar requests específicas realizadas pelo Cypress ao executar testes de API ([8f2632d](https://github.com/ServeRest/ServeRest/commit/8f2632d77842fec2f5993fc07414705d1426ba37))
+
+
+### Features
+
+* **carrinhos:** criar rota de busca de carrinho por ID ([fcd3a49](https://github.com/ServeRest/ServeRest/commit/fcd3a49f42bf359df888111767eb8003a973f1d4)), closes [#211](https://github.com/ServeRest/ServeRest/issues/211)
+* **produtos:** criar rota de busca de produto por ID ([938da13](https://github.com/ServeRest/ServeRest/commit/938da133e3ef7132fcc0c7b2d824e7e9b8a6456e)), closes [#211](https://github.com/ServeRest/ServeRest/issues/211)
+
 # [2.21.0](https://github.com/ServeRest/ServeRest/compare/v2.20.7...v2.21.0) (2021-03-17)
 
 
