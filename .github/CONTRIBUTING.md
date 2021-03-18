@@ -5,7 +5,7 @@
 [![Deploy ServeRest on the web](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml)
 [![Continuous Integration](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml)
 
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FServeRest%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
@@ -87,7 +87,7 @@ Para validar a cobertura localmente execute os testes. É apresentado um report 
 
 ## 💥 Testes de Mutação
 
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FPauloGoncalvesBH%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FServeRest%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 
 O teste de mutação garante que os testes de API são efetivos e complementa a [cobertura de código](#-cobertura-de-código).
 
@@ -97,7 +97,7 @@ Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
 
 Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[Teste de mutação 👽: O que é e como fica a cobertura de código?](https://github.com/PauloGoncalvesBH/teste-de-mutacao)'.
 
-> [Clique aqui para ver o dashboard do teste de mutação.](https://dashboard.stryker-mutator.io/reports/github.com/PauloGoncalvesBH/ServeRest/trunk)
+> [Clique aqui para ver o dashboard do teste de mutação.](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 
 ## 💥💻 Lint
 
