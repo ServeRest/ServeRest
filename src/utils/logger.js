@@ -24,7 +24,13 @@ module.exports = async app => {
     identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version },
     skip: (req, res) => {
-      if (req.path === '/favicon.ico' || req.path === '/version' || req.path === '/socket.io' || (formaDeExecucao() === 'serverest.dev' && req.path === '/') || req.path === '/__messages__' || req.headers.monitor) {
+      if (req.path === '/__messages__' ||
+          req.path === '/favicon.ico' ||
+          req.path === '/socket.io' ||
+          req.path === '/version' ||
+          req.headers.monitor ||
+          (formaDeExecucao() === 'serverest.dev' && req.path === '/') ||
+          (formaDeExecucao() === 'agilizei' && req.path === '/')) {
         return true
       }
     },

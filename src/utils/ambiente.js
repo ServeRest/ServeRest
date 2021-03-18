@@ -1,16 +1,12 @@
 /* istanbul ignore file */
 
 function formaDeExecucao () {
-  switch (process.env.USERNAME) {
-    case 'docker':
-      return 'docker'
-    case 'serverest.dev':
-      return 'serverest.dev'
-    case 'agilizei':
-      return 'agilizei'
-    default:
-      return 'npm'
+  if (process.env.USERNAME === 'docker' ||
+      process.env.USERNAME === 'serverest.dev' ||
+      process.env.USERNAME === 'agilizei') {
+    return process.env.USERNAME
   }
+  return 'npm'
 }
 
 function urlDocumentacao () {
