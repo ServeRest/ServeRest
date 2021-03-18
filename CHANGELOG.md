@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.22.1](https://github.com/ServeRest/ServeRest/compare/v2.22.0...v2.22.1) (2021-03-18)
+
+
+### Chores
+
+* **patch:** não monitorar acesso à documentação do ServeRest em Agilizei ([ac2ed32](https://github.com/ServeRest/ServeRest/commit/ac2ed3229427cc9840e8bb2ad44d4bfe97300e39))
+
+
+### Continuous Integration
+
+* **check-link:** remover configuração de URLs inexistentes ([f17b9d2](https://github.com/ServeRest/ServeRest/commit/f17b9d2d7a6abf3fbe893b751cba22e2e4c86fbd))
+
+
+### Documentation
+
+* migrar dashboard do resultado do teste de mutação para a referente ao novo repositório ([a45c00e](https://github.com/ServeRest/ServeRest/commit/a45c00ea3d0861888155a5188a5d57df1a45a684))
+
 # [2.22.0](https://github.com/ServeRest/ServeRest/compare/v2.21.0...v2.22.0) (2021-03-18)
 
 
