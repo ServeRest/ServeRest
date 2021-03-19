@@ -1,8 +1,8 @@
-name: Check links [.md, HTML]
+name: Check links on .md
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "0 22 */1 * *"
   workflow_dispatch:
   push:
     paths:
