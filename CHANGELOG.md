@@ -1,5 +1,28 @@
 # Changelog
 
+# [2.23.0](https://github.com/ServeRest/ServeRest/compare/v2.22.1...v2.23.0) (2021-03-20)
+
+
+### Bug Fixes
+
+* estava abrindo URL incorreta ao iniciar o ServeRest utilizando porta diferente da padrão ([95ea7ae](https://github.com/ServeRest/ServeRest/commit/95ea7aee0110ac6e6533ae6f837aa28ecdb2f378))
+
+
+### Chores
+
+* **monitor:** mapear as configurações utilizadas pelos usuários do ServeRest que usam NPM e Docker ([9d31551](https://github.com/ServeRest/ServeRest/commit/9d315518ad8fea9a5e0da385fce84764ae8e450a))
+
+
+### Continuous Integration
+
+* **check-link:** reduzir periodicidade de validação dos links em arquivos .md ([2f6971d](https://github.com/ServeRest/ServeRest/commit/2f6971d6db71727b9423cb6f9d17ceb82972a626))
+
+
+### Features
+
+* **docker:** habilitar a exibição das saídas da imagem com cor ([5365bfe](https://github.com/ServeRest/ServeRest/commit/5365bfe2b10f55a3a909abd32c3d5289dc4b69e7))
+* **docker:** possibilitar configuração de porta, timeout, ajuda, etc. na execução da imagem ([6f8d416](https://github.com/ServeRest/ServeRest/commit/6f8d416e477307ebf8499922ba6f4ec6ec9bfc24))
+
 ## [2.22.1](https://github.com/ServeRest/ServeRest/compare/v2.22.0...v2.22.1) (2021-03-18)
 
 
