@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.23.1](https://github.com/ServeRest/ServeRest/compare/v2.23.0...v2.23.1) (2021-03-20)
+
+
+### Bug Fixes
+
+* **docker:** informar o usuário, ao iniciar o ServeRest via docker, da existência da opção de --help ([5e284d0](https://github.com/ServeRest/ServeRest/commit/5e284d0f82aebf0f0a1d0c5f1def88d5bc24368c))
+
 # [2.23.0](https://github.com/ServeRest/ServeRest/compare/v2.22.1...v2.23.0) (2021-03-20)
 
 
