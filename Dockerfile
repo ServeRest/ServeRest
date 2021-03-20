@@ -10,6 +10,8 @@ COPY . .
 
 ENV USERNAME='docker'
 
+ENV TERM xterm-256color
+
 EXPOSE 3000
 
 ENTRYPOINT [ "npm", "start", "--" ]
