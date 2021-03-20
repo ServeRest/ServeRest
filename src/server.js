@@ -67,7 +67,9 @@ server.listen(port, async () => {
   console.log(colors.white.bold('Teste o funcionamento acessando'), colors.yellow.bold(`http://localhost:${port}/usuarios`), colors.white.bold('no navegador\n'))
   console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold(`http://localhost:${port}`))
   if (formaDeExecucao() === 'npm') {
-    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest -h'))
+    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest --help'))
+  } else if (formaDeExecucao() === 'docker') {
+    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('docker run -p 3000:3000 paulogoncalvesbh/serverest --help'))
   }
   console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('https://github.com/ServeRest/ServeRest'))
   console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
