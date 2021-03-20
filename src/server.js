@@ -15,7 +15,10 @@ const DEFAULT_PORT = 3000
 const argv = require('yargs')
   .default({
     porta: conf.porta,
-    timeout: conf.tokenTimeout
+    timeout: conf.tokenTimeout,
+    nodoc: false,
+    nobearer: false,
+    nosec: false
   })
   .boolean(['nobearer', 'nodoc', 'nosec'])
   .number(['timeout', 'porta'])
@@ -44,6 +47,8 @@ const argv = require('yargs')
   .epilog('Precisa de ajuda?')
   .epilog('Abra uma issue em github.com/ServeRest/ServeRest/issues')
   .argv
+
+module.exports = { argv }
 
 conf.tokenTimeout = argv.timeout
 conf.semHeaderDeSeguranca = argv.nosec
