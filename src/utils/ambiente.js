@@ -1,5 +1,7 @@
 /* istanbul ignore file */
 
+const { conf } = require('./conf')
+
 function formaDeExecucao () {
   if (process.env.USERNAME === 'docker' ||
       process.env.USERNAME === 'serverest.dev' ||
@@ -16,7 +18,7 @@ function urlDocumentacao () {
     case 'agilizei':
       return 'https://serverest-api.agilizei.com/'
     default:
-      return 'http://localhost:3000'
+      return `http://localhost:${conf.porta}`
   }
 }
 

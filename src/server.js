@@ -8,7 +8,7 @@ const http = require('http')
 const open = require('open')
 
 const { version } = require('../package.json')
-const { formaDeExecucao } = require('./utils/ambiente')
+const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const DEFAULT_PORT = 3000
 
@@ -71,7 +71,7 @@ server.on('error', onError)
 server.on('listening', onListening)
 
 if (!argv.nodoc) {
-  open('http://localhost:3000')
+  open(urlDocumentacao())
 }
 
 function normalizePort (val) {
