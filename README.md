@@ -111,6 +111,11 @@ Execute o seguinte comando no terminal:
 docker run -p 3000:3000 paulogoncalvesbh/serverest:latest
 ```
 
+Para visualizar as configurações que são possíveis de serem feitas execute o comando:
+
+```sh
+docker run -p 3000:3000 paulogoncalvesbh/serverest:latest --help
+```
 ### Executando versão específica
 
 Em ambos os comandos de subida de ambiente local será utilizado a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
