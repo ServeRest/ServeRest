@@ -28,7 +28,8 @@
     "api"
   ],
   "scripts": {
-    "commit": "git-cz",
+    "prepare": "is-ci || husky install",
+    "commit": "cz",
     "start": "node ./src/server.js",
     "dev": "cross-env NODE_ENV=serverest-development nodemon ./src/server.js --nodoc",
     "test:mutation": "cross-env NODE_ENV=serverest-test stryker run ./test/stryker.conf.js",
@@ -36,17 +37,11 @@
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
+    "lint:staged": "lint-staged",
     "generate-doc": "aglio -i docs/serverest.apib --theme-variables flatly --theme-template triple",
     "generate-doc:serverest": "npm run generate-doc -- -o docs/serverest.dev.html",
     "generate-doc:local": "npm run generate-doc -- -o docs/localhost.html",
     "generate-doc:agilizei": "npm run generate-doc -- -o docs/agilizei.html"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "npm test && git restore *.db",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
   },
   "dependencies": {
     "colors": "^1.4.0",
@@ -82,7 +77,8 @@
     "cross-env": "^7.0.3",
     "cz-conventional-changelog": "^3.3.0",
     "faker": "^5.1.0",
-    "husky": "^4.3.5",
+    "husky": "^5.2.0",
+    "is-ci": "^2.0.0",
     "lint-staged": "^10.5.3",
     "mocha": "^8.2.1",
     "nodemon": "^2.0.6",
@@ -98,7 +94,7 @@
   },
   "config": {
     "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
+      "path": "cz-conventional-changelog"
     }
   },
   "standard": {
