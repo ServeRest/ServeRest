@@ -3,7 +3,6 @@ node_modules/
 reports/
 
 coverage.lcov
-serverest.apib
 # stryker temp files
 .stryker-tmp
 stryker.log

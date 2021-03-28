@@ -11,6 +11,9 @@
 		},
 		{
 			"pattern": "https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional"
+		},
+		{
+			"pattern": "http://localhost:3000"
 		}
 	]
 }

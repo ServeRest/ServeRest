@@ -36,7 +36,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
 - [Publicação das releases](#publicação-das-releases)
-- [Documentação (serverest.dev)](#documentação-serverestdev)
+- [Documentação](#documentação)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
 - [Execução do projeto via Makefile](#execução-do-projeto-via-makefile)
     - [Build](#build)
@@ -143,17 +143,13 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 
 Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
 
-## Documentação (serverest.dev)
+## Documentação
 
-[![Deploy docs on serverest.dev](https://github.com/ServeRest/ServeRest/workflows/Deploy%20docs%20on%20serverest.dev/badge.svg)](https://github.com/ServeRest/ServeRest/actions)
-
-A documentação, disponibilizada na url <https://serverest.dev>, é editada no [apiary](https://apiary.io/home) e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
+A documentação, disponibilizada nas URLs <https://serverest.dev> e <http://localhost:3000>, é editada no arquivo `serverest.apib` e gerada a partir do [aglio](https://www.npmjs.com/package/aglio).
 
 Para atualizar:
-1. Acesse o [editor do ServeRest no Apiary](https://app.apiary.io/serverest/editor) e faça as alterações necessárias.
-    - É preciso ter permissão de edição.
-2. Realize o download do arquivo `serverest.apib` e salve esse arquivo na raiz do _ServeRest_.
-3. Execute o comando `npm run generate-doc`
+1. Acesse o arquivo `serverest.apib` que está dentro de _docs_ e o edite de acordo com sua necessidade.
+1. Execute o comando `npm run generate-doc:AMBIENTE` para gerar o HTML final.
 
 ## Reconhecimento de contribuição
 

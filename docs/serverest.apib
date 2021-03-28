@@ -1,0 +1,693 @@
+FORMAT: 1A
+HOST: https://serverest.dev
+
+# ServeRest
+
+_O ServeRest é um servidor REST que simula uma loja virtual com intuito de servir de material de estudos de testes de API._
+
+**Essa página documenta todas as rotas e como acessá-las. Para mais detalhes do ServeRest (como executar localmente, etc) acesse o [GitHub do projeto](https://github.com/ServeRest/ServeRest).**
+
+Precisa de ajuda? Abra uma issue [aqui](https://github.com/ServeRest/ServeRest/issues).
+
+Gostou do projeto? O que acha de apoiar? [Veja como aqui](https://github.com/ServeRest/ServeRest#patrocinadores).
+
+*[Criado com ♥ por Paulo Gonçalves](https://www.linkedin.com/in/paulo-goncalves/)*
+
+## Status
+
+Está enfrentando instabilidade em alguma rota? Acesse [a página de status](https://status.serverest.dev) para acompanhar enquanto normalizamos o ambiente.
+
+## Autenticação
+
+Para utilizar determinadas rotas é necessário estar autenticado.
+
+Para autenticar pegue o valor de `authorization` da resposta de [/login](#login) e o insira no header `authorization` da request que precisa de autenticação.
+
+**Rotas que requerem autenticação:**
+
+| Verbo | Rota | Usuário tem que ser administrador?
+| ---- | ---- | :----:
+| POST | [/produtos](#produtos-post) | **Sim**
+| PUT | [/produtos/{id}](#produtos-put) | **Sim**
+| DELETE | [/produtos/{id}](#produtos-delete) | **Sim**
+| POST | [/carrinhos](#carrinhos-post) | Não
+| DELETE | [/carrinhos/concluir-compra](#carrinhos-delete) | Não
+| DELETE | [/carrinhos/cancelar-compra](#carrinhos-delete-1) | Não
+
+**USUÁRIO ADMINISTRADOR**
+
+Algumas das rotas citadas acima requerem que o usuário seja administrador. Nessas rotas, além de estar logado, é preciso que o usuário do login possua a tag `administrador` igual a `true`.
+
+> Imagine esse comportamento igual a uma loja. Apenas funcionários podem alterar o cadastro dos produtos.
+
+## Login [/login]
+
+### Realizar login [POST]
+
+**A configuração abaixo é possível apenas se o ServeRest foi iniciado utilizando NPM.**
+
+### Timeout da autenticação
+
+A duração padrão do token retornado em `authorization` é de 600 segundos (10 minutos). Caso esteja expirado irá receber status code _401 (Unauthorized)_.
+
+Aumente a duração do token para manter autenticado por um período de tempo maior sem realizar novo `/login`. Inicie o _ServeRest_ da seguinte forma:
+
+```
+npx serverest --timeout <duracao-do-token-em-segundos>
+npx serverest --timeout 3600
+```
+
+No exemplo acima estamos alterando o timeout para 3600 segundos (1 hora).
+
+### Bearer
+
+Por padrão o `authorization` retorna a palavra `Bearer ` no início.
+
+Caso queira desabilitar e receber apenas o token, inicie o _ServeRest_ da seguinte forma:
+
+```
+npx serverest --nobearer
+npx serverest -b
+```
+
+**Atenção:** Ainda será necessário enviar `Bearer ` no header `authorization` ao utilizar rota que requer autenticação.
+
++ Request
+
+    + Body
+
+            {
+                "email": "fulano@qa.com",
+                "password": "teste"
+            }
+
++ Response 200
+
+    + Body
+
+            {
+                "message": "Login realizado com sucesso",
+                "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZ1bGFub0BxYS5jb20iLCJwYXNzd29yZCI6InRlc3RlIiwiaWF0IjoxNTg5NzU4NzQ2LCJleHAiOjE1ODk3Njg3NDZ9.B6TASHV8k9xBerz4NSeFBlAZGSDhZlqESt767M0567I"
+            }
+
++ Response 401
+
+    + Body
+    
+            {
+                "message": "Email e/ou senha inválidos"
+            }
+
+## Usuários [/usuarios]
+
+### Listar usuários cadastrados [GET]
+
+Para filtrar o resultado utilize _query string_.
+
+Exemplos de uso:
+1. `https://serverest.dev/usuarios?_id=0uxuPY0cbmQhpEz1`
+2. `https://serverest.dev/usuarios?nome=Paulo Gonçalves&administrador=false`
+
+Chaves permitidas na _query string_:
+- `_id`
+- `nome`
+- `email`
+- `password`
+- `administrador`
+
++ Response 200
+
+        {
+            "quantidade": 1,
+            "usuarios": [
+                {
+                    "nome": "Fulano da Silva",
+                    "email": "fulano@qa.com",
+                    "password": "teste",
+                    "administrador": "true",
+                    "_id": "0uxuPY0cbmQhpEz1"
+                }
+            ]
+        }
+
+### Buscar usuário por ID [GET /usuarios/{id}]
+
++ Parameters
+    + id (required, string, `0uxuPY0cbmQhpEz1`) ... ID do usuário
+
++ Response 200
+
+        {
+                "nome": "Fulano da Silva",
+                "email": "fulano@qa.com",
+                "password": "teste",
+                "administrador": "true"
+        }
+
++ Response 400
+
+        {
+                "message": "Usuário não encontrado"
+        }
+
+### Cadastrar usuário [POST]
+
+Não é permitido cadastrar usuário com email já utilizado.
+
++ Request
+
+        {
+                "nome": "Fulano da Silva",
+                "email": "fulano@qa.com",
+                "password": "teste",
+                "administrador": "true"
+        }
+
++ Response 201
+
+    + Body
+
+            {
+                "message": "Cadastro realizado com sucesso",
+                "_id": "jogfODIlXsqxNFS2"
+            }
+
++ Response 400
+
+    + Body
+    
+            {
+                "message": "Este email já está sendo usado"
+            }
+
+### Editar usuário [PUT /usuarios/{id}]
+
+Não é permitido cadastrar usuário com email já utilizado.
+
+Caso não seja encontrado usuário com o _id_ informado é realizado novo cadastro ao invés de alteração.
+
++ Parameters
+    + id (required, string, `0uxuPY0cbmQhpEz1`) ... ID do usuário
+
++ Request
+
+        {
+                "nome": "Fulano da Silva",
+                "email": "fulano@qa.com",
+                "password": "teste",
+                "administrador": "true"
+        }
+
++ Response 200
+
+        {
+            "message": "Registro alterado com sucesso"
+        }
+
++ Response 201
+
+        {
+            "message": "Cadastro realizado com sucesso",
+            "_id": "oHKeBoRtxn6Gz7VB"
+        }
+
++ Response 400
+
+        {
+                "message": "Este email já está sendo usado"
+        }
+
+### Excluir usuário [DELETE /usuarios/{id}]
+
+Não é permitido excluir usuário com carrinho.
+
++ Parameters
+    + id (required, string, `0uxuPY0cbmQhpEz1`) ... ID do usuário
+
++ Response 200
+
+        {
+            "message": "Registro excluído com sucesso"
+        }
+
++ Response 200
+
+        {
+            "message": "Nenhum registro excluído"
+        }
+
++ Response 400
+
+        {
+            "message": "Não é permitido excluir usuário com carrinho cadastrado",
+            "idCarrinho": "qbMqntef4iTOwWfg"
+        }
+
+## Produtos [/produtos]
+
+### Listar produtos cadastros [GET]
+
+Para filtrar o resultado utilize _query string_.
+
+Exemplos de uso:
+1. `https://serverest.dev/produtos?_id=BeeJh5lz3k6kSIzA`
+2. `https://serverest.dev/produtos?nome=Samsung 60 polegadas&descricao=TV`
+
+Chaves permitidas na _query string_:
+- `_id`
+- `nome`
+- `preco`
+- `descricao`
+- `quantidade`
+
++ Response 200
+
+        {
+            "quantidade": 2,
+            "produtos": [
+                {
+                    "nome": "Logitech MX Vertical",
+                    "preco": 470,
+                    "descricao": "Mouse",
+                    "quantidade": 381,
+                    "_id": "BeeJh5lz3k6kSIzA"
+                },
+                {
+                    "nome": "Samsung 60 polegadas",
+                    "preco": 5240,
+                    "descricao": "TV",
+                    "quantidade": 49977,
+                    "_id": "K6leHdftCeOJj8BJ"
+                }
+            ]
+        }
+
+### Buscar produto por ID [GET /produtos/{id}]
+
++ Parameters
+    + id (required, string, `BeeJh5lz3k6kSIzA`) ... ID do produto
+
++ Response 200
+
+        {
+            "nome": "Logitech MX Vertical",
+            "preco": 470,
+            "descricao": "Mouse",
+            "quantidade": 381,
+            "_id": "BeeJh5lz3k6kSIzA"
+        }
+
++ Response 400
+
+        {
+                "message": "Produto não encontrado"
+        }
+
+### Cadastrar produto [POST]
+
+**Requer autenticação e que usuário seja administrador. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+Não é permitido cadastrar produto com nome já utilizado.
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA8
+
+    + Body
+    
+            {
+                    "nome": "Logitech MX Vertical",
+                    "preco": "470",
+                    "descricao": "Mouse bom",
+                    "quantidade": "5"
+            }
+
++ Response 201
+
+    + Body
+
+            {
+                "message": "Cadastro realizado com sucesso",
+                "_id": "APRp9558ekE2LhmH"
+            }
+
++ Response 400
+
+    + Body
+    
+            {
+                "message": "Já existe produto com esse nome"
+            }
+
++ Response 401
+
+    + Body
+    
+            {
+                "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+            }
+
++ Response 403
+
+    + Body
+    
+            {
+                "message": "Rota exclusiva para administradores"
+            }
+
+### Editar produto [PUT /produtos/{id}]
+
+**Requer autenticação e que usuário seja administrador. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+Não é permitido cadastrar produto com nome já utilizado.
+
+Caso não seja encontrado produto com o _id_ informado é realizado novo cadastro ao invés de alteração.
+
++ Parameters
+    + id (required, string, `0uxuPY0cbmQhpEz1`) ... ID do produto
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA8
+
+    + Body
+    
+            {
+                    "nome": "Logitech MX Vertical",
+                    "preco": "470",
+                    "descricao": "Mouse bom",
+                    "quantidade": "5"
+            }
+
++ Response 200
+
+        {
+            "message": "Registro alterado com sucesso"
+        }
+
++ Response 201
+
+        {
+            "message": "Cadastro realizado com sucesso",
+            "_id": "oHKeBoRtxn6Gz7VB"
+        }
+
++ Response 400
+
+        {
+                "message": "Já existe produto com esse nome"
+        }
+
++ Response 401
+    
+        {
+            "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+        }
+
++ Response 403
+    
+        {
+            "message": "Rota exclusiva para administradores"
+        }
+
+### Excluir produto [DELETE /produtos/{id}]
+
+**Requer autenticação e que usuário seja administrador. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+Não é permitido excluir produto que faz parte de carrinho.
+
++ Parameters
+    + id (required, string, `0uxuPY0cbmQhpEz1`) ... ID do produto
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA8
+
++ Response 200
+
+        {
+            "message": "Registro excluído com sucesso"
+        }
+
++ Response 200
+
+        {
+            "message": "Nenhum registro excluído"
+        }
+
++ Response 400
+
+        {
+            "message": "Não é permitido excluir produto que faz parte de carrinho",
+            "idCarrinhos": [
+                "qbMqntef4iTOwWfg",
+                "yILJY1eaAUC6hyRc"
+            ]
+        }
+
++ Response 401
+    
+        {
+            "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+        }
+
++ Response 403
+    
+        {
+            "message": "Rota exclusiva para administradores"
+        }
+
+
+## Carrinhos [/carrinhos]
+
+### Listar carrinhos cadastros [GET]
+
+Para filtrar o resultado utilize _query string_.
+
+Exemplos de uso:
+1. `https://serverest.dev/carrinhos?idUsuario=oUb7aGkMtSEPf6BZ`
+2. `https://serverest.dev/carrinhos?quantidadeTotal=1&precoTotal=470`
+
+Chaves permitidas na _query string_:
+- `_id`
+- `precoTotal`
+- `quantidadeTotal`
+- `idUsuario`
+
++ Response 200
+
+        {
+            "quantidade": 2,
+            "carrinhos": [
+                {
+                    "produtos": [
+                        {
+                            "idProduto": "BeeJh5lz3k6kSIzA",
+                            "quantidade": 2,
+                            "precoUnitario": 470
+                        },
+                        {
+                            "idProduto": "K6leHdftCeOJj8BJ",
+                            "quantidade": 1,
+                            "precoUnitario": 5240
+                        }
+                    ],
+                    "precoTotal": 6180,
+                    "quantidadeTotal": 3,
+                    "idUsuario": "oUb7aGkMtSEPf6BZ",
+                    "_id": "qbMqntef4iTOwWfg"
+                },
+                {
+                    "produtos": [
+                        {
+                            "idProduto": "BeeJh5lz3k6kSIzA",
+                            "quantidade": 1,
+                            "precoUnitario": 470
+                        }
+                    ],
+                    "precoTotal": 470,
+                    "quantidadeTotal": 1,
+                    "idUsuario": "0uxuPY0cbmQhpEz1",
+                    "_id": "yILJY1eaAUC6hyRc"
+                }
+            ]
+        }
+        
+### Buscar carrinho por ID [GET /carrinhos/{id}]
+
++ Parameters
+    + id (required, string, `qbMqntef4iTOwWfg`) ... ID do usuário
+
++ Response 200
+
+        {
+            "produtos": [
+                {
+                    "idProduto": "BeeJh5lz3k6kSIzA",
+                    "quantidade": 2,
+                    "precoUnitario": 470
+                },
+                {
+                    "idProduto": "K6leHdftCeOJj8BJ",
+                    "quantidade": 1,
+                    "precoUnitario": 5240
+                }
+            ],
+            "precoTotal": 6180,
+            "quantidadeTotal": 3,
+            "idUsuario": "oUb7aGkMtSEPf6BZ",
+            "_id": "qbMqntef4iTOwWfg"
+        }
+
++ Response 400
+
+        {
+                "message": "Carrinho não encontrado"
+        }
+
+### Cadastrar carrinho [POST]
+
+**Requer autenticação. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+O carrinho é vinculado ao usuário do token enviado no header `Authorization`.
+
+É possível cadastrar apenas 1 carrinho por usuário.
+
+Ao cadastrar carrinho com sucesso é feita a redução da quantidade no cadastro de cada produto inserido no carrinho.
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA8
+
+    + Body
+    
+            {
+                "produtos": 
+                [{
+                    "idProduto": "BeeJh5lz3k6kSIzA",
+                    "quantidade": 1
+                },
+                {
+                    "idProduto": "YaeJ455lz3k6kSIzA",
+                    "quantidade": 3
+                }]
+            }
+
++ Response 201
+
+    + Body
+
+            {
+                "message": "Cadastro realizado com sucesso",
+                "_id": "IhhVmmkujENw8l87"
+            }
+            
++ Response 400
+
+            {
+                "message": "Não é permitido possuir produto duplicado",
+                "idProdutosDuplicados": [
+                    "BeeJh5lz3k6kSIzA"
+                ]
+            }
+
++ Response 400
+
+    + Body
+    
+            {
+                "message": "Não é permitido ter mais de 1 carrinho"
+            }
+
++ Response 400
+
+            {
+                "message": "Produto não encontrado",
+                "item": {
+                    "index": 0,
+                    "idProduto": "aaaaBeeJh5lz3k6kSIzA",
+                    "quantidade": 1
+                }
+            }
+
++ Response 400
+
+            {
+                "message": "Produto não possui quantidade suficiente",
+                "item": {
+                    "index": 0,
+                    "idProduto": "BeeJh5lz3k6kSIzA",
+                    "quantidade": 500000,
+                    "quantidadeEstoque": 380
+                }
+            }
+
++ Response 401
+
+    + Body
+    
+            {
+                "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+            }
+
+### Concluir compra [DELETE /carrinhos/concluir-compra]
+
+**Requer autenticação. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+Ao concluir uma compra o carrinho é excluído.
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA
+
++ Response 200
+
+        {
+            "message": "Registro excluído com sucesso"
+        }
+
++ Response 200
+
+        {
+            "message": "Não foi encontrado carrinho para esse usuário"
+        }
+
++ Response 401
+    
+        {
+            "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+        }
+
+### Cancelar compra [DELETE /carrinhos/cancelar-compra]
+
+**Requer autenticação. _Saiba mais na seção [Autenticação](#header-autenticação)_**
+
+Ao cancelar uma compra o carrinho é excluído e o estoque dos produtos desse carrinho é reabastecido.
+
++ Request
+    + Headers
+    
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdWxvQGcuY29tIiwicGFzc3dvcmQiOiJ0ZXN0ZSIsImlhdCI6MTU4ODQ1MTIxNiwiZXhwIjoxNTg4NTM3NjE2fQ.nhwC1-1tulXjhpFIgQLL0swklfaow5jkJYuU-20cKA
+
++ Response 200
+
+        {
+            "message": "Registro excluído com sucesso. Estoque dos produtos reabastecido"
+        }
+
++ Response 200
+
+        {
+            "message": "Não foi encontrado carrinho para esse usuário"
+        }
+
++ Response 401
+    
+        {
+            "message": "Token de acesso ausente, inválido, expirado ou usuário do token não existe mais"
+        }

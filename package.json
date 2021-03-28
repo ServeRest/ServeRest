@@ -36,7 +36,10 @@
     "test": "cross-env NODE_ENV=serverest-test nyc mocha --config test/.mocharc.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
-    "generate-doc": "npx aglio -i serverest.apib --theme-variables flatly --theme-template triple -o docs/serverest.dev.html"
+    "generate-doc": "aglio -i docs/serverest.apib --theme-variables flatly --theme-template triple",
+    "generate-doc:serverest": "npm run generate-doc -- -o docs/serverest.dev.html",
+    "generate-doc:local": "npm run generate-doc -- -o docs/localhost.html",
+    "generate-doc:agilizei": "npm run generate-doc -- -o docs/agilizei.html"
   },
   "husky": {
     "hooks": {
@@ -73,6 +76,7 @@
     "@semantic-release/npm": "^7.0.9",
     "@semantic-release/release-notes-generator": "^9.0.1",
     "@stryker-mutator/core": "^4.1.2",
+    "aglio": "^2.3.0",
     "chai": "^4.2.0",
     "commitizen": "^4.2.2",
     "cross-env": "^7.0.3",
