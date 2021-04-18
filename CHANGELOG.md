@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.23.2](https://github.com/ServeRest/ServeRest/compare/v2.23.1...v2.23.2) (2021-04-18)
+
+
+### Chores
+
+* bump dependencies ([6c8cad4](https://github.com/ServeRest/ServeRest/commit/6c8cad4b61acb22e6cfff7efe9ee6afd90d7387f))
+* **husky:** bump husky da v4 para a v5 ([d87f635](https://github.com/ServeRest/ServeRest/commit/d87f6351abb055a1d14e6a3bc8a2eb60e586d994))
+
+
+### Code Refactoring
+
+* mover os testes de integração para respectivo diretório ([dcb55b8](https://github.com/ServeRest/ServeRest/commit/dcb55b87f14db658d51ce29972aea6e03a16a030))
+
+
+### Documentation
+
+* **serverest:** incluir logo no README e favicon na documentação ([a0ec748](https://github.com/ServeRest/ServeRest/commit/a0ec748d494554ce6181a8e2fdd89bb73fda9792))
+* possibilitar a alteração da documentação para todos os colaboradores ([43e2f9c](https://github.com/ServeRest/ServeRest/commit/43e2f9cf3a525420edb9de1965e92d0f46ff6ed0))
+
+
+### Styles
+
+* **docker:** execute dockerfile lint on CI ([6368483](https://github.com/ServeRest/ServeRest/commit/63684838701b69b0fb36a4d8fb5d174b23c5ce68))
+
+
+### Tests
+
+* **docker:** implementar teste de infra, validando mensagem retornada ([3486c9a](https://github.com/ServeRest/ServeRest/commit/3486c9a21a57ef2227a121e4b28d8f79482374bf))
+
 ## [2.23.1](https://github.com/ServeRest/ServeRest/compare/v2.23.0...v2.23.1) (2021-03-20)
 
 
