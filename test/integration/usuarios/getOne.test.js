@@ -1,5 +1,5 @@
 const chai = require('chai')
-const constants = require('../../src/utils/constants')
+const constants = require('../../../src/utils/constants')
 
 const rotaUsuarios = '/usuarios'
 const utils = require('../utils')

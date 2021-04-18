@@ -1,7 +1,7 @@
 const chai = require('chai')
 const sandbox = require('sinon').createSandbox()
 
-const carrinhosService = require('../../src/services/carrinhos-service.js')
+const carrinhosService = require('../../../src/services/carrinhos-service.js')
 
 describe('Error handler', () => {
   afterEach(() => sandbox.restore())

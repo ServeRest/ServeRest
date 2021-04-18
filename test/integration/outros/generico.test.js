@@ -1,7 +1,7 @@
 const chai = require('chai')
 const joi = require('@hapi/joi')
 
-const { version } = require('../../package.json')
+const { version } = require('../../../package.json')
 
 describe('GENERICO', () => {
   it('Mensagem de rota inexistente', async () => {
