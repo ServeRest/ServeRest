@@ -35,6 +35,15 @@ jobs:
       with:
         helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
 
+  dockerfile-lint:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker run --rm -i hadolint/hadolint < Dockerfile
+
   test-api:
 
     runs-on: ubuntu-18.04
