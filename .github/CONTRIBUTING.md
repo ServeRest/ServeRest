@@ -33,6 +33,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥💻 Testes de API](#-testes-de-api)
         - [💥💻 Cobertura de código](#-cobertura-de-código)
     - [💥 Testes de Mutação](#-testes-de-mutação)
+    - [💥 Teste de infra](#-teste-de-infra)
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
 - [Publicação das releases](#publicação-das-releases)
@@ -98,6 +99,30 @@ Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
 Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[Teste de mutação 👽: O que é e como fica a cobertura de código?](https://github.com/PauloGoncalvesBH/teste-de-mutacao)'.
 
 > [Clique aqui para ver o dashboard do teste de mutação.](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
+
+## 💥 Teste de infra
+[![Go Reference](https://pkg.go.dev/badge/github.com/gruntwork-io/terratest.svg)](https://pkg.go.dev/github.com/gruntwork-io/terratest)
+
+É utilizado o [Terratest](https://terratest.gruntwork.io/) para realizar teste de infraestrutura, validando comportamento da imagem docker durante sua execução.
+
+Para executar o teste de infra é preciso ter [Go](https://golang.org/doc/install) instalado.
+
+1. Acesse o diretório aonde estão os arquivos  `*_test.go`:
+```sh
+cd test/infra
+```
+
+2. Instale as dependências:
+```sh
+go mod tidy
+```
+
+3. Execute os testes:
+```sh
+go test -v -timeout 10m
+```
+
+> Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/#:~:text=Infrastructure%20testing%20is%20the%20testing%20process%20that%20covers%20hardware%2C%20software,reduces%20the%20risks%20of%20failure.).
 
 ## 💥💻 Lint
 

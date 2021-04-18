@@ -72,3 +72,19 @@ jobs:
         npm run test:mutation:diff
       env:
         STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+
+  test-infra-docker:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16.3' 
+    - name: Install dependencies
+      run: cd test/infra && go mod tidy
+    - name: Run infra test
+      run: cd test/infra && go test -v -timeout 10m
