@@ -13,7 +13,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js Setup
-      uses: actions/setup-node@v2.1.4
+      uses: actions/setup-node@v2
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Lint
@@ -31,7 +31,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: wagoid/commitlint-github-action@v2.1.6
+    - uses: wagoid/commitlint-github-action@v3
       with:
         helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
 
@@ -56,7 +56,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js v${{ matrix.node }} Setup
-      uses: actions/setup-node@v2.1.4
+      uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node }}
     - name: Installation of Node.js dependencies
@@ -72,7 +72,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Node.js Setup
-      uses: actions/setup-node@v2.1.4
+      uses: actions/setup-node@v2
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Mutation Test - Changed files in the branch

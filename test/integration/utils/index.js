@@ -19,10 +19,10 @@ async function cadastrarCarrinho ({
 }
 
 async function cadastrarProduto ({
-  nome = faker.commerce.productName() + faker.random.number() + faker.random.number(),
-  preco = faker.random.number(),
+  nome = faker.commerce.productName() + faker.datatype.number() + faker.datatype.number(),
+  preco = faker.datatype.number(),
   descricao = faker.random.words(),
-  quantidade = faker.random.number(),
+  quantidade = faker.datatype.number(),
   authorization
 } = {}) {
   const { body } = await request.post('/produtos').send({
@@ -44,7 +44,7 @@ async function cadastrarUsuario ({
   nome = faker.name.firstName() + ' ' + faker.name.lastName(),
   email = faker.internet.email(),
   password = faker.internet.password(),
-  administrador = `${faker.random.boolean()}`
+  administrador = `${faker.datatype.boolean()}`
 } = {}) {
   const { body } = await request.post('/usuarios').send({
     nome,
@@ -63,10 +63,10 @@ async function cadastrarUsuario ({
 
 function dadosProduto () {
   return {
-    nome: faker.commerce.productName() + faker.random.number() + faker.random.number(),
-    preco: faker.random.number(),
+    nome: faker.commerce.productName() + faker.datatype.number() + faker.datatype.number(),
+    preco: faker.datatype.number(),
     descricao: faker.random.words(),
-    quantidade: faker.random.number(),
+    quantidade: faker.datatype.number(),
     imagem: faker.random.words()
   }
 }

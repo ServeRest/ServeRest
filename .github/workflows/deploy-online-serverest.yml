@@ -28,7 +28,7 @@ jobs:
       with:
         fetch-depth: 2
     - name: Setup SSH to use on 'git push umbler'
-      uses: shimataro/ssh-key-action@v1.5.0
+      uses: shimataro/ssh-key-action@v2
       with:
         private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
@@ -53,7 +53,7 @@ jobs:
       with:
         fetch-depth: 2
     - name: Setup SSH to use on 'git push umbler'
-      uses: shimataro/ssh-key-action@v1.5.0
+      uses: shimataro/ssh-key-action@v2
       with:
         private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         public-key:  ${{ secrets.SSH_PUBLIC_KEY }}

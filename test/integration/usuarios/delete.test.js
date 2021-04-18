@@ -13,7 +13,7 @@ describe(rotaUsuarios + ' DELETE', () => {
       nome: faker.name.firstName() + ' ' + faker.name.lastName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      administrador: `${faker.random.boolean()}`
+      administrador: `${faker.datatype.boolean()}`
     }).expect(201)
 
     const { body: bodyDel } = await request.del(`${rotaUsuarios}/${body._id}`).expect(200)

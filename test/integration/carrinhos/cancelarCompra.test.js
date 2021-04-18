@@ -9,7 +9,7 @@ describe(rotaCancelarCompra + ' DELETE', () => {
   it('Registro excluído com sucesso. Estoque reabastecido', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
-    const quantidade = faker.random.number()
+    const quantidade = faker.datatype.number()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     await request.post(rotaCarrinhos).set('authorization', authorization).send({
