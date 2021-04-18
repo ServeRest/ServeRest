@@ -19,6 +19,10 @@
  </b>
 </p>
 
+<p align="center">
+ <img alt="Logo do ServeRest" src="https://user-images.githubusercontent.com/29241659/115161869-6a017e80-a076-11eb-9bbe-c391eff410db.png" height="120">
+</p>
+
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE* com persistência de dados
 - Autenticação no header

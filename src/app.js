@@ -64,7 +64,7 @@ app.get('/', async (req, res) => {
   }
   res.sendFile(join(__dirname, pathDocumentacao))
 })
-app.get('/favicon.ico', (req, res) => { res.sendStatus(204) })
+app.get('/favicon.ico', (req, res) => { res.sendFile(join(__dirname, '../docs/favicon.png')) })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 
 /* istanbul ignore if */

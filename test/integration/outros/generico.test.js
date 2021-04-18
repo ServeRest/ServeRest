@@ -24,11 +24,7 @@ describe('GENERICO', () => {
   })
 
   it('/favicon.ico', async () => {
-    const { body } = await request
-      .get('/favicon.ico')
-      .expect(204)
-
-    chai.assert.deepEqual(body, {})
+    await request.get('/favicon.ico').expect(200)
   })
 
   it('Validar presença de headers de segurança', async () => {
