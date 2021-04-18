@@ -3,7 +3,7 @@ const faker = require('faker')
 const sandbox = require('sinon').createSandbox()
 
 const rotaUsuarios = '/usuarios'
-const carrinhosService = require('../../src/services/carrinhos-service.js')
+const carrinhosService = require('../../../src/services/carrinhos-service.js')
 
 describe(rotaUsuarios + ' DELETE', () => {
   afterEach(() => sandbox.restore())

@@ -15,6 +15,6 @@ module.exports = {
   reporters: ['html', 'dashboard', 'clear-text', 'progress'],
   testRunner: 'command',
   commandRunner: {
-    command: 'mocha --config test/.mocharc.js'
+    command: 'mocha --config test/integration/.mocharc.js'
   }
 }
