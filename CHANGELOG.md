@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.24.0](https://github.com/ServeRest/ServeRest/compare/v2.23.2...v2.24.0) (2021-04-21)
+
+
+### Continuous Integration
+
+* **ssh:** voltar para versão estável da action ssh-key ([bec776f](https://github.com/ServeRest/ServeRest/commit/bec776fdef8c62b34bc854989b37a6d29fc198d5))
+
+
+### Features
+
+* busca por dados de usuário e produtos com dados equivalentes ([dffdd7b](https://github.com/ServeRest/ServeRest/commit/dffdd7b7973cb603b967df854adcf56d9698273a))
+
 ## [2.23.2](https://github.com/ServeRest/ServeRest/compare/v2.23.1...v2.23.2) (2021-04-18)
 
 
