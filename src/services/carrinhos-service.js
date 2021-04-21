@@ -3,12 +3,14 @@
 const Nedb = require('nedb')
 const { join } = require('path')
 
+const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
 
 const datastore = new Nedb({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
 
 exports.getAll = queryString => {
+  queryString = alterarValoresParaRegex(queryString)
   return new Promise((resolve, reject) => {
     datastore.find(queryString, (err, resultado) => {
       /* istanbul ignore if */
