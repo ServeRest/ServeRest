@@ -46,19 +46,21 @@ jobs:
 
   test-api:
 
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        node: [10, 12, 14]
+        node-version: [12.x, 14.x]
+        os: [ubuntu-18.04, ubuntu-20.04, windows-latest]
 
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js v${{ matrix.node }} Setup
+    - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node }}
+        node-version: ${{ matrix.node-version }}
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: API Test
