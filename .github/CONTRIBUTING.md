@@ -122,7 +122,7 @@ go mod tidy
 go test -v -timeout 10m
 ```
 
-> Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/#:~:text=Infrastructure%20testing%20is%20the%20testing%20process%20that%20covers%20hardware%2C%20software,reduces%20the%20risks%20of%20failure.).
+> Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/).
 
 ## 💥💻 Lint
 
