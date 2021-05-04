@@ -31,7 +31,7 @@ describe('ServeRest - Verificação do contrato', () => {
   it('Validates the expectations of ServeRest', () => {
     const options = {
       provider: 'ServeRest - API Rest',
-      logLevel: 'INFO',
+      logLevel: 'DEBUG',
       pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
