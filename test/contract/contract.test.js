@@ -35,7 +35,8 @@ describe('ServeRest - Verificação do contrato', () => {
       pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      providerVersionTags: gitBranch,
+      consumerVersionTags: ['main', 'production'],
+      providerVersionTags: process.env.GITHUB_BRANCH || gitBranch,
       providerVersion: gitHash,
       publishVerificationResult: isCI
     }
