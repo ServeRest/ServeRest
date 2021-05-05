@@ -110,28 +110,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Node.js Setup
       uses: actions/setup-node@v2
     - name: Installation of Node.js dependencies
       run: npm ci
+    - uses: EthanSK/git-branch-name-action@v1
     - name: Run contract test
       run: npm run test:contract
-
-  can-i-deploy-to-production:
-    needs: test-contract
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - uses: actions/checkout@v2
-    - run: docker pull pactfoundation/pact-cli:latest
-    - name: Install pact brocker
-      run: |
-        curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
-        tar xzf pact-1.88.51-linux-x86_64.tar.gz
-    - name: Verify that it will not break a contract in production
-      run: |
-        pact/bin/pact-broker can-i-deploy \
-        --pacticipant 'ServeRest - API Rest' \
-        --version ${{ github.sha }} \
-        --to production
+      env:
+        GITHUB_BRANCH: ${{ env.GIT_BRANCH_NAME }}
