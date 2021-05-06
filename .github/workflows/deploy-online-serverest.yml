@@ -17,7 +17,28 @@ on:
     - cron: "0 6 * * *"
 
 jobs:
+  can-i-deploy:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install pact broker
+      run: |
+        curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
+        tar xzf pact-1.88.51-linux-x86_64.tar.gz
+    - name: Verify that it will not break a contract in production
+      run: |
+        pact/bin/pact-broker can-i-deploy \
+        --pacticipant 'ServeRest - API Rest' \
+        --version ${{ github.sha }} \
+        --to production
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
   deploy-on-serverest-dev:
+    needs: can-i-deploy
     if: github.event.inputs.publicar-no-serverest-dev != 'false'
 
     runs-on: ubuntu-18.04
@@ -43,6 +64,7 @@ jobs:
         git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
 
   deploy-on-api-agilizei:
+    needs: can-i-deploy
     if: github.event_name == 'schedule' || github.event.inputs.publicar-no-agilizei == 'true'
 
     runs-on: ubuntu-18.04
@@ -66,3 +88,23 @@ jobs:
         git config --global user.name "deploy umbler"
         git commit --allow-empty -m "empty commity" --no-verify
         git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
+
+  contract-test-tag-pact:
+    needs: deploy-on-serverest-dev
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install pact broker
+      run: |
+        curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
+        tar xzf pact-1.88.51-linux-x86_64.tar.gz
+    - name: Tag the pact contract with 'production' tag
+      run: |
+        pact/bin/pact-broker create-version-tag \
+        --pacticipant 'ServeRest - API Rest' \
+        --version ${{ github.sha }} \
+        --tag production
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
