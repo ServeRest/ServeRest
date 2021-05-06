@@ -1,7 +1,6 @@
 name: Teste Repository Dispatch
 on:
   repository_dispatch:
-    types: [consumer-dispatch]
 jobs:
   myEvent:
     runs-on: ubuntu-latest
