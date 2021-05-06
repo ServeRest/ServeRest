@@ -4,10 +4,6 @@ on:
   push:
     branches: [trunk, beta]
 
-env:
-  PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-
 jobs:
   lint:
 
@@ -114,7 +110,10 @@ jobs:
       run: npm ci
     - name: Run contract test
       run: npm run test:contract
-    - name: Install pact brocker
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+    - name: Install pact broker
       run: |
         curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
         tar xzf pact-1.88.51-linux-x86_64.tar.gz
@@ -124,6 +123,9 @@ jobs:
         --pacticipant 'ServeRest - API Rest' \
         --version ${{ github.sha }} \
         --to production
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
     needs: [lint, commit-lint, dockerfile-lint, test-api, test-mutation, test-infra-docker, test-contract]
@@ -146,13 +148,3 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
-    - name: Install pact brocker
-      run: |
-        curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
-        tar xzf pact-1.88.51-linux-x86_64.tar.gz
-    - name: Tag the pact contract with 'production' tag
-      run: |
-        pact/bin/pact-broker create-version-tag \
-        --pacticipant 'ServeRest - API Rest' \
-        --version ${{ github.sha }} \
-        --tag production
