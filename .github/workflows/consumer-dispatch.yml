@@ -1,14 +1,13 @@
-name: Repository Dispatch
+name: Teste Repository Dispatch
 on:
-  pull_request:
   repository_dispatch:
     types: [consumer-dispatch]
 jobs:
   myEvent:
-    if: github.event.action == 'consumer-dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.client_payload.ref }}
+      - run: echo ${{ github.event.client_payload }}
+      - run: echo ${{ github.event.client_payload.ref }}
       - run: echo ${{ github.event.client_payload.sha }}
+      - run: echo ${{ github.event.client_payload.branch }}
