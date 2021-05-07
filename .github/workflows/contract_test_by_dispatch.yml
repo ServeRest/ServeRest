@@ -1,0 +1,28 @@
+name: Contract Test Triggered by Consumer
+
+on:
+  repository_dispatch:
+    types: [trigger-by-consumer]
+
+jobs:
+  test-contract:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Infos about the consumer
+      run: |
+        echo repository: ${{ github.event.client_payload.repository }}
+        echo ref: ${{ github.event.client_payload.ref }}
+        echo hash: ${{ github.event.client_payload.sha }}
+    - uses: actions/checkout@v2
+    - name: Node.js Setup
+      uses: actions/setup-node@v2
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Run contract test
+      run: npm run test:contract
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        CONSUMER_VERSION_TAG: ${{ github.event.client_payload.branch }}

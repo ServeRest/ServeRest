@@ -28,6 +28,10 @@ describe('ServeRest - Verificação do contrato', () => {
     server.close()
   })
 
+  const consumerVersionTags = process.env.CONSUMER_VERSION_TAG
+    ? ['production', process.env.CONSUMER_VERSION_TAG]
+    : ['production']
+
   it('Validates the expectations of ServeRest', () => {
     const options = {
       provider: 'ServeRest - API Rest',
@@ -35,7 +39,7 @@ describe('ServeRest - Verificação do contrato', () => {
       pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      consumerVersionTags: ['production'],
+      consumerVersionTags,
       providerVersionTags: process.env.GITHUB_BRANCH || gitBranch,
       providerVersion: gitHash,
       publishVerificationResult: isCI
