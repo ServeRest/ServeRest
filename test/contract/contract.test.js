@@ -28,21 +28,27 @@ describe('ServeRest - Verificação do contrato', () => {
     server.close()
   })
 
-  const consumerVersionTags = process.env.CONSUMER_VERSION_TAG
-    ? ['production', process.env.CONSUMER_VERSION_TAG]
-    : ['production']
-
   it('Validates the expectations of ServeRest', () => {
     const options = {
       provider: 'ServeRest - API Rest',
       logLevel: 'INFO',
-      pactBrokerUrl: process.env.PACT_BROKER_BASE_URL,
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      consumerVersionTags,
       providerVersionTags: process.env.GITHUB_BRANCH || gitBranch,
       providerVersion: gitHash,
       publishVerificationResult: isCI
+    }
+
+    // https://docs.pact.io/provider/recommended_configuration/#verification-triggered-by-pact-change
+    if (process.env.TRIGGERED_BY_PACT_CHANGE) {
+      options.pactUrls = [process.env.PACT_URL]
+    } else {
+      const consumerVersionTags = process.env.CONSUMER_VERSION_TAG
+        ? ['production', 'main', process.env.CONSUMER_VERSION_TAG]
+        : ['production', 'main']
+
+      options.consumerVersionTags = consumerVersionTags
+      options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL
     }
 
     return new Verifier(options)

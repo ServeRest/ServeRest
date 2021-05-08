@@ -16,5 +16,5 @@
 			"pattern": "http://localhost:3000"
 		}
 	],
-	"aliveStatusCodes": [403, 200]
+	"aliveStatusCodes": [200, 401, 403]
 }

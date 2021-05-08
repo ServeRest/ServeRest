@@ -5,6 +5,9 @@
 [![Deploy ServeRest on the web](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml)
 [![Continuous Integration](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/ServeRest/ServeRest/actions/workflows/continuous_integration.yml)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ServeRest&metric=alert_status)](https://sonarcloud.io/dashboard?id=ServeRest)
+[![Pact Status](https://paulogoncalves.pactflow.io/pacts/provider/ServeRest%20-%20API%20Rest/consumer/Front/latest/badge.svg)](https://paulogoncalves.pactflow.io/)
+
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FServeRest%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
