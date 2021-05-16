@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.24.1](https://github.com/ServeRest/ServeRest/compare/v2.24.0...v2.24.1) (2021-05-16)
+
+
+### Chores
+
+* **mergify:** habilitar merge automático de PR do dependabot ([23a9fba](https://github.com/ServeRest/ServeRest/commit/23a9fbac73d2ed10038e934732a7d8ed766d0d4c))
+
+
+### Continuous Integration
+
+* executar teste de contrato via webhooks do pactflow ([c18eec5](https://github.com/ServeRest/ServeRest/commit/c18eec53b021c1c0bb828e60b0632ac08872927c))
+* **contrato:** gerar tag após deploy ([44041e4](https://github.com/ServeRest/ServeRest/commit/44041e476d9e58bc641e7a5d24730f337dd3f891))
+* **contrato:** possibilitar trigger de pipeline pelo consumer ([cd5fbc6](https://github.com/ServeRest/ServeRest/commit/cd5fbc6782dd727828c38f32bd08553f979944bd))
+* **sonar:** implementar análise estática com SonarCloud ([cca3980](https://github.com/ServeRest/ServeRest/commit/cca39807ae89ad5f6a2cee159fee2f9e341a1e21))
+* executar teste apenas em versão node LTS e em diversos OS ([165f9ac](https://github.com/ServeRest/ServeRest/commit/165f9ac9da39d657d6f9fa67ea5ee4f3d4fd37f3))
+
+
+### Documentation
+
+* **contributing:** corrigir URL de texto sobre teste de infra ([027fb5a](https://github.com/ServeRest/ServeRest/commit/027fb5adb9609e20d5aab8658fadd3378918b33c))
+* **serverest:** implementar nova documentação com swagger ([8b8cd4f](https://github.com/ServeRest/ServeRest/commit/8b8cd4fe9dd1e8e19bdf6ea0397d1d4371492e16)), closes [#165](https://github.com/ServeRest/ServeRest/issues/165) [#235](https://github.com/ServeRest/ServeRest/issues/235)
+
+
+### Tests
+
+* **contrato:** corrigir para que pegue a branch e hash correta ([#244](https://github.com/ServeRest/ServeRest/issues/244)) ([445df86](https://github.com/ServeRest/ServeRest/commit/445df86bc3efae1a552f025ae5129292904d9e98))
+* **contrato:** validar integração entre front e back ([6c5f863](https://github.com/ServeRest/ServeRest/commit/6c5f863d6381c419fbdea6701564e7802c2566f7))
+
 # [2.24.0](https://github.com/ServeRest/ServeRest/compare/v2.23.2...v2.24.0) (2021-04-21)
 
 
