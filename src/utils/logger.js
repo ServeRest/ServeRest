@@ -25,20 +25,20 @@ module.exports = async app => {
     identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version },
     skip: (req, res) => {
-      if (req.path === '/__messages__' ||
-          req.path === '/favicon.ico' ||
-          req.path === '/socket.io' ||
-          req.path === '/version' ||
-          req.path === '/swagger-ui.css' ||
-          req.path === '/swagger-ui.css.map' ||
-          req.path === '/swagger-ui-init.js' ||
-          req.path === '/swagger-ui-standalone-preset.js' ||
-          req.path === '/swagger-ui-standalone-preset.js.map' ||
-          req.path === '/swagger-ui-bundle.js' ||
-          req.path === '/swagger-ui-bundle.js.map' ||
+      if (req.originalUrl === '/__messages__' ||
+          req.originalUrl === '/favicon.ico' ||
+          req.originalUrl === '/socket.io' ||
+          req.originalUrl === '/version' ||
+          req.originalUrl === '/swagger-ui.css' ||
+          req.originalUrl === '/swagger-ui.css.map' ||
+          req.originalUrl === '/swagger-ui-init.js' ||
+          req.originalUrl === '/swagger-ui-standalone-preset.js' ||
+          req.originalUrl === '/swagger-ui-standalone-preset.js.map' ||
+          req.originalUrl === '/swagger-ui-bundle.js' ||
+          req.originalUrl === '/swagger-ui-bundle.js.map' ||
           req.headers.monitor ||
-          (formaDeExecucao() === 'serverest.dev' && req.path === '/') ||
-          (formaDeExecucao() === 'agilizei' && req.path === '/')) {
+          (formaDeExecucao() === 'serverest.dev' && req.originalUrl === '/') ||
+          (formaDeExecucao() === 'agilizei' && req.originalUrl === '/')) {
         return true
       }
     },
