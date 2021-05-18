@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.24.2](https://github.com/ServeRest/ServeRest/compare/v2.24.1...v2.24.2) (2021-05-18)
+
+
+### Bug Fixes
+
+* **logger:** ignorar apenas as requests para as rotas apontadas ([57bbb90](https://github.com/ServeRest/ServeRest/commit/57bbb9026b518892e8c41b59f388218ce82a37ad))
+
+
+### Continuous Integration
+
+* **contract-test:** executar teste de contrato no commit gerado pela release ([42bd082](https://github.com/ServeRest/ServeRest/commit/42bd0827412f2a743d0b04f623a42bba951874a7))
+
 ## [2.24.1](https://github.com/ServeRest/ServeRest/compare/v2.24.0...v2.24.1) (2021-05-16)
 
 
