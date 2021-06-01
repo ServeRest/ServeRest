@@ -70,7 +70,7 @@
     "@semantic-release/github": "^7.2.1",
     "@semantic-release/npm": "^7.1.1",
     "@semantic-release/release-notes-generator": "^9.0.2",
-    "@stryker-mutator/core": "^4.6.0",
+    "@stryker-mutator/core": "^5.0.1",
     "chai": "^4.3.4",
     "commitizen": "^4.2.3",
     "cross-env": "^7.0.3",
