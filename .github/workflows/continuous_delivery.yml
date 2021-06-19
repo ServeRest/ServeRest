@@ -130,12 +130,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Node.js Setup
-      uses: actions/setup-node@v2
-    - name: Installation of Node.js dependencies
-      run: npm ci
+    - run: docker-compose build test-contract
     - name: Run contract test
-      run: npm run test:contract
+      run: make test-contract
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
@@ -174,8 +171,9 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
       run: npx semantic-release
+    - run: docker-compose build test-contract
     - name: Run contract test
-      run: npm run test:contract
+      run: make test-contract
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}

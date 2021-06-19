@@ -39,7 +39,7 @@
     "lint": "standard",
     "lint:fix": "standard --fix",
     "lint:staged": "lint-staged",
-    "test:contract": "cross-env NODE_ENV=serverest-test mocha test/contract --timeout 60000"
+    "test:contract": "mocha test/contract --timeout 60000"
   },
   "dependencies": {
     "colors": "^1.4.0",

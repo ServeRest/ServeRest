@@ -11,12 +11,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Node.js Setup
-      uses: actions/setup-node@v2
-    - name: Installation of Node.js dependencies
-      run: npm ci
+    - run: docker-compose build test-contract
     - name: Run contract test
-      run: npm run test:contract
+      run: make test-contract
       env:
         PACT_URL: ${{ github.event.client_payload.pactUrl }}
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
