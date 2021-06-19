@@ -17,3 +17,14 @@ services:
     command: npm run test:contract
     volumes:
       - ./test:/app/test
+
+  test:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+    environment:
+      - NODE_ENV=serverest-test
+    command: npm test
+    volumes:
+      - ./test:/app/test
+      - ./coverage:/app/coverage

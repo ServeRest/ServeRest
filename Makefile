@@ -1,4 +1,4 @@
-.PHONY: build build\run run stop clean test-contract
+.PHONY: build build\run run stop clean test-contract test
 # serverest 
 
 NAME_IMAGE=serverest
@@ -20,3 +20,6 @@ clean:
 
 test-contract:
 	@docker-compose run --rm test-contract
+
+test:
+	@docker-compose run --rm test
