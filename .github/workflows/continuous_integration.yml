@@ -138,12 +138,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         ref: ${{ github.event.pull_request.head.sha }}
-    - name: Node.js Setup
-      uses: actions/setup-node@v2
-    - name: Installation of Node.js dependencies
-      run: npm ci
     - uses: EthanSK/git-branch-name-action@v1
+    - run: docker-compose build test-contract
     - name: Run contract test
-      run: npm run test:contract
+      run: make test-contract
       env:
         GITHUB_BRANCH: ${{ env.GIT_BRANCH_NAME }}

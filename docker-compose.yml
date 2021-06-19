@@ -1,0 +1,19 @@
+version: '2.1'
+
+services:
+  test-contract:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+    environment:
+      - NODE_ENV=serverest-test
+      - CONSUMER_VERSION_TAG
+      - PACT_BROKER_TOKEN
+      - GITHUB_BRANCH
+      - PACT_URL
+      - TRIGGERED_BY_PACT_CHANGE
+      - PACT_BROKER_BASE_URL
+      - GITHUB_ACTIONS
+    command: npm run test:contract
+    volumes:
+      - ./test:/app/test
