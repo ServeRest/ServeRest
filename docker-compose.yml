@@ -28,3 +28,14 @@ services:
     volumes:
       - ./test:/app/test
       - ./coverage:/app/coverage
+
+  test-mutation-diff:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+    environment:
+      - NODE_ENV=serverest-test
+      - STRYKER_DASHBOARD_API_KEY
+    command: npm run test:mutation:diff
+    volumes:
+      - ./test:/app/test
