@@ -1,12 +1,18 @@
 version: '2.1'
 
 services:
-  test-contract:
+  base:
     build:
       context: .
       dockerfile: ./Dockerfile.test
     environment:
       - NODE_ENV=serverest-test
+    volumes:
+      - ./test:/app/test
+
+  test-contract:
+    extends: base
+    environment:
       - CONSUMER_VERSION_TAG
       - PACT_BROKER_TOKEN
       - GITHUB_BRANCH
@@ -15,27 +21,15 @@ services:
       - PACT_BROKER_BASE_URL
       - GITHUB_ACTIONS
     command: npm run test:contract
-    volumes:
-      - ./test:/app/test
 
   test:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.test
-    environment:
-      - NODE_ENV=serverest-test
+    extends: base
     command: npm test
     volumes:
-      - ./test:/app/test
       - ./coverage:/app/coverage
 
   test-mutation-diff:
-    build:
-      context: .
-      dockerfile: ./Dockerfile.test
+    extends: base
     environment:
-      - NODE_ENV=serverest-test
       - STRYKER_DASHBOARD_API_KEY
     command: npm run test:mutation:diff
-    volumes:
-      - ./test:/app/test
