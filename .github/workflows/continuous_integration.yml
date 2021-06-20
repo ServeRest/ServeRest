@@ -4,10 +4,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-
 jobs:
   lint:
 
@@ -152,3 +148,5 @@ jobs:
       run: make test-contract
       env:
         GITHUB_BRANCH: ${{ env.GIT_BRANCH_NAME }}
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
