@@ -55,6 +55,10 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 
 - [Git](https://git-scm.com/downloads)
 - [Node.js](https://nodejs.org/pt-br/download/)
+- [Docker](https://www.docker.com/get-started)
+- [Docker-compose](https://docs.docker.com/compose/install/)
+
+> Docker e Docker-compose são utilizados para execução dos testes
 
 ## Etapas para contribuir
 
@@ -77,7 +81,7 @@ Os testes são importantes para garantir a integridade do projeto a cada altera�
 
 Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), validados com [chai](https://www.npmjs.com/package/chai), mockados com [sinon.js](https://www.npmjs.com/package/sinon) e as requests são feitas com [supertest](https://www.npmjs.com/package/supertest).
 
-Para executá-los, execute o comando `npm test`.
+Para executá-los, execute o comando `make test`.
 
 > O commit é abortado caso esse padrão não seja seguido
 
@@ -97,7 +101,7 @@ O teste de mutação garante que os testes de API são efetivos e complementa a 
 
 A lib utilizada é a [Stryker](http://stryker-mutator.io/).
 
-Para rodar os testes de mutação, execute o comando `npm run test:mutation`.
+Para rodar os testes de mutação, execute o comando `make test-mutation`.
 
 Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[Teste de mutação 👽: O que é e como fica a cobertura de código?](https://github.com/PauloGoncalvesBH/teste-de-mutacao)'.
 
