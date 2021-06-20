@@ -28,6 +28,12 @@ services:
     volumes:
       - ./coverage:/app/coverage
 
+  test-mutation:
+    extends: base
+    environment:
+      - STRYKER_DASHBOARD_API_KEY
+    command: npm run test:mutation
+
   test-mutation-diff:
     extends: base
     environment:
