@@ -10,6 +10,14 @@ services:
     volumes:
       - ./test:/app/test
 
+  test:
+    extends: base
+    environment: 
+      - CI
+    command: npm run test
+    volumes:
+      - ./coverage:/app/coverage
+
   test-contract:
     extends: base
     environment:
@@ -19,14 +27,8 @@ services:
       - PACT_URL
       - TRIGGERED_BY_PACT_CHANGE
       - PACT_BROKER_BASE_URL
-      - GITHUB_ACTIONS
+      - CI
     command: npm run test:contract
-
-  test:
-    extends: base
-    command: npm test
-    volumes:
-      - ./coverage:/app/coverage
 
   test-mutation:
     extends: base

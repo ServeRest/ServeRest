@@ -1,8 +1,9 @@
 const http = require('http')
-const isCI = require('is-ci')
 const { Verifier } = require('@pact-foundation/pact')
 
 const app = require('../../src/app')
+
+const isCI = process.env.CI === 'true'
 
 describe('ServeRest - Verificação do contrato', () => {
   const SERVER_URL = 'http://localhost:3001'
@@ -18,13 +19,13 @@ describe('ServeRest - Verificação do contrato', () => {
     .toString()
     .trim()
 
-  before(() => {
+  beforeAll(() => {
     server.listen(3001, () => {
       console.log(`Clients Service listening on ${SERVER_URL}`)
     })
   })
 
-  after(() => {
+  afterAll(() => {
     server.close()
   })
 

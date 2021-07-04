@@ -34,12 +34,11 @@
     "dev": "cross-env NODE_ENV=serverest-development nodemon -e json,js ./src/server.js --nodoc",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
-    "test": "nyc mocha --config test/integration/.mocharc.js",
-    "posttest": "nyc report --reporter=lcov",
+    "test": "jest --config test/integration/jest.config.js --runInBand",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "lint:staged": "lint-staged",
-    "test:contract": "mocha test/contract --timeout 60000"
+    "test:contract": "jest test/contract --testTimeout 60000"
   },
   "dependencies": {
     "colors": "^1.4.0",
@@ -78,10 +77,9 @@
     "faker": "^5.5.3",
     "husky": "^6.0.0",
     "is-ci": "^3.0.0",
+    "jest": "27.0.6",
     "lint-staged": "^10.5.4",
-    "mocha": "^8.3.2",
     "nodemon": "^2.0.7",
-    "nyc": "^15.1.0",
     "semantic-release-docker": "^2.2.0",
     "sinon": "^10.0.0",
     "standard": "^16.0.3",
@@ -98,9 +96,9 @@
   },
   "standard": {
     "globals": [
-      "after",
+      "afterAll",
       "afterEach",
-      "before",
+      "beforeAll",
       "beforeEach",
       "describe",
       "it",
