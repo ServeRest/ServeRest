@@ -18,6 +18,14 @@ describe('ServeRest - Verificação do contrato', () => {
     .toString()
     .trim()
 
+  const isDefaultBranch = gitBranch === 'trunk'
+
+  const dateOneMonthAgo = () => {
+    const data = new Date()
+    data.setMonth(data.getMonth() - 1)
+    return data.toISOString()
+  }
+
   before(() => {
     server.listen(3001, () => {
       console.log(`Clients Service listening on ${SERVER_URL}`)
@@ -45,16 +53,18 @@ describe('ServeRest - Verificação do contrato', () => {
     } else {
       options.consumerVersionSelectors = [
         {
-          tag: 'production',
+          tag: gitBranch,
+          fallbackTag: 'main',
           latest: true
         },
         {
-          tag: gitBranch,
-          fallbackTag: 'main',
+          tag: 'production',
           latest: true
         }
       ]
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL
+      options.includeWipPactsSince = isDefaultBranch ? dateOneMonthAgo() : undefined
+      options.enablePending = true
     }
 
     return new Verifier(options)
