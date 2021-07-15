@@ -13,7 +13,7 @@ describe('ServeRest - Verificação do contrato', () => {
     .toString()
     .trim()
 
-  const gitBranch = require('child_process')
+  const gitBranch = process.env.GITHUB_BRANCH || require('child_process')
     .execSync('git branch --show-current')
     .toString()
     .trim()
@@ -34,7 +34,7 @@ describe('ServeRest - Verificação do contrato', () => {
       logLevel: 'INFO',
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      providerVersionTags: process.env.GITHUB_BRANCH || gitBranch,
+      providerVersionTags: gitBranch,
       providerVersion: gitHash,
       publishVerificationResult: isCI
     }
@@ -43,11 +43,17 @@ describe('ServeRest - Verificação do contrato', () => {
     if (process.env.TRIGGERED_BY_PACT_CHANGE) {
       options.pactUrls = [process.env.PACT_URL]
     } else {
-      const consumerVersionTags = process.env.CONSUMER_VERSION_TAG
-        ? ['production', 'main', process.env.CONSUMER_VERSION_TAG]
-        : ['production', 'main']
-
-      options.consumerVersionTags = consumerVersionTags
+      options.consumerVersionSelectors = [
+        {
+          tag: 'production',
+          latest: true
+        },
+        {
+          tag: gitBranch,
+          fallbackTag: 'main',
+          latest: true
+        }
+      ]
       options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL
     }
 
