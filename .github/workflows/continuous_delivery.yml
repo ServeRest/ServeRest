@@ -117,20 +117,6 @@ jobs:
     - name: Run contract test
       run: make test-contract
       env:
-        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-    - name: Install pact broker
-      run: |
-        curl -LO https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v1.88.51/pact-1.88.51-linux-x86_64.tar.gz
-        tar xzf pact-1.88.51-linux-x86_64.tar.gz
-    - name: Verify that it will not break a contract in production
-      run: |
-        pact/bin/pact-broker can-i-deploy \
-        --pacticipant 'ServeRest - API Rest' \
-        --version ${{ github.sha }} \
-        --to production
-      env:
-        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
@@ -158,5 +144,4 @@ jobs:
     - name: Run contract test
       run: make test-contract
       env:
-        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
