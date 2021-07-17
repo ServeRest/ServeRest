@@ -3,25 +3,19 @@ const isCI = require('is-ci')
 const { Verifier } = require('@pact-foundation/pact')
 
 const app = require('../../src/app')
+const {
+  dateOneMonthAgo,
+  currentGitBranch,
+  currentGitHash,
+  isDefaultBranch
+} = require('./util')
 
 describe('ServeRest - Verificação do contrato', () => {
   const SERVER_URL = 'http://localhost:3001'
   const server = http.createServer(app)
 
-  const gitHash = require('child_process')
-    .execSync('git rev-parse HEAD')
-    .toString()
-    .trim()
-
-  const gitBranch = require('child_process')
-    .execSync('git branch --show-current')
-    .toString()
-    .trim()
-
   before(() => {
-    server.listen(3001, () => {
-      console.log(`Clients Service listening on ${SERVER_URL}`)
-    })
+    server.listen(3001, () => console.log(`Server listening on ${SERVER_URL}`))
   })
 
   after(() => {
@@ -29,29 +23,45 @@ describe('ServeRest - Verificação do contrato', () => {
   })
 
   it('Validates the expectations of ServeRest', () => {
-    const options = {
+    const baseOptions = {
       provider: 'ServeRest - API Rest',
       logLevel: 'INFO',
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      providerVersionTags: process.env.GITHUB_BRANCH || gitBranch,
-      providerVersion: gitHash,
-      publishVerificationResult: isCI
+      providerVersionTags: currentGitBranch,
+      providerVersion: currentGitHash,
+      publishVerificationResult: isCI,
+      verbose: process.env.VERBOSE === 'true'
     }
 
-    // https://docs.pact.io/provider/recommended_configuration/#verification-triggered-by-pact-change
-    if (process.env.TRIGGERED_BY_PACT_CHANGE) {
-      options.pactUrls = [process.env.PACT_URL]
-    } else {
-      const consumerVersionTags = process.env.CONSUMER_VERSION_TAG
-        ? ['production', 'main', process.env.CONSUMER_VERSION_TAG]
-        : ['production', 'main']
-
-      options.consumerVersionTags = consumerVersionTags
-      options.pactBrokerUrl = process.env.PACT_BROKER_BASE_URL
+    // Para builds que foram 'trigados' por webhook de 'mudança de conteúdo de contrato' é preciso verificar apenas o contrato (pact) alterado.
+    // A URL (env PACT_URL) será passada pelo webhook para o job de CI.
+    // https://docs.pact.io/provider/recommended_configurtion/#verification-triggered-by-pact-change
+    const pactChangedOptions = {
+      pactUrls: [process.env.PACT_URL]
     }
 
-    return new Verifier(options)
+    const fetchPactsDynamicallyOptions = {
+      pactBrokerUrl: 'https://paulogoncalves.pactflow.io',
+      consumerVersionSelectors: [
+        {
+          tag: currentGitBranch,
+          fallbackTag: 'main',
+          latest: true
+        },
+        {
+          tag: 'production',
+          latest: true
+        }
+      ],
+      includeWipPactsSince: isDefaultBranch ? dateOneMonthAgo() : undefined,
+      enablePending: true
+    }
+
+    return new Verifier({
+      ...baseOptions,
+      ...(process.env.PACT_URL ? pactChangedOptions : fetchPactsDynamicallyOptions)
+    })
       .verifyProvider()
       .then((output) => {
         console.log('Pact Verification Complete!')

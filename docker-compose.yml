@@ -13,13 +13,13 @@ services:
   test-contract:
     extends: base
     environment:
-      - CONSUMER_VERSION_TAG
       - PACT_BROKER_TOKEN
       - GITHUB_BRANCH
       - PACT_URL
       - TRIGGERED_BY_PACT_CHANGE
       - PACT_BROKER_BASE_URL
       - GITHUB_ACTIONS
+      - VERBOSE
     command: npm run test:contract
 
   test:

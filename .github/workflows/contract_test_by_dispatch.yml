@@ -17,4 +17,3 @@ jobs:
       env:
         PACT_URL: ${{ github.event.client_payload.pactUrl }}
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-        TRIGGERED_BY_PACT_CHANGE: true
