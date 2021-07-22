@@ -112,7 +112,8 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Project checkout
+      uses: actions/checkout@v2
     - run: docker-compose build test-contract
     - name: Run contract test
       run: make test-contract

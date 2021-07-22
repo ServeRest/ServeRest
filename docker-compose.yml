@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.8'
 
 services:
   base:
@@ -14,13 +14,11 @@ services:
     extends: base
     environment:
       - PACT_BROKER_TOKEN
-      - GITHUB_BRANCH
       - PACT_URL
-      - TRIGGERED_BY_PACT_CHANGE
-      - PACT_BROKER_BASE_URL
-      - GITHUB_ACTIONS
-      - VERBOSE
+      - CI
     command: npm run test:contract
+    volumes:
+      - ./.git:/app/.git
 
   test:
     extends: base

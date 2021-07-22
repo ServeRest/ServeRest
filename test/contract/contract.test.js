@@ -30,8 +30,7 @@ describe('ServeRest - Verificação do contrato', () => {
       providerBaseUrl: SERVER_URL,
       providerVersionTags: currentGitBranch,
       providerVersion: currentGitHash,
-      publishVerificationResult: isCI,
-      verbose: process.env.VERBOSE === 'true'
+      publishVerificationResult: isCI
     }
 
     // Para builds que foram 'trigados' por webhook de 'mudança de conteúdo de contrato' é preciso verificar apenas o contrato (pact) alterado.

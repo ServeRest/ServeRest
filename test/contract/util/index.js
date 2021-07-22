@@ -9,7 +9,7 @@ const currentGitHash = require('child_process')
   .toString()
   .trim()
 
-const currentGitBranch = process.env.GITHUB_BRANCH || require('child_process')
+const currentGitBranch = require('child_process')
   .execSync('git branch --show-current')
   .toString()
   .trim()
