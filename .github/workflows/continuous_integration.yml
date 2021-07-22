@@ -3,11 +3,6 @@ name: Continuous Integration
 on:
   pull_request:
   workflow_dispatch:
-    inputs:
-      contract-test-verbose:
-        description: 'Executar o teste de contrato em modo verboso?'
-        required: false
-        default: 'false'
 
 jobs:
   lint:
@@ -144,14 +139,13 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Project checkout
+      uses: actions/checkout@v2
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
-    - uses: EthanSK/git-branch-name-action@v1
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.ref }}
     - run: docker-compose build test-contract
     - name: Run contract test
       run: make test-contract
       env:
-        GITHUB_BRANCH: ${{ env.GIT_BRANCH_NAME }}
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
-        VERBOSE: ${{ github.event.inputs.contract-test-verbose }}
