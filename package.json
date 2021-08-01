@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^12.1.1",
-    "@commitlint/config-conventional": "^12.1.1",
+    "@commitlint/config-conventional": "^13.1.0",
     "@hapi/joi": "^17.1.1",
     "@pact-foundation/pact": "^9.15.5",
     "@semantic-release/changelog": "^5.0.1",
