@@ -6,5 +6,5 @@ reports/
 CHANGELOG.md
 .stryker-tmp
 stryker.log
-coverage.lcov
+coverage/
 node_modules/

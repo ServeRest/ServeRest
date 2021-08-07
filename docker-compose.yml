@@ -31,9 +31,13 @@ services:
     environment:
       - STRYKER_DASHBOARD_API_KEY
     command: npm run test:mutation
+    volumes:
+      - ./reports:/app/reports
 
   test-mutation-diff:
     extends: base
     environment:
       - STRYKER_DASHBOARD_API_KEY
     command: npm run test:mutation:diff
+    volumes:
+      - ./reports:/app/reports
