@@ -19,13 +19,13 @@ clean:
 	@docker rmi -f serverest/serverest
 
 test-contract:
-	@docker-compose run --rm test-contract
+	@docker-compose up --build test-contract
 
 test:
-	@docker-compose run --rm test
+	@docker-compose up --build test
 
 test-mutation-diff:
-	@docker-compose run --rm test-mutation-diff
+	@docker-compose up --build test-mutation-diff
 
 test-mutation:
-	@docker-compose run --rm test-mutation
+	@docker-compose up --build test-mutation
