@@ -10,6 +10,8 @@ const open = require('open')
 const { version } = require('../package.json')
 const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
+const getRandomFinancialContributor = require('./utils/getRandomFinancialContributor')
+
 const DEFAULT_PORT = 3000
 
 const argv = require('yargs')
@@ -71,8 +73,8 @@ server.listen(port, async () => {
   } else if (formaDeExecucao() === 'docker') {
     console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('docker run -p 3000:3000 paulogoncalvesbh/serverest --help'))
   }
-  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('https://github.com/ServeRest/ServeRest'))
-  console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs\n'))
+  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('github.com/ServeRest/ServeRest\n'))
+  console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs e apoiado por'), colors.red.bold(await getRandomFinancialContributor()), '\n')
 })
 server.on('error', onError)
 server.on('listening', onListening)
