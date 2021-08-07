@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.24.3](https://github.com/ServeRest/ServeRest/compare/v2.24.2...v2.24.3) (2021-08-07)
+
+
+### Chores
+
+* **patch:** exibir nome de apoiador financeiro de forma randômica no terminal em agradecimento ([0cdf51a](https://github.com/ServeRest/ServeRest/commit/0cdf51a17df5e6424be108cc5e045dc4ad19b8aa))
+* **sonar:** remove scan fron server.js ([6ab2188](https://github.com/ServeRest/ServeRest/commit/6ab21880267a18fab341e04b1c5e27f727bc262c))
+* containerize contract test ([70f596b](https://github.com/ServeRest/ServeRest/commit/70f596b22acd64d56bfda59a3eeb862944fd81a4))
+* containerize integration test ([003951d](https://github.com/ServeRest/ServeRest/commit/003951d88a387b170c1f27966890787c970136db))
+* containerize mutation test ([7448051](https://github.com/ServeRest/ServeRest/commit/74480512a65f70b616829fafba9ebacf4d5e136c))
+* containerize mutation test diff ([6adee62](https://github.com/ServeRest/ServeRest/commit/6adee62563d1a0a17415a1b5e55184b0a128f4e8))
+* create docker-compose base ([d7089e9](https://github.com/ServeRest/ServeRest/commit/d7089e91c58c3d57ff343d9809809d881400d77a))
+
+
+### Continuous Integration
+
+* **test-contract:** remove unused env variable ([69337d0](https://github.com/ServeRest/ServeRest/commit/69337d0208573e557ac983ef4b323926c6725a09))
+* remove global environment ([f400b89](https://github.com/ServeRest/ServeRest/commit/f400b8918801483a42a57c02d5ff2f36a2e0423e))
+
+
+### Documentation
+
+* **contributing:** update with info about 'make' ([eef85c9](https://github.com/ServeRest/ServeRest/commit/eef85c9ef2fb73346a34a583248bc951c14c118b))
+
+
+### Tests
+
+* **contract:** refatorar o teste para permitir alteração de contrato ([286a413](https://github.com/ServeRest/ServeRest/commit/286a413f0bb8d62ca20bcfbd84354577fea74b83))
+
 ## [2.24.2](https://github.com/ServeRest/ServeRest/compare/v2.24.1...v2.24.2) (2021-05-18)
 
 
