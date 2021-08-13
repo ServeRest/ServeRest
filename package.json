@@ -32,6 +32,7 @@
     "commit": "cz",
     "start": "node ./src/server.js",
     "dev": "cross-env NODE_ENV=serverest-development nodemon -e json,js ./src/server.js --nodoc",
+    "dev:sls": "serverless offline",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test": "nyc mocha --config test/integration/.mocharc.js",
@@ -56,6 +57,7 @@
     "morgan": "^1.10.0",
     "nedb": "^1.8.0",
     "open": "^8.0.6",
+    "serverless-http": "^2.7.0",
     "swagger-ui-express": "^4.1.4",
     "yargs": "^16.2.0"
   },
@@ -84,6 +86,7 @@
     "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "semantic-release-docker": "^2.2.0",
+    "serverless-offline": "^8.0.0",
     "sinon": "^10.0.0",
     "standard": "^16.0.3",
     "stryker-diff-runner": "^2.3.7",

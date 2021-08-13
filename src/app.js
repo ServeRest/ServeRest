@@ -9,11 +9,12 @@ const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
+const serverless = require('serverless-http')
 
 const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
-const logger = require('./utils/logger')
+// const logger = require('./utils/logger')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 
@@ -49,7 +50,7 @@ if (formaDeExecucao() === 'serverest.dev' || formaDeExecucao() === 'agilizei') {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
-logger(app)
+// logger(app)
 
 /* istanbul ignore next */
 switch (formaDeExecucao()) {
@@ -92,3 +93,4 @@ app.use(async (req, res) => {
 })
 
 module.exports = app
+module.exports.handler = serverless(app)
