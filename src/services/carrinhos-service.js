@@ -1,53 +1,29 @@
 'use strict'
 
-const Nedb = require('nedb')
+const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
 
-const datastore = new Nedb({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
+const datastore = Datastore.create({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
 
 exports.getAll = queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return new Promise((resolve, reject) => {
-    datastore.find(queryString, (err, resultado) => {
-      /* istanbul ignore if */
-      if (err) reject(err)
-      resolve(resultado)
-    })
-  })
+  return datastore.find(queryString)
 }
 
 exports.getOne = id => {
-  return new Promise((resolve, reject) => {
-    datastore.findOne({ _id: id }, (err, carrinho) => {
-      /* istanbul ignore if */
-      if (err) reject(err)
-      resolve(carrinho)
-    })
-  })
+  return datastore.findOne({ _id: id })
 }
 
 exports.existeCarrinho = pesquisa => {
-  return new Promise((resolve, reject) => {
-    datastore.count(pesquisa, (err, count) => {
-      /* istanbul ignore if */
-      if (err) reject(err)
-      resolve(count !== 0)
-    })
-  })
+  return datastore.count(pesquisa)
 }
 
 exports.criarCarrinho = async body => {
-  return new Promise((resolve, reject) => {
-    datastore.insert(body, (err, novoProduto) => {
-      /* istanbul ignore if */
-      if (err) reject(err)
-      resolve(novoProduto)
-    })
-  })
+  return datastore.insert(body)
 }
 
 exports.extrairProdutosDuplicados = arrayProdutos => {
@@ -62,13 +38,7 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
 }
 
 exports.deleteById = async id => {
-  return new Promise((resolve, reject) => {
-    datastore.remove({ _id: id }, {}, (err, quantidadeRegistrosExcluidos) => {
-      /* istanbul ignore if */
-      if (err) reject(err)
-      resolve(quantidadeRegistrosExcluidos)
-    })
-  })
+  return datastore.remove({ _id: id }, {})
 }
 
 exports.getCarrinhoDoUsuario = async (authorization) => {

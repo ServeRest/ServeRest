@@ -44,6 +44,6 @@ exports.put = async (req, res) => {
     return res.status(400).send({ message: constant.NOME_JA_USADO })
   }
   const registroCriado = await service.createOrUpdateById(req.params.id, req.body)
-  if (registroCriado) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
+  if (registroCriado._id !== req.params.id) { return res.status(201).send({ message: constant.POST_SUCESS, _id: registroCriado._id }) }
   res.status(200).send({ message: constant.PUT_SUCESS })
 }
