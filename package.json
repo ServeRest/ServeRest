@@ -54,7 +54,7 @@
     "jsonwebtoken": "^8.5.1",
     "moesif-nodejs": "^3.1.5",
     "morgan": "^1.10.0",
-    "nedb": "^1.8.0",
+    "nedb-promises": "^5.0.0",
     "open": "^8.0.6",
     "swagger-ui-express": "^4.1.4",
     "yargs": "^16.2.0"
