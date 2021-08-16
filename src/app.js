@@ -16,6 +16,7 @@ const errorHandler = require('./middlewares/error-handler')
 const logger = require('./utils/logger')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
+const rateLimiter = require('./middlewares/rate-limiter')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
@@ -44,12 +45,9 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
-/* istanbul ignore if */
-if (formaDeExecucao() === 'serverest.dev' || formaDeExecucao() === 'agilizei') {
-  app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
-}
-
 logger(app)
+
+app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 
 /* istanbul ignore next */
 switch (formaDeExecucao()) {
@@ -79,10 +77,10 @@ if (!ehAmbienteDeTestes) {
   app.use(morgan('dev'))
 }
 
-app.use('/login', require('./routes/login-route'))
-app.use('/usuarios', require('./routes/usuarios-route'))
-app.use('/produtos', require('./routes/produtos-route'))
-app.use('/carrinhos', require('./routes/carrinhos-route'))
+app.use('/login', rateLimiter, require('./routes/login-route'))
+app.use('/usuarios', rateLimiter, require('./routes/usuarios-route'))
+app.use('/produtos', rateLimiter, require('./routes/produtos-route'))
+app.use('/carrinhos', rateLimiter, require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
 app.use(async (req, res) => {

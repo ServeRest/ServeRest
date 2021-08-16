@@ -28,12 +28,13 @@ _ServeRest_ permite o estudo de:
 - Autenticação no header
 - Query string
 - Teste de schema json
+- [Teste de carga](#teste-de-carga)
 
 <b><h2 align="center">Ambientes disponíveis</h2></b>
 
 <table align="center">
   <tr>
-    <td align="center">Online em serverest.dev<br/><a href="#online"><img alt="Texto serverest.dev" src="https://user-images.githubusercontent.com/29241659/97096352-49b1b380-1641-11eb-9b0a-5bb72e1b3882.png" height="80"></a></td>
+    <td align="center">Online em serverest.dev<br/><a href="#online-"><img alt="Texto serverest.dev" src="https://user-images.githubusercontent.com/29241659/97096352-49b1b380-1641-11eb-9b0a-5bb72e1b3882.png" height="80"></a></td>
     <td align="center">Local com NPM<br/><br/><a href="#localmente-com-npm"><img alt="Logo do NPM" src="https://user-images.githubusercontent.com/29241659/97096283-4bc74280-1640-11eb-920a-1c145b0c39d4.png" height="60"></a></td>
     <td align="center">Local com docker<br/><a href="#localmente-com-docker"><img alt="Logo do Docker" src="https://user-images.githubusercontent.com/29241659/97096274-1cb0d100-1640-11eb-9e5e-3f2d57376e63.png" height="100"></a></td>
   </tr>
@@ -126,6 +127,12 @@ Em ambos os comandos de subida de ambiente local será utilizado a última vers�
 
 Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
 
+## Teste de carga
+
+Para realizar teste de carga utilize o ServeRest localmente via [Docker](#localmente-com-docker) ou [NPM](#localmente-com-npm).
+
+Utilize a rota <http://localhost:3000/status> para ter algumas informações como uso da memória e uso da CPU.
+
 ## Exemplos de automação
 
 Os repositórios abaixo são exemplos de automação com boas práticas e que consome o ServeRest.
@@ -145,9 +152,7 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 
 ### Empresas ($15+/mês)
 
-Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se sua empresa estaria interessada em apoiar este projeto e ter os seguintes serviços:
-1. Subdomínio próprio (_nome-escolhido.serverest.dev_)
-1. Acesso a todas as requests e respostas feitas nos últimos 7 dias no subdomínio
+Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se sua empresa estaria interessada em apoiar este projeto e ter um subdomínio próprio (_nome-escolhido.serverest.dev_).
 
 [![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/patrocinador.svg)](https://opencollective.com/serverest)
 

@@ -37,6 +37,7 @@ module.exports = async app => {
           req.originalUrl === '/swagger-ui-bundle.js' ||
           req.originalUrl === '/swagger-ui-bundle.js.map' ||
           req.headers.monitor ||
+          req.headers.skiplog ||
           (formaDeExecucao() === 'serverest.dev' && req.originalUrl === '/') ||
           (formaDeExecucao() === 'agilizei' && req.originalUrl === '/')) {
         return true
