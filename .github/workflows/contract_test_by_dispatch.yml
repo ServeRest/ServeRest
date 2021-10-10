@@ -11,6 +11,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.client_payload.providerProductionSha }}
     - run: docker-compose build test-contract
     - name: Run contract test
       run: make test-contract
