@@ -45,7 +45,7 @@ if (!conf.semHeaderDeSeguranca) {
 }
 
 /* istanbul ignore if */
-if (formaDeExecucao() === 'serverest.dev' || formaDeExecucao() === 'agilizei') {
+if (!ehAmbienteDeTestes) {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 

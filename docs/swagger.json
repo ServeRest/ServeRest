@@ -1,13 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "**O ServeRest é um servidor REST que simula uma loja virtual com intuito de servir de material de estudos de testes de API.**\n\n_**Ajude o ServeRest informando se prefere a documentação atual ou a antiga [nesse formulário](https://forms.gle/9RePTUQfeoDEqFiy5), que demanda poucos segundos para ser respondido.**_\n\nEssa página documenta todas as rotas e como acessá-las. Para mais detalhes do ServeRest (como executar localmente utilizando Docker ou NPM, alterar timeout de autenticação, etc) acesse [o repositório do ServeRest](https://github.com/serverest/serverest).\n\n\nEstá enfrentando instabilidade em alguma rota? Acesse a [página de status](https://status.serverest.dev/) para acompanhar enquanto normalizamos o ambiente. Enquanto isso pode utilizar o ServeRest localmente, [veja como aqui](https://github.com/ServeRest/ServeRest#readme).\n\nMuito obrigado ♥ a todos que apoiam o projeto [financeiramente](https://opencollective.com/serverest#section-contributors) ou [com código, ideias e divulgação](https://github.com/ServeRest/ServeRest#contribuidores-).\n\nO ServeRest possui um front, com status em beta, não deixe de conhecer: [front.serverest.dev](https://front.serverest.dev).\n\nPrecisa de apoio? [Abra uma issue](https://github.com/ServeRest/ServeRest/issues) ou contate o mantenedor do projeto:\n",
+    "description": "**O ServeRest é uma API REST que simula uma loja virtual com intuito de servir de material de estudos de testes de API.**\n\n_**Deixe um star no repositorio: [github.com/ServeRest/ServeRest](https://github.com/ServeRest/ServeRest).**_\n\nCaso vá utilizar para teste de carga leia a seção '[Teste de Carga](https://github.com/ServeRest/ServeRest#teste-de-carga)'.\n\nEssa página documenta todas as rotas e como acessá-las. Para mais detalhes do ServeRest (como executar localmente utilizando Docker ou NPM, alterar timeout de autenticação, etc) acesse [o repositório do ServeRest](https://github.com/serverest/serverest).\n\n\nEstá enfrentando instabilidade em alguma rota? Acesse a [página de status](https://status.serverest.dev/) para acompanhar enquanto normalizamos o ambiente. Enquanto isso pode utilizar o ServeRest localmente, [veja como aqui](https://github.com/ServeRest/ServeRest#readme).\n\nMuito obrigado ♥ a todos que apoiam o projeto [financeiramente](https://opencollective.com/serverest#section-contributors) ou [com código, ideias e divulgação](https://github.com/ServeRest/ServeRest#contribuidores-).\n\nO ServeRest possui um front, com status em beta, não deixe de conhecer: [front.serverest.dev](https://front.serverest.dev).\n\nPrecisa de apoio? [Abra uma issue](https://github.com/ServeRest/ServeRest/issues) ou contate o mantenedor do projeto:\n",
     "version": "2.X.X",
     "title": "ServeRest",
     "contact": {
       "name": "Paulo Gonçalves",
-      "url": "https://www.linkedin.com/in/paulo-goncalves/",
-      "email": "paulorochag@hotmail.com"
+      "url": "https://www.linkedin.com/in/paulo-goncalves/"
     }
   },
   "host": "localhost:3000",
