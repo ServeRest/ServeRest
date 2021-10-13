@@ -4,7 +4,7 @@ services:
   base:
     build:
       context: .
-      dockerfile: ./Dockerfile.test
+      target: test
     environment:
       - NODE_ENV=serverest-test
     volumes:

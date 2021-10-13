@@ -5,7 +5,7 @@ NAME_IMAGE=serverest
 PORT=3000
 
 build:
-	@DOCKER_BUILDKIT=1 docker build -t ${NAME_IMAGE}/${NAME_IMAGE} .
+	@DOCKER_BUILDKIT=1 docker build -t ${NAME_IMAGE}/${NAME_IMAGE} --target prod .
 
 build/run: build run	
 

@@ -106,7 +106,7 @@ module.exports = {
         'released on ${nextRelease.gitTag}'
       ]
     }],
-    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/serverest .` }],
+    ['@semantic-release/exec', { prepareCmd: `docker build -t ${env.DOCKER_USERNAME}/serverest --target prod .` }],
     ['semantic-release-docker', {
       name: `${env.DOCKER_USERNAME}/serverest`
     }]
