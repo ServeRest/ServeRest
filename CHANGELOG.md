@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.24.4](https://github.com/ServeRest/ServeRest/compare/v2.24.3...v2.24.4) (2021-10-13)
+
+
+### Chores
+
+* **makefile:** executar as imagens utilizando 'docker-compose up' ao invés de run ([d8f3885](https://github.com/ServeRest/ServeRest/commit/d8f3885f6ec9c5d43ca51ddd32f46c6a42940991))
+* bump stryker-mutator and stryker-diff-runner to latest ([e9fa90d](https://github.com/ServeRest/ServeRest/commit/e9fa90d5d04f70ecb07d08142b6e48fa02a747ed))
+
+
+### Code Refactoring
+
+* **database:** alterar o banco de dados para um fork atualizado e com promise implementado ([ee2eca3](https://github.com/ServeRest/ServeRest/commit/ee2eca33ee38b4b51f32c0b9d88876bf0a761ce7))
+
+
+### Continuous Integration
+
+* executar webhook encima de commit deployado ([da7c099](https://github.com/ServeRest/ServeRest/commit/da7c099b42e79e033e823b230e58d928386b1df5))
+* fixar versão do semantic-release ([bc37107](https://github.com/ServeRest/ServeRest/commit/bc37107683771ca4e0103f35bef2908f2e9b9a4f))
+
+
+### Documentation
+
+* **patch:** detalhar sobre como usar para teste de carga ([c676d7a](https://github.com/ServeRest/ServeRest/commit/c676d7acd96f4d5d4c0d70479aef9cd455beb862))
+
 ## [2.24.3](https://github.com/ServeRest/ServeRest/compare/v2.24.2...v2.24.3) (2021-08-07)
 
 
