@@ -28,9 +28,13 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 - Traduzindo a documentação
 - Melhorando a estrutura do código
 
-> Não tenha receio em contribuir se achar muito complexo as etapas para contribuir. **Basta pedir apoio em issue ou PR e receberá auxílio no que precisar.**
+## Importante
+
+1. Não tenha receio em contribuir se achar muito complexo as etapas para contribuir. **Basta pedir apoio em issue ou PR e receberá auxílio no que precisar.**
+1. Se está fazendo algum ajuste e está com dificuldades (Ex.: teste quebrando, dificuldade de criar novos testes, falta de entendimento de alguma regra de negócio, etc) também não tenha receios em pedir auxílio.
 
 ## Sumário
+- [Execução do projeto](#execução-do-projeto)
 - [Etapas para contribuir](#etapas-para-contribuir)
     - [Legenda](#legenda)
     - [💥💻 Testes de API](#-testes-de-api)
@@ -39,15 +43,10 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥 Teste de infra](#-teste-de-infra)
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
+    - [💥 Dockerfile lint](#-dockerfile-lint)
 - [Publicação das releases](#publicação-das-releases)
 - [Documentação](#documentação)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
-- [Execução do projeto via Makefile](#execução-do-projeto-via-makefile)
-    - [Build](#build)
-    - [Build/run](#buildrun)
-    - [Run](#run)
-    - [Stop](#stop)
-    - [Clean](#clean)
 
 ## Pré-requisitos
 
@@ -58,18 +57,25 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 - [Docker](https://www.docker.com/get-started)
 - [Docker-compose](https://docs.docker.com/compose/install/)
 
-> Docker e Docker-compose são utilizados para execução dos testes
+> Docker e Docker-compose são utilizados para execução dos testes e do projeto
+
+## Execução do projeto
+
+Com intuito de facilitar o desenvolvimento o projeto está todo dentro de container e sua execução é feita utilizando o arquivo [Makefile](../Makefile).
+
+Utilize o seguinte comando para executar o projeto enquanto desenvolve para utilizar a funcionalidade de reiniciar a aplicação a cada alteração:
+
+```sh
+make run-dev
+```
 
 ## Etapas para contribuir
 
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador e, em seguida, acesse o diretório criado;
-2. Instale as dependências de desenvolvimento: `npm ci`
-3. Faça as alterações necessárias;
-4. Faça o seu commit usando `npm run commit`
-5. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
-6. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
-
-**Etapa extra e opcional:** Caso possua docker e alterou código dentro de `src/`, suba uma imagem docker e faça alguns testes manuais. Para saber como consulte a seção [Execução do projeto via Makefile](#execução-do-projeto-via-makefile).
+1. Faça as alterações necessárias;
+1. Faça o seu commit usando `npm run commit`
+1. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
+1. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 
 ### Legenda
 #### 💥 > Validação realizada na integração contínua e entrega contínua
@@ -91,7 +97,7 @@ Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de c�
 
 É importante que todo o código esteja com 100% de cobertura para podermos ter segurança que toda alteração no código será validada.
 
-Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src` (exceto `server.js`). Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
+Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src`. Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
 
 ## 💥 Testes de Mutação
 
@@ -158,6 +164,10 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 > O commit é abortado caso esse padrão não seja seguido
 
+## 💥 Dockerfile lint
+
+É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que o [Dockerfile](../Dockerfile) segue as melhores práticas em sua estrutura.
+
 ---
 
 ## Publicação das releases
@@ -181,7 +191,7 @@ A documentação, disponibilizada nas URLs <https://serverest.dev> e <http://loc
 
 Para atualizar:
 1. Acesse o arquivo [swagger.json](../docs/swagger.json) e o edite de acordo com sua necessidade.
-1. Execute o comando `npm run dev` para acompanhar o status da documentação alterada na URL <http://localhost:3000>.
+1. Execute o comando `make run-dev` para acompanhar o status da documentação alterada na URL <http://localhost:3000>.
 
 ## Reconhecimento de contribuição
 
@@ -194,37 +204,3 @@ Todos aqueles que contribuíram com o projeto, independente do tipo de contribui
 Por isso, utilizamos o bot [@all-contributors](https://allcontributors.org/docs/en/bot/overview), que cria um Pull Request atualizando a seção de [contribuidores no README](../README.md/#contributors-).
 
 Para entender como utilizar, basta acessar as [intruções de uso do bot](https://allcontributors.org/docs/en/bot/usage).
-
-## Execução do Projeto via Makefile
-
-Com intuito de ajudar o desenvolvedor, criamos o arquivo Makefile para executar, buildar e parar o projeto usando o docker. Os seguintes comandos estão disponíveis:
-
-### Build 
-Pra fazer o build da imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make build
-```
-
-### Run 
-Pra executar a imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make run
-```
-
-### Build/run 
-Pra fazer o build e executar a imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make build/run
-```
-
-### Stop 
-Pra  parar a execução da imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make stop
-```
-
-### Clean
-Pra apagar a imagem Docker com o projeto local,  use o comando no terminal:
-```sh
-make clean
-```

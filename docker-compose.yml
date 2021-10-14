@@ -5,10 +5,17 @@ services:
     build:
       context: .
       target: test
-    environment:
-      - NODE_ENV=serverest-test
     volumes:
       - ./test:/app/test
+
+  run-dev:
+    build:
+      context: .
+      target: dev
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
 
   test-contract:
     extends: base
