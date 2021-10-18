@@ -33,6 +33,12 @@ services:
     volumes:
       - ./coverage:/app/coverage
 
+  test-unit:
+    extends: base
+    command: npm run test:unit
+    volumes:
+      - ./coverage:/app/coverage
+
   test-mutation:
     extends: base
     environment:
