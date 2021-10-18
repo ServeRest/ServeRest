@@ -31,6 +31,9 @@ test-contract:
 test:
 	@docker-compose up --build test
 
+test-unit:
+	@docker-compose up --build test-unit
+
 test-mutation-diff:
 	@docker-compose up --build test-mutation-diff
 
