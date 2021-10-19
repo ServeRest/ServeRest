@@ -44,34 +44,58 @@ jobs:
       uses: actions/checkout@v2
     - run: docker run --rm -i hadolint/hadolint < Dockerfile
 
-  test-api:
+  test-unit:
 
     runs-on: ubuntu-18.04
 
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - run: docker-compose build test
-    - name: Run Integration Test
-      run: make test
+    - run: docker-compose build test-unit
+    - name: Run Unit Test
+      run: make test-unit
     - uses: actions/upload-artifact@v2
       with:
-        name: source
+        name: coverage-unit
         retention-days: 1
-        path: |
-          ${{ github.workspace }}
-          !.github/**
-          !docs/**
+        path: coverage-unit/lcov.info
 
-  sonarcloud:
-    needs: test-api
+  test-integration:
 
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/download-artifact@v2
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-integration
+    - name: Run Integration Test
+      run: make test-integration
+    - uses: actions/upload-artifact@v2
       with:
-        name: source
+        name: coverage-integration
+        retention-days: 1
+        path: coverage-integration/lcov.info
+
+  sonarcloud:
+    needs: [test-unit, test-integration]
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Download unit test artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage-unit
+        path: coverage-unit
+    - name: Download integration test artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage-integration
+        path: coverage-integration
+    - name: Merge coverage report
+      run: npm run merge-lcov
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
@@ -121,7 +145,7 @@ jobs:
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
-    needs: [lint, commit-lint, dockerfile-lint, test-api, test-mutation, test-infra-docker, test-contract, sonarcloud]
+    needs: [lint, commit-lint, dockerfile-lint, test-mutation, test-infra-docker, test-contract, sonarcloud]
 
     runs-on: ubuntu-18.04
 

@@ -27,17 +27,17 @@ services:
     volumes:
       - ./.git:/app/.git
 
-  test:
-    extends: base
-    command: npm test
-    volumes:
-      - ./coverage:/app/coverage
-
   test-unit:
     extends: base
     command: npm run test:unit
     volumes:
-      - ./coverage:/app/coverage
+      - ./coverage-unit:/app/coverage-unit
+
+  test-integration:
+    extends: base
+    command: npm run test:integration
+    volumes:
+      - ./coverage-integration:/app/coverage-integration
 
   test-mutation:
     extends: base

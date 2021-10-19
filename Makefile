@@ -28,11 +28,13 @@ run-dev:
 test-contract:
 	@docker-compose up --build test-contract
 
-test:
-	@docker-compose up --build test
+test: test-unit test-integration
 
 test-unit:
 	@docker-compose up --build test-unit
+
+test-integration:
+	@docker-compose up --build test-integration
 
 test-mutation-diff:
 	@docker-compose up --build test-mutation-diff

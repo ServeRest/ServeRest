@@ -1,5 +1,7 @@
 .nyc_output/
 coverage/
+coverage-unit/
+coverage-integration/
 node_modules/
 reports/
 
@@ -7,3 +9,4 @@ coverage.lcov
 # stryker temp files
 .stryker-tmp
 stryker.log
+lcov.info
