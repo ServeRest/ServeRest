@@ -8,7 +8,9 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ServeRest&metric=alert_status)](https://sonarcloud.io/dashboard?id=ServeRest)
 [![Pact Status](https://paulogoncalves.pactflow.io/pacts/provider/ServeRest%20-%20API%20Rest/consumer/Front/latest/badge.svg)](https://paulogoncalves.pactflow.io/)
 
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ServeRest&metric=coverage)](https://sonarcloud.io/dashboard?id=ServeRest)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FServeRest%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
+
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
@@ -37,7 +39,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 - [Execução do projeto](#execução-do-projeto)
 - [Etapas para contribuir](#etapas-para-contribuir)
     - [Legenda](#legenda)
-    - [💥💻 Testes de API](#-testes-de-api)
+    - [💥💻 Testes](#-testes)
         - [💥💻 Cobertura de código](#-cobertura-de-código)
     - [💥 Testes de Mutação](#-testes-de-mutação)
     - [💥 Teste de infra](#-teste-de-infra)
@@ -81,17 +83,19 @@ make run-dev
 #### 💥 > Validação realizada na integração contínua e entrega contínua
 #### 💻 > Validação realizada localmente
 
-## 💥💻 Testes de API
+## 💥💻 Testes
 
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
-Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), validados com [chai](https://www.npmjs.com/package/chai), mockados com [sinon.js](https://www.npmjs.com/package/sinon) e as requests são feitas com [supertest](https://www.npmjs.com/package/supertest).
+Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), validados com [chai](https://www.npmjs.com/package/chai), mockados com [sinon.js](https://www.npmjs.com/package/sinon) e [nock](https://www.npmjs.com/package/nock) e as requests são feitas com [supertest](https://www.npmjs.com/package/supertest).
 
-Para executá-los, execute o comando `make test`.
+Para executar os testes unitários e de integração, execute o comando `make test`.
 
 > O commit é abortado caso esse padrão não seja seguido
 
 ### 💥💻 Cobertura de código
+
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ServeRest&metric=coverage)](https://sonarcloud.io/dashboard?id=ServeRest)
 
 Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de código.
 
