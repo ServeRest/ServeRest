@@ -7,4 +7,7 @@ CHANGELOG.md
 .stryker-tmp
 stryker.log
 coverage/
+coverage-unit/
+coverage-integration/
+lcov.info
 node_modules/
