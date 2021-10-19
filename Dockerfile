@@ -1,5 +1,9 @@
 FROM node:lts-alpine3.12 as base
 
+LABEL repository="https://github.com/ServeRest/ServeRest" \
+      homepage="https://github.com/ServeRest/ServeRest" \
+      maintainer="Paulo Gonçalves <https://www.linkedin.com/in/paulo-goncalves/>"
+
 WORKDIR /app
 
 COPY package*.json ./
