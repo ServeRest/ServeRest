@@ -138,6 +138,16 @@ Para acompanhar o comportamento do ambiente aonde o ServeRest está hospedado vo
 - Tempo de resposta.
 - RPS (Requisições por segundo).
 
+## Badge
+
+Criou repositório utilizando o ServeRest? Adicione o código abaixo no topo do README.md para ter a badge do projeto.
+
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
+
+```markdown
+[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
+```
+
 ## Exemplos de automação
 
 Os repositórios abaixo são exemplos de automação com boas práticas e que consome o ServeRest.
@@ -146,12 +156,9 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
 - [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 - [Robot Framework > Automação com RequestsLibrary - Mayara Fernandes](https://github.com/mayribeirofernandes/testesrobotframework/tree/HEAD/ExemploAPI_ServeRest)
+- [Ruby > Automação com HTTParty e RSpec - Bruno Quintanilha](https://github.com/braquintanilha/serverest-httparty-rspec)
 
-## Badge [![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
-
-```markdown
-[![Badge ServeRest](https://img.shields.io/badge/API-ServeRest-green)](https://github.com/ServeRest/ServeRest/)
-```
+Para encontrar mais repositórios acesse https://github.com/search?q=serverest&type=Repositories
 
 ## Patrocinadores
 
