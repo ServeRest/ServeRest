@@ -16,6 +16,7 @@ const errorHandler = require('./middlewares/error-handler')
 const logger = require('./utils/logger')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
+const rateLimiter = require('./middlewares/rate-limiter')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
 app.use(cors())
+app.use(rateLimiter)
 
 app.disable('etag')
 
@@ -85,7 +87,7 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
-app.use(async (req, res) => {
+app.use((req, res) => {
   res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${urlDocumentacao()} para ver as rotas disponíveis e como utilizá-las.`
   })

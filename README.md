@@ -129,14 +129,14 @@ Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](h
 
 ## Teste de carga
 
-Para utilizar o ServeRest para estudo de teste de carga, sem gerar impacto, é preciso utilizar o header `monitor: false`.
-
 Para acompanhar o comportamento do ambiente aonde o ServeRest está hospedado você pode acessar a página https://serverest.dev/status, pois contém informações como:
 
 - Uso de CPU.
 - Uso da memória.
 - Tempo de resposta.
 - RPS (Requisições por segundo).
+
+> Fez teste de carga? O que acha de compartilhar com o autor do projeto o relatório final contendo dados de RPS para auxiliar o ServeRest a entender o comportamento de sua infra?
 
 ## Badge
 
