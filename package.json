@@ -63,7 +63,7 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.1.1",
+    "@commitlint/cli": "^14.1.0",
     "@commitlint/config-conventional": "^12.1.1",
     "@hapi/joi": "^17.1.1",
     "@pact-foundation/pact": "^9.15.5",
