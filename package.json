@@ -28,7 +28,7 @@
     "api"
   ],
   "scripts": {
-    "prepare": "is-ci || husky install",
+    "postinstall": "is-ci || husky install",
     "commit": "cz",
     "start": "node ./src/server.js",
     "dev": "nodemon --legacy-watch -e json,js ./src/server.js --nodoc",
