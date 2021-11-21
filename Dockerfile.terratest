@@ -1,0 +1,10 @@
+FROM golang:1.17.3-alpine3.14
+
+RUN apk --no-cache add build-base=0.5-r2 docker=20.10.11-r0 openrc=0.43.3-r2 bash=5.1.4-r0 \
+    && rc-update add docker boot
+
+WORKDIR /app
+
+COPY . .
+
+WORKDIR /app/test/infra

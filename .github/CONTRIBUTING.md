@@ -122,22 +122,7 @@ Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[T
 
 É utilizado o [Terratest](https://terratest.gruntwork.io/) para realizar teste de infraestrutura, validando comportamento da imagem docker durante sua execução.
 
-Para executar o teste de infra é preciso ter [Go](https://golang.org/doc/install) instalado.
-
-1. Acesse o diretório aonde estão os arquivos  `*_test.go`:
-```sh
-cd test/infra
-```
-
-2. Instale as dependências:
-```sh
-go mod tidy
-```
-
-3. Execute os testes:
-```sh
-go test -count=1 -v -timeout 5m
-```
+Para rodar o teste de infra e validar o `docker build` de produção, execute o comando `make test-infra`.
 
 > Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/).
 

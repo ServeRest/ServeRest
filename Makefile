@@ -1,4 +1,4 @@
-.PHONY: build build\run run stop clean run-dev test-contract test test-mutation-diff test-mutation
+.PHONY: build build\run run stop clean run-dev test-contract test test-mutation-diff test-mutation test-infra
 # serverest 
 
 NAME_IMAGE=serverest
@@ -41,3 +41,6 @@ test-mutation-diff:
 
 test-mutation:
 	@docker-compose up --build test-mutation
+
+test-infra:
+	@docker-compose up --build test-infra
