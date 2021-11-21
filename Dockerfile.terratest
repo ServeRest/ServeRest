@@ -1,4 +1,4 @@
-FROM golang:1.17.3-alpine3.14
+FROM golang:1.17.3-alpine3.14@sha256:55da409cc0fe11df63a7d6962fbefd1321fedc305d9969da636876893e289e2d
 
 RUN apk --no-cache add build-base=0.5-r2 docker=20.10.11-r0 openrc=0.43.3-r2 bash=5.1.4-r0 \
     && rc-update add docker boot
