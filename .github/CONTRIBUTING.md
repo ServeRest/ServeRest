@@ -136,7 +136,7 @@ go mod tidy
 
 3. Execute os testes:
 ```sh
-go test -v -timeout 10m
+go test -count=1 -v -timeout 5m
 ```
 
 > Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/).

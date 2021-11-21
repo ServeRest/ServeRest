@@ -131,7 +131,7 @@ jobs:
     - name: Install dependencies
       run: cd test/infra && go mod tidy
     - name: Run infra test
-      run: cd test/infra && go test -v -timeout 10m
+      run: cd test/infra && go test -count=1 -v -timeout 5m
 
   test-contract:
 

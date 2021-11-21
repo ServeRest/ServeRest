@@ -25,10 +25,12 @@ func packageJsonVersion() string {
 
 func TestDockerWithHelpFlag(t *testing.T) {
 	// Configure the tag to use on the Docker image.
-	tag := "paulogoncalvesbh/serverest"
+	tag := "serverest-terratest"
 	buildOptions := &docker.BuildOptions{
 		Tags: []string{tag},
-		Target: "prod",
+		OtherOptions: []string{
+			"--no-cache",
+		},
 	}
 
 	// Build the Docker image.
