@@ -1,4 +1,4 @@
-FROM node:lts-alpine3.12 as base
+FROM node:lts-alpine3.12@sha256:60ef0bed1dc2ec835cfe3c4226d074fdfaba571fd619c280474cc04e93f0ec5b as base
 
 LABEL repository="https://github.com/ServeRest/ServeRest" \
       homepage="https://github.com/ServeRest/ServeRest" \
@@ -12,7 +12,7 @@ FROM base as test
 
 ENV NODE_ENV=serverest-test
 
-RUN apk --no-cache add git=2.26.3-r0 ca-certificates=20191127-r4 wget=1.20.3-r1 bash=5.0.17-r0 \
+RUN apk --no-cache add git=2.32.0-r0 ca-certificates=20191127-r5 wget=1.21.1-r1 bash=5.1.4-r0 \
   && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
   && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk \
   && apk --no-cache add glibc-2.29-r0.apk \
