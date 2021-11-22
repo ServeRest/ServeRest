@@ -154,6 +154,7 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 
 - [Java > Automação com REST-Assured e Junit - Lucas Fraga](https://github.com/uLucasFraga/restassured_for_studies)
 - [JS > Automação com Supertest, Mocha e Chai - Paulo Gonçalves](https://github.com/PauloGoncalvesBH/sample-supertest)
+- [JS > Automação com Playwright - Leonard Tsuda](https://github.com/ltsuda/playwright-serverest)
 - [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 - [Robot Framework > Automação com RequestsLibrary - Mayara Fernandes](https://github.com/mayribeirofernandes/testesrobotframework/tree/HEAD/ExemploAPI_ServeRest)
 - [Ruby > Automação com HTTParty e RSpec - Bruno Quintanilha](https://github.com/braquintanilha/serverest-httparty-rspec)
