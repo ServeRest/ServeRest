@@ -146,6 +146,7 @@ jobs:
     needs: [lint, commit-lint, dockerfile-lint, test-mutation, test-infra-docker, test-contract, sonarcloud]
 
     runs-on: ubuntu-18.04
+    environment: production
 
     steps:
     - name: Project checkout
