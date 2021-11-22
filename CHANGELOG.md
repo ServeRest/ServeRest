@@ -1,5 +1,46 @@
 # Changelog
 
+# [2.25.0](https://github.com/ServeRest/ServeRest/compare/v2.24.4...v2.25.0) (2021-11-22)
+
+
+### Chores
+
+* criar multi-stage build para execução do projeto com nodemon ([9b8bca5](https://github.com/ServeRest/ServeRest/commit/9b8bca520a67eeaa0d08b3f1323a4cc515d38dd3))
+* **docker:** avoid using 'prepare' on prod image ([bc4a9c7](https://github.com/ServeRest/ServeRest/commit/bc4a9c710fe7a91f27bd991dcfd31a260cbad6c8))
+* **dockerfile:** incluir labels com informações do projeto ([7cbdd6c](https://github.com/ServeRest/ServeRest/commit/7cbdd6c0c60a7907941d1fd5dd2ea30a6d823f17))
+* generate package-lock with newer version of npm ([e7b28a0](https://github.com/ServeRest/ServeRest/commit/e7b28a028c6d9ac547e58c4f12774a211578655a))
+* guarantee that pipeline will break when test fail ([22a9629](https://github.com/ServeRest/ServeRest/commit/22a962982096b40fb7420beca3241161b7aa7f4c))
+* **infra-test:** containerize infra test to easier run ([ad9529d](https://github.com/ServeRest/ServeRest/commit/ad9529dfeda47eacf487b947eec6b4bec7d28fe1))
+* renomear test de api para teste de integração ([1368f38](https://github.com/ServeRest/ServeRest/commit/1368f38c186212d2307884dc0ee434c5ae8996a1))
+* set specific version of base images ([ca4c152](https://github.com/ServeRest/ServeRest/commit/ca4c152ae3174376912977ade20119047f60b8fc))
+* **sonar:** remover análise de coverage de arquivos que não necessitam ter testes ([9f5ae1f](https://github.com/ServeRest/ServeRest/commit/9f5ae1f3e28d71d860b8a58d68b4c3a030cde83b))
+* **test:** exibir cor na execução de teste de integração para facilitar leitura ([44ef82d](https://github.com/ServeRest/ServeRest/commit/44ef82d6e2ea4a1f130d767f40e0341a8489a256))
+
+
+### Continuous Integration
+
+* explicitar o nome da imagem docker ([a2eb8c2](https://github.com/ServeRest/ServeRest/commit/a2eb8c238e55acffc7de3b5149120b2627505090))
+* remover execução de teste que não está containerizado ([123eb10](https://github.com/ServeRest/ServeRest/commit/123eb106101bc56201e188c3a925182fce0dc7e1))
+
+
+### Documentation
+
+* **contributing:** detalhar a seção de testes com os pacotes utilizados e informação de coverage ([687395e](https://github.com/ServeRest/ServeRest/commit/687395e6e145384c4ac93af096b95bc01f480f2e))
+* **readme:** adicionar repositório de automação em ruby ([bd828af](https://github.com/ServeRest/ServeRest/commit/bd828af2b993e3ef4558e130ed5252a287d52c9c))
+
+
+### Features
+
+* **rate-limit:** interceptar requests de testes de carga para não enviar os dados para o moesif ([7683cd0](https://github.com/ServeRest/ServeRest/commit/7683cd0060b3312c17305496d580729f3a71a687))
+
+
+### Tests
+
+* fix infra test error ([6345210](https://github.com/ServeRest/ServeRest/commit/634521029dadc92ba3e0b52775b008c7c80bf37f))
+* **infra:** avoid test caching ([befbf6e](https://github.com/ServeRest/ServeRest/commit/befbf6e7d7318964d86f94cb4f12dcdb9b3ff407))
+* **unitario:** garantir comportamento do método getRandomFinancialContributor ([d4debd7](https://github.com/ServeRest/ServeRest/commit/d4debd7691255e307dcef61c986d7486cfc51d30))
+* utilizar multi-stage build ([ed69b62](https://github.com/ServeRest/ServeRest/commit/ed69b6269178ec13382f643a22226fc4dcfe2fe4))
+
 ## [2.24.4](https://github.com/ServeRest/ServeRest/compare/v2.24.3...v2.24.4) (2021-10-13)
 
 
