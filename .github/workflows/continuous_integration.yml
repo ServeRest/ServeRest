@@ -5,144 +5,157 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  # lint:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - name: Node.js Setup
+  #     uses: actions/setup-node@v2
+  #   - name: Installation of Node.js dependencies
+  #     run: npm ci
+  #   - name: Lint
+  #     run: npm run lint
+
+  test-mutation:
 
     runs-on: ubuntu-18.04
 
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Node.js Setup
-      uses: actions/setup-node@v2
-    - name: Installation of Node.js dependencies
-      run: npm ci
-    - name: Lint
-      run: npm run lint
-
-  commit-lint:
-
-    runs-on: ubuntu-18.04
-
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: wagoid/commitlint-github-action@v3
-      with:
-        helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
-
-  dockerfile-lint:
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-    - name: Validate production and dev dockerfile (Dockerfile)
-      run: docker run --rm -i hadolint/hadolint < Dockerfile
-    - name: Validate terratest dockerfile (Dockerfile.terratest)
-      run: docker run --rm -i hadolint/hadolint < Dockerfile.terratest
-
-  test-unit:
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-    - run: docker-compose build test-unit
-    - name: Run Unit Test
-      run: make test-unit
-    - uses: actions/upload-artifact@v2
-      with:
-        name: coverage-unit
-        retention-days: 1
-        path: coverage-unit/lcov.info
-
-  test-integration:
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-    - run: docker-compose build test-integration
-    - name: Run Integration Test
-      run: make test-integration
-    - uses: actions/upload-artifact@v2
-      with:
-        name: coverage-integration
-        retention-days: 1
-        path: coverage-integration/lcov.info
-
-  sonarcloud:
-    needs: [test-unit, test-integration]
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-    - name: Download unit test artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: coverage-unit
-        path: coverage-unit
-    - name: Download integration test artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: coverage-integration
-        path: coverage-integration
-    - name: Merge coverage report
-      run: npm run merge-lcov
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  test-mutation-diff:
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - run: docker-compose build test-mutation-diff
-    - name: Run mutation test - Changed files in the branch
-      run: make test-mutation-diff
+    - run: docker-compose build test-mutation
+    - name: Run mutation test
+      run: make test-mutation
       env:
         STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
 
-  test-infra-docker:
+  # commit-lint:
 
-    runs-on: ubuntu-18.04
+  #   runs-on: ubuntu-18.04
 
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-    - run: docker-compose build test-infra
-    - name: Run infra test
-      run: make test-infra
+  #   env:
+  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  test-contract:
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #     with:
+  #       fetch-depth: 0
+  #   - uses: wagoid/commitlint-github-action@v3
+  #     with:
+  #       helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
 
-    runs-on: ubuntu-18.04
+  # dockerfile-lint:
 
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.ref }}
-    - run: docker-compose build test-contract
-    - name: Run contract test
-      run: make test-contract
-      env:
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - name: Validate production and dev dockerfile (Dockerfile)
+  #     run: docker run --rm -i hadolint/hadolint < Dockerfile
+  #   - name: Validate terratest dockerfile (Dockerfile.terratest)
+  #     run: docker run --rm -i hadolint/hadolint < Dockerfile.terratest
+
+  # test-unit:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - run: docker-compose build test-unit
+  #   - name: Run Unit Test
+  #     run: make test-unit
+  #   - uses: actions/upload-artifact@v2
+  #     with:
+  #       name: coverage-unit
+  #       retention-days: 1
+  #       path: coverage-unit/lcov.info
+
+  # test-integration:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - run: docker-compose build test-integration
+  #   - name: Run Integration Test
+  #     run: make test-integration
+  #   - uses: actions/upload-artifact@v2
+  #     with:
+  #       name: coverage-integration
+  #       retention-days: 1
+  #       path: coverage-integration/lcov.info
+
+  # sonarcloud:
+  #   needs: [test-unit, test-integration]
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - name: Download unit test artifact
+  #     uses: actions/download-artifact@v2
+  #     with:
+  #       name: coverage-unit
+  #       path: coverage-unit
+  #   - name: Download integration test artifact
+  #     uses: actions/download-artifact@v2
+  #     with:
+  #       name: coverage-integration
+  #       path: coverage-integration
+  #   - name: Merge coverage report
+  #     run: npm run merge-lcov
+  #   - name: SonarCloud Scan
+  #     uses: SonarSource/sonarcloud-github-action@master
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # test-mutation-diff:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #     with:
+  #       fetch-depth: 0
+  #   - run: docker-compose build test-mutation-diff
+  #   - name: Run mutation test - Changed files in the branch
+  #     run: make test-mutation-diff
+  #     env:
+  #       STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+
+  # test-infra-docker:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #   - run: docker-compose build test-infra
+  #   - name: Run infra test
+  #     run: make test-infra
+
+  # test-contract:
+
+  #   runs-on: ubuntu-18.04
+
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v2
+  #     with:
+  #       fetch-depth: 0
+  #       ref: ${{ github.event.pull_request.head.ref }}
+  #   - run: docker-compose build test-contract
+  #   - name: Run contract test
+  #     run: make test-contract
+  #     env:
+  #       PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
