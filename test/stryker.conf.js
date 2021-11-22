@@ -11,11 +11,11 @@ module.exports = {
   },
   reporters: ['html', 'dashboard', 'clear-text', 'progress'],
   dashboard: {
-    project: 'github.com/ServeRest/ServeRest',
-    version: process.env.BRANCH,
+    // project: '//github.com/ServeRest/ServeRest',
+    // version: process.env.BRANCH,
     baseUrl: 'dashboard.stryker-mutator.io/reports',
-    reportType: 'full',
-    module: undefined
+    reportType: 'full'
+    // module: undefined
   },
   testRunner: 'command',
   commandRunner: {

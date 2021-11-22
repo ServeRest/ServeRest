@@ -43,7 +43,9 @@ services:
     extends: base
     environment:
       - STRYKER_DASHBOARD_API_KEY
-      - BRANCH=dashboard-mutation-test
+      - VERSION
+      - PROJECT
+      # - BRANCH=dashboard-mutation-test
     command: npm run test:mutation
     volumes:
       - ./reports:/app/reports
