@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.25.1](https://github.com/ServeRest/ServeRest/compare/v2.25.0...v2.25.1) (2021-11-23)
+
+
+### Chores
+
+* **patch:** desabilitar monitoramento enquanto ajusto rate limit ([fb5098b](https://github.com/ServeRest/ServeRest/commit/fb5098bea9253e7606d8d5c66f252bf9a6870a3c))
+
+
+### Continuous Integration
+
+* **environment:** limit prod secrets to trunk and beta branch ([56fb980](https://github.com/ServeRest/ServeRest/commit/56fb980d9d6add7cc92e96277421ff3a1db3a2c2))
+
+
+### Documentation
+
+* **readme:** include playwright automation repo ([492400c](https://github.com/ServeRest/ServeRest/commit/492400c6bbdf3ce48b092e38c1eadc6ac8a0e410))
+
 # [2.25.0](https://github.com/ServeRest/ServeRest/compare/v2.24.4...v2.25.0) (2021-11-22)
 
 
