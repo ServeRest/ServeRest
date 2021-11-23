@@ -13,7 +13,7 @@ const swaggerUi = require('swagger-ui-express')
 const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
-const logger = require('./utils/logger')
+// const logger = require('./utils/logger')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
@@ -51,7 +51,7 @@ if (!ehAmbienteDeTestes) {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
-logger(app)
+// logger(app)
 
 /* istanbul ignore next */
 switch (formaDeExecucao()) {
