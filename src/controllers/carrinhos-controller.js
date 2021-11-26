@@ -34,24 +34,19 @@ exports.post = async (req, res) => {
     return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
   }
 
-  const produtos = req.body.produtos
-  for (let index = 0; index < produtos.length; index++) {
-    produtos[index].quantidade = parseInt(produtos[index].quantidade)
-    const { idProduto, quantidade } = produtos[index]
-    if (!await produtosService.existeProduto({ _id: idProduto })) {
-      return res.status(400).send({ message: constant.IDPRODUTO_INVALIDO, item: { index, idProduto, quantidade } })
+  const produtosDoCarrinho = req.body.produtos
+  for (let index = 0; index < produtosDoCarrinho.length; index++) {
+    const { precoUnitario: preco, error } = await precoUnitario(produtosDoCarrinho[index])
+    if (error) {
+      const item = { ...error.item, index }
+      return res.status(error.statusCode).send({ message: error.message, item })
     }
-
-    const { quantidade: quantidadeEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
-    if (quantidade > quantidadeEstoque) {
-      return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idProduto, quantidade, quantidadeEstoque } })
-    }
-    Object.assign(produtos[index], { precoUnitario: preco })
+    Object.assign(produtosDoCarrinho[index], { precoUnitario: preco })
   }
   let precoTotal = 0
   let quantidadeTotal = 0
-  for (let index = 0; index < produtos.length; index++) {
-    const { idProduto, quantidade } = produtos[index]
+  for (let index = 0; index < produtosDoCarrinho.length; index++) {
+    const { idProduto, quantidade } = produtosDoCarrinho[index]
     const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
     const novaQuantidade = quantidadeEmEstoque - quantidade
     await produtosService.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
@@ -98,3 +93,23 @@ exports.concluirCompra = async (req, res) => {
 const isUndefined = (object) => typeof object === 'undefined'
 
 const isNotUndefined = (object) => !isUndefined(object)
+
+const precoUnitario = async (produto) => {
+  // confirmando que a quantidade é um número
+  const quantidade = parseInt(produto.quantidade)
+  const { idProduto } = produto
+  const existePedido = await existeProduto(produto.idProduto)
+  if (!existePedido) {
+    return { error: { statusCode: 400, message: constant.IDPRODUTO_INVALIDO, item: { idProduto, quantidade } } }
+  }
+
+  const { quantidade: quantidadeEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
+  if (quantidade > quantidadeEstoque) {
+    return { error: { statusCode: 400, message: constant.ESTOQUE_INSUFICIENTE, item: { idProduto, quantidade, quantidadeEstoque } } }
+  }
+  return { precoUnitario: preco }
+}
+
+const existeProduto = (idProduto) => {
+  return produtosService.existeProduto({ _id: idProduto })
+}
