@@ -29,7 +29,7 @@ exports.post = async (req, res) => {
   }
 
   const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
-  const temProdutosDuplicados = typeof idProdutosDuplicados[0] !== 'undefined'
+  const temProdutosDuplicados = isNotUndefined(idProdutosDuplicados[0])
   if (temProdutosDuplicados) {
     return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
   }
@@ -67,7 +67,7 @@ exports.post = async (req, res) => {
 
 exports.cancelarCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
 
   if (usuarioTemCarrinho) {
     const produtos = carrinhoDoUsuario[0].produtos
@@ -87,10 +87,14 @@ exports.cancelarCompra = async (req, res) => {
 
 exports.concluirCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
   if (usuarioTemCarrinho) {
     await service.deleteById(carrinhoDoUsuario[0]._id)
     return res.status(200).send({ message: constant.DELETE_SUCESS })
   }
   res.status(200).send({ message: constant.SEM_CARRINHO })
 }
+
+const isUndefined = (object) => typeof object === 'undefined'
+
+const isNotUndefined = (object) => !isUndefined(object)
