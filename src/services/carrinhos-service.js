@@ -6,6 +6,7 @@ const { join } = require('path')
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
+const produtosService = require('../services/produtos-service')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
 
@@ -52,6 +53,20 @@ exports.usuarioJaPossuiCarrinho = async (authorization) => {
     idUsuario: _id,
     possuiCarrinho: await this.existeCarrinho({ idUsuario: _id })
   }
+}
+
+exports.precoTotal = async (produtos) => {
+  return produtos.reduce(async (precoAnterior, produto) => {
+    const preco = await produtosService.getPreco(produto)
+    return (await precoAnterior) + preco * produto.quantidade
+  }, Promise.resolve(0))
+}
+
+exports.quantidadeTotal = async (produtos) => {
+  return produtos.reduce(async (quantidadeAnterior, produto) => {
+    await produtosService.updateQuantidade(produto)
+    return (await quantidadeAnterior) + produto.quantidade
+  }, Promise.resolve(0))
 }
 
 const idUsuario = async (authorization) => {

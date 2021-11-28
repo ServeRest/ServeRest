@@ -40,14 +40,8 @@ exports.post = async (req, res) => {
     }
     produtosComPrecoUnitario.push({ ...produtosDoCarrinho[index], precoUnitario: preco })
   }
-  let precoTotal = 0
-  let quantidadeTotal = 0
-  for (const produto of produtosComPrecoUnitario) {
-    const preco = await produtosService.getPreco(produto)
-    await produtosService.updateQuantidade(produto)
-    precoTotal += preco * produto.quantidade
-    quantidadeTotal += produto.quantidade
-  }
+  const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
+  const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
 
   const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario }
 
