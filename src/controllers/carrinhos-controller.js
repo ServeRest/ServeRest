@@ -97,7 +97,7 @@ const getPrecoUnitarioOuErro = async (produto) => {
   // confirmando que a quantidade é um número
   const quantidade = parseInt(produto.quantidade)
   const { idProduto } = produto
-  const existePedido = await existeProduto(produto.idProduto)
+  const existePedido = await existeProduto(idProduto)
   if (!existePedido) {
     return { error: { statusCode: 400, message: constant.IDPRODUTO_INVALIDO, item: { idProduto, quantidade } } }
   }
