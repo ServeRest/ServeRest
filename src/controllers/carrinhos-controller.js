@@ -35,25 +35,26 @@ exports.post = async (req, res) => {
   }
 
   const produtosDoCarrinho = req.body.produtos
+  const produtosComPrecoUnitario = []
   for (let index = 0; index < produtosDoCarrinho.length; index++) {
     const { precoUnitario: preco, error } = await getPrecoUnitarioOuErro(produtosDoCarrinho[index])
     if (error) {
       const item = { ...error.item, index }
       return res.status(error.statusCode).send({ message: error.message, item })
     }
-    Object.assign(produtosDoCarrinho[index], { precoUnitario: preco })
+    produtosComPrecoUnitario.push({ ...produtosDoCarrinho[index], precoUnitario: preco })
   }
   let precoTotal = 0
   let quantidadeTotal = 0
-  for (let index = 0; index < produtosDoCarrinho.length; index++) {
-    const { quantidade, preco } = await getQuantidadeEPreco(produtosDoCarrinho[index])
+  for (let index = 0; index < produtosComPrecoUnitario.length; index++) {
+    const { quantidade, preco } = await getQuantidadeEPreco(produtosComPrecoUnitario[index])
     precoTotal += preco * quantidade
     quantidadeTotal += quantidade
   }
 
-  Object.assign(req.body, { precoTotal, quantidadeTotal, idUsuario: _id })
+  const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario: _id }
 
-  const dadosCadastrados = await service.criarCarrinho(req.body)
+  const dadosCadastrados = await service.criarCarrinho(carrinho)
   res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
 }
 
