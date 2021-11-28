@@ -33,7 +33,7 @@ exports.post = async (req, res) => {
   const { produtos } = req.body
   const produtosComPrecoUnitario = []
   for (let index = 0; index < produtos.length; index++) {
-    const { precoUnitario: preco, error } = await getPrecoUnitarioOuErro(produtos[index])
+    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produtos[index])
     if (error) {
       const item = { ...error.item, index }
       return res.status(error.statusCode).send({ message: error.message, item })
@@ -82,23 +82,3 @@ exports.concluirCompra = async (req, res) => {
 const isUndefined = (object) => typeof object === 'undefined'
 
 const isNotUndefined = (object) => !isUndefined(object)
-
-const getPrecoUnitarioOuErro = async (produto) => {
-  // confirmando que a quantidade é um número
-  const quantidade = parseInt(produto.quantidade)
-  const { idProduto } = produto
-  const existePedido = await existeProduto(idProduto)
-  if (!existePedido) {
-    return { error: { statusCode: 400, message: constant.IDPRODUTO_INVALIDO, item: { idProduto, quantidade } } }
-  }
-
-  const { quantidade: quantidadeEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
-  if (quantidade > quantidadeEstoque) {
-    return { error: { statusCode: 400, message: constant.ESTOQUE_INSUFICIENTE, item: { idProduto, quantidade, quantidadeEstoque } } }
-  }
-  return { precoUnitario: preco }
-}
-
-const existeProduto = (idProduto) => {
-  return produtosService.existeProduto({ _id: idProduto })
-}
