@@ -30,15 +30,15 @@ exports.post = async (req, res) => {
     return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
   }
 
-  const produtosDoCarrinho = req.body.produtos
+  const { produtos } = req.body
   const produtosComPrecoUnitario = []
-  for (let index = 0; index < produtosDoCarrinho.length; index++) {
-    const { precoUnitario: preco, error } = await getPrecoUnitarioOuErro(produtosDoCarrinho[index])
+  for (let index = 0; index < produtos.length; index++) {
+    const { precoUnitario: preco, error } = await getPrecoUnitarioOuErro(produtos[index])
     if (error) {
       const item = { ...error.item, index }
       return res.status(error.statusCode).send({ message: error.message, item })
     }
-    produtosComPrecoUnitario.push({ ...produtosDoCarrinho[index], precoUnitario: preco })
+    produtosComPrecoUnitario.push({ ...produtos[index], precoUnitario: preco })
   }
   const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
   const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
