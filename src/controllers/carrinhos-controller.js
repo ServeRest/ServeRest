@@ -48,9 +48,9 @@ exports.post = async (req, res) => {
   let quantidadeTotal = 0
   for (const produto of produtosComPrecoUnitario) {
     const preco = await produtosService.getPreco(produto)
-    const quantidade = await produtosService.getQuantidade(produto)
-    precoTotal += preco * quantidade
-    quantidadeTotal += quantidade
+    await produtosService.updateQuantidade(produto)
+    precoTotal += preco * produto.quantidade
+    quantidadeTotal += produto.quantidade
   }
 
   const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario: _id }

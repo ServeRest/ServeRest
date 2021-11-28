@@ -24,12 +24,10 @@ exports.existeProduto = pesquisa => {
   return datastore.count(pesquisa)
 }
 
-exports.getQuantidade = async (produto) => {
-  const { idProduto, quantidade } = produto
+exports.updateQuantidade = async ({ idProduto, quantidade }) => {
   const { quantidade: quantidadeEmEstoque } = await this.getDadosDoProduto({ _id: idProduto })
   const novaQuantidade = quantidadeEmEstoque - quantidade
   await this.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
-  return quantidade
 }
 
 exports.getPreco = async (produto) => {
