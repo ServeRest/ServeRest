@@ -46,3 +46,12 @@ exports.getCarrinhoDoUsuario = async (authorization) => {
   const { _id: idUsuario } = await usuariosService.getDadosDoUsuario({ email, password })
   return this.getAll({ idUsuario })
 }
+
+exports.usuarioJaPossuiCarrinho = async (authorization) => {
+  const { email, password } = authService.verifyToken(authorization)
+  const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
+  return {
+    idUsuario: _id,
+    possuiCarrinho: await this.existeCarrinho({ idUsuario: _id })
+  }
+}

@@ -1,10 +1,8 @@
 'use strict'
 
-const authService = require('../services/auth-service')
 const constant = require('../utils/constants')
 const produtosService = require('../services/produtos-service')
 const service = require('../services/carrinhos-service')
-const usuariosService = require('../services/usuarios-service')
 
 exports.get = async (req, res) => {
   const carrinhos = await service.getAll(req.query)
@@ -21,10 +19,8 @@ exports.getOne = async (req, res) => {
 }
 
 exports.post = async (req, res) => {
-  const { email, password } = authService.verifyToken(req.headers.authorization)
-  const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
-  const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idUsuario: _id })
-  if (usuarioJaPossuiCarrinho) {
+  const { idUsuario, possuiCarrinho } = await service.usuarioJaPossuiCarrinho(req.headers.authorization)
+  if (possuiCarrinho) {
     return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
   }
 
@@ -53,7 +49,7 @@ exports.post = async (req, res) => {
     quantidadeTotal += produto.quantidade
   }
 
-  const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario: _id }
+  const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario }
 
   const dadosCadastrados = await service.criarCarrinho(carrinho)
   res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
