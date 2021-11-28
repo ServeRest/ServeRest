@@ -42,16 +42,20 @@ exports.deleteById = async id => {
 }
 
 exports.getCarrinhoDoUsuario = async (authorization) => {
-  const { email, password } = authService.verifyToken(authorization)
-  const { _id: idUsuario } = await usuariosService.getDadosDoUsuario({ email, password })
-  return this.getAll({ idUsuario })
+  const _id = await idUsuario(authorization)
+  return this.getAll({ idUsuario: _id })
 }
 
 exports.usuarioJaPossuiCarrinho = async (authorization) => {
-  const { email, password } = authService.verifyToken(authorization)
-  const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
+  const _id = await idUsuario(authorization)
   return {
     idUsuario: _id,
     possuiCarrinho: await this.existeCarrinho({ idUsuario: _id })
   }
+}
+
+const idUsuario = async (authorization) => {
+  const { email, password } = authService.verifyToken(authorization)
+  const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
+  return _id
 }
