@@ -46,8 +46,9 @@ exports.post = async (req, res) => {
   }
   let precoTotal = 0
   let quantidadeTotal = 0
-  for (let index = 0; index < produtosComPrecoUnitario.length; index++) {
-    const { quantidade, preco } = await getQuantidadeEPreco(produtosComPrecoUnitario[index])
+  for (const produto of produtosComPrecoUnitario) {
+    const preco = await getPreco(produto)
+    const quantidade = await getQuantidade(produto)
     precoTotal += preco * quantidade
     quantidadeTotal += quantidade
   }
@@ -92,12 +93,18 @@ const isUndefined = (object) => typeof object === 'undefined'
 
 const isNotUndefined = (object) => !isUndefined(object)
 
-const getQuantidadeEPreco = async (produto) => {
+const getQuantidade = async (produto) => {
   const { idProduto, quantidade } = produto
-  const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
+  const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
   const novaQuantidade = quantidadeEmEstoque - quantidade
   await produtosService.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
-  return { quantidade, preco }
+  return quantidade
+}
+
+const getPreco = async (produto) => {
+  const { idProduto } = produto
+  const { preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
+  return preco
 }
 
 const getPrecoUnitarioOuErro = async (produto) => {
