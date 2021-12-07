@@ -105,18 +105,18 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # test-mutation:
+  test-mutation:
 
-  #   runs-on: ubuntu-18.04
+    runs-on: ubuntu-18.04
 
-  #   steps:
-  #   - name: Project checkout
-  #     uses: actions/checkout@v2
-  #   - run: docker-compose build test-mutation
-  #   - name: Run mutation test
-  #     run: make test-mutation
-  #     env:
-  #       STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-mutation
+    - name: Run mutation test
+      run: make test-mutation
+      env:
+        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
 
   test-infra-docker:
 
@@ -143,7 +143,7 @@ jobs:
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
-    needs: [lint, commit-lint, dockerfile-lint, test-infra-docker, test-contract, sonarcloud]
+    needs: [lint, commit-lint, dockerfile-lint, test-mutation, test-infra-docker, test-contract, sonarcloud]
 
     runs-on: ubuntu-18.04
     environment: production
