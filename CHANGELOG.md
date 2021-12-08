@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.25.2](https://github.com/ServeRest/ServeRest/compare/v2.25.1...v2.25.2) (2021-12-08)
+
+
+### Miscellaneous
+
+* Revert "chore(patch): desabilitar monitoramento enquanto ajusto rate limit" ([36f69ce](https://github.com/ServeRest/ServeRest/commit/36f69ceca224a3f90e47a9a950dc5bc376f9e468))
+
 ## [2.25.1](https://github.com/ServeRest/ServeRest/compare/v2.25.0...v2.25.1) (2021-11-23)
 
 
