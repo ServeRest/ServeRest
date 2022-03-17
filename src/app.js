@@ -46,11 +46,6 @@ if (!conf.semHeaderDeSeguranca) {
   })
 }
 
-/* istanbul ignore if */
-if (!ehAmbienteDeTestes) {
-  app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
-}
-
 logger(app)
 
 /* istanbul ignore next */

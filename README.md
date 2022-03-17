@@ -25,10 +25,10 @@
 
 _ServeRest_ permite o estudo de:
 - Verbos *GET, POST, PUT* e *DELETE* com persistência de dados
-- [Teste de carga](https://github.com/ServeRest/ServeRest#teste-de-carga)
 - Autenticação no header
 - Query string
 - Teste de schema json
+- Teste de carga
 
 <b><h2 align="center">Ambientes disponíveis</h2></b>
 
@@ -126,17 +126,6 @@ docker run -p 3000:3000 paulogoncalvesbh/serverest:latest --help
 Em ambos os comandos de subida de ambiente local será utilizado a última versão disponível. Caso queira usar uma versão específica basta substituir o `latest` pela versão desejada.
 
 Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
-
-## Teste de carga
-
-Para acompanhar o comportamento do ambiente aonde o ServeRest está hospedado você pode acessar a página https://serverest.dev/status, pois contém informações como:
-
-- Uso de CPU.
-- Uso da memória.
-- Tempo de resposta.
-- RPS (Requisições por segundo).
-
-> Fez teste de carga? O que acha de compartilhar com o autor do projeto o relatório final contendo dados de RPS para auxiliar o ServeRest a entender o comportamento de sua infra?
 
 ## Badge
 
