@@ -54,7 +54,7 @@ No ambiente online os dados cadastrados são removidos diariamente, enquanto que
 
 Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
 
-### Online <a href="https://status.serverest.dev"><img alt="7-day uptime 100.00%" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FServeRest%2Fserverest-status-uptime%2Fmaster%2Fapi%2Fserve-rest-dev%2Fuptime-week.json"></a>
+### Online
 
 Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas disponíveis.
 
