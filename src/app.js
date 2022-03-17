@@ -54,7 +54,7 @@ switch (formaDeExecucao()) {
     swaggerDocument.host = 'serverest.dev'
     break
   case 'agilizei':
-    swaggerDocument.host = 'serverest-api.agilizei.com'
+    swaggerDocument.host = 'agilizei.serverest.dev'
     break
 }
 
