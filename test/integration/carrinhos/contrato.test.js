@@ -4,7 +4,7 @@ const rotaCarrinhos = '/carrinhos'
 const schema = require('./schema')
 const utils = require('../utils')
 
-describe(rotaCarrinhos + ' CONTRATO', () => {
+describe(rotaCarrinhos + ' CONTRATO - @smokeE2E', () => {
   it('GET', async () => {
     const { body } = await request.get(rotaCarrinhos).expect(200)
 

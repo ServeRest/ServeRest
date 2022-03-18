@@ -6,8 +6,6 @@ COPY package*.json ./
 
 RUN npm ci
 
-COPY . .
-
 FROM base as test
 
 ENV NODE_ENV=serverest-test
@@ -19,11 +17,15 @@ RUN apk --no-cache add git ca-certificates wget=1.21.1-r1 bash \
   && apk --no-cache add glibc-2.29-r0.apk \
   && rm -rf /var/cache/apk/*
 
+COPY . .
+
 FROM base as dev
 
 ENV NODE_ENV=serverest-development
 ENV USERNAME='docker'
 ENV TERM=xterm-256color
+
+COPY . .
 
 EXPOSE 3000
 

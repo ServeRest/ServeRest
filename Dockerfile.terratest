@@ -2,7 +2,7 @@ FROM golang:1.17.3-alpine3.14@sha256:55da409cc0fe11df63a7d6962fbefd1321fedc305d9
 
 # hadolint ignore=DL3018
 RUN apk --no-cache add \
-    build-base=0.5-r2 \
+    build-base \
     docker \
     openrc \
     bash \

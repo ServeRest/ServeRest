@@ -93,7 +93,7 @@ Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), vali
 Para rodar os testes, execute:
 
 1. `make test-integration` para os testes de integração.
-1. `make test-e2e` para os testes E2E em cima da imagem docker que irá para produção.
+1. `make test-e2e-localhost` para os testes E2E em cima da imagem docker que irá para produção.
 1. `make test-unit` para os testes unitários.
 
 _Execute o comando `make test` para rodar os testes unitários e de integração._

@@ -1,98 +1,206 @@
 name: Deploy ServeRest on the web
 
+# This pipeline runs when the continuous_delivery.yml pipeline generates a new release
+
 on:
   release:
     types: [released]
-  workflow_dispatch:
-    inputs:
-      publicar-no-serverest-dev:
-        description: 'Publicar a API no ServeRest.dev?'
-        required: true
-        default: 'true'
-      publicar-no-agilizei:
-        description: 'Publicar a API no Agilizei?'
-        required: false
-        default: 'false'
-  schedule:
-    - cron: "0 6 * * *"
 
 env:
+  PROJECT_ID: serverest
+  SERVICE_NAME: app
+  REGION: us-central1
+  SERVICE_PRODUCTION: app
+  SERVICE_STAGING: app-staging
   PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
 jobs:
-  can-i-deploy:
+  build-and-push-image-to-gcloud-container-registry:
+    name: Build and push image to container registry
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+    - name: Authentication on GCloud
+      run: |
+        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Build and deploy to Gcloud
+      run: |
+        gcloud builds submit . \
+          --config=cloudbuild.yaml \
+          --substitutions=COMMIT_SHA=${{ github.sha }}
+
+  deploy-staging:
+    name: Deploy on staging environment (staging.serverest.dev)
+    needs: build-and-push-image-to-gcloud-container-registry
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+    - name: Authentication on GCloud
+      run: |
+        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Deploy container image to 'staging' environment
+      run: |
+        gcloud run \
+          deploy $SERVICE_STAGING \
+          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          --region $REGION
+
+  test-e2e-staging:
+    name: E2E test on staging environment
+    needs: deploy-staging
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-e2e-staging
+    - name: Run E2E test in staging environment
+      run: make test-e2e-staging
+
+  deploy-production:
+    name: Deploy on prod environment (serverest.dev)
+    needs: test-e2e-staging
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+    - name: Authentication on GCloud
+      run: |
+        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Deploy container image to 'production' environment
+      run: |
+        gcloud run \
+          deploy $SERVICE_PRODUCTION \
+          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          --region $REGION
+
+  test-e2e-smoke-production:
+    name: Smoke test in production environment
+    needs: deploy-production
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-e2e-smoke-production
+    - name: Run smoke test in production environment
+      run: make test-e2e-smoke-production
+
+# Rollback jobs \/
+
+  rollback-get-previous-info:
+    name: Get info from previous version (not the latest version)
+    needs: test-e2e-smoke-production
+    if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
+
+    runs-on: ubuntu-18.04
+
+    outputs:
+      git_hash: ${{ steps.info_about_previous_version.outputs.git_hash }}
+      git_tag: ${{ steps.info_about_previous_version.outputs.git_tag }}
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+      with:
+        ref: trunk
+        fetch-depth: 0
+    - run: |
+        echo "::set-output name=git_hash::$(git rev-parse $(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1)))"
+        echo "::set-output name=git_tag::$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))"
+      id: info_about_previous_version
+
+  rollback-production:
+    name: Rollback production environment (serverest.dev)
+    needs: rollback-get-previous-info
+    if: ${{ always() && needs.rollback-get-previous-info.result == 'success' }}
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+    - name: Authentication on GCloud
+      run: |
+        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Deploy image from '${{ needs.rollback-get-previous-info.outputs.git_tag }}' to 'production' environment
+      run: |
+        gcloud run \
+          deploy $SERVICE_PRODUCTION \
+          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.rollback-get-previous-info.outputs.git_hash }} \
+          --region $REGION
+
+  contract-test-rollback:
+    name: Contract test - Rollback 'production' tag
+    needs: rollback-production
+    if: ${{ always() && needs.rollback-production.result == 'success' }}
+
+    runs-on: ubuntu-18.04
+
+    # Why delete tag on rollback? Read: https://docs.pact.io/pact_broker/tags#handling-rollbacks
+    steps:
+    - name: Delete Production tag recently created
+      run: |
+        curl -X DELETE https://paulogoncalves.pactflow.io/pacticipants/$PACTICIPANT/versions/$VERSION/tags/$TAG -H "Authorization: Bearer $PACT_BROKER_TOKEN"
+      env:
+        PACTICIPANT: ServeRest - API Rest
+        VERSION: ${{ github.sha }}
+        TAG: production
+
+# Rollback jobs /\
+
+  contract-test-tag-staging:
+    name: Contract test - Tag with 'staging'
+    needs: deploy-staging
 
     runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
     - run: docker pull pactfoundation/pact-cli:latest
-    - name: Verify that it will not break a contract in production
+    - name: Tag the pact contract with 'staging' tag
       run: |
         docker run --rm \
           -e PACT_BROKER_BASE_URL \
           -e PACT_BROKER_TOKEN \
           pactfoundation/pact-cli \
-          broker can-i-deploy \
+          broker create-version-tag \
           --pacticipant 'ServeRest - API Rest' \
           --version ${{ github.sha }} \
-          --to production
+          --tag staging
 
-  deploy-on-serverest-dev:
-    needs: can-i-deploy
-    if: github.event.inputs.publicar-no-serverest-dev != 'false'
+  contract-test-tag-production:
+    name: Contract test - Tag with 'production'
+    needs: deploy-production
 
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 2
-    - name: Setup SSH to use on 'git push umbler'
-      uses: shimataro/ssh-key-action@v1.5.0
-      with:
-        private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
-        known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-    - name: Deploy on serverest.dev
-      run: |
-        git remote add umbler ssh://git@geonosis.deploy.umbler.com:9922/jnydrgre/serverest-dev.git
-        git fetch --unshallow origin
-        git config --global user.email "deployumbler@github.com"
-        git config --global user.name "deploy umbler"
-        git commit --allow-empty -m "empty commity" --no-verify
-        git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
-
-  deploy-on-api-agilizei:
-    needs: can-i-deploy
-    if: github.event_name == 'schedule' || github.event.inputs.publicar-no-agilizei == 'true'
-
-    runs-on: ubuntu-18.04
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 2
-    - name: Setup SSH to use on 'git push umbler'
-      uses: shimataro/ssh-key-action@v1.5.0
-      with:
-        private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        public-key:  ${{ secrets.SSH_PUBLIC_KEY }}
-        known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-    - name: Deploy on Agilizei
-      run: |
-        git remote add umbler ssh://git@kamino.deploy.umbler.com:9922/jnydrgre/serverest-api-agilizei-com.git
-        git fetch --unshallow origin
-        git config --global user.email "deployumbler@github.com"
-        git config --global user.name "deploy umbler"
-        git commit --allow-empty -m "empty commity" --no-verify
-        git push umbler ${GITHUB_REF##*/}:trunk --no-verify --force
-
-  contract-test-tag-pact:
-    needs: deploy-on-serverest-dev
     runs-on: ubuntu-18.04
 
     steps:

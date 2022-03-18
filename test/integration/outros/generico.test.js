@@ -8,7 +8,9 @@ describe('GENERICO', () => {
     const rotaInexistente = '/api-doc'
     const { body } = await request.get(rotaInexistente).expect(405)
 
-    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse http://localhost:3000 para ver as rotas disponíveis e como utilizá-las.`
+    const URL = (process.env.TEST_TYPE === 'e2e-staging') ? 'https://staging.serverest.dev' : 'http://localhost:3000'
+
+    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse ${URL} para ver as rotas disponíveis e como utilizá-las.`
     chai.assert.deepEqual(body, { message })
   })
 

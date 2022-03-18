@@ -1,0 +1,16 @@
+
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build',
+        '--file', 'Dockerfile',
+        '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
+        '.']
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA']
+substitutions: # default values
+    _PROJECT_ID: serverest
+    _SERVICE_NAME: app
+images:
+- 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA'

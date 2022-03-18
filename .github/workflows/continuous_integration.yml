@@ -99,9 +99,9 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - run: docker-compose build run-app-e2e
-    - run: docker-compose build test-e2e
-    - name: Run E2E Test
-      run: make test-e2e
+    - run: docker-compose build test-e2e-localhost
+    - name: Run E2E test in locally built docker image
+      run: make test-e2e-localhost
 
   sonarcloud:
     needs: [test-unit, test-integration]
