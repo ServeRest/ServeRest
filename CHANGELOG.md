@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.25.3](https://github.com/ServeRest/ServeRest/compare/v2.25.2...v2.25.3) (2022-03-18)
+
+
+### Bug Fixes
+
+* **agilizei:** fix swagger routes on agilizei.serverest.dev ([19a3a9b](https://github.com/ServeRest/ServeRest/commit/19a3a9bd6afaba2bd98ae74cc9bf29883eb4193f))
+* remove 'performance test' info and /status route ([c675d38](https://github.com/ServeRest/ServeRest/commit/c675d38a12045645c9bd155aaab540afebb8225c))
+
+
+### Chores
+
+* **docker:** remove specific version that prevents docker build ([1b60df3](https://github.com/ServeRest/ServeRest/commit/1b60df33124a449abfded1bdba22ba9ef5a7aae3))
+* **makefile:** run 'build run' as default to easier execution ([9d10991](https://github.com/ServeRest/ServeRest/commit/9d10991a7e56fa6ba6d80e3428ca1005ae482ac7))
+
+
+### Documentation
+
+* remove companys section because they don't support the project ([7293b8b](https://github.com/ServeRest/ServeRest/commit/7293b8b2a28e333adf0ece3ade697e06d184c85b))
+* remove info about 'uptime' page ([1e8b20a](https://github.com/ServeRest/ServeRest/commit/1e8b20adb77c5d6c6b28fe99ba0c340c1f13196e))
+
 ## [2.25.2](https://github.com/ServeRest/ServeRest/compare/v2.25.1...v2.25.2) (2021-12-08)
 
 
