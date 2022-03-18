@@ -36,8 +36,8 @@ test-unit:
 test-integration:
 	@docker-compose up --abort-on-container-exit  --build test-integration
 
-test-e2e:
-	@docker-compose up --abort-on-container-exit --exit-code-from test-e2e --build test-e2e
+test-e2e-localhost:
+	@docker-compose up --abort-on-container-exit --exit-code-from test-e2e-localhost --build test-e2e-localhost
 
 test-mutation-diff:
 	@docker-compose up --abort-on-container-exit --build test-mutation-diff
@@ -47,3 +47,11 @@ test-mutation:
 
 test-infra:
 	@docker-compose up --abort-on-container-exit --build test-infra
+
+# COMANDOS DE TESTE PÓS DEPLOY \/
+
+test-e2e-staging:
+	@docker-compose up --abort-on-container-exit --build test-e2e-staging
+
+test-e2e-smoke-production:
+	@docker-compose up --abort-on-container-exit --build test-e2e-smoke-production

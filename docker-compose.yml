@@ -19,6 +19,8 @@ services:
     ports:
       - "3000:3000"
 
+# All tests \/
+
   test-contract:
     extends: base
     environment:
@@ -40,6 +42,8 @@ services:
     command: npm run test:integration
     volumes:
       - ./coverage-integration:/app/coverage-integration
+    environment:
+      TEST_TYPE: 'integration'
 
   run-app-e2e:
     build:
@@ -48,9 +52,11 @@ services:
     environment:
       NODE_ENV: 'serverest-development'
 
-  test-e2e:
+  test-e2e-localhost:
     extends: base
     command: npm run test:e2e
+    environment:
+      TEST_TYPE: 'e2e-localhost'
     depends_on:
       - run-app-e2e
     network_mode: 'service:run-app-e2e'
@@ -59,6 +65,7 @@ services:
     extends: base
     environment:
       - STRYKER_DASHBOARD_API_KEY
+      - TEST_TYPE=mutation
     command: npm run test:mutation
     volumes:
       - ./reports:/app/reports
@@ -67,6 +74,7 @@ services:
     extends: base
     environment:
       - STRYKER_DASHBOARD_API_KEY
+      - TEST_TYPE=mutation
     command: npm run test:mutation:diff
     volumes:
       - ./reports:/app/reports
@@ -81,3 +89,17 @@ services:
     volumes:
       - ./test/infra:/app/test/infra
       - /var/run/docker.sock:/var/run/docker.sock
+
+# Deploy test \/
+
+  test-e2e-staging:
+    extends: base
+    command: npm run test:e2e -- --retries 1 --slow 1000
+    environment:
+      TEST_TYPE: 'e2e-staging'
+
+  test-e2e-smoke-production:
+    extends: base
+    command: npm run test:smoke -- --retries 1 --slow 1000
+    environment:
+      TEST_TYPE: 'e2e-production'

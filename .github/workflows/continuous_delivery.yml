@@ -81,6 +81,18 @@ jobs:
         retention-days: 1
         path: coverage-integration/lcov.info
 
+  test-e2e:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build run-app-e2e
+    - run: docker-compose build test-e2e-localhost
+    - name: Run E2E test in locally built docker image
+      run: make test-e2e-localhost
+
   sonarcloud:
     needs: [test-unit, test-integration]
 
@@ -145,7 +157,7 @@ jobs:
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
-    needs: [lint, commit-lint, dockerfile-lint, test-mutation, test-infra-docker, test-contract, sonarcloud]
+    needs: [lint, commit-lint, dockerfile-lint, test-infra-docker, test-contract, sonarcloud]
 
     runs-on: ubuntu-18.04
     environment: production

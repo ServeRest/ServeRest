@@ -52,7 +52,7 @@ Todas essas opções possuem as mesmas rotas, regras, dados pré-cadastrados e d
 
 No ambiente online os dados cadastrados são removidos diariamente, enquanto que no local basta reiniciar o ServeRest.
 
-Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
+> Prefira a opção de ambiente local caso precise que os dados não sejam alterados por outro usuário.
 
 ### Online
 
@@ -60,10 +60,7 @@ Acesse **<https://serverest.dev>** para visualizar a documentação e as rotas d
 
 > Essa é a melhor opção para quem não possui NPM e Docker na máquina ou não quer preocupar em gerenciar ambiente.
 
-A base de dados volta ao estado original [diariamente às 3h](https://github.com/ServeRest/ServeRest/actions?query=workflow%3A%22Clean+serverest.dev+database%22).
-
 O ServeRest online possui monitoramento constante do status e tempo de atividade para garantir que esteja sempre disponível.
-Acesse [ServeRest Status](https://status.serverest.dev/) para ver detalhes do uptime.
 
 ### Localmente com NPM
 

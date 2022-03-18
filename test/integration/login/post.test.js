@@ -4,8 +4,8 @@ const rotaLogin = '/login'
 const utils = require('../utils')
 
 describe(rotaLogin + ' POST', () => {
-  it('Login com sucesso', async () => {
-    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+  it('Login com sucesso - @smokeE2E', async () => {
+    const { email, password, _id } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { body } = await request.post(rotaLogin).send({
       email,
       password
@@ -15,6 +15,11 @@ describe(rotaLogin + ' POST', () => {
       message: 'Login realizado com sucesso',
       authorization: 'Bearer ' + body.authorization.split(' ')[1]
     })
+
+    // delete user when running smoke test on production
+    if (process.env.TEST_TYPE === 'e2e-production') {
+      await request.del(`/usuarios/${_id}`)
+    }
   })
 
   it('Email e/ou senha inválidos', async () => {
