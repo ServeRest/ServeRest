@@ -197,19 +197,3 @@ Veja aqui [como você pode contribuir](https://github.com/ServeRest/ServeRest/bl
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-## Empresas que utilizam o ServeRest
-
-<table>
-  <tr>
-    <td align="center"><a href="https://www.globo.com/"><img alt="Logo da empresa Globo.com" src="https://user-images.githubusercontent.com/29241659/93280011-0725cd00-f79f-11ea-8eab-b20be4430cc9.png" height="65"></a></td>
-    <td align="center"><a href="https://www.totvs.com/"><img alt="Logo da TOTVS" src="https://user-images.githubusercontent.com/29241659/93278632-9fba4e00-f79b-11ea-88a0-076745447848.png" height="110"></a></td>
-    <td align="center"><a href="https://www.noesis.pt/"><img alt="Logo da Noesis" src="https://user-images.githubusercontent.com/29241659/93278486-30dcf500-f79b-11ea-82da-16fb562df247.png" height="60"></a></td>
-    <td align="center"><a href="https://www.accenture.com/br-pt"><img alt="Logo da Accenture" src="https://user-images.githubusercontent.com/29241659/101431722-32bfdb80-38e6-11eb-93cb-454f6a64f328.png" height="90"></a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://www.betrybe.com/"><img alt="Logo da empresa Trybe" src="https://user-images.githubusercontent.com/29241659/105440034-ac1c4f00-5c44-11eb-9e3c-ca0986f2805d.png" height="110"></a></td>
-    <td align="center"><a href="https://www.ailos.coop.br/"><img alt="Logo da Ailos" src="https://user-images.githubusercontent.com/29241659/105440252-03baba80-5c45-11eb-9b04-46ab9504ea95.png" height="75"></a></td>
-    <td align="center"><a href="https://animaeducacao.com.br/"><img alt="Logo da Ânima Educação" src="https://user-images.githubusercontent.com/29241659/105440349-32389580-5c45-11eb-9a9c-bf3758ba6d2e.png" height="110"></a></td>
-  </tr>
-</table>
