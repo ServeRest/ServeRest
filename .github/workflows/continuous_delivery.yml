@@ -88,12 +88,12 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v2
     - name: Download unit test artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage-unit
         path: coverage-unit
     - name: Download integration test artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage-integration
         path: coverage-integration
