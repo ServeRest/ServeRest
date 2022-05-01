@@ -57,7 +57,7 @@ jobs:
     - run: docker-compose build test-unit
     - name: Run Unit Test
       run: make test-unit
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: coverage-unit
         retention-days: 1
@@ -73,7 +73,7 @@ jobs:
     - run: docker-compose build test-integration
     - name: Run Integration Test
       run: make test-integration
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: coverage-integration
         retention-days: 1
