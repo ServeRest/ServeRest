@@ -73,7 +73,7 @@
     "@semantic-release/github": "^7.2.1",
     "@semantic-release/npm": "^7.1.1",
     "@semantic-release/release-notes-generator": "^9.0.2",
-    "@stryker-mutator/core": "^5.3.0",
+    "@stryker-mutator/core": "^6.0.2",
     "chai": "^4.3.4",
     "commitizen": "^4.2.3",
     "cz-conventional-changelog": "^3.3.0",
