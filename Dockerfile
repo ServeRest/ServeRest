@@ -13,7 +13,7 @@ FROM base as test
 ENV NODE_ENV=serverest-test
 
 # hadolint ignore=DL3018
-RUN apk --no-cache add git=2.32.0-r0 ca-certificates wget=1.21.1-r1 bash=5.1.4-r0 \
+RUN apk --no-cache add git ca-certificates wget=1.21.1-r1 bash \
   && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
   && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk \
   && apk --no-cache add glibc-2.29-r0.apk \

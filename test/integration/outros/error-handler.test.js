@@ -6,7 +6,7 @@ const carrinhosService = require('../../../src/services/carrinhos-service.js')
 describe('Error handler', () => {
   afterEach(() => sandbox.restore())
 
-  it('Deve informar para abrir issue ao ocorrer erro 500', async () => {
+  it('Deve informar para abrir issue ao ocorrer erro 500 - @skipE2E', async () => {
     sandbox.stub(carrinhosService, 'getAll').throws('Teste de erro 500')
 
     const { body } = await request.get('/carrinhos').expect(500)

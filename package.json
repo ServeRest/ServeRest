@@ -36,6 +36,7 @@
     "test:mutation:diff": "stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test:unit": "nyc --report-dir ./coverage-unit mocha --config test/unit/.mocharc.js",
     "test:integration": "nyc --report-dir ./coverage-integration mocha --config test/integration/.mocharc.js",
+    "test:e2e": "TEST_TYPE=e2e mocha --config test/integration/.mocharc.js --fgrep @skipE2E --invert",
     "merge-lcov": "npx lcov-result-merger@3.1.0 'coverage-**/lcov.info' 'lcov.info'",
     "lint": "standard",
     "lint:fix": "standard --fix",

@@ -27,7 +27,7 @@ describe('GENERICO', () => {
     await request.get('/favicon.ico').expect(200)
   })
 
-  it('Validar presença de headers de segurança', async () => {
+  it('Validar presença de headers de segurança - @skipE2E', async () => {
     const rotas = ['/produtos', '/usuarios', '/carrinhos']
     const rotaAleatoria = rotas[Math.floor(Math.random() * rotas.length)]
     const { headers } = await request.get(rotaAleatoria).expect(200)
