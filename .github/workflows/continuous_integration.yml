@@ -52,8 +52,10 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - name: Validate production and dev dockerfile (Dockerfile)
+    - name: Validate production dockerfile (Dockerfile)
       run: docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Validate dev dockerfile (Dockerfile.dev)
+      run: docker run --rm -i hadolint/hadolint < Dockerfile.dev
     - name: Validate terratest dockerfile (Dockerfile.terratest)
       run: docker run --rm -i hadolint/hadolint < Dockerfile.terratest
 

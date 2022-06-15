@@ -107,7 +107,7 @@ module.exports = {
       ]
     }],
     ['@semantic-release/exec', {
-      prepareCmd: 'docker build -t paulogoncalvesbh/serverest --target prod .'
+      prepareCmd: 'make build'
     }],
     ['semantic-release-docker', {
       name: 'paulogoncalvesbh/serverest'

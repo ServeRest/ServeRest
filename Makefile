@@ -1,7 +1,7 @@
 .PHONY: build run stop clean run-dev test-contract test test-unit test-integration test-mutation-diff test-mutation test-infra
 # serverest 
 
-NAME_IMAGE=serverest/serverest
+NAME_IMAGE=paulogoncalvesbh/serverest
 HOST_PORT=3000
 
 # COMANDOS PARA USAR A IMAGEM DE PRODUÇÃO \/
@@ -9,7 +9,7 @@ HOST_PORT=3000
 default: build run
 
 build:
-	@DOCKER_BUILDKIT=1 docker build -t ${NAME_IMAGE} --target prod .
+	@DOCKER_BUILDKIT=1 docker build --file Dockerfile --tag ${NAME_IMAGE} .
 
 run:
 	@docker run -p ${HOST_PORT}:3000 ${NAME_IMAGE}

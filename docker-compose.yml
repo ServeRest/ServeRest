@@ -4,6 +4,7 @@ services:
   base:
     build:
       context: .
+      dockerfile: Dockerfile.dev
       target: test
     volumes:
       - ./test:/app/test
@@ -11,6 +12,7 @@ services:
   run-dev:
     build:
       context: .
+      dockerfile: Dockerfile.dev
       target: dev
     volumes:
       - .:/app
@@ -42,7 +44,7 @@ services:
   run-app-e2e:
     build:
       context: .
-      target: prod
+      dockerfile: Dockerfile
     environment:
       NODE_ENV: 'serverest-development'
 
