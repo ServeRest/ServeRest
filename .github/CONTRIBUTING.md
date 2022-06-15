@@ -89,9 +89,15 @@ Os testes são importantes para garantir a integridade do projeto a cada altera�
 
 Os testes são executados com [mocha](https://www.npmjs.com/package/mocha), validados com [chai](https://www.npmjs.com/package/chai), mockados com [sinon.js](https://www.npmjs.com/package/sinon) e [nock](https://www.npmjs.com/package/nock) e as requests são feitas com [supertest](https://www.npmjs.com/package/supertest).
 
-Para executar os testes unitários e de integração, execute o comando `make test`.
+Para rodar os testes, execute:
 
-> O commit é abortado caso esse padrão não seja seguido
+1. `make test-integration` para os testes de integração.
+1. `make test-e2e` para os testes E2E em cima da imagem docker que irá para produção.
+1. `make test-unit` para os testes unitários.
+
+_Execute o comando `make test` para rodar os testes unitários e de integração._
+
+> O commit é abortado caso os testes unitários e de integração não resultem em sucesso
 
 ### 💥💻 Cobertura de código
 
@@ -102,6 +108,8 @@ Usamos o [nyc](https://www.npmjs.com/package/nyc) para validar a cobertura de c�
 É importante que todo o código esteja com 100% de cobertura para podermos ter segurança que toda alteração no código será validada.
 
 Para validar a cobertura localmente execute os testes. É apresentado um report no terminal informando a cobertura de todos os arquivos em `/src`. Se algum dos arquivos não estiver com 100% em todas as métricas crie os testes necessários.
+
+> Apenas os testes de integração e unitários possuem coleta de cobertura de código.
 
 ## 💥 Testes de Mutação
 

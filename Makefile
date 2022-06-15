@@ -23,24 +23,27 @@ clean:
 # COMANDOS DE DESENVOLVIMENTO \/
 
 run-dev:
-	@docker-compose up --exit-code-from run-dev --build run-dev
+	@docker-compose up --abort-on-container-exit --build run-dev
 
 test-contract:
-	@docker-compose up --exit-code-from test-contract --build test-contract
+	@docker-compose up --abort-on-container-exit --build test-contract
 
 test: test-unit test-integration
 
 test-unit:
-	@docker-compose up --exit-code-from test-unit --build test-unit
+	@docker-compose up --abort-on-container-exit --build test-unit
 
 test-integration:
-	@docker-compose up --exit-code-from test-integration --build test-integration
+	@docker-compose up --abort-on-container-exit  --build test-integration
+
+test-e2e:
+	@docker-compose up --abort-on-container-exit --exit-code-from test-e2e --build test-e2e
 
 test-mutation-diff:
-	@docker-compose up --exit-code-from test-mutation-diff --build test-mutation-diff
+	@docker-compose up --abort-on-container-exit --build test-mutation-diff
 
 test-mutation:
-	@docker-compose up --exit-code-from test-mutation --build test-mutation
+	@docker-compose up --abort-on-container-exit --build test-mutation
 
 test-infra:
-	@docker-compose up --exit-code-from test-infra --build test-infra
+	@docker-compose up --abort-on-container-exit --build test-infra

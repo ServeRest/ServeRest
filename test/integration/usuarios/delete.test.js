@@ -29,7 +29,7 @@ describe(rotaUsuarios + ' DELETE', () => {
     chai.assert.deepEqual(body, { message: 'Nenhum registro excluído' })
   })
 
-  it('Usuário com carrinho cadastrado', async () => {
+  it('Usuário com carrinho cadastrado - @skipE2E', async () => {
     const idUsuario = 'jSlx8zTdhRcoMS64'
     const idCarrinho = 'IU1c72V7iMKAxqt9'
 

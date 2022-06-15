@@ -79,6 +79,18 @@ jobs:
         retention-days: 1
         path: coverage-integration/lcov.info
 
+  test-e2e:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build run-app-e2e
+    - run: docker-compose build test-e2e
+    - name: Run E2E Test
+      run: make test-e2e
+
   sonarcloud:
     needs: [test-unit, test-integration]
 
