@@ -1,0 +1,30 @@
+FROM node:lts-alpine3.12@sha256:60ef0bed1dc2ec835cfe3c4226d074fdfaba571fd619c280474cc04e93f0ec5b as base
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+FROM base as test
+
+ENV NODE_ENV=serverest-test
+
+# hadolint ignore=DL3018
+RUN apk --no-cache add git ca-certificates wget=1.21.1-r1 bash \
+  && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
+  && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk \
+  && apk --no-cache add glibc-2.29-r0.apk \
+  && rm -rf /var/cache/apk/*
+
+FROM base as dev
+
+ENV NODE_ENV=serverest-development
+ENV USERNAME='docker'
+ENV TERM=xterm-256color
+
+EXPOSE 3000
+
+CMD [ "npm", "run", "dev" ]

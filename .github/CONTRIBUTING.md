@@ -55,7 +55,8 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 É preciso ter os seguintes programas instalados:
 
 - [Git](https://git-scm.com/downloads)
-- [Node.js](https://nodejs.org/pt-br/download/)
+- [Node.js](https://nodejs.org/pt-br/download/) _(opcional)_
+    - Se usar docker não será preciso instalar o Node
 - [Docker](https://www.docker.com/get-started)
 - [Docker-compose](https://docs.docker.com/compose/install/)
 
@@ -75,7 +76,7 @@ make run-dev
 
 1. [Fork](https://help.github.com/articles/fork-a-repo/) este repositório para sua própria conta GitHub, [clone](https://help.github.com/articles/cloning-a-repository/) no seu computador e, em seguida, acesse o diretório criado;
 1. Faça as alterações necessárias;
-1. Faça o seu commit usando `npm run commit`
+1. Faça o seu commit usando `npm run commit` _(opcional)_
 1. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 1. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 
@@ -163,7 +164,7 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 ## 💥 Dockerfile lint
 
-É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que o [Dockerfile](../Dockerfile) segue as melhores práticas em sua estrutura.
+É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que os Dockerfile de [produção](../Dockerfile), [desenvolvimento, teste](../Dockerfile.dev) e de [teste de infra](../Dockerfile) seguem as melhores práticas em sua estrutura.
 
 ---
 
