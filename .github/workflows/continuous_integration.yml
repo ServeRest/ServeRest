@@ -5,6 +5,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  cancel-previous-run:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Cancel previous runs
+      uses: styfle/cancel-workflow-action@0.9.0
+      with:
+        access_token: ${{ github.token }}
+
   lint:
 
     runs-on: ubuntu-18.04
