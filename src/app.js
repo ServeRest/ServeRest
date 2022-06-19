@@ -17,6 +17,7 @@ const logger = require('./utils/logger')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
+const packageJson = require('../package.json')
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
@@ -60,6 +61,8 @@ switch (formaDeExecucao()) {
     swaggerDocument.host = 'agilizei.serverest.dev'
     break
 }
+
+swaggerDocument.info.version = packageJson.version
 
 const uiOptions = {
   customSiteTitle: 'ServeRest',
