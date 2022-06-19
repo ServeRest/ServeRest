@@ -65,6 +65,9 @@ services:
     extends: base
     environment:
       - STRYKER_DASHBOARD_API_KEY
+      - GITHUB_REPOSITORY
+      - GITHUB_REF
+      # /\ to publish stryker dashboard
       - TEST_TYPE=mutation
     command: npm run test:mutation
     volumes:
