@@ -157,7 +157,7 @@ jobs:
         PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   release:
-    needs: [lint, commit-lint, dockerfile-lint, test-infra-docker, test-contract, sonarcloud]
+    needs: [lint, commit-lint, dockerfile-lint, test-infra-docker, test-contract, test-e2e, sonarcloud]
 
     runs-on: ubuntu-18.04
     environment: production
