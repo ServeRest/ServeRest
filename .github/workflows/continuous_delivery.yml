@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Node.js Setup
       uses: actions/setup-node@v2
     - name: Installation of Node.js dependencies
@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - uses: wagoid/commitlint-github-action@v3
@@ -41,7 +41,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Validate production dockerfile (Dockerfile)
       run: docker run --rm -i hadolint/hadolint < Dockerfile
     - name: Validate dev dockerfile (Dockerfile.dev)
@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-unit
     - name: Run Unit Test
       run: make test-unit
@@ -71,7 +71,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-integration
     - name: Run Integration Test
       run: make test-integration
@@ -87,7 +87,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build run-app-e2e
     - run: docker-compose build test-e2e-localhost
     - name: Run E2E test in locally built docker image
@@ -100,7 +100,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Download unit test artifact
       uses: actions/download-artifact@v2
       with:
@@ -125,7 +125,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-mutation
     - name: Run mutation test
       run: make test-mutation
@@ -138,7 +138,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-infra
     - name: Run infra test
       run: make test-infra
@@ -149,7 +149,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-contract
     - name: Run contract test
       run: make test-contract
@@ -164,7 +164,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Node.js Setup
       uses: actions/setup-node@v2
       with:

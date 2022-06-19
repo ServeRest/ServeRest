@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -69,7 +69,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-e2e-staging
     - name: Run E2E test in staging environment
       run: make test-e2e-staging
@@ -105,7 +105,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - run: docker-compose build test-e2e-smoke-production
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
@@ -125,7 +125,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: trunk
         fetch-depth: 0
@@ -184,7 +184,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'staging' tag
       run: |
@@ -204,7 +204,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'production' tag
       run: |
