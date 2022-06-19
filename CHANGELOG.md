@@ -1,5 +1,22 @@
 # Changelog
 
+# [2.26.0](https://github.com/ServeRest/ServeRest/compare/v2.25.4...v2.26.0) (2022-06-19)
+
+
+### Chores
+
+* avoid action unpublished version ([15fab7f](https://github.com/ServeRest/ServeRest/commit/15fab7f4565ef46350cc8959669e1430f02aec03)), closes [#310](https://github.com/ServeRest/ServeRest/issues/310)
+
+
+### Continuous Integration
+
+* run mutation test only when files in src/ dir change ([0ed60ad](https://github.com/ServeRest/ServeRest/commit/0ed60ad04bf0db573c7ba23c1ba8826708f29711))
+
+
+### Features
+
+* allow load test and route /status to get infos ([7098bff](https://github.com/ServeRest/ServeRest/commit/7098bffed401ec001a1d5eef0406a406a6fd6e97))
+
 ## [2.25.4](https://github.com/ServeRest/ServeRest/compare/v2.25.3...v2.25.4) (2022-06-19)
 
 
