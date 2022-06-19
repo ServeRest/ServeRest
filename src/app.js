@@ -10,7 +10,7 @@ const timeout = require('connect-timeout')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
 
-const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
+const { aplicacaoExecutandoLocalmente, formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
 const logger = require('./utils/logger')
@@ -45,6 +45,11 @@ if (!conf.semHeaderDeSeguranca) {
     res.set('x-xss-protection', '1; mode=block')
     next()
   })
+}
+
+/* istanbul ignore next */
+if (aplicacaoExecutandoLocalmente() && !ehAmbienteDeTestes) {
+  app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
 logger(app)

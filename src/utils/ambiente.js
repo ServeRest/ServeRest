@@ -12,6 +12,10 @@ function formaDeExecucao () {
   return 'npm'
 }
 
+const aplicacaoExecutandoLocalmente = () => {
+  return (formaDeExecucao() === 'npm' || formaDeExecucao() === 'docker')
+}
+
 function urlDocumentacao () {
   switch (formaDeExecucao()) {
     case 'serverest.dev':
@@ -26,6 +30,7 @@ function urlDocumentacao () {
 }
 
 module.exports = {
+  aplicacaoExecutandoLocalmente,
   formaDeExecucao,
   urlDocumentacao
 }
