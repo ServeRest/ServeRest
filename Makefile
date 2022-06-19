@@ -14,9 +14,6 @@ build:
 run:
 	@docker run -p ${HOST_PORT}:3000 ${NAME_IMAGE}
 
-stop:
-	@docker stop -t 0 $$(docker ps -q --filter ancestor=${NAME_IMAGE})
-
 clean:
 	@docker rmi -f ${NAME_IMAGE}
 
