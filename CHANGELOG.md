@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.25.4](https://github.com/ServeRest/ServeRest/compare/v2.25.3...v2.25.4) (2022-06-19)
+
+
+### Chores
+
+* **terratest:** remove specific version that prevents docker build ([7e18f99](https://github.com/ServeRest/ServeRest/commit/7e18f994acd306eb31bbd37c9f6efe80a231f440))
+
+
+### Code Refactoring
+
+* **dockerfile:** split multi-stage docker on 2 files to improve docker build time ([0971a56](https://github.com/ServeRest/ServeRest/commit/0971a56ccb5360770c511374b2fe83e84b6d7096))
+
+
+### Continuous Integration
+
+* automatic deploy to staging and prod, e2e test and rollback ([10948da](https://github.com/ServeRest/ServeRest/commit/10948dab55428981a425502a7db0f2a02fac4167))
+* cancelar execução anterior em um novo git push ([461eba0](https://github.com/ServeRest/ServeRest/commit/461eba0af5ff5ee43855b396b88e579971e64e95))
+* **e2e:** e2e test must be mandatory for guarantee the release quality ([f239f6d](https://github.com/ServeRest/ServeRest/commit/f239f6d0960b78d564689963161d79bf170238d3))
+
+
+### Documentation
+
+* **contributing:** info about continous delivery and about validations ([14d12b5](https://github.com/ServeRest/ServeRest/commit/14d12b5a77af1de14148f364fb39e5515e421c7a))
+* **serverest:** allow import collection to postman ([c5e9bc8](https://github.com/ServeRest/ServeRest/commit/c5e9bc8779f4d20a152fed50cac2ebbee99cb149))
+* **serverest:** show correct version on swagger instead 2.x.x ([75cf178](https://github.com/ServeRest/ServeRest/commit/75cf178c884825d9bb5d215261039ad604efb554))
+
+
+### Tests
+
+* **docs:** validate that documentation is accessible - [#202](https://github.com/ServeRest/ServeRest/issues/202) ([7ba01cf](https://github.com/ServeRest/ServeRest/commit/7ba01cf654e0c7d0e138655d7df1b435246213bb))
+* **e2e:** allow E2E testing of production application ([f8c28cf](https://github.com/ServeRest/ServeRest/commit/f8c28cf54eeaf2e8452a474453e45822fcc5c9c7))
+
 ## [2.25.3](https://github.com/ServeRest/ServeRest/compare/v2.25.2...v2.25.3) (2022-03-18)
 
 
