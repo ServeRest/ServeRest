@@ -3,7 +3,7 @@
  */
 module.exports = {
   mutate: [
-    'src/**/*.js',
+    'src/**/login-route.js',
     '!src/server.js',
     '!src/utils/logger.js',
     '!src/utils/ambiente.js'
