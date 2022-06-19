@@ -38,6 +38,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 ## Sumário
 - [Execução do projeto](#execução-do-projeto)
 - [Etapas para contribuir](#etapas-para-contribuir)
+- [Garantindo a qualidade do projeto](#garantindo-a-qualidade-do-projeto)
     - [Legenda](#legenda)
     - [💥💻 Testes](#-testes)
         - [💥💻 Cobertura de código](#-cobertura-de-código)
@@ -46,7 +47,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥💻 Lint](#-lint)
     - [💥💻 Commit](#-commit)
     - [💥 Dockerfile lint](#-dockerfile-lint)
-- [Publicação das releases](#publicação-das-releases)
+- [Entrega contínua](#entrega-contínua)
 - [Documentação](#documentação)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
 
@@ -55,10 +56,10 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
 É preciso ter os seguintes programas instalados:
 
 - [Git](https://git-scm.com/downloads)
-- [Node.js](https://nodejs.org/pt-br/download/) _(opcional)_
+- _(opcional)_ [Node.js](https://nodejs.org/pt-br/download/), preferencialmente versão LTS.
     - Se usar docker não será preciso instalar o Node
 - [Docker](https://www.docker.com/get-started)
-- [Docker-compose](https://docs.docker.com/compose/install/)
+- [Docker compose](https://docs.docker.com/compose/install/)
 
 > Docker e Docker-compose são utilizados para execução dos testes e do projeto
 
@@ -80,11 +81,19 @@ make run-dev
 1. Envie um [pull request](https://help.github.com/articles/about-pull-requests/);
 1. Aguarde o resultado das validações realizadas na integração contínua. Caso haja alguma quebra, analise e faça as correções necessárias.
 
+## Garantindo a qualidade do projeto
+
+Para o projeto manter a qualidade são feitas diversas validações, aonde é validado a estrutura do projeto, a imagem docker, teste das regras de negócio, contrato entre front e back, teste E2E em staging, teste de fumaça em produção, mensagem de commit, etc.
+
+Todas essas etapas são muito importantes para que tenhamos confiança na qualidade das alterações com o mínimo de intervenção humana, permitindo rápida entrega do seu Pull Request para produção.
+
+> Aqui amamos automação, basta mergear o seu PR para a branch principal que a release será criada e totalmente validada.
+
 ### Legenda
 #### 💥 > Validação realizada na integração contínua e entrega contínua
 #### 💻 > Validação realizada localmente
 
-## 💥💻 Testes
+### 💥💻 Testes
 
 Os testes são importantes para garantir a integridade do projeto a cada alteração realizada. É importante que atente de que a sua alteração necessite de novos testes ou adequação nos já existentes.
 
@@ -112,7 +121,7 @@ Para validar a cobertura localmente execute os testes. É apresentado um report 
 
 > Apenas os testes de integração e unitários possuem coleta de cobertura de código.
 
-## 💥 Testes de Mutação
+### 💥 Testes de Mutação
 
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FServeRest%2FServeRest%2Ftrunk)](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 
@@ -126,7 +135,8 @@ Para aprofundar sobre como funciona os testes de mutação, leia o meu texto '[T
 
 > [Clique aqui para ver o dashboard do teste de mutação.](https://dashboard.stryker-mutator.io/reports/github.com/ServeRest/ServeRest/trunk)
 
-## 💥 Teste de infra
+### 💥 Teste de infra
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/gruntwork-io/terratest.svg)](https://pkg.go.dev/github.com/gruntwork-io/terratest)
 
 É utilizado o [Terratest](https://terratest.gruntwork.io/) para realizar teste de infraestrutura, validando comportamento da imagem docker durante sua execução.
@@ -135,7 +145,7 @@ Para rodar o teste de infra e validar o `docker build` de produção, execute o 
 
 > Para saber mais sobre teste de infraestrutura recomendo o texto [What Is Infrastructure Testing And Why Is It Needed](https://www.softwaretestinghelp.com/infrastructure-testing-tutorial/).
 
-## 💥💻 Lint
+### 💥💻 Lint
 
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -147,7 +157,7 @@ Execute `npm run lint:fix` para corrigir automaticamente os problemas encontrado
 
 > O commit é abortado caso esse padrão não seja seguido
 
-## 💥💻 Commit
+### 💥💻 Commit
 
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
@@ -162,13 +172,13 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 > O commit é abortado caso esse padrão não seja seguido
 
-## 💥 Dockerfile lint
+### 💥 Dockerfile lint
 
 É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que os Dockerfile de [produção](../Dockerfile), [desenvolvimento, teste](../Dockerfile.dev) e de [teste de infra](../Dockerfile) seguem as melhores práticas em sua estrutura.
 
 ---
 
-## Publicação das releases
+## Entrega contínua
 
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
@@ -181,7 +191,9 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 | @latest | master
 | @beta | beta
 
-Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'.
+Para ver todo o passo a passo da entrega contínua, como deploy em staging e produção, testes E2E em staging e produção e rollback automático se algum erro for detectado, acesse: https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml
+
+Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'. _(desatualizado)_
 
 ## Documentação
 
