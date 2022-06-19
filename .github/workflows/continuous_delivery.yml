@@ -126,8 +126,13 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v2
-    - run: docker-compose build test-mutation
+    - name: Get specific changed files
+      id: changed-files-specific
+      uses: tj-actions/changed-files@v23
+      with:
+        files: src
     - name: Run mutation test
+      if: steps.changed-files-specific.outputs.any_changed == 'true'
       run: make test-mutation
       env:
         STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
