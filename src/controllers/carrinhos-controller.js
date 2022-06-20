@@ -1,10 +1,8 @@
 'use strict'
 
-const authService = require('../services/auth-service')
 const constant = require('../utils/constants')
 const produtosService = require('../services/produtos-service')
 const service = require('../services/carrinhos-service')
-const usuariosService = require('../services/usuarios-service')
 
 exports.get = async (req, res) => {
   const carrinhos = await service.getAll(req.query)
@@ -21,53 +19,40 @@ exports.getOne = async (req, res) => {
 }
 
 exports.post = async (req, res) => {
-  const { email, password } = authService.verifyToken(req.headers.authorization)
-  const { _id } = await usuariosService.getDadosDoUsuario({ email, password })
-  const usuarioJaPossuiCarrinho = await service.existeCarrinho({ idUsuario: _id })
-  if (usuarioJaPossuiCarrinho) {
+  const { idUsuario, possuiCarrinho } = await service.usuarioJaPossuiCarrinho(req.headers.authorization)
+  if (possuiCarrinho) {
     return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
   }
 
   const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
-  const temProdutosDuplicados = typeof idProdutosDuplicados[0] !== 'undefined'
+  const temProdutosDuplicados = isNotUndefined(idProdutosDuplicados[0])
   if (temProdutosDuplicados) {
     return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
   }
 
-  const produtos = req.body.produtos
-  for (let index = 0; index < produtos.length; index++) {
-    produtos[index].quantidade = parseInt(produtos[index].quantidade)
-    const { idProduto, quantidade } = produtos[index]
-    if (!await produtosService.existeProduto({ _id: idProduto })) {
-      return res.status(400).send({ message: constant.IDPRODUTO_INVALIDO, item: { index, idProduto, quantidade } })
+  const { produtos } = req.body
+  const produtosComPrecoUnitario = []
+  for (const produto of produtos) {
+    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
+    if (error) {
+      const index = produtos.indexOf(produto)
+      const item = { ...error.item, index }
+      return res.status(error.statusCode).send({ message: error.message, item })
     }
-
-    const { quantidade: quantidadeEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
-    if (quantidade > quantidadeEstoque) {
-      return res.status(400).send({ message: constant.ESTOQUE_INSUFICIENTE, item: { index, idProduto, quantidade, quantidadeEstoque } })
-    }
-    Object.assign(produtos[index], { precoUnitario: preco })
+    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
   }
-  let precoTotal = 0
-  let quantidadeTotal = 0
-  for (let index = 0; index < produtos.length; index++) {
-    const { idProduto, quantidade } = produtos[index]
-    const { quantidade: quantidadeEmEstoque, preco } = await produtosService.getDadosDoProduto({ _id: idProduto })
-    const novaQuantidade = quantidadeEmEstoque - quantidade
-    await produtosService.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
-    precoTotal += preco * quantidade
-    quantidadeTotal += quantidade
-  }
+  const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
+  const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
 
-  Object.assign(req.body, { precoTotal, quantidadeTotal, idUsuario: _id })
+  const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario }
 
-  const dadosCadastrados = await service.criarCarrinho(req.body)
+  const dadosCadastrados = await service.criarCarrinho(carrinho)
   res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
 }
 
 exports.cancelarCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
 
   if (usuarioTemCarrinho) {
     const produtos = carrinhoDoUsuario[0].produtos
@@ -87,10 +72,14 @@ exports.cancelarCompra = async (req, res) => {
 
 exports.concluirCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
   if (usuarioTemCarrinho) {
     await service.deleteById(carrinhoDoUsuario[0]._id)
     return res.status(200).send({ message: constant.DELETE_SUCESS })
   }
   res.status(200).send({ message: constant.SEM_CARRINHO })
 }
+
+const isUndefined = (object) => typeof object === 'undefined'
+
+const isNotUndefined = (object) => !isUndefined(object)
