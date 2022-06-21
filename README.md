@@ -210,6 +210,7 @@ Veja aqui [como você pode contribuir](https://github.com/ServeRest/ServeRest/bl
     <td align="center"><a href="https://about.me/rustnnes"><img src="https://avatars1.githubusercontent.com/u/638445?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Diego Bandeira</b></sub></a><br /><a href="#infra-rustnnes" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://github.com/maximilianoalves"><img src="https://avatars3.githubusercontent.com/u/11561118?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Maximiliano Alves</b></sub></a><br /><a href="#talk-maximilianoalves" title="Talks">📢</a></td>
     <td align="center"><a href="https://github.com/murilomaiaa"><img src="https://avatars.githubusercontent.com/u/56596799?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Murilo Maia</b></sub></a><br /><a href="https://github.com/ServeRest/ServeRest/commits?author=murilomaiaa" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/crisnazario"><img src="https://avatars.githubusercontent.com/u/37200398?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cristina Nazário</b></sub></a><br /><a href="#ideas-crisnazario" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
