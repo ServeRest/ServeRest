@@ -120,6 +120,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "edumaxsantos",
+      "name": "Eduardo Santos",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10568807?v=4",
+      "profile": "http://www.eduardosantos.dev",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
