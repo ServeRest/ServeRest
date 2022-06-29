@@ -1,0 +1,152 @@
+name: Common CI - Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      type_pipeline:
+        description: 'What pipeline is triggering the common_ci.yml'
+        required: false
+        type: string
+
+jobs:
+  test-contract:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout - Continuous Integration
+      if: inputs.type_pipeline == 'continuous_integration'
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Project checkout - Continuous Delivery
+      if: inputs.type_pipeline == 'continuous_delivery'
+      uses: actions/checkout@v2
+    - run: docker-compose build test-contract
+    - name: Run contract test
+      run: make test-contract
+      env:
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+  lint:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Node.js Setup
+      uses: actions/setup-node@v2
+    - name: Installation of Node.js dependencies
+      run: npm ci
+    - name: Lint
+      run: npm run lint
+
+  commit-lint:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: wagoid/commitlint-github-action@v2
+      with:
+        helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
+
+  dockerfile-lint:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Validate production dockerfile (Dockerfile)
+      run: docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Validate dev dockerfile (Dockerfile.dev)
+      run: docker run --rm -i hadolint/hadolint < Dockerfile.dev
+    - name: Validate terratest dockerfile (Dockerfile.terratest)
+      run: docker run --rm -i hadolint/hadolint < Dockerfile.terratest
+
+  test-unit:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-unit
+    - name: Run Unit Test
+      run: make test-unit
+    - uses: actions/upload-artifact@v2
+      with:
+        name: coverage-unit
+        retention-days: 1
+        path: coverage-unit/lcov.info
+
+  test-integration:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-integration
+    - name: Run Integration Test
+      run: make test-integration
+    - uses: actions/upload-artifact@v2
+      with:
+        name: coverage-integration
+        retention-days: 1
+        path: coverage-integration/lcov.info
+
+  test-e2e:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build run-app-e2e
+    - run: docker-compose build test-e2e-localhost
+    - name: Run E2E test in locally built docker image
+      run: make test-e2e-localhost
+
+  sonarcloud:
+    needs: [test-unit, test-integration]
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - name: Download unit test artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage-unit
+        path: coverage-unit
+    - name: Download integration test artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage-integration
+        path: coverage-integration
+    - name: Merge coverage report
+      run: npm run merge-lcov
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  test-infra-docker:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v2
+    - run: docker-compose build test-infra
+    - name: Run infra test
+      run: make test-infra
