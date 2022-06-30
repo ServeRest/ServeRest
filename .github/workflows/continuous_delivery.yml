@@ -30,7 +30,7 @@ jobs:
         STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
 
   release:
-    needs: [common-ci, test-mutation]
+    needs: [common-ci]
 
     runs-on: ubuntu-18.04
     environment: production
