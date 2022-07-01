@@ -80,7 +80,7 @@
     "chai": "^4.3.4",
     "commitizen": "^4.2.3",
     "cz-conventional-changelog": "^3.3.0",
-    "faker": "^5.5.3",
+    "faker": "^6.6.6",
     "husky": "^6.0.0",
     "lint-staged": "^10.5.4",
     "mocha": "^8.3.2",
