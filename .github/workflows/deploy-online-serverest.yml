@@ -12,8 +12,6 @@ env:
   REGION: us-central1
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
-  PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-  PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
 jobs:
   build-and-push-image-to-gcloud-container-registry:
@@ -174,6 +172,7 @@ jobs:
         PACTICIPANT: ServeRest - API Rest
         VERSION: ${{ github.sha }}
         TAG: production
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
 # Rollback jobs /\
 
@@ -196,6 +195,9 @@ jobs:
           --pacticipant 'ServeRest - API Rest' \
           --version ${{ github.sha }} \
           --tag staging
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   contract-test-tag-production:
     name: Contract test - Tag with 'production'
@@ -216,3 +218,6 @@ jobs:
           --pacticipant 'ServeRest - API Rest' \
           --version ${{ github.sha }} \
           --tag production
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
