@@ -34,7 +34,7 @@
     "dev": "nodemon --legacy-watch -e json,js ./src/server.js --nodoc",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
-    "test:unit": "nyc --report-dir ./coverage-unit mocha --config test/unit/.mocharc.js",
+    "test:unit": "nyc --report-dir ./coverage-unit --check-coverage false mocha --config test/unit/.mocharc.js",
     "test:integration": "nyc --report-dir ./coverage-integration mocha --config test/integration/.mocharc.js",
     "test:e2e": "mocha --config test/integration/.mocharc.js --fgrep @skipE2E --invert",
     "test:smoke": "mocha --config test/integration/.mocharc.js --grep @smokeE2E",
