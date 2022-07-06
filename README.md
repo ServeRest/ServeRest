@@ -178,7 +178,15 @@ Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se s
 1. Subdomínio próprio (_nome-escolhido.serverest.dev_)
 1. Acesso a todas as requests e respostas feitas nos últimos 7 dias no subdomínio
 
-[![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/patrocinador.svg)](https://opencollective.com/serverest)
+[![Empresas - Open Collective](https://opencollective.com/serverest/tiers/patrocinador.svg)](https://opencollective.com/serverest)
+
+Empresas que apoiam o ServeRest:
+
+<p align="center">
+ <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436481-2a6a3324-1b0e-4d28-8a40-d885f54291c0.png#gh-light-mode-only" height="120">
+ <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436489-5d2f50f8-2fb3-4091-b822-446d24c83722.png#gh-dark-mode-only" height="120">
+ <img alt="Logo da Agilizei" src="https://user-images.githubusercontent.com/29241659/177436678-8187f90f-bb4a-4978-87ab-a03f2f80820f.png" height="124">
+</p>
 
 ### Individuais
 
