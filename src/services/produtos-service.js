@@ -31,12 +31,6 @@ exports.updateQuantidade = async ({ idProduto, quantidade }) => {
   await this.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
 }
 
-exports.getPreco = async (produto) => {
-  const { idProduto } = produto
-  const { preco } = await this.getDadosDoProduto({ _id: idProduto })
-  return preco
-}
-
 exports.criarProduto = async body => {
   body = formatarValores(body)
   return datastore.insert(body)

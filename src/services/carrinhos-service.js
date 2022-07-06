@@ -57,8 +57,7 @@ exports.usuarioJaPossuiCarrinho = async (authorization) => {
 
 exports.precoTotal = async (produtos) => {
   return produtos.reduce(async (precoAnterior, produto) => {
-    const preco = await produtosService.getPreco(produto)
-    return (await precoAnterior) + preco * produto.quantidade
+    return (await precoAnterior) + produto.precoUnitario * produto.quantidade
   }, Promise.resolve(0))
 }
 
