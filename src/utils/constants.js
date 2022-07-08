@@ -2,6 +2,7 @@
 
 module.exports = {
   INTERNAL_ERROR: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
+  TIMEOUT: 'Timeout da requisição atingido',
   POST_SUCESS: 'Cadastro realizado com sucesso',
   DELETE_SUCESS: 'Registro excluído com sucesso',
   DELETE_NONE: 'Nenhum registro excluído',
