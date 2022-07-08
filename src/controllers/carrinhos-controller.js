@@ -13,7 +13,7 @@ exports.getOne = async (req, res) => {
   const { id } = req.params
   const carrinho = await service.getOne(id)
   if (!carrinho) {
-    return res.status(400).json({ message: constant.CARRINHO_NAO_ENCONTRADO })
+    return res.status(400).json({ message: constant.CART_NOT_FOUND })
   }
   return res.status(200).send(carrinho)
 }
@@ -21,13 +21,13 @@ exports.getOne = async (req, res) => {
 exports.post = async (req, res) => {
   const { idUsuario, possuiCarrinho } = await service.usuarioJaPossuiCarrinho(req.headers.authorization)
   if (possuiCarrinho) {
-    return res.status(400).send({ message: constant.LIMITE_1_CARRINHO })
+    return res.status(400).send({ message: constant.LIMIT_JUST_ONE_CART })
   }
 
   const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
   const temProdutosDuplicados = isNotUndefined(idProdutosDuplicados[0])
   if (temProdutosDuplicados) {
-    return res.status(400).send({ message: constant.CARRINHO_COM_PRODUTO_DUPLICADO, idProdutosDuplicados })
+    return res.status(400).send({ message: constant.CART_WITH_DUPLICATE_PRODUCT, idProdutosDuplicados })
   }
 
   const { produtos } = req.body
@@ -47,7 +47,7 @@ exports.post = async (req, res) => {
   const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario }
 
   const dadosCadastrados = await service.criarCarrinho(carrinho)
-  res.status(201).send({ message: constant.POST_SUCESS, _id: dadosCadastrados._id })
+  res.status(201).send({ message: constant.POST_SUCCESS, _id: dadosCadastrados._id })
 }
 
 exports.cancelarCompra = async (req, res) => {
@@ -64,10 +64,10 @@ exports.cancelarCompra = async (req, res) => {
     })
 
     await service.deleteById(carrinhoDoUsuario[0]._id)
-    return res.status(200).send({ message: `${constant.DELETE_SUCESS}. ${constant.ESTOQUE_REABASTECIDO}` })
+    return res.status(200).send({ message: `${constant.DELETE_SUCCESS}. ${constant.REPLENISHED_STOCK}` })
   }
 
-  res.status(200).send({ message: constant.SEM_CARRINHO })
+  res.status(200).send({ message: constant.NO_CART })
 }
 
 exports.concluirCompra = async (req, res) => {
@@ -75,9 +75,9 @@ exports.concluirCompra = async (req, res) => {
   const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
   if (usuarioTemCarrinho) {
     await service.deleteById(carrinhoDoUsuario[0]._id)
-    return res.status(200).send({ message: constant.DELETE_SUCESS })
+    return res.status(200).send({ message: constant.DELETE_SUCCESS })
   }
-  res.status(200).send({ message: constant.SEM_CARRINHO })
+  res.status(200).send({ message: constant.NO_CART })
 }
 
 const isUndefined = (object) => typeof object === 'undefined'

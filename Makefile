@@ -28,10 +28,10 @@ test-contract:
 test: test-unit test-integration
 
 test-unit:
-	@docker-compose up --abort-on-container-exit --build test-unit
+	@docker compose up --abort-on-container-exit --build test-unit
 
 test-integration:
-	@docker-compose up --abort-on-container-exit  --build test-integration
+	@docker compose up --abort-on-container-exit  --build test-integration
 
 test-e2e-localhost:
 	@docker-compose up --abort-on-container-exit --exit-code-from test-e2e-localhost --build test-e2e-localhost
