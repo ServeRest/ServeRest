@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.1](https://github.com/ServeRest/ServeRest/compare/v2.26.0...v2.26.1) (2022-07-08)
+
+
+### Bug Fixes
+
+* show user that request ended with timeout ([1f432c4](https://github.com/ServeRest/ServeRest/commit/1f432c429647c871b2075dc8a4259ab52e714e04))
+
 # [2.26.0](https://github.com/ServeRest/ServeRest/compare/v2.25.4...v2.26.0) (2022-06-19)
 
 
