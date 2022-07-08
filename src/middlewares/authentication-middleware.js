@@ -6,18 +6,18 @@ const usuariosService = require('../services/usuarios-service')
 
 exports.checkAdm = async (req, res, next) => {
   if (!await tokenValido(req.headers)) {
-    return res.status(401).send({ message: constant.TOKEN_INVALID })
+    return res.status(401).send({ message: constant.INVALID_TOKEN })
   }
   const tokenDecodificado = authService.verifyToken(req.headers.authorization)
   if (!await usuariosService.usuarioEhAdministrador(tokenDecodificado)) {
-    return res.status(403).send({ message: constant.NECESSARIO_ADM })
+    return res.status(403).send({ message: constant.REQUIRED_ADMIN })
   }
   next()
 }
 
 exports.checkToken = async (req, res, next) => {
   if (!await tokenValido(req.headers)) {
-    return res.status(401).send({ message: constant.TOKEN_INVALID })
+    return res.status(401).send({ message: constant.INVALID_TOKEN })
   }
   next()
 }

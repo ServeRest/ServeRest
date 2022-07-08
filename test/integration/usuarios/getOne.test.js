@@ -21,7 +21,7 @@ describe(`${rotaUsuarios}/:id GET`, () => {
   it('Param - Nenhum usuário encontrado', async () => {
     const { body } = await request.get(`${rotaUsuarios}/123`).expect(400)
     chai.assert.deepEqual(body, {
-      message: constants.USUARIO_NAO_ENCONTRADO
+      message: constants.USER_NOT_FOUND
     })
   })
 })

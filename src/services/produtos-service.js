@@ -41,12 +41,12 @@ exports.getPrecoUnitarioOuErro = async (produto) => {
   const { idProduto } = produto
   const existePedido = await this.existeProduto({ _id: idProduto })
   if (!existePedido) {
-    return { error: { statusCode: 400, message: constant.IDPRODUTO_INVALIDO, item: { idProduto, quantidade } } }
+    return { error: { statusCode: 400, message: constant.INVALID_IDPRODUCT, item: { idProduto, quantidade } } }
   }
 
   const { quantidade: quantidadeEstoque, preco } = await this.getDadosDoProduto({ _id: idProduto })
   if (quantidade > quantidadeEstoque) {
-    return { error: { statusCode: 400, message: constant.ESTOQUE_INSUFICIENTE, item: { idProduto, quantidade, quantidadeEstoque } } }
+    return { error: { statusCode: 400, message: constant.INSUFFICIENT_STOCK, item: { idProduto, quantidade, quantidadeEstoque } } }
   }
   return { precoUnitario: preco }
 }
