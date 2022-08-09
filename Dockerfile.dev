@@ -17,6 +17,8 @@ RUN apk --no-cache add git ca-certificates wget=1.21.1-r1 bash \
   && apk --no-cache add glibc-2.29-r0.apk \
   && rm -rf /var/cache/apk/*
 
+RUN git config --global --add safe.directory "*"
+
 COPY . .
 
 FROM base as dev
