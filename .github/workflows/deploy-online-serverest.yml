@@ -16,7 +16,7 @@ env:
 jobs:
   build-and-push-image-to-gcloud-container-registry:
     name: Build and push image to container registry
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -40,7 +40,7 @@ jobs:
     name: Deploy on staging environment (staging.serverest.dev)
     needs: build-and-push-image-to-gcloud-container-registry
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Set up Cloud SDK
@@ -63,7 +63,7 @@ jobs:
     name: E2E test on staging environment
     needs: deploy-staging
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -76,7 +76,7 @@ jobs:
     name: Deploy on prod environment (serverest.dev)
     needs: test-e2e-staging
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Set up Cloud SDK
@@ -99,7 +99,7 @@ jobs:
     name: Smoke test in production environment
     needs: deploy-production
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -115,7 +115,7 @@ jobs:
     needs: test-e2e-smoke-production
     if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     outputs:
       git_hash: ${{ steps.info_about_previous_version.outputs.git_hash }}
@@ -137,7 +137,7 @@ jobs:
     needs: rollback-get-previous-info
     if: ${{ always() && needs.rollback-get-previous-info.result == 'success' }}
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Set up Cloud SDK
@@ -161,7 +161,7 @@ jobs:
     needs: rollback-production
     if: ${{ always() && needs.rollback-production.result == 'success' }}
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     # Why delete tag on rollback? Read: https://docs.pact.io/pact_broker/tags#handling-rollbacks
     steps:
@@ -180,7 +180,7 @@ jobs:
     name: Contract test - Tag with 'staging'
     needs: deploy-staging
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
@@ -203,7 +203,7 @@ jobs:
     name: Contract test - Tag with 'production'
     needs: deploy-production
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2

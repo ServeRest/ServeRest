@@ -11,7 +11,7 @@ on:
 jobs:
   test-contract:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout - Continuous Integration
@@ -31,7 +31,7 @@ jobs:
 
   lint:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -45,7 +45,7 @@ jobs:
 
   commit-lint:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -58,7 +58,7 @@ jobs:
 
   dockerfile-lint:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -72,7 +72,7 @@ jobs:
 
   test-unit:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -88,7 +88,7 @@ jobs:
 
   test-integration:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -104,7 +104,7 @@ jobs:
 
   test-e2e:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -117,7 +117,7 @@ jobs:
   sonarcloud:
     needs: [test-unit, test-integration]
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
@@ -142,7 +142,7 @@ jobs:
 
   test-infra-docker:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Project checkout
