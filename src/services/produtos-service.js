@@ -41,7 +41,7 @@ exports.getPrecoUnitarioOuErro = async (produto) => {
   const { idProduto } = produto
   const existePedido = await this.existeProduto({ _id: idProduto })
   if (!existePedido) {
-    return { error: { statusCode: 400, message: constant.INVALID_IDPRODUCT, item: { idProduto, quantidade } } }
+    return { error: { statusCode: 400, message: constant.PRODUCT_NOT_FOUND, item: { idProduto, quantidade } } }
   }
 
   const { quantidade: quantidadeEstoque, preco } = await this.getDadosDoProduto({ _id: idProduto })
