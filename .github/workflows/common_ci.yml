@@ -5,7 +5,7 @@ on:
     inputs:
       type_pipeline:
         description: 'What pipeline is triggering the common_ci.yml'
-        required: false
+        required: true
         type: string
 
 jobs:
