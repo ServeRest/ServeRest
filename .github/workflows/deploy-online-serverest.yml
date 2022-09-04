@@ -72,6 +72,36 @@ jobs:
     - name: Run E2E test in staging environment
       run: make test-e2e-staging
 
+  open-issue-staging:
+    name: Open issue when staging test fail
+    needs: test-e2e-staging
+    if: failure()
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Create issue
+      uses: dacbd/create-issue-action@v1.2.0
+      with:
+        token: ${{ github.token }}
+        title: Staging tests failed - Deploy aborted
+        body: |
+          _This is an automatically generated issue_
+
+          The attempt to deploy the `${{ github.ref }}` tag failed. Staging tests failed and because of that the version `${{ github.ref }}` was not sent to production.
+
+          ## Context
+
+          |                           | Detail                                                                        	|
+          |--------------------------	|-------------------------------------------------------------------------------	|
+          | **Failed Run**    	      | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} 	|
+          | **Codebase**      	      | https://github.com/${{ github.repository }}/tree/${{ github.sha }}            	|
+          | **Workflow name**       	| `${{ github.workflow }}`                                                      	|
+          | **Tag**                  	| `${{ github.ref }}`                                                           	|
+          | **Environment affected** 	| https://staging.serverest.dev/                                                	|
+        assignees: PauloGoncalvesBH
+        labels: bug
+
   deploy-production:
     name: Deploy on prod environment (serverest.dev)
     needs: test-e2e-staging
@@ -108,6 +138,40 @@ jobs:
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
 
+  open-issue-production:
+    name: Open issue when production smoke test fail
+    needs: test-e2e-smoke-production
+    if: failure()
+
+    runs-on: ubuntu-22.04
+
+    outputs:
+      issue-number: ${{ steps.create-issue-action.outputs.number }}
+
+    steps:
+    - name: Create issue
+      uses: dacbd/create-issue-action@v1.2.0
+      id: create-issue-action
+      with:
+        token: ${{ github.token }}
+        title: Production tests failed - Deploy aborted
+        body: |
+          _This is an automatically generated issue_
+
+          The attempt to deploy the `${{ github.ref }}` tag failed. Production tests failed.
+
+          ## Context
+
+          |                          | Detail                                                                        	|
+          |------------------------- |-------------------------------------------------------------------------------	|
+          | **Failed Run**           | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} 	|
+          | **Codebase**             | https://github.com/${{ github.repository }}/tree/${{ github.sha }}            	|
+          | **Workflow name**        | `${{ github.workflow }}`                                                      	|
+          | **Tag**                  | `${{ github.ref }}`                                                           	|
+          | **Environment affected** | https://serverest.dev/                                                       	|
+        assignees: PauloGoncalvesBH
+        labels: bug
+
 # Rollback jobs \/
 
   rollback-get-previous-info:
@@ -134,7 +198,7 @@ jobs:
 
   rollback-production:
     name: Rollback production environment (serverest.dev)
-    needs: rollback-get-previous-info
+    needs: [rollback-get-previous-info, open-issue-production]
     if: ${{ always() && needs.rollback-get-previous-info.result == 'success' }}
 
     runs-on: ubuntu-22.04
@@ -155,6 +219,13 @@ jobs:
           deploy $SERVICE_PRODUCTION \
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.rollback-get-previous-info.outputs.git_hash }} \
           --region $REGION
+    - uses: badsyntax/github-action-issue-comment@master
+      name: Comment on generated issue about rollback
+      with:
+        action: create
+        issue-number: ${{ needs.open-issue-production.outputs.issue-number }}
+        body: _This is an automatically generated comment_ \n\nRollback was performed in the production environment. \n\nThe production version is now `${{ needs.rollback-get-previous-info.outputs.git_tag }}`. \n\nUse the [staging environment](https://staging.serverest.dev/) for testing the failure.
+        token: ${{ secrets.GITHUB_TOKEN }}
 
   contract-test-rollback:
     name: Contract test - Rollback 'production' tag
