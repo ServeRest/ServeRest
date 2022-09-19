@@ -11,6 +11,7 @@ coverage-integration/
 node_modules/
 reports/
 coverage.lcov
+summary.json
 
 ## Mac crap
 .DS_Store
