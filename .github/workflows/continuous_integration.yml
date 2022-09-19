@@ -46,3 +46,8 @@ jobs:
     - run: docker pull loadimpact/k6:0.40.0
     - name: Run Performance Test
       run: make test-performance
+    - uses: actions/upload-artifact@v2
+      with:
+        name: coverage-integration
+        retention-days: 1
+        path: test/performance/summary.json
