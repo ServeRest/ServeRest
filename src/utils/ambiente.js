@@ -6,7 +6,8 @@ function formaDeExecucao () {
   if (process.env.USERNAME === 'docker' ||
       process.env.USERNAME === 'serverest.dev' ||
       process.env.USERNAME === 'staging.serverest.dev' ||
-      process.env.USERNAME === 'agilizei') {
+      process.env.USERNAME === 'agilizei' ||
+      process.env.USERNAME === 'compassuol') {
     return process.env.USERNAME
   }
   return 'npm'
@@ -24,6 +25,8 @@ function urlDocumentacao () {
       return 'https://staging.serverest.dev'
     case 'agilizei':
       return 'https://agilizei.serverest.dev'
+    case 'compassuol':
+      return 'https://compassuol.serverest.dev'
     default:
       return `http://localhost:${conf.porta}`
   }

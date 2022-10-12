@@ -183,6 +183,8 @@ Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se s
 Empresas que apoiam o ServeRest:
 
 <p align="center">
+ <img alt="Logo da Compass Uol" src="https://user-images.githubusercontent.com/29241659/195455525-6d97e444-630e-45c6-92b9-50ea44f06590.png#gh-light-mode-only" height="80">
+ <img alt="Logo da Compass Uol" src="https://user-images.githubusercontent.com/29241659/195455635-abb91250-8288-4d3a-a180-a9d37bffcba2.png#gh-dark-mode-only" height="80">
  <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436481-2a6a3324-1b0e-4d28-8a40-d885f54291c0.png#gh-light-mode-only" height="120">
  <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436489-5d2f50f8-2fb3-4091-b822-446d24c83722.png#gh-dark-mode-only" height="120">
  <img alt="Logo da Agilizei" src="https://user-images.githubusercontent.com/29241659/177436678-8187f90f-bb4a-4978-87ab-a03f2f80820f.png" height="124">

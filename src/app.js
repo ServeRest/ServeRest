@@ -65,6 +65,9 @@ switch (formaDeExecucao()) {
   case 'agilizei':
     swaggerDocument.host = 'agilizei.serverest.dev'
     break
+  case 'compassuol':
+    swaggerDocument.host = 'compassuol.serverest.dev'
+    break
 }
 
 swaggerDocument.info.version = packageJson.version
