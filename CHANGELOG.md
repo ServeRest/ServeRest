@@ -1,5 +1,7 @@
 # Changelog
 
+## [2.26.4](https://github.com/ServeRest/ServeRest/compare/v2.26.3...v2.26.4) (2022-10-14)
+
 ## [2.26.3](https://github.com/ServeRest/ServeRest/compare/v2.26.2...v2.26.3) (2022-10-12)
 
 ## [2.26.2](https://github.com/ServeRest/ServeRest/compare/v2.26.1...v2.26.2) (2022-08-18)
