@@ -998,7 +998,7 @@
           "type": "number",
           "example": 2
         },
-        "usuarios": {
+        "produtos": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/arrayProduto"

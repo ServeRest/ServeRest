@@ -10,7 +10,7 @@ module.exports = {
       releaseRules: [
         { scope: 'no-release', release: false },
         { scope: 'patch', release: 'patch' },
-        { type: 'docs', scope: 'serverest', release: 'patch' }
+        { type: 'docs', scope: 'homepage', release: 'patch' }
       ]
     }],
     ['@semantic-release/release-notes-generator'],
