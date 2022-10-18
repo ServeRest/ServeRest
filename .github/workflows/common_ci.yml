@@ -38,7 +38,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Node.js Setup
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Lint
@@ -53,7 +53,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: wagoid/commitlint-github-action@v2
+    - uses: wagoid/commitlint-github-action@v3
       with:
         helpURL: https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md
 
@@ -81,7 +81,7 @@ jobs:
     - run: docker-compose build test-unit
     - name: Run Unit Test
       run: make test-unit
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: coverage-unit
         retention-days: 1
@@ -97,7 +97,7 @@ jobs:
     - run: docker-compose build test-integration
     - name: Run Integration Test
       run: make test-integration
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: coverage-integration
         retention-days: 1
@@ -127,12 +127,12 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
         repository: ${{ github.event.pull_request.head.repo.full_name }}
     - name: Download unit test artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage-unit
         path: coverage-unit
     - name: Download integration test artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: coverage-integration
         path: coverage-integration
