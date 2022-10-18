@@ -45,14 +45,10 @@ exports.post = async (req, res) => {
 
 exports.cancelarCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
 
-  if (usuarioTemCarrinho) {
-    const { produtos } = carrinhoDoUsuario[0]
+  if (carrinhoDoUsuario.length) {
+    await service.removeCarrinho(carrinhoDoUsuario[0])
 
-    service.reabasteceEstoque(produtos)
-
-    await service.deleteById(carrinhoDoUsuario[0]._id)
     return res.status(200).send({ message: `${constant.DELETE_SUCCESS}. ${constant.REPLENISHED_STOCK}` })
   }
 
