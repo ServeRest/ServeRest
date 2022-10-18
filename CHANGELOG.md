@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.26.5](https://github.com/ServeRest/ServeRest/compare/v2.26.4...v2.26.5) (2022-10-18)
+
+
+### Code Refactoring
+
+* add concluiCompra method ([0fc3d4c](https://github.com/ServeRest/ServeRest/commit/0fc3d4c217933f1aa73669fc5274c9feaae8b28b))
+* add removeCarrinho method ([8fbbb1b](https://github.com/ServeRest/ServeRest/commit/8fbbb1b28e0ca783e11bce1aff8605ff4a28dc2c))
+* check for carrinhoDoUsuario length and use removeCarrinho method from carrinhosService ([e560be5](https://github.com/ServeRest/ServeRest/commit/e560be539a1a0dc08732f5f863ee912a6afb417d))
+* move all produtosService calls to carrinhosService ([a756731](https://github.com/ServeRest/ServeRest/commit/a756731eb019a17eafeb88880740f345464304b1))
+* move produtosService usage inside carrinhosService ([2837023](https://github.com/ServeRest/ServeRest/commit/28370239995097c4b8cd53fa55e36e17f39def93))
+* remove validation of undefined for returned array ([74a71e2](https://github.com/ServeRest/ServeRest/commit/74a71e20be717e65d5d5b1d1ef6a50466836afa7))
+* use concluiCompra method from carrinhosService ([f5d3bb5](https://github.com/ServeRest/ServeRest/commit/f5d3bb55730a1ab17f813edbff726472e0c33834))
+
+
+### Continuous Integration
+
+* fix sonar and contract jobs to clone PR from Fork ([ed48fe9](https://github.com/ServeRest/ServeRest/commit/ed48fe9d6a2ede2f1c97bf4cc6833e8ec8052480))
+
+
+### Miscellaneous
+
+* Merge pull request #378 from edumaxsantos/refactoring/carrinhos-controller ([325cdf7](https://github.com/ServeRest/ServeRest/commit/325cdf79d16647b6989313439648a269fc389234)), closes [#378](https://github.com/ServeRest/ServeRest/issues/378)
+* Revert "chore(release): use default changelog content" ([d7ec542](https://github.com/ServeRest/ServeRest/commit/d7ec542c3e1b87ce03b80b1f973f8748189685d6))
+
 ## [2.26.4](https://github.com/ServeRest/ServeRest/compare/v2.26.3...v2.26.4) (2022-10-14)
 
 ## [2.26.3](https://github.com/ServeRest/ServeRest/compare/v2.26.2...v2.26.3) (2022-10-12)
