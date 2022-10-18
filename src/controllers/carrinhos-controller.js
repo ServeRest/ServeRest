@@ -23,13 +23,13 @@ exports.post = async (req, res) => {
     return res.status(400).send({ message: constant.LIMIT_JUST_ONE_CART })
   }
 
-  const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
-  const temProdutosDuplicados = isNotUndefined(idProdutosDuplicados[0])
-  if (temProdutosDuplicados) {
+  const { produtos } = req.body
+
+  const idProdutosDuplicados = service.extrairProdutosDuplicados(produtos)
+  if (idProdutosDuplicados.length) {
     return res.status(400).send({ message: constant.CART_WITH_DUPLICATE_PRODUCT, idProdutosDuplicados })
   }
 
-  const { produtos } = req.body
   const { produtosComPrecoUnitario, error } = await service.getProdutosComPrecoUnitarioOuErro(produtos)
   if (error) {
     return res.status(error.statusCode).send({ message: error.message, item: error.item })
