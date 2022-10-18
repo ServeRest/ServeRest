@@ -31,15 +31,9 @@ exports.post = async (req, res) => {
   }
 
   const { produtos } = req.body
-  const produtosComPrecoUnitario = []
-  for (const produto of produtos) {
-    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
-    if (error) {
-      const index = produtos.indexOf(produto)
-      const item = { ...error.item, index }
-      return res.status(error.statusCode).send({ message: error.message, item })
-    }
-    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
+  const { produtosComPrecoUnitario, error } = await service.getProdutosComPrecoUnitarioOuErro(produtos)
+  if (error) {
+    return res.status(error.statusCode).send({ message: error.message, item: error.item })
   }
   const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
   const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)

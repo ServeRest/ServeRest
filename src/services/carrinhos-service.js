@@ -38,6 +38,20 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
   return produtosDuplicados
 }
 
+exports.getProdutosComPrecoUnitarioOuErro = async arrayProdutos => {
+  const produtosComPrecoUnitario = []
+  for (const produto of arrayProdutos) {
+    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
+    if (error) {
+      const index = arrayProdutos.indexOf(produto)
+      const item = { ...error.item, index }
+      return { error: { ...error, item } }
+    }
+    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
+  }
+  return { produtosComPrecoUnitario }
+}
+
 exports.deleteById = async id => {
   return datastore.remove({ _id: id }, {})
 }
