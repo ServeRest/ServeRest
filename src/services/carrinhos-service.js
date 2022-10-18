@@ -82,6 +82,14 @@ exports.quantidadeTotal = async (produtos) => {
   }, Promise.resolve(0))
 }
 
+exports.reabasteceEstoque = produtos => {
+  produtos.forEach(async (produto) => {
+    const { idProduto, quantidade } = produto
+    const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
+    await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
+  })
+}
+
 const idUsuario = async (authorization) => {
   const { email, password } = authService.verifyToken(authorization)
   const { _id } = await usuariosService.getDadosDoUsuario({ email, password })

@@ -1,7 +1,6 @@
 'use strict'
 
 const constant = require('../utils/constants')
-const produtosService = require('../services/produtos-service')
 const service = require('../services/carrinhos-service')
 
 exports.get = async (req, res) => {
@@ -49,13 +48,9 @@ exports.cancelarCompra = async (req, res) => {
   const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
 
   if (usuarioTemCarrinho) {
-    const produtos = carrinhoDoUsuario[0].produtos
+    const { produtos } = carrinhoDoUsuario[0]
 
-    produtos.forEach(async (produto) => {
-      const { idProduto, quantidade } = produto
-      const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
-      await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
-    })
+    service.reabasteceEstoque(produtos)
 
     await service.deleteById(carrinhoDoUsuario[0]._id)
     return res.status(200).send({ message: `${constant.DELETE_SUCCESS}. ${constant.REPLENISHED_STOCK}` })
