@@ -20,6 +20,7 @@ jobs:
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.ref }}
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
     - name: Project checkout - Continuous Delivery
       if: inputs.type_pipeline == 'continuous_delivery'
       uses: actions/checkout@v3
@@ -122,6 +123,9 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
     - name: Download unit test artifact
       uses: actions/download-artifact@v2
       with:
