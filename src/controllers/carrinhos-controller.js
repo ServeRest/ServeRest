@@ -48,7 +48,6 @@ exports.cancelarCompra = async (req, res) => {
 
   if (carrinhoDoUsuario.length) {
     await service.removeCarrinho(carrinhoDoUsuario[0])
-
     return res.status(200).send({ message: `${constant.DELETE_SUCCESS}. ${constant.REPLENISHED_STOCK}` })
   }
 
@@ -57,14 +56,10 @@ exports.cancelarCompra = async (req, res) => {
 
 exports.concluirCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
-  if (usuarioTemCarrinho) {
-    await service.deleteById(carrinhoDoUsuario[0]._id)
+
+  if (carrinhoDoUsuario.length) {
+    await service.concluiCompra(carrinhoDoUsuario)
     return res.status(200).send({ message: constant.DELETE_SUCCESS })
   }
   res.status(200).send({ message: constant.NO_CART })
 }
-
-const isUndefined = (object) => typeof object === 'undefined'
-
-const isNotUndefined = (object) => !isUndefined(object)
