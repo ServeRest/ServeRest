@@ -56,6 +56,12 @@ exports.deleteById = async id => {
   return datastore.remove({ _id: id }, {})
 }
 
+exports.removeCarrinho = async carrinho => {
+  const { produtos, _id } = carrinho
+  this.reabasteceEstoque(produtos)
+  await this.deleteById(_id)
+}
+
 exports.getCarrinhoDoUsuario = async (authorization) => {
   const _id = await idUsuario(authorization)
   return this.getAll({ idUsuario: _id })
