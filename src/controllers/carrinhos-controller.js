@@ -1,7 +1,6 @@
 'use strict'
 
 const constant = require('../utils/constants')
-const produtosService = require('../services/produtos-service')
 const service = require('../services/carrinhos-service')
 
 exports.get = async (req, res) => {
@@ -24,22 +23,16 @@ exports.post = async (req, res) => {
     return res.status(400).send({ message: constant.LIMIT_JUST_ONE_CART })
   }
 
-  const idProdutosDuplicados = service.extrairProdutosDuplicados(req.body.produtos)
-  const temProdutosDuplicados = isNotUndefined(idProdutosDuplicados[0])
-  if (temProdutosDuplicados) {
+  const { produtos } = req.body
+
+  const idProdutosDuplicados = service.extrairProdutosDuplicados(produtos)
+  if (idProdutosDuplicados.length) {
     return res.status(400).send({ message: constant.CART_WITH_DUPLICATE_PRODUCT, idProdutosDuplicados })
   }
 
-  const { produtos } = req.body
-  const produtosComPrecoUnitario = []
-  for (const produto of produtos) {
-    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
-    if (error) {
-      const index = produtos.indexOf(produto)
-      const item = { ...error.item, index }
-      return res.status(error.statusCode).send({ message: error.message, item })
-    }
-    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
+  const { produtosComPrecoUnitario, error } = await service.getProdutosComPrecoUnitarioOuErro(produtos)
+  if (error) {
+    return res.status(error.statusCode).send({ message: error.message, item: error.item })
   }
   const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
   const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
@@ -52,18 +45,9 @@ exports.post = async (req, res) => {
 
 exports.cancelarCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
 
-  if (usuarioTemCarrinho) {
-    const produtos = carrinhoDoUsuario[0].produtos
-
-    produtos.forEach(async (produto) => {
-      const { idProduto, quantidade } = produto
-      const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
-      await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
-    })
-
-    await service.deleteById(carrinhoDoUsuario[0]._id)
+  if (carrinhoDoUsuario.length) {
+    await service.removeCarrinho(carrinhoDoUsuario[0])
     return res.status(200).send({ message: `${constant.DELETE_SUCCESS}. ${constant.REPLENISHED_STOCK}` })
   }
 
@@ -72,14 +56,10 @@ exports.cancelarCompra = async (req, res) => {
 
 exports.concluirCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
-  const usuarioTemCarrinho = isNotUndefined(carrinhoDoUsuario[0])
-  if (usuarioTemCarrinho) {
-    await service.deleteById(carrinhoDoUsuario[0]._id)
+
+  if (carrinhoDoUsuario.length) {
+    await service.concluiCompra(carrinhoDoUsuario)
     return res.status(200).send({ message: constant.DELETE_SUCCESS })
   }
   res.status(200).send({ message: constant.NO_CART })
 }
-
-const isUndefined = (object) => typeof object === 'undefined'
-
-const isNotUndefined = (object) => !isUndefined(object)

@@ -38,8 +38,32 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
   return produtosDuplicados
 }
 
+exports.getProdutosComPrecoUnitarioOuErro = async arrayProdutos => {
+  const produtosComPrecoUnitario = []
+  for (const produto of arrayProdutos) {
+    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
+    if (error) {
+      const index = arrayProdutos.indexOf(produto)
+      const item = { ...error.item, index }
+      return { error: { ...error, item } }
+    }
+    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
+  }
+  return { produtosComPrecoUnitario }
+}
+
 exports.deleteById = async id => {
   return datastore.remove({ _id: id }, {})
+}
+
+exports.concluiCompra = async carrinho => {
+  await this.deleteById(carrinho._id)
+}
+
+exports.removeCarrinho = async carrinho => {
+  const { produtos, _id } = carrinho
+  this.reabasteceEstoque(produtos)
+  await this.deleteById(_id)
 }
 
 exports.getCarrinhoDoUsuario = async (authorization) => {
@@ -66,6 +90,14 @@ exports.quantidadeTotal = async (produtos) => {
     await produtosService.updateQuantidade(produto)
     return (await quantidadeAnterior) + produto.quantidade
   }, Promise.resolve(0))
+}
+
+exports.reabasteceEstoque = produtos => {
+  produtos.forEach(async (produto) => {
+    const { idProduto, quantidade } = produto
+    const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
+    await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
+  })
 }
 
 const idUsuario = async (authorization) => {
