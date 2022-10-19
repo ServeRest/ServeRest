@@ -3,6 +3,7 @@
 const constant = require('../utils/constants')
 const Datastore = require('nedb-promises')
 const { join } = require('path')
+const carrinhosService = require('../services/carrinhos-service')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
 
@@ -49,6 +50,20 @@ exports.getPrecoUnitarioOuErro = async (produto) => {
     return { error: { statusCode: 400, message: constant.INSUFFICIENT_STOCK, item: { idProduto, quantidade, quantidadeEstoque } } }
   }
   return { precoUnitario: preco }
+}
+
+exports.carrinhosComProduto = idDoProduto => {
+  return carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: idDoProduto } } })
+}
+
+exports.deletaProdutoOuErro = async idDoProduto => {
+  const carrinhosComProduto = await this.carrinhosComProduto(idDoProduto)
+  if (carrinhosComProduto.length) {
+    const idCarrinhos = carrinhosComProduto.map((carrinho) => carrinho._id)
+    return { error: { message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos } }
+  }
+  const quantidadeRegistrosExcluidos = await this.deleteById(idDoProduto)
+  return { message: quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCCESS }
 }
 
 exports.deleteById = async id => {

@@ -1,6 +1,5 @@
 'use strict'
 
-const carrinhosService = require('../services/carrinhos-service')
 const constant = require('../utils/constants')
 const service = require('../services/produtos-service')
 
@@ -27,15 +26,11 @@ exports.post = async (req, res) => {
 }
 
 exports.delete = async (req, res) => {
-  const carrinhoDoUsuario = await carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: req.params.id } } })
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
-  if (usuarioTemCarrinho) {
-    const idCarrinhos = carrinhoDoUsuario.map((carrinhos) => { return carrinhos._id })
-    return res.status(400).send({ message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos })
+  const { message, error } = await service.deletaProdutoOuErro(req.params.id)
+  if (error) {
+    return res.status(400).send(error)
   }
-  const quantidadeRegistrosExcluidos = await service.deleteById(req.params.id)
-  const message = quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCCESS
-  res.status(200).send({ message })
+  return res.status(200).send({ message })
 }
 
 exports.put = async (req, res) => {
