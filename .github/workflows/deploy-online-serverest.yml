@@ -6,6 +6,8 @@ on:
   release:
     types: [released]
 
+concurrency: ${{ github.workflow }}
+
 env:
   PROJECT_ID: serverest
   SERVICE_NAME: app

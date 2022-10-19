@@ -32,6 +32,8 @@ jobs:
   release:
     needs: [common-ci]
 
+    concurrency: create_release
+
     runs-on: ubuntu-22.04
     environment: production
 
