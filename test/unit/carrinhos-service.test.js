@@ -50,11 +50,11 @@ describe('carrinhosService', () => {
       }
     ]
 
-    sandbox.stub(produtosService, 'updateQuantidade').returns({})
+    sandbox.stub(produtosService, 'updateQuantity').returns({})
 
     const quantidadeTotal = await service.quantidadeTotal(produtos)
 
     chai.assert.equal(quantidadeTotal, 119)
-    sandbox.assert.calledThrice(produtosService.updateQuantidade)
+    sandbox.assert.calledThrice(produtosService.updateQuantity)
   })
 })
