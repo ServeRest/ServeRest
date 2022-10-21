@@ -18,68 +18,68 @@ exports.getOne = id => {
   return datastore.findOne({ _id: id })
 }
 
-exports.getDadosDoProduto = queryString => {
+exports.getProductData = queryString => {
   return datastore.findOne(queryString)
 }
 
-exports.existeProduto = pesquisa => {
-  return datastore.count(pesquisa)
+exports.productExists = query => {
+  return datastore.count(query)
 }
 
-exports.updateQuantidade = async ({ idProduto, quantidade }) => {
-  const { quantidade: quantidadeEmEstoque } = await this.getDadosDoProduto({ _id: idProduto })
-  const novaQuantidade = quantidadeEmEstoque - quantidade
-  await this.updateById(idProduto, { $set: { quantidade: novaQuantidade } })
+exports.updateQuantity = async ({ idProduto: productId, quantidade: quantity }) => {
+  const { quantidade: stockQuantity } = await this.getProductData({ _id: productId })
+  const newQuantity = stockQuantity - quantity
+  await this.updateById(productId, { $set: { quantidade: newQuantity } })
 }
 
-exports.criarProduto = async body => {
-  body = formatarValores(body)
+exports.createProduct = async body => {
+  body = formatValues(body)
   return datastore.insert(body)
 }
 
-exports.getPrecoUnitarioOuErro = async (produto) => {
-  const quantidade = parseInt(produto.quantidade)
-  const { idProduto } = produto
-  const existePedido = await this.existeProduto({ _id: idProduto })
-  if (!existePedido) {
-    return { error: { statusCode: 400, message: constant.PRODUCT_NOT_FOUND, item: { idProduto, quantidade } } }
+exports.getUnitPriceOrError = async (product) => {
+  const quantity = parseInt(product.quantidade)
+  const { idProduto: productId } = product
+  const productExists = await this.productExists({ _id: productId })
+  if (!productExists) {
+    return { error: { statusCode: 400, message: constant.PRODUCT_NOT_FOUND, item: { idProduto: productId, quantidade: quantity } } }
   }
 
-  const { quantidade: quantidadeEstoque, preco } = await this.getDadosDoProduto({ _id: idProduto })
-  if (quantidade > quantidadeEstoque) {
-    return { error: { statusCode: 400, message: constant.INSUFFICIENT_STOCK, item: { idProduto, quantidade, quantidadeEstoque } } }
+  const { quantidade: stockQuantity, preco: price } = await this.getProductData({ _id: productId })
+  if (quantity > stockQuantity) {
+    return { error: { statusCode: 400, message: constant.INSUFFICIENT_STOCK, item: { idProduto: productId, quantidade: quantity, quantidadeEstoque: stockQuantity } } }
   }
-  return { precoUnitario: preco }
+  return { precoUnitario: price }
 }
 
-exports.carrinhosComProduto = idDoProduto => {
-  return carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: idDoProduto } } })
+exports.getAllCartsWithProduct = productId => {
+  return carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: productId } } })
 }
 
-exports.deletaProdutoOuErro = async idDoProduto => {
-  const carrinhosComProduto = await this.carrinhosComProduto(idDoProduto)
-  if (carrinhosComProduto.length) {
-    const idCarrinhos = carrinhosComProduto.map((carrinho) => carrinho._id)
-    return { error: { message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos } }
+exports.deleteProductOrError = async productId => {
+  const cartsWithProduct = await this.getAllCartsWithProduct(productId)
+  if (cartsWithProduct.length) {
+    const cartsIds = cartsWithProduct.map((cart) => cart._id)
+    return { error: { message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos: cartsIds } }
   }
-  const quantidadeRegistrosExcluidos = await this.deleteById(idDoProduto)
-  return { message: quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCCESS }
+  const totalOfDeletedRegisters = await this.deleteById(productId)
+  return { message: totalOfDeletedRegisters === 0 ? constant.DELETE_NONE : constant.DELETE_SUCCESS }
 }
 
 exports.deleteById = async id => {
   return datastore.remove({ _id: id }, {})
 }
 
-exports.createOrUpdateById = async (idDoProdutoQueSeraAlterado, body) => {
-  body = formatarValores(body)
-  return this.updateById(idDoProdutoQueSeraAlterado, body)
+exports.createOrUpdateById = async (productToBeUpdatedId, body) => {
+  body = formatValues(body)
+  return this.updateById(productToBeUpdatedId, body)
 }
 
-exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {
-  return datastore.update({ _id: idDoProdutoQueSeraAlterado }, body, { upsert: true, returnUpdatedDocs: true })
+exports.updateById = async (productToBeUpdatedId, body) => {
+  return datastore.update({ _id: productToBeUpdatedId }, body, { upsert: true, returnUpdatedDocs: true })
 }
 
-function formatarValores (body) {
+function formatValues (body) {
   body.nome = body.nome.trim()
   body.preco = parseInt(body.preco)
   body.quantidade = parseInt(body.quantidade)

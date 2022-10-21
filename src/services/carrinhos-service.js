@@ -41,7 +41,7 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
 exports.getProdutosComPrecoUnitarioOuErro = async arrayProdutos => {
   const produtosComPrecoUnitario = []
   for (const produto of arrayProdutos) {
-    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
+    const { precoUnitario: preco, error } = await produtosService.getUnitPriceOrError(produto)
     if (error) {
       const index = arrayProdutos.indexOf(produto)
       const item = { ...error.item, index }
@@ -87,7 +87,7 @@ exports.precoTotal = async (produtos) => {
 
 exports.quantidadeTotal = async (produtos) => {
   return produtos.reduce(async (quantidadeAnterior, produto) => {
-    await produtosService.updateQuantidade(produto)
+    await produtosService.updateQuantity(produto)
     return (await quantidadeAnterior) + produto.quantidade
   }, Promise.resolve(0))
 }
@@ -95,7 +95,7 @@ exports.quantidadeTotal = async (produtos) => {
 exports.reabasteceEstoque = produtos => {
   produtos.forEach(async (produto) => {
     const { idProduto, quantidade } = produto
-    const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
+    const { quantidade: quantidadeEmEstoque } = await produtosService.getProductData({ _id: idProduto })
     await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
   })
 }
