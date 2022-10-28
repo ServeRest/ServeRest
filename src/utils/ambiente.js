@@ -7,6 +7,7 @@ function formaDeExecucao () {
       process.env.USERNAME === 'serverest.dev' ||
       process.env.USERNAME === 'staging.serverest.dev' ||
       process.env.USERNAME === 'agilizei' ||
+      process.env.USERNAME === 'cesarschool' ||
       process.env.USERNAME === 'compassuol') {
     return process.env.USERNAME
   }
@@ -27,6 +28,8 @@ function urlDocumentacao () {
       return 'https://agilizei.serverest.dev'
     case 'compassuol':
       return 'https://compassuol.serverest.dev'
+    case 'cesarschool':
+      return 'https://cesarschool.serverest.dev'
     default:
       return `http://localhost:${conf.porta}`
   }

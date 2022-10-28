@@ -68,6 +68,9 @@ switch (formaDeExecucao()) {
   case 'compassuol':
     swaggerDocument.host = 'compassuol.serverest.dev'
     break
+  case 'cesarschool':
+    swaggerDocument.host = 'cesarschool.serverest.dev'
+    break
 }
 
 swaggerDocument.info.version = packageJson.version
