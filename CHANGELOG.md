@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.26.6](https://github.com/ServeRest/ServeRest/compare/v2.26.5...v2.26.6) (2022-10-28)
+
+
+### Chores
+
+* **patch:** add new sponsor Cesar School ([fc0df2f](https://github.com/ServeRest/ServeRest/commit/fc0df2feacb529d618609a43b2cf941c85a97fdb))
+
+
+### Continuous Integration
+
+* avoid concurrency while creating release and deploying ([4da150c](https://github.com/ServeRest/ServeRest/commit/4da150ca545a2cbe0032504e391f704141df38ac))
+* bump actions version to avoid deprecated node version ([9dbd693](https://github.com/ServeRest/ServeRest/commit/9dbd693bd353f163bd96e548183cfa20ee26434b))
+
 ## [2.26.5](https://github.com/ServeRest/ServeRest/compare/v2.26.4...v2.26.5) (2022-10-18)
 
 
