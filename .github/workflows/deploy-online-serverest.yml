@@ -83,7 +83,7 @@ jobs:
 
     steps:
     - name: Create issue
-      uses: dacbd/create-issue-action@v1.2.0
+      uses: dacbd/create-issue-action@v1.2.1
       with:
         token: ${{ github.token }}
         title: Staging tests failed - Deploy aborted
@@ -152,7 +152,7 @@ jobs:
 
     steps:
     - name: Create issue
-      uses: dacbd/create-issue-action@v1.2.0
+      uses: dacbd/create-issue-action@v1.2.1
       id: create-issue-action
       with:
         token: ${{ github.token }}
