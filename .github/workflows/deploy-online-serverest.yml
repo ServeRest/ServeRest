@@ -24,7 +24,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v1
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -46,7 +46,7 @@ jobs:
 
     steps:
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v1
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -112,7 +112,7 @@ jobs:
 
     steps:
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v1
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -207,7 +207,7 @@ jobs:
 
     steps:
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+      uses: google-github-actions/setup-gcloud@v1
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
