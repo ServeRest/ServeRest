@@ -188,7 +188,6 @@ Empresas que apoiam o ServeRest:
  <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436481-2a6a3324-1b0e-4d28-8a40-d885f54291c0.png#gh-light-mode-only" height="120">
  <img alt="Logo da EBAC" src="https://user-images.githubusercontent.com/29241659/177436489-5d2f50f8-2fb3-4091-b822-446d24c83722.png#gh-dark-mode-only" height="120">
  <img alt="Logo da Agilizei" src="https://user-images.githubusercontent.com/29241659/177436678-8187f90f-bb4a-4978-87ab-a03f2f80820f.png" height="124">
- <img alt="Logo da Cesar School" src="https://user-images.githubusercontent.com/29241659/198725645-3e42d795-4393-4d9e-abf6-1655ecb83cfa.png" height="150">
 </p>
 
 ### Individuais
