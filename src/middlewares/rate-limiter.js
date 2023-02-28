@@ -5,7 +5,7 @@ const { RateLimiterMemory } = require('rate-limiter-flexible')
 const { aplicacaoExecutandoLocalmente } = require('../utils/ambiente')
 
 const rateLimiter = new RateLimiterMemory({
-  points: 250, // requests
+  points: 30, // requests
   duration: 2 // segundo por IP
 })
 
