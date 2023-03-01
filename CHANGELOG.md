@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.26.7](https://github.com/ServeRest/ServeRest/compare/v2.26.6...v2.26.7) (2023-03-01)
+
+
+### Bug Fixes
+
+* **rate-limit:** avoid load test on ServeRest ([3c95623](https://github.com/ServeRest/ServeRest/commit/3c95623e7cbdef992d0dec3f83b98256e7f65df6))
+
+
+### Documentation
+
+* **patrocínio:** remoção do CESAR School por nunca terem pago ([2acbbdc](https://github.com/ServeRest/ServeRest/commit/2acbbdc3ae726d85319cc0a43e321db9dddc2f86))
+
+
+### Miscellaneous
+
+* Merge pull request #403 from ServeRest/reduce-rate-limit-why-reinaldo ([6590b82](https://github.com/ServeRest/ServeRest/commit/6590b82277d0f4cae8c1bb001c0a0621141259f9)), closes [#403](https://github.com/ServeRest/ServeRest/issues/403)
+
 ## [2.26.6](https://github.com/ServeRest/ServeRest/compare/v2.26.5...v2.26.6) (2022-10-28)
 
 
