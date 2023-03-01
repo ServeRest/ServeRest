@@ -29,7 +29,11 @@ app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
 app.use(timeout())
 app.use(cors())
-app.use(rateLimiter)
+
+/* istanbul ignore next */
+if (!ehAmbienteDeTestes) {
+  app.use(rateLimiter)
+}
 
 app.disable('etag')
 
