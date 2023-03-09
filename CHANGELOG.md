@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.26.8](https://github.com/ServeRest/ServeRest/compare/v2.26.7...v2.26.8) (2023-03-09)
+
+
+### Chores
+
+* **patch:** use a higher range to better capture load test ([e216c4b](https://github.com/ServeRest/ServeRest/commit/e216c4b058c1e07a2d5abbacaa4a06d8aa38ff34))
+
+
+### Documentation
+
+* **patch:** adjust status code example to show the correct one ([4d89af0](https://github.com/ServeRest/ServeRest/commit/4d89af0f9c733227c8c3aed57d2323188acf6e33))
+
 ## [2.26.7](https://github.com/ServeRest/ServeRest/compare/v2.26.6...v2.26.7) (2023-03-01)
 
 
