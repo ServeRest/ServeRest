@@ -64,7 +64,7 @@
               "$ref": "#/definitions/loginComSucesso"
             }
           },
-          "400": {
+          "401": {
             "description": "E-mail e/ou senha inválidos",
             "schema": {
               "$ref": "#/definitions/errorEmailSenhaInvalidos"
