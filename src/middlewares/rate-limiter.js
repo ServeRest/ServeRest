@@ -5,8 +5,8 @@ const { RateLimiterMemory } = require('rate-limiter-flexible')
 const { aplicacaoExecutandoLocalmente } = require('../utils/ambiente')
 
 const rateLimiter = new RateLimiterMemory({
-  points: 30, // requests
-  duration: 2 // segundo por IP
+  points: 450, // requests
+  duration: 30 // segundo por IP
 })
 
 // Irá retornar mensagem de erro se o teste de carga:
