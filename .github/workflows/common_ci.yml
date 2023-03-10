@@ -116,7 +116,6 @@ jobs:
       run: make test-e2e-localhost
 
   sonarcloud:
-    needs: [test-unit, test-integration]
 
     runs-on: ubuntu-22.04
 
@@ -126,18 +125,6 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         repository: ${{ github.event.pull_request.head.repo.full_name }}
-    - name: Download unit test artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: coverage-unit
-        path: coverage-unit
-    - name: Download integration test artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: coverage-integration
-        path: coverage-integration
-    - name: Merge coverage report
-      run: npm run merge-lcov
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
