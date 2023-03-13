@@ -1,5 +1,28 @@
 # Changelog
 
+# [2.27.0-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.8...v2.27.0-beta.1) (2023-03-13)
+
+
+### Bug Fixes
+
+* add missing dependency ([01be441](https://github.com/ServeRest/ServeRest/commit/01be441c12e67bd5d21e62ec5135c565be30b8b4))
+
+
+### Chores
+
+* **m2:** allow install pact on docker running on mac m2 ([5f0ec50](https://github.com/ServeRest/ServeRest/commit/5f0ec5014912597483a12d200a9b5915cd767df8))
+
+
+### Continuous Integration
+
+* **deploy:** deploy prerelease version on staging environment ([da92c79](https://github.com/ServeRest/ServeRest/commit/da92c794eec1d61d791bbe54522e12fbb21217d1))
+* **docker:** migrate semantic release docker package ([0f6db4f](https://github.com/ServeRest/ServeRest/commit/0f6db4f369d8fc6b4de8e247e712df8449b3663a))
+
+
+### Features
+
+* apagar apagar ([076d4f1](https://github.com/ServeRest/ServeRest/commit/076d4f144e695a76d2f9a20479f7d52cea3f014f))
+
 ## [2.26.8](https://github.com/ServeRest/ServeRest/compare/v2.26.7...v2.26.8) (2023-03-09)
 
 
