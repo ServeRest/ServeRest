@@ -108,7 +108,7 @@ jobs:
   deploy-production:
     name: Deploy on prod environment (serverest.dev)
     needs: test-e2e-staging
-    if: "!contains(github.event.ref, 'beta')"
+    if: "!contains(github.ref, 'beta')"
 
     runs-on: ubuntu-22.04
 

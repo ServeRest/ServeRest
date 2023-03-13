@@ -3,7 +3,7 @@ name: Continuous Integration
 on:
   pull_request:
     branches-ignore:
-      - 'beta'
+      - beta
   workflow_dispatch:
 
 jobs:
