@@ -4,7 +4,7 @@ name: Deploy ServeRest on the web
 
 on:
   release:
-    types: [released]
+    types: [prereleased, released]
 
 concurrency: ${{ github.workflow }}
 
@@ -107,6 +107,7 @@ jobs:
   deploy-production:
     name: Deploy on prod environment (serverest.dev)
     needs: test-e2e-staging
+    if: "!contains(github.event.ref, 'beta')"
 
     runs-on: ubuntu-22.04
 
