@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.27.0-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.27.0-beta.1...v2.27.0-beta.2) (2023-03-13)
+
+
+### Continuous Integration
+
+* **patch:** amend antes de apagar ([bebe28f](https://github.com/ServeRest/ServeRest/commit/bebe28f53eff0e8fe140acc2d865fc507cd6e8b0))
+
 # [2.27.0-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.8...v2.27.0-beta.1) (2023-03-13)
 
 
