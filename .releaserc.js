@@ -109,8 +109,15 @@ module.exports = {
     ['@semantic-release/exec', {
       prepareCmd: 'make build'
     }],
-    ['semantic-release-docker', {
-      name: 'paulogoncalvesbh/serverest'
+    ['@codedependant/semantic-release-docker', {
+      dockerProject: null,
+      dockerImage: 'paulogoncalvesbh/serverest',
+      dockerTags: [
+        "{{#if prerelease.[0]}}{{prerelease.[0]}}{{else}}latest{{/if}}",
+        "{{major}}-{{#if prerelease.[0]}}{{prerelease.[0]}}{{else}}latest{{/if}}",
+        "{{major}}.{{minor}}-{{#if prerelease.[0]}}{{prerelease.[0]}}{{else}}latest{{/if}}",
+        "{{version}}"
+      ]
     }]
   ]
 }
