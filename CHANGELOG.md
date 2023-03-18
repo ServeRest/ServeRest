@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.10](https://github.com/ServeRest/ServeRest/compare/v2.26.9...v2.26.10) (2023-03-18)
+
+
+### Chores
+
+* **patch:** improve logging to catch error easier on google cloud ([395f570](https://github.com/ServeRest/ServeRest/commit/395f57041b55795839a538d4975f1ebd20510de8))
+
 ## [2.26.9](https://github.com/ServeRest/ServeRest/compare/v2.26.8...v2.26.9) (2023-03-14)
 
 
