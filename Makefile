@@ -45,6 +45,16 @@ test-mutation:
 test-infra:
 	@docker-compose up --abort-on-container-exit --build test-infra
 
+test-performance:
+	@docker run --rm -i \
+		-v $(shell pwd)/test/performance/:/app \
+		--user "$(id -u):$(id -g)" \
+		loadimpact/k6:0.40.0 run \
+		--vus 50 \
+		--iterations 1000 \
+		--summary-export=/app/summary.json \
+		/app/k6.js
+
 # COMANDOS DE TESTE PÓS DEPLOY \/
 
 test-e2e-staging:
