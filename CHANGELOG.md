@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.11](https://github.com/ServeRest/ServeRest/compare/v2.26.10...v2.26.11) (2023-03-30)
+
+
+### Bug Fixes
+
+* return correct status code to entity too large error ([0ea19ce](https://github.com/ServeRest/ServeRest/commit/0ea19cee3cedbb21e8c126006bb82a9b973094e2))
+
 ## [2.26.10](https://github.com/ServeRest/ServeRest/compare/v2.26.9...v2.26.10) (2023-03-18)
 
 
