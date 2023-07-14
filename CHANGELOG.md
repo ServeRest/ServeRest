@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.12](https://github.com/ServeRest/ServeRest/compare/v2.26.11...v2.26.12) (2023-07-14)
+
+
+### Chores
+
+* **patch:** update contact detail ([8169fc6](https://github.com/ServeRest/ServeRest/commit/8169fc68afbde7997ebded014209c1a4cb51830a))
+
 ## [2.26.11](https://github.com/ServeRest/ServeRest/compare/v2.26.10...v2.26.11) (2023-03-30)
 
 
