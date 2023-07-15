@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.13](https://github.com/ServeRest/ServeRest/compare/v2.26.12...v2.26.13) (2023-07-15)
+
+
+### Bug Fixes
+
+* adjust endpoint concluir-compra to exclude carrinho ([c93ffff](https://github.com/ServeRest/ServeRest/commit/c93ffffcc7c1476ca16fac64ed854f2adf5969f7)), closes [#412](https://github.com/ServeRest/ServeRest/issues/412)
+
 ## [2.26.12](https://github.com/ServeRest/ServeRest/compare/v2.26.11...v2.26.12) (2023-07-14)
 
 
