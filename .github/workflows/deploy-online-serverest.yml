@@ -12,8 +12,10 @@ env:
   PROJECT_ID: serverest
   SERVICE_NAME: app
   REGION: us-central1
+  # Services name on Cloud Run
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
+  SERVICE_COMPASS_UOL: serverest-compasso-uol
 
 jobs:
   build-and-push-image-to-gcloud-container-registry:
@@ -140,6 +142,29 @@ jobs:
     - run: docker-compose build test-e2e-smoke-production
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
+
+  deploy-compass-uol:
+    name: Deploy on Compass Uol environment (compassuol.serverest.dev)
+    needs: test-e2e-smoke-production
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+    - name: Authentication on GCloud
+      run: |
+        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Deploy container image to 'compassuol' environment
+      run: |
+        gcloud run \
+          deploy $SERVICE_COMPASS_UOL \
+          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          --region $REGION
 
   open-issue-production:
     name: Open issue when production smoke test fail
