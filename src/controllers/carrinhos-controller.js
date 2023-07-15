@@ -58,7 +58,7 @@ exports.concluirCompra = async (req, res) => {
   const carrinhoDoUsuario = await service.getCarrinhoDoUsuario(req.headers.authorization)
 
   if (carrinhoDoUsuario.length) {
-    await service.concluiCompra(carrinhoDoUsuario)
+    await service.concluiCompra(carrinhoDoUsuario[0])
     return res.status(200).send({ message: constant.DELETE_SUCCESS })
   }
   res.status(200).send({ message: constant.NO_CART })

@@ -12,18 +12,22 @@ describe(rotaCancelarCompra + ' DELETE', () => {
     const quantidade = faker.datatype.number()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
-    await request.post(rotaCarrinhos).set('authorization', authorization).send({
+    const { body: bodyNovoCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
         idProduto,
         quantidade: quantidade - 10
       }]
     }).expect(201)
 
+    const { _id: idCarrinho } = bodyNovoCarrinho
+
     const { body: bodyDel } = await request.del(rotaCancelarCompra).set('authorization', authorization).expect(200)
     const { body: bodyProduto } = await request.get('/produtos').query({ _id: idProduto }).expect(200)
+    const { body: bodyCarrinho } = await request.get(`${rotaCarrinhos}/${idCarrinho}`)
 
     chai.assert.deepEqual(bodyDel, { message: 'Registro excluído com sucesso. Estoque dos produtos reabastecido' })
     chai.assert.equal(bodyProduto.produtos[0].quantidade, quantidade)
+    chai.assert.deepEqual(bodyCarrinho, { message: 'Carrinho não encontrado' })
   })
 
   it('Não foi encontrado carrinho para esse usuário', async () => {
