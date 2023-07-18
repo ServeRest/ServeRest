@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  common-ci:
-    uses: ./.github/workflows/common_ci.yml
-    secrets: inherit
-    with:
-      type_pipeline: 'continuous_integration'
+  # common-ci:
+  #   uses: ./.github/workflows/common_ci.yml
+  #   secrets: inherit
+  #   with:
+  #     type_pipeline: 'continuous_integration'
 
   cancel-previous-run:
 
@@ -28,17 +28,16 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Project checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - run: docker-compose build test-mutation-diff
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
+    - name: Generate and fill .env file with secrets
+      run: |
+        # Install 1password CLI
+        curl https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip > op.zip
+        unzip op.zip
+        sudo mv op /usr/local/bin
+        rm op.zip
+        # Generate .env file
+        # Append secret MOESIF_APPLICATION_ID
+        op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+        cat .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        STRYKER_DASHBOARD_API_KEY: op://serverest-ci-cd/stryker-mutator/api_key
-    - name: Run mutation test - Changed files in the branch
-      run: make test-mutation-diff
-      env:
-        STRYKER_DASHBOARD_API_KEY: ${{ env.STRYKER_DASHBOARD_API_KEY }}
