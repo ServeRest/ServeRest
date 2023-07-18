@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.15](https://github.com/ServeRest/ServeRest/compare/v2.26.14...v2.26.15) (2023-07-18)
+
+
+### Bug Fixes
+
+* adjust .env creation to fill moesif application id ([06204aa](https://github.com/ServeRest/ServeRest/commit/06204aa9aced8a24d2be5e9fd3c96ccb5c9c8419))
+
 ## [2.26.14](https://github.com/ServeRest/ServeRest/compare/v2.26.13...v2.26.14) (2023-07-18)
 
 
