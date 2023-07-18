@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.26.14](https://github.com/ServeRest/ServeRest/compare/v2.26.13...v2.26.14) (2023-07-18)
+
+
+### Chores
+
+* **patch:** move exposed secret to .env file and 1password ([8032253](https://github.com/ServeRest/ServeRest/commit/803225366a835aad5d2eb6ce9e3f4e7253bb2132))
+
+
+### Continuous Integration
+
+* add compass uol environment on continuous deploy ([22dbe79](https://github.com/ServeRest/ServeRest/commit/22dbe79f8d767b55ad3562a2f1b154b6a1f6b413))
+* store all secrets on 1password ([0ac1fea](https://github.com/ServeRest/ServeRest/commit/0ac1fea6cb1406505903a1e944b688998237e755))
+
 ## [2.26.13](https://github.com/ServeRest/ServeRest/compare/v2.26.12...v2.26.13) (2023-07-15)
 
 
