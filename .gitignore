@@ -21,3 +21,4 @@ coverage.lcov
 tmp/
 *.tmp
 *.swp
+*.tgz

@@ -2,6 +2,8 @@
 
 'use strict'
 
+require('dotenv').config()
+
 const colors = require('colors')
 const debug = require('debug')('nodestr:server')
 const http = require('http')

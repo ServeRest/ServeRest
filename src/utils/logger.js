@@ -7,7 +7,6 @@ para não ser afetado pelo teste de mutação.
 Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
 */
 
-require('dotenv').config()
 const moesif = require('moesif-nodejs')
 
 const { version } = require('../../package.json')
