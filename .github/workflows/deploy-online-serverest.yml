@@ -23,6 +23,19 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Generate and fill .env file with secrets
+      run: |
+        # Install 1password CLI
+        curl https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip > op.zip
+        unzip op.zip
+        sudo mv op /usr/local/bin
+        rm op.zip
+
+        # Generate .env file
+        # Append secret MOESIF_APPLICATION_ID
+        op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v1
       env:
@@ -58,11 +71,6 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
-        MOESIF_APPLICATION_ID: op://serverest-ci-cd/moesif/application_id
-    - name: Fill .env file with secrets
-      run: echo "MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID" >> .env
-      env:
-        MOESIF_APPLICATION_ID: ${{ env.MOESIF_APPLICATION_ID }}
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
