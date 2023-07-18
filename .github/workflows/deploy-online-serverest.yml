@@ -63,7 +63,6 @@ jobs:
     needs: build-and-push-image-to-gcloud-container-registry
 
     runs-on: ubuntu-22.04
-    environment: staging
 
     steps:
     - name: Load secrets from 1password
@@ -136,7 +135,6 @@ jobs:
     if: "!contains(github.ref, 'beta')"
 
     runs-on: ubuntu-22.04
-    environment: production
 
     steps:
     - name: Load secrets from 1password
