@@ -1,3 +1,4 @@
+.env.example
 .github
 .nyc_output
 dist/

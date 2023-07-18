@@ -40,7 +40,6 @@ jobs:
     concurrency: create_release
 
     runs-on: ubuntu-22.04
-    environment: production
 
     steps:
     - name: Project checkout
@@ -59,6 +58,11 @@ jobs:
         DOCKER_REGISTRY_USER: op://serverest-ci-cd/docker/username
         DOCKER_REGISTRY_PASSWORD: op://serverest-ci-cd/docker/password
         PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        MOESIF_APPLICATION_ID: op://serverest-ci-cd/moesif/application_id
+    - name: Fill .env file with secrets
+      run: echo "MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID" >> .env
+      env:
+        MOESIF_APPLICATION_ID: ${{ env.MOESIF_APPLICATION_ID }}
     - name: Release on NPM and Docker
       run: npx semantic-release@18.0.0
       env:

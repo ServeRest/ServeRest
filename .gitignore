@@ -17,6 +17,7 @@ coverage.lcov
 .vscode/
 
 ## Others
+.env
 tmp/
 *.tmp
 *.swp
