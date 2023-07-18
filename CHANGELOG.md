@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.17](https://github.com/ServeRest/ServeRest/compare/v2.26.16...v2.26.17) (2023-07-18)
+
+
+### Bug Fixes
+
+* **npm:** import .env file correctly ([0acad28](https://github.com/ServeRest/ServeRest/commit/0acad285dcf02a8d2743e258d2febbafc78dc91e))
+
 ## [2.26.16](https://github.com/ServeRest/ServeRest/compare/v2.26.15...v2.26.16) (2023-07-18)
 
 
