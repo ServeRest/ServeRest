@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.16](https://github.com/ServeRest/ServeRest/compare/v2.26.15...v2.26.16) (2023-07-18)
+
+
+### Bug Fixes
+
+* **npm:** add .npmignore file to allow .env work properly ([d1d143a](https://github.com/ServeRest/ServeRest/commit/d1d143adbc4584c8133d5b2660b20191792a84f6))
+
 ## [2.26.15](https://github.com/ServeRest/ServeRest/compare/v2.26.14...v2.26.15) (2023-07-18)
 
 
