@@ -23,6 +23,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Set up Cloud SDK
@@ -32,7 +37,7 @@ jobs:
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Build and deploy to Gcloud
       run: |
@@ -47,6 +52,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -54,7 +64,7 @@ jobs:
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Deploy container image to 'staging' environment
       run: |
@@ -114,6 +124,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -121,7 +136,7 @@ jobs:
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Deploy container image to 'production' environment
       run: |
@@ -150,6 +165,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -157,7 +177,7 @@ jobs:
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Deploy container image to 'compassuol' environment
       run: |
@@ -232,6 +252,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -239,7 +264,7 @@ jobs:
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Deploy image from '${{ needs.rollback-get-previous-info.outputs.git_tag }}' to 'production' environment
       run: |
@@ -264,6 +289,11 @@ jobs:
 
     # Why delete tag on rollback? Read: https://docs.pact.io/pact_broker/tags#handling-rollbacks
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
     - name: Delete Production tag recently created
       run: |
         curl -X DELETE https://paulogoncalves.pactflow.io/pacticipants/$PACTICIPANT/versions/$VERSION/tags/$TAG -H "Authorization: Bearer $PACT_BROKER_TOKEN"
@@ -271,7 +301,7 @@ jobs:
         PACTICIPANT: ServeRest - API Rest
         VERSION: ${{ github.sha }}
         TAG: production
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
 
 # Rollback jobs /\
 
@@ -282,6 +312,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
     - uses: actions/checkout@v3
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'staging' tag
@@ -296,7 +331,7 @@ jobs:
           --tag staging
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
 
   contract-test-tag-production:
     name: Contract test - Tag with 'production'
@@ -306,6 +341,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'production' tag
       run: |
@@ -319,4 +359,4 @@ jobs:
           --tag production
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
