@@ -23,11 +23,16 @@ jobs:
       uses: tj-actions/changed-files@v32
       with:
         files: src
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        STRYKER_DASHBOARD_API_KEY: op://serverest-ci-cd/stryker-mutator/api_key
     - name: Run mutation test
       if: steps.changed-files-specific.outputs.any_changed == 'true'
       run: make test-mutation
       env:
-        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+        STRYKER_DASHBOARD_API_KEY: ${{ env.STRYKER_DASHBOARD_API_KEY }}
 
   release:
     needs: [common-ci]
@@ -46,15 +51,23 @@ jobs:
         node-version: 16
     - name: Installation of Node.js dependencies
       run: npm ci
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        NPM_TOKEN: op://serverest-ci-cd/npm/npm_token
+        DOCKER_REGISTRY_USER: op://serverest-ci-cd/docker/username
+        DOCKER_REGISTRY_PASSWORD: op://serverest-ci-cd/docker/password
+        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
     - name: Release on NPM and Docker
       run: npx semantic-release@18.0.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_HUB_USERNAME }}
-        DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ env.NPM_TOKEN }}
+        DOCKER_REGISTRY_USER: ${{ env.DOCKER_REGISTRY_USER }}
+        DOCKER_REGISTRY_PASSWORD: ${{ env.DOCKER_REGISTRY_PASSWORD }}
     - run: docker-compose build test-contract
     - name: Run contract test
       run: make test-contract
       env:
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}

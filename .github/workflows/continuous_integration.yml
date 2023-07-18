@@ -33,7 +33,12 @@ jobs:
       with:
         fetch-depth: 0
     - run: docker-compose build test-mutation-diff
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        STRYKER_DASHBOARD_API_KEY: op://serverest-ci-cd/stryker-mutator/api_key
     - name: Run mutation test - Changed files in the branch
       run: make test-mutation-diff
       env:
-        STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+        STRYKER_DASHBOARD_API_KEY: ${{ env.STRYKER_DASHBOARD_API_KEY }}

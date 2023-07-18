@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
     - uses: actions/checkout@v3
       with:
         ref: ${{ github.event.client_payload.providerProductionSha }}
@@ -18,4 +23,4 @@ jobs:
       run: make test-contract
       env:
         PACT_URL: ${{ github.event.client_payload.pactUrl }}
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
