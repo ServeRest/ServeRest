@@ -50,17 +50,12 @@ jobs:
         node-version: 16
     - name: Installation of Node.js dependencies
       run: npm ci
+    - name: Install 1Password CLI
+      uses: 1password/install-cli-action@v1
+      with:
+        version: 2.18.0
     - name: Generate and fill .env file with secrets
-      run: |
-        # Install 1password CLI
-        curl https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip > op.zip
-        unzip op.zip
-        sudo mv op /usr/local/bin
-        rm op.zip
-
-        # Generate .env file
-        # Append secret MOESIF_APPLICATION_ID
-        op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+      run: op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password

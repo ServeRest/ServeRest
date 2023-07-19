@@ -23,19 +23,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Generate and fill .env file with secrets
-      run: |
-        # Install 1password CLI
-        curl https://cache.agilebits.com/dist/1P/op2/pkg/v2.18.0/op_linux_amd64_v2.18.0.zip > op.zip
-        unzip op.zip
-        sudo mv op /usr/local/bin
-        rm op.zip
-
-        # Generate .env file
-        # Append secret MOESIF_APPLICATION_ID
-        op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v1
       env:
@@ -52,6 +39,14 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
+    - name: Install 1Password CLI
+      uses: 1password/install-cli-action@v1
+      with:
+        version: 2.18.0
+    - name: Generate and fill .env file with secrets
+      run: op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Build and deploy to Gcloud
       run: |
         gcloud builds submit . \
@@ -204,7 +199,7 @@ jobs:
   open-issue-production:
     name: Open issue when production smoke test fail
     needs: test-e2e-smoke-production
-    if: failure()
+    if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
 
     runs-on: ubuntu-22.04
 
@@ -265,6 +260,7 @@ jobs:
     if: ${{ always() && needs.rollback-get-previous-info.result == 'success' }}
 
     runs-on: ubuntu-22.04
+    environment: production
 
     steps:
     - name: Load secrets from 1password
