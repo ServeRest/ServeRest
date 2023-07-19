@@ -3,8 +3,10 @@ name: Deploy ServeRest on the web
 # This pipeline runs when the continuous_delivery.yml pipeline generates a new release
 
 on:
-  release:
-    types: [published]
+  # release:
+  #   types: [published]
+  push:
+    branches: [beta]
 
 concurrency: ${{ github.workflow }}
 
@@ -28,7 +30,6 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
-        MOESIF_APPLICATION_ID: op://serverest-ci-cd/moesif/application_id
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Set up Cloud SDK
@@ -40,13 +41,20 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
+    - name: Install 1Password CLI
+      uses: 1password/install-cli-action@v1
+      with:
+        version: 2.18.0
     - name: Build and deploy to Gcloud
       run: |
+        op run -- \
         gcloud builds submit . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
+          --substitutions=COMMIT_SHA=${{ github.sha }}
+          # ,MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
       env:
-        MOESIF_APPLICATION_ID: ${{ env.MOESIF_APPLICATION_ID }}
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        # MOESIF_APPLICATION_ID: op://serverest-ci-cd/moesif/application_id
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
