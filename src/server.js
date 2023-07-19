@@ -2,7 +2,8 @@
 
 'use strict'
 
-require('dotenv').config()
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 const colors = require('colors')
 const debug = require('debug')('nodestr:server')
