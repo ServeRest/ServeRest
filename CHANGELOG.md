@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.20-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.19...v2.26.20-beta.1) (2023-07-19)
+
+
+### Continuous Integration
+
+* **patch:** enable environments on serverest.dev ([32445c1](https://github.com/ServeRest/ServeRest/commit/32445c1eb7729d0eb55ca4567c3678196537a8dd))
+
 ## [2.26.19](https://github.com/ServeRest/ServeRest/compare/v2.26.18...v2.26.19) (2023-07-19)
 
 
