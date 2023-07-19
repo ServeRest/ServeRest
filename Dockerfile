@@ -6,8 +6,6 @@ LABEL repository="https://github.com/ServeRest/ServeRest" \
       homepage="https://github.com/ServeRest/ServeRest" \
       maintainer="Paulo Gonçalves <https://www.linkedin.com/in/paulo-goncalves/>"
 
-ARG MOESIF_APPLICATION_ID
-
 WORKDIR /app
 
 COPY package*.json ./

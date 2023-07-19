@@ -5,7 +5,6 @@ steps:
   args: ['build',
         '--file', 'Dockerfile',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
-        '--build-arg=MOESIF_APPLICATION_ID=$_MOESIF_APPLICATION_ID',
         '.']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'

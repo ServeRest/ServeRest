@@ -45,15 +45,15 @@ jobs:
       uses: 1password/install-cli-action@v1
       with:
         version: 2.18.0
-    - name: Build and deploy to Gcloud
-      run: |
-        MOESIF_APPLICATION_ID=$(op read op://serverest-ci-cd/moesif/application_id)
-
-        gcloud builds submit --verbosity=debug . \
-          --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},_MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
+    - name: Generate and fill .env file with secrets
+      run: op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+    - name: Build and deploy to Gcloud
+      run: |
+        gcloud builds submit --verbosity=debug . \
+          --config=cloudbuild.yaml \
+          --substitutions=COMMIT_SHA=${{ github.sha }}
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
