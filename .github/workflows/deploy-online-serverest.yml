@@ -44,7 +44,9 @@ jobs:
       run: |
         gcloud builds submit . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=${{ env.MOESIF_APPLICATION_ID }}
+          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
+      env:
+        MOESIF_APPLICATION_ID: ${{ env.MOESIF_APPLICATION_ID }}
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
