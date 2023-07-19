@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.20-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.26.20-beta.1...v2.26.20-beta.2) (2023-07-19)
+
+
+### Bug Fixes
+
+* **serverest.dev:** insert variable on build ([32ac9a5](https://github.com/ServeRest/ServeRest/commit/32ac9a584c679fdc00ce82f8cc3b7c55fe2c266f))
+
 ## [2.26.20-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.19...v2.26.20-beta.1) (2023-07-19)
 
 
