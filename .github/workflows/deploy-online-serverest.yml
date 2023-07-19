@@ -51,7 +51,7 @@ jobs:
 
         gcloud builds submit --verbosity=debug . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
+          --substitutions=COMMIT_SHA=${{ github.sha }},_MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
@@ -97,35 +97,14 @@ jobs:
     - name: Run E2E test in staging environment
       run: make test-e2e-staging
 
-  open-issue-staging:
-    name: Open issue when staging test fail
-    needs: test-e2e-staging
-    if: failure()
 
-    runs-on: ubuntu-22.04
 
-    steps:
-    - name: Create issue
-      uses: dacbd/create-issue-action@v1.2.0
-      with:
-        token: ${{ github.token }}
-        title: Staging tests failed - Deploy aborted
-        body: |
-          _This is an automatically generated issue_
 
-          The attempt to deploy the `${{ github.ref }}` tag failed. Staging tests failed and because of that the version `${{ github.ref }}` was not sent to production.
 
-          ## Context
 
-          |                           | Detail                                                                        	|
-          |--------------------------	|-------------------------------------------------------------------------------	|
-          | **Failed Run**    	      | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} 	|
-          | **Codebase**      	      | https://github.com/${{ github.repository }}/tree/${{ github.sha }}            	|
-          | **Workflow name**       	| `${{ github.workflow }}`                                                      	|
-          | **Tag**                  	| `${{ github.ref }}`                                                           	|
-          | **Environment affected** 	| https://staging.serverest.dev/                                                	|
-        assignees: PauloGoncalvesBH
-        labels: bug
+
+
+
 
   deploy-production:
     name: Deploy on prod environment (serverest.dev)
