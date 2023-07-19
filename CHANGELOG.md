@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.18](https://github.com/ServeRest/ServeRest/compare/v2.26.17...v2.26.18) (2023-07-19)
+
+
+### Bug Fixes
+
+* fix moesif bug published between v2.26.14 and v2.26.17 ([a87d344](https://github.com/ServeRest/ServeRest/commit/a87d3442831bf3a49f77633c6b0331bc0dcb46cc)), closes [#419](https://github.com/ServeRest/ServeRest/issues/419)
+
 ## [2.26.17](https://github.com/ServeRest/ServeRest/compare/v2.26.16...v2.26.17) (2023-07-18)
 
 
