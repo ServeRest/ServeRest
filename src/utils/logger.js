@@ -16,6 +16,7 @@ const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-developm
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 
 module.exports = async app => {
+  console.log('process.env.MOESIF_APPLICATION_ID:', process.env.MOESIF_APPLICATION_ID)
   if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes) {
     return
   }

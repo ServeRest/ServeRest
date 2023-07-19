@@ -48,7 +48,7 @@ jobs:
     - name: Build and deploy to Gcloud
       run: |
         op run -- \
-        gcloud builds submit . \
+        gcloud builds submit --verbosity=debug . \
           --config=cloudbuild.yaml \
           --substitutions=COMMIT_SHA=${{ github.sha }}
           # ,MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
