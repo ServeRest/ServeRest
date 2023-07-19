@@ -50,10 +50,9 @@ jobs:
         op run -- \
         gcloud builds submit --verbosity=debug . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
+          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=op://serverest-ci-cd/moesif/application_id
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        MOESIF_APPLICATION_ID: op://serverest-ci-cd/moesif/application_id
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
