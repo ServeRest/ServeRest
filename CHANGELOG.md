@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.19](https://github.com/ServeRest/ServeRest/compare/v2.26.18...v2.26.19) (2023-07-19)
+
+
+### Continuous Integration
+
+* **patch:** trigger release to publish on serverest.dev ([2a420cb](https://github.com/ServeRest/ServeRest/commit/2a420cba65e513f975b0e62e94834c9cd9929e6d))
+
 ## [2.26.18](https://github.com/ServeRest/ServeRest/compare/v2.26.17...v2.26.18) (2023-07-19)
 
 
