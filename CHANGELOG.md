@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.20-beta.3](https://github.com/ServeRest/ServeRest/compare/v2.26.20-beta.2...v2.26.20-beta.3) (2023-07-19)
+
+
+### Bug Fixes
+
+* tentativa substitution ([a079f7c](https://github.com/ServeRest/ServeRest/commit/a079f7cea551b413a719080b0e7f09bb5fe5e79e))
+
 ## [2.26.20-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.26.20-beta.1...v2.26.20-beta.2) (2023-07-19)
 
 
