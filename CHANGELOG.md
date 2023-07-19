@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.20](https://github.com/ServeRest/ServeRest/compare/v2.26.19...v2.26.20) (2023-07-19)
+
+
+### Bug Fixes
+
+* allow serverest.dev to use env stored on .env ([da3cfdb](https://github.com/ServeRest/ServeRest/commit/da3cfdbdc41fbd9205423fe6ca9c691d582d0fca))
+
 ## [2.26.19](https://github.com/ServeRest/ServeRest/compare/v2.26.18...v2.26.19) (2023-07-19)
 
 
