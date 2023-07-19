@@ -47,10 +47,11 @@ jobs:
         version: 2.18.0
     - name: Build and deploy to Gcloud
       run: |
-        op run -- \
+        MOESIF_APPLICATION_ID=$(op read op://serverest-ci-cd/moesif/application_id)
+
         gcloud builds submit --verbosity=debug . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=op://serverest-ci-cd/moesif/application_id
+          --substitutions=COMMIT_SHA=${{ github.sha }},MOESIF_APPLICATION_ID=$MOESIF_APPLICATION_ID
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
