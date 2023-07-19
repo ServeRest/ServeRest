@@ -23,6 +23,13 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+    - name: Project checkout
+      uses: actions/checkout@v3
     - name: Generate and fill .env file with secrets
       run: |
         # Install 1password CLI
@@ -36,13 +43,6 @@ jobs:
         op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
-    - name: Project checkout
-      uses: actions/checkout@v3
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -204,7 +204,7 @@ jobs:
   open-issue-production:
     name: Open issue when production smoke test fail
     needs: test-e2e-smoke-production
-    if: failure()
+    if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
 
     runs-on: ubuntu-22.04
 
