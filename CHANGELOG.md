@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.18-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.17...v2.26.18-beta.1) (2023-07-19)
+
+
+### Bug Fixes
+
+* moesif bug ([9f04ff2](https://github.com/ServeRest/ServeRest/commit/9f04ff2c3c9c3710baa6bc16d5de7314e032e2b1))
+
 ## [2.26.17](https://github.com/ServeRest/ServeRest/compare/v2.26.16...v2.26.17) (2023-07-18)
 
 
