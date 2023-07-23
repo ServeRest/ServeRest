@@ -15,7 +15,7 @@
    <a href="https://github.com/ServeRest/ServeRest/blob/trunk/.github/CODE_OF_CONDUCT.md">Código de conduta</a> |
    <a href="https://github.com/ServeRest/ServeRest/blob/trunk/.github/CONTRIBUTING.md">Como contribuir</a> |
    <a href="https://github.com/ServeRest/ServeRest/blob/trunk/CHANGELOG.md">Histórico de alterações</a> |
-   <a href="https://github.com/ServeRest/ServeRest#patrocinadores">Patrocinadores</a>
+   <a href="https://github.com/ServeRest/ServeRest#doadores">Doadores</a>
  </b>
 </p>
 
@@ -170,15 +170,13 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 
 Para encontrar mais repositórios acesse https://github.com/search?q=serverest&type=Repositories
 
-## Patrocinadores
+## Doadores
 
-### Empresas ($15+/mês)
+Achou o projeto útil? Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio, a hospedagem e a manutenção de <https://serverest.dev>.
 
-Sua empresa usa o ServeRest? Pergunte ao seu gerente ou equipe de marketing se sua empresa estaria interessada em apoiar este projeto e ter os seguintes serviços:
-1. Subdomínio próprio (_nome-escolhido.serverest.dev_)
-1. Acesso a todas as requests e respostas feitas nos últimos 7 dias no subdomínio
+Pessoas que apoiam o ServeRest:
 
-[![Empresas - Open Collective](https://opencollective.com/serverest/tiers/patrocinador.svg)](https://opencollective.com/serverest)
+[![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/apoiador.svg)](https://opencollective.com/serverest)
 
 Empresas que apoiam o ServeRest:
 
@@ -190,13 +188,7 @@ Empresas que apoiam o ServeRest:
  <img alt="Logo da Agilizei" src="https://user-images.githubusercontent.com/29241659/177436678-8187f90f-bb4a-4978-87ab-a03f2f80820f.png" height="124">
 </p>
 
-### Individuais
-
-Achou o projeto útil? Faça doação única ou mensal a partir de 1 dólar e ajude a pagar o domínio, a hospedagem e a manutenção de <https://serverest.dev>.
-
-[![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/apoiador.svg)](https://opencollective.com/serverest)
-
-Todos os patrocinadores anteriores e atuais podem ser vistos no [Open Collective do ServeRest](https://opencollective.com/serverest#section-contributors).
+Todos os apoiadores anteriores e atuais podem ser vistos no [Open Collective do ServeRest](https://opencollective.com/serverest#section-contributors).
 
 ## Contribuidores ✨
 
