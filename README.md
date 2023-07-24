@@ -178,7 +178,7 @@ Pessoas que apoiam o ServeRest:
 
 [![Apoiador individual - Open Collective](https://opencollective.com/serverest/tiers/apoiador.svg)](https://opencollective.com/serverest)
 
-Empresas que apoiam o ServeRest:
+Empresas que apoiam o ServeRest financeiramente:
 
 <p align="center">
  <img alt="Logo da Compass Uol" src="https://user-images.githubusercontent.com/29241659/195455525-6d97e444-630e-45c6-92b9-50ea44f06590.png#gh-light-mode-only" height="80">
@@ -189,6 +189,16 @@ Empresas que apoiam o ServeRest:
 </p>
 
 Todos os apoiadores anteriores e atuais podem ser vistos no [Open Collective do ServeRest](https://opencollective.com/serverest#section-contributors).
+
+### Suporte com produtos
+
+ServeRest é apoiado pelas seguintes empresas, que fornecem acesso aos seus produtos através de plano de apoio a projetos open source:
+
+<p align="center">
+  <a href="https://1password.com/">
+    <img alt="Logo do 1password" src="https://github.com/ServeRest/ServeRest/assets/29241659/777347a3-b616-44ef-b089-c257759d96c0" height="80">
+  </a>
+</p>
 
 ## Contribuidores ✨
 

@@ -37,7 +37,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        STRYKER_DASHBOARD_API_KEY: op://serverest-ci-cd/stryker-mutator/api_key
+        STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
     - name: Run mutation test - Changed files in the branch
       run: make test-mutation-diff
       env:

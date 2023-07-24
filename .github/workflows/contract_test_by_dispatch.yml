@@ -14,7 +14,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - uses: actions/checkout@v3
       with:
         ref: ${{ github.event.client_payload.providerProductionSha }}

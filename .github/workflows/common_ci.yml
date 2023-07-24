@@ -18,7 +18,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Project checkout - Continuous Integration
       if: inputs.type_pipeline == 'continuous_integration'
       uses: actions/checkout@v3
@@ -147,7 +147,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        SONAR_TOKEN: op://serverest-ci-cd/sonar/sonar_token
+        SONAR_TOKEN: op://CI-CD/sonar/SONAR_TOKEN
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:

@@ -27,7 +27,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Set up Cloud SDK
@@ -44,7 +44,7 @@ jobs:
       with:
         version: 2.18.0
     - name: Generate and fill .env file with secrets
-      run: op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+      run: op read op://CI-CD/moesif/APPLICATION_ID | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Build and deploy to Gcloud
@@ -65,7 +65,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -138,7 +138,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -179,7 +179,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -267,7 +267,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://serverest-ci-cd/google-cloud/service_account_key
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -304,7 +304,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Delete Production tag recently created
       run: |
         curl -X DELETE https://paulogoncalves.pactflow.io/pacticipants/$PACTICIPANT/versions/$VERSION/tags/$TAG -H "Authorization: Bearer $PACT_BROKER_TOKEN"
@@ -327,7 +327,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - uses: actions/checkout@v3
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'staging' tag
@@ -356,7 +356,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'production' tag
       run: |

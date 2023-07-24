@@ -27,7 +27,7 @@ jobs:
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        STRYKER_DASHBOARD_API_KEY: op://serverest-ci-cd/stryker-mutator/api_key
+        STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
     - name: Run mutation test
       if: steps.changed-files-specific.outputs.any_changed == 'true'
       run: make test-mutation
@@ -55,18 +55,18 @@ jobs:
       with:
         version: 2.18.0
     - name: Generate and fill .env file with secrets
-      run: op read op://serverest-ci-cd/moesif/application_id | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
+      run: op read op://CI-CD/moesif/APPLICATION_ID | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v1
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GH_TOKEN: op://serverest-ci-cd/github/gh_token
-        NPM_TOKEN: op://serverest-ci-cd/npm/npm_token
-        DOCKER_REGISTRY_USER: op://serverest-ci-cd/docker/username
-        DOCKER_REGISTRY_PASSWORD: op://serverest-ci-cd/docker/password
-        PACT_BROKER_TOKEN: op://serverest-ci-cd/pactflow/pact_broker_token
+        GH_TOKEN: op://CI-CD/GitHub/GH_TOKEN
+        NPM_TOKEN: op://CI-CD/npm/NPM_TOKEN
+        DOCKER_REGISTRY_USER: op://CI-CD/docker/username
+        DOCKER_REGISTRY_PASSWORD: op://CI-CD/docker/password
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Release on NPM and Docker
       run: npx semantic-release@18.0.0
       env:
