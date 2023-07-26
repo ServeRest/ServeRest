@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.26.21](https://github.com/ServeRest/ServeRest/compare/v2.26.20...v2.26.21) (2023-07-26)
+
+
+### Chores
+
+* **patch:** update author contact mail ([16c361d](https://github.com/ServeRest/ServeRest/commit/16c361d7f2c0a94d35d89c55afe2e245945483b9))
+
+
+### Documentation
+
+* ajustar a seção de apoiadores ([3a53053](https://github.com/ServeRest/ServeRest/commit/3a5305386a12d11c11bd05407b3b01214dbb9e2c))
+* **readme:** incluir suporte do 1password ao projeto ([1212f85](https://github.com/ServeRest/ServeRest/commit/1212f85e3d01bcda823c6da5679b205fe71e81f7))
+
 ## [2.26.20](https://github.com/ServeRest/ServeRest/compare/v2.26.19...v2.26.20) (2023-07-19)
 
 
