@@ -47,7 +47,7 @@ jobs:
     - name: Node.js Setup
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Install 1Password CLI
@@ -68,7 +68,7 @@ jobs:
         DOCKER_REGISTRY_PASSWORD: op://CI-CD/docker/password
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Release on NPM and Docker
-      run: npx semantic-release@18.0.0
+      run: npx semantic-release@21.0.7
       env:
         GITHUB_TOKEN: ${{ env.GH_TOKEN }}
         NPM_TOKEN: ${{ env.NPM_TOKEN }}
