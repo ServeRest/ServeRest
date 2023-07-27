@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.26.22](https://github.com/ServeRest/ServeRest/compare/v2.26.21...v2.26.22) (2023-07-27)
+
+
+### Bug Fixes
+
+* **charset:** catch 'unsupported charset' error, returning friendly error ([38f99dd](https://github.com/ServeRest/ServeRest/commit/38f99dd221373a651cf547af3ce2a494dfd9622a))
+
+
+### Continuous Integration
+
+* **deps:** update semantic-release from [@18](https://github.com/18).0.0 to [@21](https://github.com/21).0.7 ([fabee3f](https://github.com/ServeRest/ServeRest/commit/fabee3f7a85152f9860345dc86991b6be4b3095d))
+
 ## [2.26.21](https://github.com/ServeRest/ServeRest/compare/v2.26.20...v2.26.21) (2023-07-26)
 
 
