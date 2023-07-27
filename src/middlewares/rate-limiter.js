@@ -13,7 +13,8 @@ const rateLimiter = new RateLimiterMemory({
 // 1. Estiver sendo executado em localhost sem o header 'monitor'.
 // 2. Estiver sendo executado fora de localhost.
 module.exports = async (req, res, next) => {
-  const reqContainsHeaderMonitor = req.rawHeaders.includes('monitor')
+  const headerToCheck = 'monitor'
+  const reqContainsHeaderMonitor = req.rawHeaders.some(header => header.toLowerCase() === headerToCheck.toLowerCase())
 
   const messageLoadTest = 'Foi detectado comportamento equivalente a teste de carga'
   const messageAdjust = 'Leia a seção sobre teste de carga https://github.com/ServeRest/ServeRest#teste-de-carga e faça o ajuste necessário.'
