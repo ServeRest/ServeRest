@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.26.23](https://github.com/ServeRest/ServeRest/compare/v2.26.22...v2.26.23) (2023-07-28)
+
+
+### Bug Fixes
+
+* **rate-limiter:** agora verifica monitor de forma case insensitive ([50799a4](https://github.com/ServeRest/ServeRest/commit/50799a434065f58aa427df3f917dc69c8ea03764))
+
+
+### Documentation
+
+* update .all-contributorsrc ([6c6ae6e](https://github.com/ServeRest/ServeRest/commit/6c6ae6e84da0e1b666abe432a817e116acb3883d))
+* update .github/CONTRIBUTING.md ([197d61c](https://github.com/ServeRest/ServeRest/commit/197d61c4936d539d42d26ac0ed19908b8c4ec631))
+* update README.md ([ec6fbe4](https://github.com/ServeRest/ServeRest/commit/ec6fbe45d6e443da2779334b69a8a5dcdc1bbea8))
+
 ## [2.26.22](https://github.com/ServeRest/ServeRest/compare/v2.26.21...v2.26.22) (2023-07-27)
 
 
