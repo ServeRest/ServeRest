@@ -129,6 +129,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "RenatoDaM",
+      "name": "Renato Davoli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/112330702?v=4",
+      "profile": "https://github.com/RenatoDaM",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)",
@@ -137,5 +146,6 @@
   "projectOwner": "ServeRest",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": false
+  "skipCi": false,
+  "commitType": "docs"
 }
