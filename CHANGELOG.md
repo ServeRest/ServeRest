@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.24-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.23...v2.26.24-beta.1) (2023-07-30)
+
+
+### Bug Fixes
+
+* **logger:** verificar o monitor de forma case insensitive ([16486eb](https://github.com/ServeRest/ServeRest/commit/16486ebc46f3c66f5ab868f46749043da48eb523))
+
 ## [2.26.23](https://github.com/ServeRest/ServeRest/compare/v2.26.22...v2.26.23) (2023-07-28)
 
 
