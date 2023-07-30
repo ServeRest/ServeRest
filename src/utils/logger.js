@@ -36,7 +36,7 @@ module.exports = async app => {
           req.originalUrl === '/swagger-ui-standalone-preset.js.map' ||
           req.originalUrl === '/swagger-ui-bundle.js' ||
           req.originalUrl === '/swagger-ui-bundle.js.map' ||
-          req.headers.monitor ||
+          req.rawHeaders.some(header => header.toLowerCase() === 'monitor'.toLowerCase()) ||
           (formaDeExecucao() === 'serverest.dev' && req.originalUrl === '/')) {
         return true
       }
