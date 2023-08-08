@@ -190,11 +190,14 @@ Empresas que apoiam o ServeRest financeiramente:
 
 Todos os apoiadores anteriores e atuais podem ser vistos no [Open Collective do ServeRest](https://opencollective.com/serverest#section-contributors).
 
-### Suporte com produtos
+### Patrocínio com produtos
 
 ServeRest é apoiado pelas seguintes empresas, que fornecem acesso aos seus produtos através de plano de apoio a projetos open source:
 
 <p align="center">
+  <a href="https://www.datadoghq.com/">
+    <img alt="Logo do Datadog" src="https://github.com/ServeRest/ServeRest/assets/29241659/6d63a41e-aa98-428d-98ed-8670e6c9aff8" height="100">
+  </a>
   <a href="https://1password.com/">
     <img alt="Logo do 1password" src="https://github.com/ServeRest/ServeRest/assets/29241659/777347a3-b616-44ef-b089-c257759d96c0" height="80">
   </a>
