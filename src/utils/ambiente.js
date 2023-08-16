@@ -3,16 +3,19 @@
 const { conf } = require('./conf')
 
 function formaDeExecucao () {
-  if (process.env.USERNAME === 'docker' ||
-      process.env.USERNAME === 'serverest.dev' ||
-      process.env.USERNAME === 'staging.serverest.dev' ||
-      process.env.USERNAME === 'agilizei' ||
-      process.env.USERNAME === 'cesarschool' ||
-      process.env.USERNAME === 'compassuol') {
-    return process.env.USERNAME
+  if (process.env.ENVIRONMENT === 'docker' ||
+      process.env.ENVIRONMENT === 'serverest.dev' ||
+      process.env.ENVIRONMENT === 'staging.serverest.dev' ||
+      process.env.ENVIRONMENT === 'agilizei' ||
+      process.env.ENVIRONMENT === 'cesarschool' ||
+      process.env.ENVIRONMENT === 'compassuol') {
+    return process.env.ENVIRONMENT
   }
   return 'npm'
 }
+
+const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
+const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 
 const aplicacaoExecutandoLocalmente = () => {
   return (formaDeExecucao() === 'npm' || formaDeExecucao() === 'docker')
@@ -38,5 +41,7 @@ function urlDocumentacao () {
 module.exports = {
   aplicacaoExecutandoLocalmente,
   formaDeExecucao,
-  urlDocumentacao
+  urlDocumentacao,
+  ehAmbienteDeDesenvolvimento,
+  ehAmbienteDeTestes
 }

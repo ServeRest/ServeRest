@@ -9,8 +9,14 @@ const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
+const ddTrace = require('dd-trace')
 
-const { aplicacaoExecutandoLocalmente, formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
+const {
+  aplicacaoExecutandoLocalmente,
+  formaDeExecucao,
+  urlDocumentacao,
+  ehAmbienteDeTestes
+} = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
 const logger = require('./utils/logger')
@@ -19,9 +25,13 @@ const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
 const packageJson = require('../package.json')
 
-const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
-
 const app = express()
+
+/* istanbul ignore next */
+if (formaDeExecucao() !== 'npm') {
+  ddTrace.init()
+  ddTrace.use('express')
+}
 
 app.set('json spaces', 4)
 app.use(express.json())

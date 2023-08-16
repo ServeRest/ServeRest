@@ -24,7 +24,7 @@ COPY . .
 FROM base as dev
 
 ENV NODE_ENV=serverest-development
-ENV USERNAME='docker'
+ENV ENVIRONMENT='docker'
 ENV TERM=xterm-256color
 
 COPY . .

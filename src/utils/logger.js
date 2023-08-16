@@ -10,10 +10,11 @@ Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
 const moesif = require('moesif-nodejs')
 
 const { version } = require('../../package.json')
-const { formaDeExecucao } = require('./ambiente')
-
-const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
-const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
+const {
+  formaDeExecucao,
+  ehAmbienteDeDesenvolvimento,
+  ehAmbienteDeTestes
+} = require('./ambiente')
 
 module.exports = async app => {
   if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes) {

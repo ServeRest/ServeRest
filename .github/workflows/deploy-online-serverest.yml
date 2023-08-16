@@ -66,6 +66,7 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -80,7 +81,13 @@ jobs:
         gcloud run \
           deploy $SERVICE_STAGING \
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
-          --region $REGION
+          --region $REGION \
+          --update-env-vars=DD_API_KEY=$DD_API_KEY \
+          --update-env-vars=DD_TRACE_ENABLED=true \
+          --update-env-vars=DD_SITE='datadoghq.eu' \
+          --update-env-vars=DD_ENV='staging.serverest.dev'
+      env:
+        DD_API_KEY: ${{ env.DD_API_KEY }}
 
   test-e2e-staging:
     name: E2E test on staging environment
