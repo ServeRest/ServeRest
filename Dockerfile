@@ -9,12 +9,13 @@ LABEL repository="https://github.com/ServeRest/ServeRest" \
       homepage="https://github.com/ServeRest/ServeRest" \
       maintainer="Paulo Gonçalves <https://www.linkedin.com/in/paulo-goncalves/>"
 
+ENV ENVIRONMENT='docker'
+
 COPY --from=datadog-serverless /datadog-init /app/datadog-init
-ENV DD_SERVICE=serverest
-ENV DD_ENV='docker'
-ENV DD_SITE=datadoghq.eu
-ENV DD_TRACE_ENABLED=true
-ENV DD_VERSION=1
+
+ENV DD_SITE='datadoghq.eu'
+ENV DD_SERVICE='serverest'
+ENV DD_ENV=$ENVIRONMENT
 ENV DD_LOGS_ENABLED=true
 
 WORKDIR /app
@@ -24,8 +25,6 @@ COPY package*.json ./
 RUN npm ci --production --ignore-scripts
 
 COPY . .
-
-ENV ENVIRONMENT='docker'
 
 ENV TERM=xterm-256color
 

@@ -83,9 +83,8 @@ jobs:
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
-          --update-env-vars=DD_TRACE_ENABLED=true \
-          --update-env-vars=DD_SITE='datadoghq.eu' \
-          --update-env-vars=DD_ENV='staging.serverest.dev'
+          --update-env-vars=DD_ENV='staging.serverest.dev' \
+          --update-env-vars=DD_VERSION=${{ github.ref_name }}
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
 
@@ -160,7 +159,10 @@ jobs:
         gcloud run \
           deploy $SERVICE_PRODUCTION \
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
-          --region $REGION
+          --region $REGION \
+          --update-env-vars=DD_API_KEY=$DD_API_KEY \
+          --update-env-vars=DD_ENV='serverest.dev' \
+          --update-env-vars=DD_VERSION=${{ github.ref_name }}
 
   test-e2e-smoke-production:
     name: Smoke test in production environment
@@ -201,7 +203,10 @@ jobs:
         gcloud run \
           deploy $SERVICE_COMPASS_UOL \
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
-          --region $REGION
+          --region $REGION \
+          --update-env-vars=DD_API_KEY=$DD_API_KEY \
+          --update-env-vars=DD_ENV='compassuol' \
+          --update-env-vars=DD_VERSION=${{ github.ref_name }}
 
   open-issue-production:
     name: Open issue when production smoke test fail
