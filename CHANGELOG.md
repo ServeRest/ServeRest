@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.25-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.26.25-beta.1...v2.26.25-beta.2) (2023-09-05)
+
+
+### Chores
+
+* **patch:** nova release ([3ba7836](https://github.com/ServeRest/ServeRest/commit/3ba7836d0ac42d6ef2d1997e12e7197473ea7ac3))
+
 ## [2.26.25-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.24...v2.26.25-beta.1) (2023-09-05)
 
 
