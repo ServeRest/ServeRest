@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.26.25-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.26.24...v2.26.25-beta.1) (2023-09-05)
+
+
+### Chores
+
+* **patch:** add Datadog monitoring ([45dd63e](https://github.com/ServeRest/ServeRest/commit/45dd63ea0458a87e9205885166898050af3145f7))
+
+
+### Documentation
+
+* add Datadog sponsorship ([200feed](https://github.com/ServeRest/ServeRest/commit/200feedf86d6adffd300bd11a383b3c1e417bd9c))
+
 ## [2.26.24](https://github.com/ServeRest/ServeRest/compare/v2.26.23...v2.26.24) (2023-07-30)
 
 
