@@ -146,6 +146,7 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -165,6 +166,8 @@ jobs:
           --update-env-vars=DD_ENV='serverest.dev' \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=ENVIRONMENT='serverest.dev'
+      env:
+        DD_API_KEY: ${{ env.DD_API_KEY }}
 
   test-e2e-smoke-production:
     name: Smoke test in production environment
@@ -191,6 +194,7 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
     - name: Authentication on GCloud
@@ -210,6 +214,8 @@ jobs:
           --update-env-vars=DD_ENV='compassuol' \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=ENVIRONMENT='compassuol'
+      env:
+        DD_API_KEY: ${{ env.DD_API_KEY }}
 
   open-issue-production:
     name: Open issue when production smoke test fail
