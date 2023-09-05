@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.25-beta.3](https://github.com/ServeRest/ServeRest/compare/v2.26.25-beta.2...v2.26.25-beta.3) (2023-09-05)
+
+
+### Chores
+
+* **patch:** atualizar versão no datadog em cada deploy ([460614b](https://github.com/ServeRest/ServeRest/commit/460614bf7e9be742ff5ac5382a7df015c036d6f7))
+
 ## [2.26.25-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.26.25-beta.1...v2.26.25-beta.2) (2023-09-05)
 
 
