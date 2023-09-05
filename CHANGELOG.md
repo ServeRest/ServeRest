@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.26](https://github.com/ServeRest/ServeRest/compare/v2.26.25...v2.26.26) (2023-09-05)
+
+
+### Continuous Integration
+
+* **patch:** deploy Datadog API Key on production ([5b42214](https://github.com/ServeRest/ServeRest/commit/5b4221470a848683b14f18955dc1f80cef5008f1))
+
 ## [2.26.25](https://github.com/ServeRest/ServeRest/compare/v2.26.24...v2.26.25) (2023-09-05)
 
 
