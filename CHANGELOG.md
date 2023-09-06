@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.26.27](https://github.com/ServeRest/ServeRest/compare/v2.26.26...v2.26.27) (2023-09-06)
+
+
+### Chores
+
+* add version information on docker image ([777328a](https://github.com/ServeRest/ServeRest/commit/777328a69d462f653ea452ec04bdcbfeffbe9e10))
+* **patch:** configure APM Datadog integration to show code telemetry ([493b0df](https://github.com/ServeRest/ServeRest/commit/493b0df72c3f55a8b26e23dc6fa2987de9630bc9))
+
 ## [2.26.26](https://github.com/ServeRest/ServeRest/compare/v2.26.25...v2.26.26) (2023-09-05)
 
 
