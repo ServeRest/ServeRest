@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.29](https://github.com/ServeRest/ServeRest/compare/v2.26.28...v2.26.29) (2023-09-06)
+
+
+### Bug Fixes
+
+* **ci:** missing slash on deploy CI ([f612c02](https://github.com/ServeRest/ServeRest/commit/f612c02a1d4f5bdea1cde0261df8e8b58d207cb6))
+
 ## [2.26.28](https://github.com/ServeRest/ServeRest/compare/v2.26.27...v2.26.28) (2023-09-06)
 
 
