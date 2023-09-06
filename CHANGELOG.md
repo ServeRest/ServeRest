@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.30](https://github.com/ServeRest/ServeRest/compare/v2.26.29...v2.26.30) (2023-09-06)
+
+
+### Bug Fixes
+
+* **ci:** adjust cloudbuild file substitution ([413471a](https://github.com/ServeRest/ServeRest/commit/413471a56b1a49bdf4fa4305229aa4faa2b80c2d))
+
 ## [2.26.29](https://github.com/ServeRest/ServeRest/compare/v2.26.28...v2.26.29) (2023-09-06)
 
 
