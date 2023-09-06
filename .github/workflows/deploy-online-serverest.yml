@@ -51,7 +51,7 @@ jobs:
       run: |
         gcloud builds submit . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }} \
+          --substitutions=_COMMIT_SHA=${{ github.sha }} \
           --substitutions=_VERSION=${{ github.ref_name }}
 
   deploy-staging:

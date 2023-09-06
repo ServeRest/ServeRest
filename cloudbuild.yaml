@@ -4,20 +4,20 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build',
         '--file', 'Dockerfile',
-        '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
+        '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_COMMIT_SHA}',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}',
-        '--label', 'org.opencontainers.image.revision=$COMMIT_SHA',
+        '--label', 'org.opencontainers.image.revision=${_COMMIT_SHA}',
         '--label', 'org.opencontainers.image.source=github.com/ServeRest/ServeRest',
         '.']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA']
+  args: ['push', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_COMMIT_SHA}']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}']
 substitutions: # default values
     _PROJECT_ID: serverest
     _SERVICE_NAME: app
 images: [
-  'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
+  'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_COMMIT_SHA}',
   'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}'
 ]
