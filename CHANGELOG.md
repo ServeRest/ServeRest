@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.31](https://github.com/ServeRest/ServeRest/compare/v2.26.30...v2.26.31) (2023-09-06)
+
+
+### Bug Fixes
+
+* **ci:** adjust cloudbuild variable name substitution ([374b05a](https://github.com/ServeRest/ServeRest/commit/374b05a89fc3166927e7bdb0ecfcbf5377d3a7b9))
+
 ## [2.26.30](https://github.com/ServeRest/ServeRest/compare/v2.26.29...v2.26.30) (2023-09-06)
 
 
