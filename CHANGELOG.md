@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.28](https://github.com/ServeRest/ServeRest/compare/v2.26.27...v2.26.28) (2023-09-06)
+
+
+### Bug Fixes
+
+* **ci:** missing comma on cloudbuild file ([c657fc7](https://github.com/ServeRest/ServeRest/commit/c657fc75b98616d5acd680d7d6ca04a5ac64c9b2))
+
 ## [2.26.27](https://github.com/ServeRest/ServeRest/compare/v2.26.26...v2.26.27) (2023-09-06)
 
 
