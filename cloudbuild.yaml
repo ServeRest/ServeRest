@@ -6,6 +6,8 @@ steps:
         '--file', 'Dockerfile',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$VERSION',
+        '--label', 'org.opencontainers.image.revision=$COMMIT_SHA'
+        '--label', 'org.opencontainers.image.source=github.com/ServeRest/ServeRest'
         '.']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
