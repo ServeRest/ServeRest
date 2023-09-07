@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.26.33](https://github.com/ServeRest/ServeRest/compare/v2.26.32...v2.26.33) (2023-09-07)
+
+
+### Chores
+
+* **patch:** setup Datadog APM source code ([cbb3fcf](https://github.com/ServeRest/ServeRest/commit/cbb3fcf2d7fc43c3f21415e308fe2d0901b3c52d))
+
 ## [2.26.32](https://github.com/ServeRest/ServeRest/compare/v2.26.31...v2.26.32) (2023-09-06)
 
 
