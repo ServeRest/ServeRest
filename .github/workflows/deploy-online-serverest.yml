@@ -85,6 +85,7 @@ jobs:
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_ENV='staging.serverest.dev' \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --update-env-vars=DD_TAGS='git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest' \
           --update-env-vars=ENVIRONMENT='staging.serverest.dev'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -165,6 +166,7 @@ jobs:
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_ENV='serverest.dev' \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --update-env-vars=DD_TAGS='git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest' \
           --update-env-vars=ENVIRONMENT='serverest.dev'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -213,6 +215,7 @@ jobs:
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_ENV='compassuol' \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --update-env-vars=DD_TAGS='git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest' \
           --update-env-vars=ENVIRONMENT='compassuol'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
