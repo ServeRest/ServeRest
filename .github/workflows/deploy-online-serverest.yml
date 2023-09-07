@@ -87,6 +87,7 @@ jobs:
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
+          --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=ENVIRONMENT='staging.serverest.dev'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -169,6 +170,7 @@ jobs:
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
+          --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=ENVIRONMENT='serverest.dev'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -219,6 +221,7 @@ jobs:
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
+          --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=ENVIRONMENT='compassuol'
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
