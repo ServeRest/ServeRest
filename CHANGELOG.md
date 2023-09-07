@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.26.34](https://github.com/ServeRest/ServeRest/compare/v2.26.33...v2.26.34) (2023-09-07)
+
+
+### Chores
+
+* **datadog:** enable Datadog logs correlation ([fb146e1](https://github.com/ServeRest/ServeRest/commit/fb146e1d649815c9c3be611e8ce3a8a5ef26f3d0))
+* **patch:** enable Datadog runtime nodejs metrics ([3d9ddfa](https://github.com/ServeRest/ServeRest/commit/3d9ddfab05a8982a8e60493eabad13c0aeb00332))
+
 ## [2.26.33](https://github.com/ServeRest/ServeRest/compare/v2.26.32...v2.26.33) (2023-09-07)
 
 
