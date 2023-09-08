@@ -29,7 +29,6 @@ _ServeRest_ permite o estudo de:
 - Autenticação no header
 - Query string
 - Teste de schema json
-- Teste de carga
 
 <b><h2 align="center">Ambientes disponíveis</h2></b>
 
@@ -129,10 +128,9 @@ Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](h
 
 ### IMPORTANTE
 
-1. É obrigatório enviar o header `monitor: false` em todas as requisições do seu teste de carga.
-2. O teste de carga deve ser executado apenas em ambiente local (disponibilizado via [NPM](#localmente-com-npm) ou [Docker](#localmente-com-docker) e acessível via <http://localhost:3000>).
+**O teste de carga deve ser executado apenas em ambiente local (disponibilizado via [NPM](#localmente-com-npm) ou [Docker](#localmente-com-docker) e acessível via <http://localhost:3000>).**
 
-> O não seguimento dos 2 tópicos acimas vai acarretar em prejuízo para o projeto open source e gratuito e irá impactar o estudo de outras pessoas.
+> O não seguimento vai acarretar em prejuízo para o projeto open source e gratuito e irá impactar o estudo de outras pessoas.
 
 ### Acesso ao status
 

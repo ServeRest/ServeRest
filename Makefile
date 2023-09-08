@@ -25,7 +25,9 @@ run-dev:
 test-contract:
 	@docker-compose up --abort-on-container-exit --build test-contract
 
-test: test-unit test-integration
+test: test-unit test-integration test-e2e-localhost
+
+test-pre-push: test-unit test-integration
 
 test-unit:
 	@docker compose up --abort-on-container-exit --build test-unit

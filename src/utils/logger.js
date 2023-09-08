@@ -11,13 +11,14 @@ const moesif = require('moesif-nodejs')
 
 const { version } = require('../../package.json')
 const {
+  aplicacaoExecutandoLocalmente,
   formaDeExecucao,
   ehAmbienteDeDesenvolvimento,
   ehAmbienteDeTestes
 } = require('./ambiente')
 
 module.exports = async app => {
-  if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes) {
+  if (ehAmbienteDeDesenvolvimento || ehAmbienteDeTestes || !aplicacaoExecutandoLocalmente()) {
     return
   }
   const { porta, timeout, nodoc, nobearer, nosec } = require('../server').argv
@@ -29,16 +30,13 @@ module.exports = async app => {
       if (req.originalUrl === '/__messages__' ||
           req.originalUrl === '/favicon.ico' ||
           req.originalUrl === '/socket.io' ||
-          req.originalUrl === '/version' ||
           req.originalUrl === '/swagger-ui.css' ||
           req.originalUrl === '/swagger-ui.css.map' ||
           req.originalUrl === '/swagger-ui-init.js' ||
           req.originalUrl === '/swagger-ui-standalone-preset.js' ||
           req.originalUrl === '/swagger-ui-standalone-preset.js.map' ||
           req.originalUrl === '/swagger-ui-bundle.js' ||
-          req.originalUrl === '/swagger-ui-bundle.js.map' ||
-          req.rawHeaders.some(header => header.toLowerCase() === 'monitor'.toLowerCase()) ||
-          (formaDeExecucao() === 'serverest.dev' && req.originalUrl === '/')) {
+          req.originalUrl === '/swagger-ui-bundle.js.map') {
         return true
       }
     },
