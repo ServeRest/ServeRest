@@ -79,7 +79,7 @@ jobs:
     - run: gcloud config set project serverest
     - name: Create flag file used by Gcloud Run Deploy
       run: |
-        echo "  --update-env-vars:\n    DD_TAGS: git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest" > gcloud-flags.yaml
+        printf "  --update-env-vars:\n    DD_TAGS: git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest" > gcloud-flags.yaml
     - name: Deploy container image to 'staging' environment
       run: |
         gcloud run \
