@@ -77,6 +77,9 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
+    - name: Create flag file used by Gcloud Run Deploy
+      run: |
+        echo "  --update-env-vars:\n    DD_TAGS: git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest" > gcloud-flags.yaml
     - name: Deploy container image to 'staging' environment
       run: |
         gcloud run \
@@ -89,6 +92,7 @@ jobs:
           --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --flags-file=gcloud-flags.yaml \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
@@ -166,6 +170,9 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
+    - name: Create flag file used by Gcloud Run Deploy
+      run: |
+        echo "  --update-env-vars:\n    DD_TAGS: git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest" > gcloud-flags.yaml
     - name: Deploy container image to 'production' environment
       run: |
         gcloud run \
@@ -178,6 +185,7 @@ jobs:
           --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --flags-file=gcloud-flags.yaml \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
@@ -222,6 +230,9 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
+    - name: Create flag file used by Gcloud Run Deploy
+      run: |
+        echo "  --update-env-vars:\n    DD_TAGS: git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest" > gcloud-flags.yaml
     - name: Deploy container image to 'compassuol' environment
       run: |
         gcloud run \
@@ -234,6 +245,7 @@ jobs:
           --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
+          --flags-file=gcloud-flags.yaml \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
