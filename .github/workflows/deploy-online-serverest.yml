@@ -83,12 +83,15 @@ jobs:
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
           --update-env-vars=ENVIRONMENT='staging.serverest.dev' \
+          --update-env-vars=DD_SERVICE='serverest' \
           --update-env-vars=DD_ENV='staging.serverest.dev' \
+          --update-env-vars=DD_SITE='datadoghq.eu' \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
+          --update-env-vars=DD_LOGS_ENABLED=true \
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -167,12 +170,15 @@ jobs:
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
           --update-env-vars=ENVIRONMENT='serverest.dev' \
+          --update-env-vars=DD_SERVICE='serverest' \
           --update-env-vars=DD_ENV='serverest.dev' \
+          --update-env-vars=DD_SITE='datadoghq.eu' \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
+          --update-env-vars=DD_LOGS_ENABLED=true \
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
@@ -219,12 +225,15 @@ jobs:
           --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
           --update-env-vars=ENVIRONMENT='compassuol' \
+          --update-env-vars=DD_SERVICE='serverest' \
           --update-env-vars=DD_ENV='compassuol' \
+          --update-env-vars=DD_SITE='datadoghq.eu' \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
+          --update-env-vars=DD_LOGS_ENABLED=true \
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
