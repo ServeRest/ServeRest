@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.27.0](https://github.com/ServeRest/ServeRest/compare/v2.26.35...v2.27.0) (2023-09-08)
+
+
+### Continuous Integration
+
+* **deploy:** add Datadog tag to enable git telemetry ([014d408](https://github.com/ServeRest/ServeRest/commit/014d4086491e737edceeb21b0204f8d92dcf5ea4))
+
+
+### Features
+
+* separação de monitoramento online com Datadog e local com Moesif ([de6ff16](https://github.com/ServeRest/ServeRest/commit/de6ff16f5efd52f0754da7cd4576bc56494faa3e))
+
 ## [2.26.35](https://github.com/ServeRest/ServeRest/compare/v2.26.34...v2.26.35) (2023-09-08)
 
 
