@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.27.1-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.27.0...v2.27.1-beta.1) (2023-09-08)
+
+
+### Continuous Integration
+
+* **patch:** adjust command to create file used on deploy ([c9ff775](https://github.com/ServeRest/ServeRest/commit/c9ff7755a28e41c4b7be737fba514cce44228be8))
+
 # [2.27.0](https://github.com/ServeRest/ServeRest/compare/v2.26.35...v2.27.0) (2023-09-08)
 
 
