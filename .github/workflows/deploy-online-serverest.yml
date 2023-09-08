@@ -9,13 +9,14 @@ on:
 concurrency: ${{ github.workflow }}
 
 env:
-  PROJECT_ID: serverest
-  SERVICE_NAME: app
+  # Google Cloud Run variables
+  IMAGE_PROJECT_ID: serverest
+  IMAGE_SERVICE_NAME: app
   REGION: us-central1
-  # Services name on Cloud Run
   SERVICE_PRODUCTION: app
-  SERVICE_STAGING: app-staging
-  SERVICE_COMPASS_UOL: serverest-compasso-uol
+  # Datadog variables
+  DD_SERVICE: serverest
+  DD_SITE: datadoghq.eu
 
 jobs:
   build-and-push-image-to-gcloud-container-registry:
@@ -51,7 +52,7 @@ jobs:
       run: |
         gcloud builds submit . \
           --config=cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},_VERSION=${{ github.ref_name }}
+          --substitutions=COMMIT_SHA=${{ github.sha }},_VERSION=${{ github.ref_name }},_PROJECT_ID=$IMAGE_PROJECT_ID,_SERVICE_NAME=$IMAGE_SERVICE_NAME
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
@@ -79,13 +80,13 @@ jobs:
     - name: Deploy container image to 'staging' environment
       run: |
         gcloud run \
-          deploy $SERVICE_STAGING \
-          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          deploy $SERVICE \
+          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --update-env-vars=ENVIRONMENT='staging.serverest.dev' \
-          --update-env-vars=DD_SERVICE='serverest' \
-          --update-env-vars=DD_ENV='staging.serverest.dev' \
-          --update-env-vars=DD_SITE='datadoghq.eu' \
+          --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
+          --update-env-vars=DD_SERVICE=$DD_SERVICE \
+          --update-env-vars=DD_ENV=$ENVIRONMENT \
+          --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
@@ -95,6 +96,8 @@ jobs:
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
+        SERVICE: app-staging
+        ENVIRONMENT: staging.serverest.dev
 
   test-e2e-staging:
     name: E2E test on staging environment
@@ -167,12 +170,12 @@ jobs:
       run: |
         gcloud run \
           deploy $SERVICE_PRODUCTION \
-          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --update-env-vars=ENVIRONMENT='serverest.dev' \
-          --update-env-vars=DD_SERVICE='serverest' \
-          --update-env-vars=DD_ENV='serverest.dev' \
-          --update-env-vars=DD_SITE='datadoghq.eu' \
+          --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
+          --update-env-vars=DD_SERVICE=$DD_SERVICE \
+          --update-env-vars=DD_ENV=$ENVIRONMENT \
+          --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
@@ -182,6 +185,7 @@ jobs:
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
+        ENVIRONMENT: serverest.dev
 
   test-e2e-smoke-production:
     name: Smoke test in production environment
@@ -221,13 +225,13 @@ jobs:
     - name: Deploy container image to 'compassuol' environment
       run: |
         gcloud run \
-          deploy $SERVICE_COMPASS_UOL \
-          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ github.sha }} \
+          deploy $SERVICE \
+          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --update-env-vars=ENVIRONMENT='compassuol' \
-          --update-env-vars=DD_SERVICE='serverest' \
-          --update-env-vars=DD_ENV='compassuol' \
-          --update-env-vars=DD_SITE='datadoghq.eu' \
+          --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
+          --update-env-vars=DD_SERVICE=$DD_SERVICE \
+          --update-env-vars=DD_ENV=$ENVIRONMENT \
+          --update-env-vars=DD_SITE=$DD_SITE \
           --update-env-vars=DD_API_KEY=$DD_API_KEY \
           --update-env-vars=DD_VERSION=${{ github.ref_name }} \
           --update-env-vars=DD_LOGS_INJECTION=true \
@@ -237,6 +241,8 @@ jobs:
           --update-env-vars=DD_PROFILING_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
+        SERVICE: serverest-compasso-uol
+        ENVIRONMENT: compassuol
 
   open-issue-production:
     name: Open issue when production smoke test fail
@@ -323,7 +329,7 @@ jobs:
       run: |
         gcloud run \
           deploy $SERVICE_PRODUCTION \
-          --image gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.rollback-get-previous-info.outputs.git_hash }} \
+          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ needs.rollback-get-previous-info.outputs.git_hash }} \
           --region $REGION
     - uses: badsyntax/github-action-issue-comment@master
       name: Comment on generated issue about rollback
