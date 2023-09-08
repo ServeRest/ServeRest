@@ -1,5 +1,5 @@
 # hadolint ignore=DL3029
-FROM --platform=linux/amd64 datadog/serverless-init:1-alpine as datadog-serverless
+FROM --platform=linux/amd64 datadog/serverless-init:latest-alpine as datadog-serverless
 
 FROM node:lts-alpine3.17@sha256:e0641d0ac1f49f045c8dc05bbedc066fc7c88bc2730ead423088eeb0788623a1 as base
 
