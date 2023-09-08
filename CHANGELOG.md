@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.26.35](https://github.com/ServeRest/ServeRest/compare/v2.26.34...v2.26.35) (2023-09-08)
+
+
+### Chores
+
+* **datadog:** log header from request / response ([296c6ff](https://github.com/ServeRest/ServeRest/commit/296c6ffb4b4f463a2b5e9dc9baef724bd047d031))
+* **patch:** update Datadog agente version to activate profiling ([7e448ab](https://github.com/ServeRest/ServeRest/commit/7e448ab24023c61435cdd9891be22d1e1a62ec67))
+
+
+### Code Refactoring
+
+* **ci:** improve maintainability ([469c22d](https://github.com/ServeRest/ServeRest/commit/469c22da0ca2b17fb61c498bf3bffea78db7b892))
+* **docker:** move variables to gcloud command to improve maintanibility ([0d1929d](https://github.com/ServeRest/ServeRest/commit/0d1929d6310eac1c6cec7772746187d4e470e59e))
+
 ## [2.26.34](https://github.com/ServeRest/ServeRest/compare/v2.26.33...v2.26.34) (2023-09-07)
 
 
