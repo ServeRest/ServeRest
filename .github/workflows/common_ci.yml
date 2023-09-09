@@ -83,9 +83,22 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker-compose build test-unit
     - name: Run Unit Test
       run: make test-unit
+      env: # Datadog "CI Tests" variables
+        DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_SITE: datadoghq.eu
+        NODE_OPTIONS: '-r dd-trace/ci/init'
+        DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
+        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
+        DD_GIT_BRANCH: ${{ github.ref_name }}
     - uses: actions/upload-artifact@v3
       with:
         name: coverage-unit
@@ -99,9 +112,22 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker-compose build test-integration
     - name: Run Integration Test
       run: make test-integration
+      env: # Datadog "CI Tests" variables
+        DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_SITE: datadoghq.eu
+        NODE_OPTIONS: '-r dd-trace/ci/init'
+        DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
+        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
+        DD_GIT_BRANCH: ${{ github.ref_name }}
     - uses: actions/upload-artifact@v3
       with:
         name: coverage-integration
@@ -115,10 +141,26 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v1
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
+    - run: docker-compose build test-unit
+    - name: Run Unit Test
+      run: make test-unit
     - run: docker-compose build run-app-e2e
     - run: docker-compose build test-e2e-localhost
     - name: Run E2E test in locally built docker image
       run: make test-e2e-localhost
+      env: # Datadog "CI Tests" variables
+        DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_SITE: datadoghq.eu
+        NODE_OPTIONS: '-r dd-trace/ci/init'
+        DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
+        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
+        DD_GIT_BRANCH: ${{ github.ref_name }}
 
   sonarcloud:
     needs: [test-unit, test-integration]

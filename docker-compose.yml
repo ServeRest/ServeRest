@@ -34,6 +34,14 @@ services:
 
   test-unit:
     extends: base
+    environment: # Datadog "CI Tests" variables
+      - DD_CIVISIBILITY_AGENTLESS_ENABLED
+      - DD_API_KEY
+      - DD_SITE
+      - NODE_OPTIONS
+      - DD_GIT_REPOSITORY_URL
+      - DD_GIT_COMMIT_SHA
+      - DD_GIT_BRANCH
     command: npm run test:unit
     volumes:
       - ./coverage-unit:/app/coverage-unit
@@ -44,7 +52,15 @@ services:
     volumes:
       - ./coverage-integration:/app/coverage-integration
     environment:
-      TEST_TYPE: 'integration'
+      - TEST_TYPE=integration
+      # Datadog "CI Tests" variables
+      - DD_CIVISIBILITY_AGENTLESS_ENABLED
+      - DD_API_KEY
+      - DD_SITE
+      - NODE_OPTIONS
+      - DD_GIT_REPOSITORY_URL
+      - DD_GIT_COMMIT_SHA
+      - DD_GIT_BRANCH
 
   run-app-e2e:
     build:
@@ -57,7 +73,15 @@ services:
     extends: base
     command: npm run test:e2e
     environment:
-      TEST_TYPE: 'e2e-localhost'
+      - TEST_TYPE=e2e-localhost
+      # Datadog "CI Tests" variables
+      - DD_CIVISIBILITY_AGENTLESS_ENABLED
+      - DD_API_KEY
+      - DD_SITE
+      - NODE_OPTIONS
+      - DD_GIT_REPOSITORY_URL
+      - DD_GIT_COMMIT_SHA
+      - DD_GIT_BRANCH
     depends_on:
       - run-app-e2e
     network_mode: 'service:run-app-e2e'
