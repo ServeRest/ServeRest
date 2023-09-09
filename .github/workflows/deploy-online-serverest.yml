@@ -97,7 +97,8 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=true \
+          --update-env-vars=DD_APPSEC_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         SERVICE: app-staging
@@ -190,7 +191,8 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=true \
+          --update-env-vars=DD_APPSEC_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
@@ -250,7 +252,8 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=true \
+          --update-env-vars=DD_APPSEC_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         SERVICE: serverest-compasso-uol
