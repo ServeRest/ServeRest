@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.27.4](https://github.com/ServeRest/ServeRest/compare/v2.27.3...v2.27.4) (2023-09-12)
+
+
+### Chores
+
+* **patch:** show start message only when running locally ([2b67d92](https://github.com/ServeRest/ServeRest/commit/2b67d92cdaab2709947efde5dcac5362acc62087))
+
 ## [2.27.3](https://github.com/ServeRest/ServeRest/compare/v2.27.2...v2.27.3) (2023-09-12)
 
 
