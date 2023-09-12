@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.27.3](https://github.com/ServeRest/ServeRest/compare/v2.27.2...v2.27.3) (2023-09-12)
+
+
+### Chores
+
+* **datadog:** enable Application Security Management ([92d4e72](https://github.com/ServeRest/ServeRest/commit/92d4e7254f34a068421c911baf81d41d8644ae71))
+
+
+### Performance Improvements
+
+* improve POST /usuarios performance by using faster search query ([0594f04](https://github.com/ServeRest/ServeRest/commit/0594f04ed7ba15b091df1956daaff72b92d6c03d))
+
+
+### Tests
+
+* **datadog:** enable testing visibility ([d7401b7](https://github.com/ServeRest/ServeRest/commit/d7401b78e762a69b0c3c39a1196d00667f236bd4))
+
 ## [2.27.2](https://github.com/ServeRest/ServeRest/compare/v2.27.1...v2.27.2) (2023-09-08)
 
 
