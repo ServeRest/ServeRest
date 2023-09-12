@@ -22,7 +22,7 @@ exports.getDadosDoProduto = queryString => {
 }
 
 exports.existeProduto = pesquisa => {
-  return datastore.count(pesquisa)
+  return datastore.findOne(pesquisa)
 }
 
 exports.updateQuantidade = async ({ idProduto, quantidade }) => {

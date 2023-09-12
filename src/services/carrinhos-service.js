@@ -20,7 +20,7 @@ exports.getOne = id => {
 }
 
 exports.existeCarrinho = pesquisa => {
-  return datastore.count(pesquisa)
+  return datastore.findOne(pesquisa)
 }
 
 exports.criarCarrinho = async body => {

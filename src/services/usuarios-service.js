@@ -21,7 +21,7 @@ exports.getDadosDoUsuario = queryString => {
 }
 
 exports.existeUsuario = async pesquisa => {
-  return datastore.count(pesquisa)
+  return datastore.findOne(pesquisa)
 }
 
 exports.usuarioEhAdministrador = async ({ email, password }) => {
