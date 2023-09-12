@@ -11,7 +11,7 @@ const http = require('http')
 const open = require('open')
 
 const { version } = require('../package.json')
-const { formaDeExecucao, urlDocumentacao } = require('./utils/ambiente')
+const { formaDeExecucao, urlDocumentacao, aplicacaoExecutandoLocalmente } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const getRandomFinancialContributor = require('./utils/getRandomFinancialContributor')
 
@@ -69,15 +69,17 @@ const server = http.createServer(app)
 
 server.listen(port, async () => {
   console.log(colors.green.bold(`\nServeRest v${version} está em execução`))
-  console.log(colors.white.bold('Teste o funcionamento acessando'), colors.yellow.bold(`http://localhost:${port}/usuarios`), colors.white.bold('no navegador\n'))
-  console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold(`http://localhost:${port}`))
-  if (formaDeExecucao() === 'npm') {
-    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest --help'))
-  } else if (formaDeExecucao() === 'docker') {
-    console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('docker run -p 3000:3000 paulogoncalvesbh/serverest --help'))
+  if (aplicacaoExecutandoLocalmente()) {
+    console.log(colors.white.bold('Teste o funcionamento acessando'), colors.yellow.bold(`http://localhost:${port}/usuarios`), colors.white.bold('no navegador\n'))
+    console.log(colors.white.bold('Quer saber as rotas disponíveis e como utilizá-las? Acesse'), colors.yellow.bold(`http://localhost:${port}`))
+    if (formaDeExecucao() === 'npm') {
+      console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('npx serverest --help'))
+    } else if (formaDeExecucao() === 'docker') {
+      console.log(colors.white.bold('Quer alterar porta de execução, timeout do token, etc? Execute'), colors.yellow.bold('docker run -p 3000:3000 paulogoncalvesbh/serverest --help'))
+    }
+    console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('github.com/ServeRest/ServeRest\n'))
+    console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs e apoiado por'), colors.red.bold(await getRandomFinancialContributor()), '\n')
   }
-  console.log(colors.white.bold('Para outras dúvidas acesse'), colors.yellow.bold('github.com/ServeRest/ServeRest\n'))
-  console.log(colors.cyan.bold('Feito com'), colors.red.bold('♥'), colors.cyan.bold('para todos os QAs e apoiado por'), colors.red.bold(await getRandomFinancialContributor()), '\n')
 })
 server.on('error', onError)
 server.on('listening', onListening)
