@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.27.5](https://github.com/ServeRest/ServeRest/compare/v2.27.4...v2.27.5) (2023-09-13)
+
+
+### Chores
+
+* **patch:** send log to Datadog to enable logs correlation ([6cf21c2](https://github.com/ServeRest/ServeRest/commit/6cf21c2e7d538824eb3036f460b493504f770df7))
+* rename local monitor file to correspond the actual behavior ([0d21a87](https://github.com/ServeRest/ServeRest/commit/0d21a87e6829799e7df27070ba85359c370b736c))
+
 ## [2.27.4](https://github.com/ServeRest/ServeRest/compare/v2.27.3...v2.27.4) (2023-09-12)
 
 
