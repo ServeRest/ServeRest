@@ -19,7 +19,7 @@ const {
 } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const errorHandler = require('./middlewares/error-handler')
-const logger = require('./utils/logger')
+const localMonitor = require('./utils/localMonitor')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const packageJson = require('../package.json')
@@ -60,7 +60,7 @@ if (aplicacaoExecutandoLocalmente() && !ehAmbienteDeTestes) {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
-logger(app)
+localMonitor(app)
 
 /* istanbul ignore next */
 switch (formaDeExecucao()) {

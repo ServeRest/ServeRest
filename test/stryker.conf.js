@@ -5,7 +5,7 @@ module.exports = {
   mutate: [
     'src/**/*.js',
     '!src/server.js',
-    '!src/utils/logger.js',
+    '!src/utils/localMonitor.js',
     '!src/utils/ambiente.js'
   ],
   thresholds: {

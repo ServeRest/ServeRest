@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 /*
-O monitoramento está em arquivo apartado (logger.js), e não no 'app.js',
+O monitoramento está em arquivo apartado (localMonitor.js), e não no 'app.js',
 para não ser afetado pelo teste de mutação.
 
 Esse arquivo está marcado para ser ignorado no arquivo stryker.conf.js
