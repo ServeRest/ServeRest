@@ -5,6 +5,9 @@ const sandbox = sinon.createSandbox()
 const carrinhosService = require('../../../src/services/carrinhos-service.js')
 
 describe('Error handler', () => {
+  const fixedDate = 1694600359846
+  beforeEach(() => sandbox.useFakeTimers({ now: fixedDate }))
+
   afterEach(() => sandbox.restore())
 
   it('Deve retornar erro informando sobre formatação quando encontrar erro "entity.parse.failed" - @skipE2E', async () => {
@@ -17,7 +20,11 @@ describe('Error handler', () => {
       message: 'Adicione aspas em todos os valores. Para mais informações acesse a issue https://github.com/ServeRest/ServeRest/issues/225'
     })
     sinon.assert.calledOnce(consoleLogStub)
-    sinon.assert.calledOnceWithExactly(consoleLogStub, 'lOG - Entity parse error, user sending request without proper quotation marks.')
+    sinon.assert.calledWith(consoleLogStub, sinon.match({
+      time: new Date(fixedDate).toISOString(),
+      level: 'alert',
+      message: 'Entity parse error, user sending request without proper quotation marks.'
+    }))
   })
 
   it('Deve retornar erro "Payload too large" quando encontrar erro "entity.too.large" - @skipE2E', async () => {
@@ -42,7 +49,7 @@ describe('Error handler', () => {
   })
 
   it('Deve informar para abrir issue ao ocorrer erro 500 com o tipo de erro ao ter "error.type" - @skipE2E', async () => {
-    const consoleErrorStub = sandbox.stub(console, 'error')
+    const consoleLogStub = sandbox.stub(console, 'log')
     sandbox.stub(carrinhosService, 'getAll').throws({ type: 'test' })
 
     const { body } = await request.get('/carrinhos').expect(500)
@@ -51,13 +58,17 @@ describe('Error handler', () => {
       message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
       error: 'test'
     })
-    sinon.assert.calledTwice(consoleErrorStub)
-    sinon.assert.calledWith(consoleErrorStub.firstCall, 'lOG - Error 500:', sinon.match.any)
-    sinon.assert.calledWith(consoleErrorStub.secondCall, 'lOG - Request:', sinon.match.any)
+
+    sinon.assert.calledOnce(consoleLogStub)
+    sinon.assert.calledWith(consoleLogStub, sinon.match({
+      time: new Date(fixedDate).toISOString(),
+      level: 'error',
+      message: 'test'
+    }))
   })
 
   it('Deve informar para abrir issue ao ocorrer erro 500 com toda a mensagem de erro ao não ter "error.type" - @skipE2E', async () => {
-    const consoleErrorStub = sandbox.stub(console, 'error')
+    const consoleLogStub = sandbox.stub(console, 'log')
     sandbox.stub(carrinhosService, 'getAll').throws('Teste de erro 500')
 
     const { body } = await request.get('/carrinhos').expect(500)
@@ -66,8 +77,12 @@ describe('Error handler', () => {
       message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
       error: { name: 'Teste de erro 500' }
     })
-    sinon.assert.calledTwice(consoleErrorStub)
-    sinon.assert.calledWith(consoleErrorStub.firstCall, 'lOG - Error 500:', sinon.match.any)
-    sinon.assert.calledWith(consoleErrorStub.secondCall, 'lOG - Request:', sinon.match.any)
+
+    sinon.assert.calledOnce(consoleLogStub)
+    sinon.assert.calledWith(consoleLogStub, sinon.match({
+      time: new Date(fixedDate).toISOString(),
+      level: 'error',
+      message: { name: 'Teste de erro 500' }
+    }))
   })
 })

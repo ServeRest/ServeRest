@@ -1,5 +1,6 @@
 const { INTERNAL_ERROR, TIMEOUT } = require('../utils/constants')
 const montarMensagemDeErroDeSchema = require('../utils/montarMensagemDeErroDeSchema')
+const { log } = require('../utils/logger')
 
 function errorHandler (error, _req, res, _next) {
   const erroDeSchema = error.name === 'ValidationError'
@@ -8,7 +9,7 @@ function errorHandler (error, _req, res, _next) {
   }
   // https://github.com/expressjs/body-parser#errors
   if (error.type === 'entity.parse.failed') {
-    console.log('lOG - Entity parse error, user sending request without proper quotation marks.')
+    log({ message: 'Entity parse error, user sending request without proper quotation marks.' })
     return res.status(400).json({
       message: 'Adicione aspas em todos os valores. Para mais informações acesse a issue https://github.com/ServeRest/ServeRest/issues/225'
     })
@@ -24,8 +25,7 @@ function errorHandler (error, _req, res, _next) {
     return res.status(408).json({ message: TIMEOUT })
   }
 
-  console.error('lOG - Error 500:', error)
-  console.error('lOG - Request:', _req)
+  log({ level: 'error', message: error?.type || error })
 
   if (error.type) {
     return res.status(500).json({ message: INTERNAL_ERROR, error: error.type })
