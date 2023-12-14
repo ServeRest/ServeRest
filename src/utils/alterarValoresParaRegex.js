@@ -1,3 +1,5 @@
+const escapeStringRegexp = require('escape-string-regexp')
+
 const { log } = require('./logger')
 
 module.exports = queryString => {
@@ -5,10 +7,10 @@ module.exports = queryString => {
     if (['nome', 'password', 'descricao'].includes(key)) {
       try {
         // Add 'i' flag for case-insensitive matching
-        queryString[key] = new RegExp(queryString[key], 'i')
-      } catch (error) {
-        /* istanbul ignore next */
+        queryString[key] = new RegExp(escapeStringRegexp(queryString[key]), 'i')
+      } catch (error) /* istanbul ignore next */ {
         log({ level: 'error', message: `Failed to convert ${key} to RegExp: ${error.message}` })
+        throw error
       }
     }
   })
