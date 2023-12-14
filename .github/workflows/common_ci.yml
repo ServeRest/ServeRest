@@ -69,8 +69,10 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
-    - name: Validate production dockerfile (Dockerfile)
+    - name: Validate production Docker Hub dockerfile (Dockerfile)
       run: docker run --rm -i hadolint/hadolint < Dockerfile
+    - name: Validate production Google Cloud dockerfile (Dockerfile.gcloud)
+      run: docker run --rm -i hadolint/hadolint < Dockerfile.gcloud
     - name: Validate dev dockerfile (Dockerfile.dev)
       run: docker run --rm -i hadolint/hadolint < Dockerfile.dev
     - name: Validate terratest dockerfile (Dockerfile.terratest)
@@ -196,14 +198,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
 
-  # test-infra-docker:
+  test-infra-docker:
 
-  #   runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04
 
-  #   steps:
-  #   - name: Project checkout
-  #     uses: actions/checkout@v3
-  #   - run: docker-compose build test-infra
-  #   - name: Run infra test
-  #     run: make test-infra
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v3
+    - run: docker-compose build test-infra
+    - name: Run infra test
+      run: make test-infra
 

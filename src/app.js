@@ -27,7 +27,7 @@ const packageJson = require('../package.json')
 const app = express()
 
 /* istanbul ignore next */
-if (formaDeExecucao() !== 'npm') {
+if (!aplicacaoExecutandoLocalmente()) {
   ddTrace.init()
   ddTrace.use('express')
 }
@@ -44,6 +44,8 @@ app.disable('etag')
 /* istanbul ignore else */
 if (!conf.semHeaderDeSeguranca) {
   app.disable('x-powered-by')
+  app.disable('Server')
+  app.disable('X-Cloud-Trace-Context')
   app.use((req, res, next) => {
     res.set('x-dns-prefetch-control', 'off')
     res.set('x-frame-options', 'SAMEORIGIN')
