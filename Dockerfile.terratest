@@ -1,15 +1,18 @@
-FROM golang:1.17.3-alpine3.14@sha256:55da409cc0fe11df63a7d6962fbefd1321fedc305d9969da636876893e289e2d
+FROM golang:1.18.0-alpine3.15@sha256:a2ca4f4c0828b1b426a3153b068bf32a21868911c57a9fc4dccdc5fbb6553b35
 
 # hadolint ignore=DL3018
 RUN apk --no-cache add \
     build-base \
     docker \
     openrc \
-    bash \
     && rc-update add docker boot
 
-WORKDIR /app
-
-COPY . .
-
 WORKDIR /app/test/infra
+
+COPY test/infra/go.mod test/infra/go.sum ./
+
+RUN go mod download
+
+COPY . /app
+
+CMD ["go", "test", "-count", "1", "-v", "-timeout", "5m"]

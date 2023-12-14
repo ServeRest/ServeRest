@@ -108,11 +108,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.terratest
-    command: >
-      bash -c "go mod tidy
-      && go test -count=1 -v -timeout 5m"
     volumes:
-      - ./test/infra:/app/test/infra:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
 # Deploy test \/
