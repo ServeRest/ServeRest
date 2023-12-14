@@ -1,5 +1,34 @@
 # Changelog
 
+# [2.28.0](https://github.com/ServeRest/ServeRest/compare/v2.27.5...v2.28.0) (2023-12-14)
+
+
+### Bug Fixes
+
+* **docker:** remove datadog ([f54d8bf](https://github.com/ServeRest/ServeRest/commit/f54d8bf89cc32d69a2ab54718de86f1c87918066))
+
+
+### Chores
+
+* **docker:** avoid supply chain attack ([e2d7391](https://github.com/ServeRest/ServeRest/commit/e2d73912f2cf1b0b2d8d8d017b002fc07dca8e84))
+* reduce volume write access ([a7a3993](https://github.com/ServeRest/ServeRest/commit/a7a3993c2e00a05af23702644b03a750d36d853c))
+* **test:** ensure that infra test dependencies install is cached ([f148513](https://github.com/ServeRest/ServeRest/commit/f148513db04eeba2365f8a70341e0e27ab99188e))
+
+
+### Code Refactoring
+
+* improve code maintainability ([3995d61](https://github.com/ServeRest/ServeRest/commit/3995d6130f812fd33a63e1d22a14ff6e1aae38a2))
+
+
+### Continuous Integration
+
+* bump action para usar node 16 ao invés de 12 ([1ef2cb0](https://github.com/ServeRest/ServeRest/commit/1ef2cb01782f855c8318b24893e1331ca915123b))
+
+
+### Features
+
+* **regex:** evitar Regex Injection e implementar test unitário ([293e995](https://github.com/ServeRest/ServeRest/commit/293e99557a7056cb7bdee84626ae4b6880a652a4))
+
 ## [2.27.5](https://github.com/ServeRest/ServeRest/compare/v2.27.4...v2.27.5) (2023-09-13)
 
 
