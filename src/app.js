@@ -64,24 +64,17 @@ if (aplicacaoExecutandoLocalmente() && !ehAmbienteDeTestes) {
 
 localMonitor(app)
 
-/* istanbul ignore next */
-switch (formaDeExecucao()) {
-  case 'serverest.dev':
-    swaggerDocument.host = 'serverest.dev'
-    break
-  case 'staging.serverest.dev':
-    swaggerDocument.host = 'staging.serverest.dev'
-    break
-  case 'agilizei':
-    swaggerDocument.host = 'agilizei.serverest.dev'
-    break
-  case 'compassuol':
-    swaggerDocument.host = 'compassuol.serverest.dev'
-    break
-  case 'cesarschool':
-    swaggerDocument.host = 'cesarschool.serverest.dev'
-    break
+const hostMapping = {
+  'serverest.dev': 'serverest.dev',
+  'staging.serverest.dev': 'staging.serverest.dev',
+  agilizei: 'agilizei.serverest.dev',
+  compassuol: 'compassuol.serverest.dev',
+  cesarschool: 'cesarschool.serverest.dev'
 }
+
+const environment = formaDeExecucao()
+
+swaggerDocument.host = hostMapping?.[environment] ?? swaggerDocument.host
 
 swaggerDocument.info.version = packageJson.version
 

@@ -2,40 +2,39 @@
 
 const { conf } = require('./conf')
 
+const environments = new Set([
+  'docker',
+  'serverest.dev',
+  'staging.serverest.dev',
+  'agilizei',
+  'cesarschool',
+  'compassuol'
+])
+
 function formaDeExecucao () {
-  if (process.env.ENVIRONMENT === 'docker' ||
-      process.env.ENVIRONMENT === 'serverest.dev' ||
-      process.env.ENVIRONMENT === 'staging.serverest.dev' ||
-      process.env.ENVIRONMENT === 'agilizei' ||
-      process.env.ENVIRONMENT === 'cesarschool' ||
-      process.env.ENVIRONMENT === 'compassuol') {
-    return process.env.ENVIRONMENT
-  }
-  return 'npm'
+  const env = process.env.ENVIRONMENT
+  return environments.has(env) ? env : 'npm'
 }
 
 const ehAmbienteDeTestes = process.env.NODE_ENV === 'serverest-test'
 const ehAmbienteDeDesenvolvimento = process.env.NODE_ENV === 'serverest-development'
 
 const aplicacaoExecutandoLocalmente = () => {
-  return (formaDeExecucao() === 'npm' || formaDeExecucao() === 'docker')
+  const environment = formaDeExecucao()
+  return environment === 'npm' || environment === 'docker'
+}
+
+const urlMapping = {
+  'serverest.dev': 'https://serverest.dev',
+  'staging.serverest.dev': 'https://staging.serverest.dev',
+  agilizei: 'https://agilizei.serverest.dev',
+  compassuol: 'https://compassuol.serverest.dev',
+  cesarschool: 'https://cesarschool.serverest.dev'
 }
 
 function urlDocumentacao () {
-  switch (formaDeExecucao()) {
-    case 'serverest.dev':
-      return 'https://serverest.dev'
-    case 'staging.serverest.dev':
-      return 'https://staging.serverest.dev'
-    case 'agilizei':
-      return 'https://agilizei.serverest.dev'
-    case 'compassuol':
-      return 'https://compassuol.serverest.dev'
-    case 'cesarschool':
-      return 'https://cesarschool.serverest.dev'
-    default:
-      return `http://localhost:${conf.porta}`
-  }
+  const environment = formaDeExecucao()
+  return urlMapping[environment] || `http://localhost:${conf.porta}`
 }
 
 module.exports = {
