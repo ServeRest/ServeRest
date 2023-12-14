@@ -22,23 +22,24 @@ module.exports = async app => {
     return
   }
   const { porta, timeout, nodoc, nobearer, nosec } = require('../server').argv
+  const urlsToSkip = [
+    '/__messages__',
+    '/favicon.ico',
+    '/socket.io',
+    '/swagger-ui.css',
+    '/swagger-ui.css.map',
+    '/swagger-ui-init.js',
+    '/swagger-ui-standalone-preset.js',
+    '/swagger-ui-standalone-preset.js.map',
+    '/swagger-ui-bundle.js',
+    '/swagger-ui-bundle.js.map'
+  ]
   const moesifMiddleware = moesif({
     applicationId: process.env.MOESIF_APPLICATION_ID,
     identifyUser: (req, res) => { return formaDeExecucao() },
     identifyCompany: (req, res) => { return version },
     skip: (req, res) => {
-      if (req.originalUrl === '/__messages__' ||
-          req.originalUrl === '/favicon.ico' ||
-          req.originalUrl === '/socket.io' ||
-          req.originalUrl === '/swagger-ui.css' ||
-          req.originalUrl === '/swagger-ui.css.map' ||
-          req.originalUrl === '/swagger-ui-init.js' ||
-          req.originalUrl === '/swagger-ui-standalone-preset.js' ||
-          req.originalUrl === '/swagger-ui-standalone-preset.js.map' ||
-          req.originalUrl === '/swagger-ui-bundle.js' ||
-          req.originalUrl === '/swagger-ui-bundle.js.map') {
-        return true
-      }
+      return urlsToSkip.includes(req.originalUrl)
     },
     getMetadata: (req, res) => {
       return {

@@ -19,18 +19,25 @@ exports.getOne = async (req, res) => {
 }
 
 exports.post = async (req, res) => {
-  if (await service.existeProduto({ nome: req.body.nome.trim() })) {
+  const { nome } = req.body
+  const trimmedName = nome.trim()
+
+  const productExists = await service.existeProduto({ nome: trimmedName })
+
+  if (productExists) {
     return res.status(400).send({ message: constant.NAME_ALREADY_USED })
   }
-  const dadosCadastrados = await service.criarProduto(req.body)
-  res.status(201).send({ message: constant.POST_SUCCESS, _id: dadosCadastrados._id })
+
+  const { _id } = await service.criarProduto(req.body)
+
+  res.status(201).send({ message: constant.POST_SUCCESS, _id })
 }
 
 exports.delete = async (req, res) => {
   const carrinhoDoUsuario = await carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: req.params.id } } })
-  const usuarioTemCarrinho = typeof carrinhoDoUsuario[0] !== 'undefined'
+  const usuarioTemCarrinho = carrinhoDoUsuario.length > 0
   if (usuarioTemCarrinho) {
-    const idCarrinhos = carrinhoDoUsuario.map((carrinhos) => { return carrinhos._id })
+    const idCarrinhos = carrinhoDoUsuario.map(carrinhos => carrinhos._id)
     return res.status(400).send({ message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos })
   }
   const quantidadeRegistrosExcluidos = await service.deleteById(req.params.id)
@@ -39,11 +46,20 @@ exports.delete = async (req, res) => {
 }
 
 exports.put = async (req, res) => {
-  const idInexistenteENomeRepetido = await service.existeProduto({ nome: req.body.nome.trim(), $not: { _id: req.params.id } })
-  if (idInexistenteENomeRepetido) {
-    return res.status(400).send({ message: constant.NAME_ALREADY_USED })
+  const { id } = req.params
+  const { nome } = req.body
+  const product = { nome: nome.trim(), $not: { _id: id } }
+
+  const productExists = await service.existeProduto(product)
+
+  if (productExists) {
+    return res.status(400).json({ message: constant.NAME_ALREADY_USED })
   }
-  const registroCriado = await service.createOrUpdateById(req.params.id, req.body)
-  if (registroCriado._id !== req.params.id) { return res.status(201).send({ message: constant.POST_SUCCESS, _id: registroCriado._id }) }
-  res.status(200).send({ message: constant.PUT_SUCCESS })
+
+  const updatedProduct = await service.createOrUpdateById(id, req.body)
+  if (updatedProduct._id !== id) {
+    return res.status(201).json({ message: constant.POST_SUCCESS, _id: updatedProduct._id })
+  }
+
+  return res.status(200).json({ message: constant.PUT_SUCCESS })
 }

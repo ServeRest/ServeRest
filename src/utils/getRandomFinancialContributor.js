@@ -2,23 +2,29 @@
 
 const axios = require('axios')
 
+const { log } = require('../utils/logger')
+
 module.exports = async () => {
-  const { data } = await axios.get('https://opencollective.com/serverest/members/all.json')
-  const userArray = removeAdminAndHostUser(data)
-  let arrayNameUsers = getOnlyNameFromAllUsers(userArray)
-  arrayNameUsers = removeDuplicatedValuesFromArray(arrayNameUsers)
-  const randomFinancialContributor = arrayNameUsers[Math.floor(Math.random() * arrayNameUsers.length)]
-  return randomFinancialContributor
+  try {
+    const { data: users } = await axios.get('https://opencollective.com/serverest/members/all.json')
+    const filteredUsers = removeAdminAndHostUser(users)
+    const uniqueUserNames = getUniqueUserNames(filteredUsers)
+    const randomFinancialContributor = getRandomElement(uniqueUserNames)
+    return randomFinancialContributor
+  } catch (error) {
+    log({ level: 'error', message: 'Failed to get financial contributor.' })
+  }
 }
 
 const removeAdminAndHostUser = userArray => {
   return userArray.filter((user) => user.role !== 'ADMIN' && user.role !== 'HOST' && user.name !== 'Paulo Gonçalves')
 }
 
-const getOnlyNameFromAllUsers = userArray => {
-  return Object.keys(userArray).map((key) => userArray[key].name)
+const getUniqueUserNames = userArray => {
+  const names = userArray.map(user => user.name)
+  return [...new Set(names)]
 }
 
-const removeDuplicatedValuesFromArray = array => {
-  return [...new Set(array)]
+const getRandomElement = array => {
+  return array[Math.floor(Math.random() * array.length)]
 }
