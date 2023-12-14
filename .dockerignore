@@ -3,6 +3,7 @@
 .nyc_output
 dist/
 test/
+!test/infra/
 reports/
 CHANGELOG.md
 .stryker-tmp
