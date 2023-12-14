@@ -17,6 +17,9 @@ run:
 clean:
 	@docker rmi -f ${NAME_IMAGE}
 
+stop:
+	@docker stop `docker ps -q`
+
 # COMANDOS DE DESENVOLVIMENTO \/
 
 run-dev:

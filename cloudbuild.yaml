@@ -3,7 +3,7 @@ steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build',
-        '--file', 'Dockerfile',
+        '--file', 'Dockerfile.gcloud',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$COMMIT_SHA',
         '--tag', 'gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:${_VERSION}',
         '.']
