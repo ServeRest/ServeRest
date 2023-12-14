@@ -9,7 +9,6 @@ const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
-const ddTrace = require('dd-trace')
 
 const {
   aplicacaoExecutandoLocalmente,
@@ -28,6 +27,7 @@ const app = express()
 
 /* istanbul ignore next */
 if (!aplicacaoExecutandoLocalmente()) {
+  const ddTrace = require('dd-trace')
   ddTrace.init()
   ddTrace.use('express')
 }

@@ -9,7 +9,9 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --production --ignore-scripts
+RUN npm uninstall dd-trace && \
+      npm prune && \
+      npm ci --production --ignore-scripts
 
 COPY . .
 
