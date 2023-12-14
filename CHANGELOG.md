@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.29.0-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.28.0...v2.29.0-beta.1) (2023-12-14)
+
+
+### Features
+
+* reduzir tamanho do Dockerfile em 30 MB ([7d84504](https://github.com/ServeRest/ServeRest/commit/7d845041d4f5d9ca55210c35744ee29bc9297a67))
+
 # [2.28.0](https://github.com/ServeRest/ServeRest/compare/v2.27.5...v2.28.0) (2023-12-14)
 
 
