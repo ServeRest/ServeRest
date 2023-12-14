@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile.dev
       target: test
     volumes:
-      - ./test:/app/test
+      - ./test:/app/test:ro
 
   run-dev:
     build:
@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile.dev
       target: dev
     volumes:
-      - .:/app
+      - .:/app:ro
     ports:
       - "3000:3000"
 
@@ -30,7 +30,7 @@ services:
       - CI
     command: npm run test:contract
     volumes:
-      - ./.git:/app/.git
+      - ./.git:/app/.git:ro
 
   test-unit:
     extends: base
@@ -44,13 +44,13 @@ services:
       - DD_GIT_BRANCH
     command: npm run test:unit
     volumes:
-      - ./coverage-unit:/app/coverage-unit
+      - ./coverage-unit:/app/coverage-unit:rw
 
   test-integration:
     extends: base
     command: npm run test:integration
     volumes:
-      - ./coverage-integration:/app/coverage-integration
+      - ./coverage-integration:/app/coverage-integration:rw
     environment:
       - TEST_TYPE=integration
       # Datadog "CI Tests" variables
@@ -93,7 +93,7 @@ services:
       - TEST_TYPE=mutation
     command: npm run test:mutation
     volumes:
-      - ./reports:/app/reports
+      - ./reports:/app/reports:rw
 
   test-mutation-diff:
     extends: base
@@ -102,7 +102,7 @@ services:
       - TEST_TYPE=mutation
     command: npm run test:mutation:diff
     volumes:
-      - ./reports:/app/reports
+      - ./reports:/app/reports:rw
 
   test-infra:
     build:
@@ -112,8 +112,8 @@ services:
       bash -c "go mod tidy
       && go test -count=1 -v -timeout 5m"
     volumes:
-      - ./test/infra:/app/test/infra
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./test/infra:/app/test/infra:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 # Deploy test \/
 
