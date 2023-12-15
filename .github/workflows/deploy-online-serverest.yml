@@ -24,7 +24,7 @@ env:
 
 jobs:
   build-and-push-image-to-gcloud-container-registry:
-    name: Build and push image to container registry
+    name: Build and push image to gcloud container registry
     runs-on: ubuntu-22.04
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       run: op read op://CI-CD/moesif/APPLICATION_ID | sed 's/^/MOESIF_APPLICATION_ID=/' >> .env
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-    - name: Build and deploy to Gcloud
+    - name: Build and push image to gcloud container registry
       run: |
         gcloud builds submit . \
           --config=cloudbuild.yaml \

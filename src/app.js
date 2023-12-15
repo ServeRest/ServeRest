@@ -27,8 +27,7 @@ const app = express()
 
 console.log('\n Ambiente de execução:', formaDeExecucao())
 console.log('\n !aplicacaoExecutandoLocalmente():', !aplicacaoExecutandoLocalmente())
-console.log('\n !aplicacaoExecutandoLocalmente():', !aplicacaoExecutandoLocalmente())
-console.log('process.env.ENVIROMENT:', process.env.ENVIROMENT)
+console.log('process.env.ENVIRONMENT:', process.env.ENVIRONMENT)
 
 /* istanbul ignore next */
 if (!aplicacaoExecutandoLocalmente()) {
