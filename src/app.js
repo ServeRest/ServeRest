@@ -25,6 +25,11 @@ const packageJson = require('../package.json')
 
 const app = express()
 
+console.log('\n Ambiente de execução:', formaDeExecucao())
+console.log('\n !aplicacaoExecutandoLocalmente():', !aplicacaoExecutandoLocalmente())
+console.log('\n !aplicacaoExecutandoLocalmente():', !aplicacaoExecutandoLocalmente())
+console.log('process.env.ENVIROMENT:', process.env.ENVIROMENT)
+
 /* istanbul ignore next */
 if (!aplicacaoExecutandoLocalmente()) {
   const ddTrace = require('dd-trace')

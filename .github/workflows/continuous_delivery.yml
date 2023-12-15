@@ -2,7 +2,8 @@ name: Continuous Delivery
 
 on:
   push:
-    branches: [trunk, beta]
+    branches: [trunk]
+    # branches: [trunk, beta]
 
 jobs:
   common-ci:
