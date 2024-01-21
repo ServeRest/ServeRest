@@ -88,7 +88,6 @@ jobs:
           deploy $SERVICE_STAGING \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -105,11 +104,12 @@ jobs:
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: staging.serverest.dev
-    - name: Update staging traffic to revision '${{ github.sha }}'
+    - name: Update staging traffic to latest revision
       run: |
         gcloud run \
           services update-traffic $SERVICE_STAGING \
-          --to-tags ${{ github.sha }}=100
+          --region $REGION \
+          --to-latest
 
   test-e2e-staging:
     name: E2E test on staging environment
@@ -187,7 +187,6 @@ jobs:
           deploy $SERVICE_PRODUCTION \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -204,11 +203,12 @@ jobs:
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
-    - name: Update production traffic to revision '${{ github.sha }}'
+    - name: Update production traffic to latest revision
       run: |
         gcloud run \
           services update-traffic $SERVICE_PRODUCTION \
-          --to-tags ${{ github.sha }}=100
+          --region $REGION \
+          --to-latest
 
   test-e2e-smoke-production:
     name: Smoke test in production environment
@@ -254,7 +254,6 @@ jobs:
           deploy $SERVICE_COMPASSUOL \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
-          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -271,11 +270,12 @@ jobs:
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: compassuol
-    - name: Update compassuol traffic to revision '${{ github.sha }}'
+    - name: Update compassuol traffic to latest revision
       run: |
         gcloud run \
           services update-traffic $SERVICE_COMPASSUOL \
-          --to-tags ${{ github.sha }}=100
+          --region $REGION \
+          --to-latest
 
   open-issue-production:
     name: Open issue when production smoke test fail
@@ -313,32 +313,10 @@ jobs:
 
 # Rollback jobs \/
 
-  rollback-get-previous-info:
-    name: Get info from previous version (not the latest version)
-    needs: test-e2e-smoke-production
-    if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
-
-    runs-on: ubuntu-22.04
-
-    outputs:
-      git_hash: ${{ steps.info_about_previous_version.outputs.git_hash }}
-      git_tag: ${{ steps.info_about_previous_version.outputs.git_tag }}
-
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v3
-      with:
-        ref: trunk
-        fetch-depth: 0
-    - run: |
-        echo "::set-output name=git_hash::$(git rev-parse $(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1)))"
-        echo "::set-output name=git_tag::$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))"
-      id: info_about_previous_version
-
   rollback-production:
     name: Rollback production environment (serverest.dev)
-    needs: [rollback-get-previous-info, open-issue-production]
-    if: ${{ always() && needs.rollback-get-previous-info.result == 'success' }}
+    needs: open-issue-production
+    if: ${{ always() && needs.open-issue-production.result == 'success' }}
 
     runs-on: ubuntu-22.04
     environment: production
@@ -358,11 +336,17 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Update production traffic to revision '${{ needs.rollback-get-previous-info.outputs.git_tag }} | git hash ${{ needs.rollback-get-previous-info.outputs.git_hash }}'
+    - name: Get penultimate gcloud revision
+      id: gcloud_revision
+      run: |
+        PENULTIMATE_REVISION=$(gcloud run revisions list --service $SERVICE_PRODUCTION --region $REGION --format="value(metadata.name)" --limit=2 | tail -n 1)
+        echo "::set-output name=penultimate::$PENULTIMATE_REVISION"
+    - name: Update production traffic to penultimate revision
       run: |
         gcloud run \
           services update-traffic $SERVICE_PRODUCTION \
-          --to-tags ${{ needs.rollback-get-previous-info.outputs.git_hash }}=100
+          --region $REGION \
+          --to-revisions ${{ steps.gcloud_revision.outputs.penultimate }}=100
     - uses: badsyntax/github-action-issue-comment@master
       name: Comment on generated issue about rollback
       with:
