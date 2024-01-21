@@ -1,5 +1,18 @@
 # Changelog
 
+# [2.29.0-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.29.0-beta.1...v2.29.0-beta.2) (2024-01-21)
+
+
+### Chores
+
+* **patch:** atualizar versão do datadog ([42d875b](https://github.com/ServeRest/ServeRest/commit/42d875bd6c60c1a45289e16c2a086604a70bf480))
+
+
+### Miscellaneous
+
+* revert do logger ([b710dea](https://github.com/ServeRest/ServeRest/commit/b710dea95e6868b657ea98afec8e9f3568191b3c))
+* investigando a causa do datadog estar desativado. Qual valor do ENVIRONMENT? ([6a3f0b4](https://github.com/ServeRest/ServeRest/commit/6a3f0b47df1b46985b37757f31053b2ef4b0edd3))
+
 # [2.29.0-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.28.0...v2.29.0-beta.1) (2023-12-14)
 
 
