@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.28.1](https://github.com/ServeRest/ServeRest/compare/v2.28.0...v2.28.1) (2024-01-21)
+
+
+### Chores
+
+* **patch:** update datadog version for gcloud dockerfile ([19fb8f6](https://github.com/ServeRest/ServeRest/commit/19fb8f6e74674cd14845440d72d7daedc3e1a43b))
+
 # [2.28.0](https://github.com/ServeRest/ServeRest/compare/v2.27.5...v2.28.0) (2023-12-14)
 
 
