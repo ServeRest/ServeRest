@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.28.2](https://github.com/ServeRest/ServeRest/compare/v2.28.1...v2.28.2) (2024-01-21)
+
+
+### Continuous Integration
+
+* **patch:** serve all traffic to new deployed image ([0b68fc7](https://github.com/ServeRest/ServeRest/commit/0b68fc7e4424a868ff8512499d39006a768e02c7))
+
 ## [2.28.1](https://github.com/ServeRest/ServeRest/compare/v2.28.0...v2.28.1) (2024-01-21)
 
 
