@@ -14,6 +14,8 @@ env:
   IMAGE_SERVICE_NAME: app
   REGION: us-central1
   SERVICE_PRODUCTION: app
+  SERVICE_STAGING: app-staging
+  SERVICE_COMPASSUOL: serverest-compasso-uol
   # Datadog variables
   DD_SERVICE: serverest
   DD_SITE: datadoghq.eu
@@ -83,9 +85,10 @@ jobs:
     - name: Deploy container image to 'staging' environment
       run: |
         gcloud run \
-          deploy $SERVICE \
+          deploy $SERVICE_STAGING \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
+          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -101,8 +104,12 @@ jobs:
           --update-env-vars=DD_APPSEC_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
-        SERVICE: app-staging
         ENVIRONMENT: staging.serverest.dev
+    - name: Update staging traffic to revision '${{ github.sha }}'
+      run: |
+        gcloud run \
+          services update-traffic $SERVICE_STAGING \
+          --to-tags ${{ github.sha }}=100
 
   test-e2e-staging:
     name: E2E test on staging environment
@@ -180,6 +187,7 @@ jobs:
           deploy $SERVICE_PRODUCTION \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
+          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -196,6 +204,11 @@ jobs:
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
+    - name: Update production traffic to revision '${{ github.sha }}'
+      run: |
+        gcloud run \
+          services update-traffic $SERVICE_PRODUCTION \
+          --to-tags ${{ github.sha }}=100
 
   test-e2e-smoke-production:
     name: Smoke test in production environment
@@ -238,9 +251,10 @@ jobs:
     - name: Deploy container image to 'compassuol' environment
       run: |
         gcloud run \
-          deploy $SERVICE \
+          deploy $SERVICE_COMPASSUOL \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
           --region $REGION \
+          --tag=${{ github.sha }} \
           --update-env-vars=ENVIRONMENT=$ENVIRONMENT \
           --update-env-vars=DD_SERVICE=$DD_SERVICE \
           --update-env-vars=DD_ENV=$ENVIRONMENT \
@@ -256,8 +270,12 @@ jobs:
           --update-env-vars=DD_APPSEC_ENABLED=true
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
-        SERVICE: serverest-compasso-uol
         ENVIRONMENT: compassuol
+    - name: Update compassuol traffic to revision '${{ github.sha }}'
+      run: |
+        gcloud run \
+          services update-traffic $SERVICE_COMPASSUOL \
+          --to-tags ${{ github.sha }}=100
 
   open-issue-production:
     name: Open issue when production smoke test fail
@@ -340,12 +358,11 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Deploy image from '${{ needs.rollback-get-previous-info.outputs.git_tag }}' to 'production' environment
+    - name: Update production traffic to revision '${{ needs.rollback-get-previous-info.outputs.git_tag }} | git hash ${{ needs.rollback-get-previous-info.outputs.git_hash }}'
       run: |
         gcloud run \
-          deploy $SERVICE_PRODUCTION \
-          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ needs.rollback-get-previous-info.outputs.git_hash }} \
-          --region $REGION
+          services update-traffic $SERVICE_PRODUCTION \
+          --to-tags ${{ needs.rollback-get-previous-info.outputs.git_hash }}=100
     - uses: badsyntax/github-action-issue-comment@master
       name: Comment on generated issue about rollback
       with:
