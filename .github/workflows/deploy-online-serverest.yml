@@ -2,13 +2,9 @@ name: Deploy ServeRest on the web
 
 # This pipeline runs when the continuous_delivery.yml pipeline generates a new release
 
-# on:
-#   release:
-#     types: [published]
-
 on:
-  push:
-    branches: [beta]
+  release:
+    types: [published]
 
 concurrency: ${{ github.workflow }}
 

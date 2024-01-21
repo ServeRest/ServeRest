@@ -2,41 +2,40 @@ name: Continuous Delivery
 
 on:
   push:
-    branches: [trunk]
-    # branches: [trunk, beta]
+    branches: [trunk, beta]
 
 jobs:
-  common-ci:
-    uses: ./.github/workflows/common_ci.yml
-    secrets: inherit
-    with:
-      type_pipeline: 'continuous_delivery'
+  # common-ci:
+  #   uses: ./.github/workflows/common_ci.yml
+  #   secrets: inherit
+  #   with:
+  #     type_pipeline: 'continuous_delivery'
 
-  test-mutation:
+  # test-mutation:
 
-    runs-on: ubuntu-22.04
+  #   runs-on: ubuntu-22.04
 
-    steps:
-    - name: Project checkout
-      uses: actions/checkout@v3
-    - name: Get specific changed files
-      id: changed-files-specific
-      uses: tj-actions/changed-files@v32
-      with:
-        files: src
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
-    - name: Run mutation test
-      if: steps.changed-files-specific.outputs.any_changed == 'true'
-      run: make test-mutation
-      env:
-        STRYKER_DASHBOARD_API_KEY: ${{ env.STRYKER_DASHBOARD_API_KEY }}
+  #   steps:
+  #   - name: Project checkout
+  #     uses: actions/checkout@v3
+  #   - name: Get specific changed files
+  #     id: changed-files-specific
+  #     uses: tj-actions/changed-files@v32
+  #     with:
+  #       files: src
+  #   - name: Load secrets from 1password
+  #     uses: 1password/load-secrets-action@v1
+  #     env:
+  #       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+  #       STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
+  #   - name: Run mutation test
+  #     if: steps.changed-files-specific.outputs.any_changed == 'true'
+  #     run: make test-mutation
+  #     env:
+  #       STRYKER_DASHBOARD_API_KEY: ${{ env.STRYKER_DASHBOARD_API_KEY }}
 
   release:
-    needs: [common-ci]
+    # needs: [common-ci]
 
     concurrency: create_release
 
