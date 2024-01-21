@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.28.3](https://github.com/ServeRest/ServeRest/compare/v2.28.2...v2.28.3) (2024-01-21)
+
+
+### Continuous Integration
+
+* **patch:** simplify rollback steps and fix update-traffic command ([875f8d7](https://github.com/ServeRest/ServeRest/commit/875f8d7107880a5201ae7687c6f4a84124208271))
+
 ## [2.28.2](https://github.com/ServeRest/ServeRest/compare/v2.28.1...v2.28.2) (2024-01-21)
 
 
