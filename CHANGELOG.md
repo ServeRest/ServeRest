@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.28.4](https://github.com/ServeRest/ServeRest/compare/v2.28.3...v2.28.4) (2024-01-22)
+
+
+### Bug Fixes
+
+* fix regex matching for query string null/undefined ([67d9914](https://github.com/ServeRest/ServeRest/commit/67d9914df336a3a0ebfadc274d3d7343ac69af47))
+
+
+### Code Refactoring
+
+* make queryString filtering more readable ([3b41947](https://github.com/ServeRest/ServeRest/commit/3b419471cc8c45b4ffd412fc4c34d50bd331f403))
+
 ## [2.28.3](https://github.com/ServeRest/ServeRest/compare/v2.28.2...v2.28.3) (2024-01-21)
 
 
