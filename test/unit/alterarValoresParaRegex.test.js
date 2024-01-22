@@ -12,7 +12,6 @@ describe('alterarValoresParaRegex', () => {
     }
 
     const result = alterarValoresParaRegex(queryString)
-    console.log(result)
 
     expect(result.nome).to.be.instanceOf(RegExp)
     expect(result.password).to.be.instanceOf(RegExp)
@@ -33,5 +32,17 @@ describe('alterarValoresParaRegex', () => {
     expect(result.nome.toString()).to.equal('/te\\.st/i')
     expect(result.password.toString()).to.equal('/12\\*34/i')
     expect(result.descricao.toString()).to.equal('/des\\|cription/i')
+  })
+
+  it('should remove field without value', () => {
+    const queryString = {
+      nome: 'test',
+      password: '',
+      empty: ''
+    }
+
+    const result = alterarValoresParaRegex(queryString)
+
+    expect(result).to.be.deep.equal({ nome: /test/i })
   })
 })

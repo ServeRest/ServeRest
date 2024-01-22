@@ -6,7 +6,11 @@ const permittedKeys = ['nome', 'password', 'descricao']
 
 module.exports = queryString => {
   Object.keys(queryString).forEach(key => {
-    if (permittedKeys.includes(key) && queryString[key] != null) {
+    const isFieldEmpty = !queryString[key]
+    /* istanbul ignore next */
+    if (isFieldEmpty) {
+      delete queryString[key]
+    } else if (permittedKeys.includes(key)) {
       try {
         // Add 'i' flag for case-insensitive matching
         queryString[key] = new RegExp(escapeStringRegexp(queryString[key]), 'i')
