@@ -4,7 +4,7 @@ const { log } = require('./logger')
 
 module.exports = queryString => {
   Object.keys(queryString).forEach(key => {
-    if (['nome', 'password', 'descricao'].includes(key)) {
+    if (['nome', 'password', 'descricao'].includes(key) && queryString[key] != null) {
       try {
         // Add 'i' flag for case-insensitive matching
         queryString[key] = new RegExp(escapeStringRegexp(queryString[key]), 'i')
