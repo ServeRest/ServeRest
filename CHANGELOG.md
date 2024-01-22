@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.28.5](https://github.com/ServeRest/ServeRest/compare/v2.28.4...v2.28.5) (2024-01-22)
+
+
+### Bug Fixes
+
+* remove empty fields from query param and update regex creation unit test ([00d44a1](https://github.com/ServeRest/ServeRest/commit/00d44a1fa145d636b833782999d7f268efde493a))
+
+
+### Continuous Integration
+
+* bump setup-gcloud action from v0 to v1 ([a35d94f](https://github.com/ServeRest/ServeRest/commit/a35d94ff0fcdbf9034453b63cf45f259f8dba31a))
+
 ## [2.28.4](https://github.com/ServeRest/ServeRest/compare/v2.28.3...v2.28.4) (2024-01-22)
 
 
