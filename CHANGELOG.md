@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.28.6](https://github.com/ServeRest/ServeRest/compare/v2.28.5...v2.28.6) (2024-01-25)
+
+
+### Bug Fixes
+
+* **regex:** ensure that integer query param can be sent and converted to regex safe ([b565d88](https://github.com/ServeRest/ServeRest/commit/b565d8821c5644acff3e311450bc47d48e996346)), closes [#451](https://github.com/ServeRest/ServeRest/issues/451)
+
 ## [2.28.5](https://github.com/ServeRest/ServeRest/compare/v2.28.4...v2.28.5) (2024-01-22)
 
 
