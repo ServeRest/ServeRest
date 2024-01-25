@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.28.7](https://github.com/ServeRest/ServeRest/compare/v2.28.6...v2.28.7) (2024-01-25)
+
+
+### Bug Fixes
+
+* **error-handler:** show detailed error message to user when any fail occurs ([2d5538b](https://github.com/ServeRest/ServeRest/commit/2d5538b6f05e6701f9c8bc76f295480ab9ce422d))
+
 ## [2.28.6](https://github.com/ServeRest/ServeRest/compare/v2.28.5...v2.28.6) (2024-01-25)
 
 
