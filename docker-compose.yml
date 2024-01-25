@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile.dev
       target: dev
     volumes:
-      - .:/app:ro
+      - .:/app:rw
     ports:
       - "3000:3000"
 

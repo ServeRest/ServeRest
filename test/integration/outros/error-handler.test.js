@@ -3,6 +3,7 @@ const sinon = require('sinon')
 const sandbox = sinon.createSandbox()
 
 const carrinhosService = require('../../../src/services/carrinhos-service.js')
+const { version } = require('../../../package.json')
 
 describe('Error handler', () => {
   const fixedDate = 1694600359846
@@ -56,7 +57,8 @@ describe('Error handler', () => {
 
     chai.assert.deepEqual(body, {
       message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
-      error: 'test'
+      error: 'test',
+      version
     })
 
     sinon.assert.calledOnce(consoleLogStub)
@@ -69,20 +71,21 @@ describe('Error handler', () => {
 
   it('Deve informar para abrir issue ao ocorrer erro 500 com toda a mensagem de erro ao não ter "error.type" - @skipE2E', async () => {
     const consoleLogStub = sandbox.stub(console, 'log')
-    sandbox.stub(carrinhosService, 'getAll').throws('Teste de erro 500')
+    sandbox.stub(carrinhosService, 'getAll').throws({ message: 'Teste de erro 500', stack: '.src/stack' })
 
     const { body } = await request.get('/carrinhos').expect(500)
 
     chai.assert.deepEqual(body, {
       message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
-      error: { name: 'Teste de erro 500' }
+      error: { message: 'Teste de erro 500', stack: '.src/stack' },
+      version
     })
 
     sinon.assert.calledOnce(consoleLogStub)
     sinon.assert.calledWith(consoleLogStub, sinon.match({
       time: new Date(fixedDate).toISOString(),
       level: 'error',
-      message: { name: 'Teste de erro 500' }
+      message: { message: 'Teste de erro 500', stack: '.src/stack' }
     }))
   })
 })

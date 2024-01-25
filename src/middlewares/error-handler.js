@@ -1,6 +1,7 @@
 const { INTERNAL_ERROR, TIMEOUT } = require('../utils/constants')
 const montarMensagemDeErroDeSchema = require('../utils/montarMensagemDeErroDeSchema')
 const { log } = require('../utils/logger')
+const { version } = require('../../package.json')
 
 function errorHandler (error, _req, res, _next) {
   const erroDeSchema = error.name === 'ValidationError'
@@ -27,10 +28,10 @@ function errorHandler (error, _req, res, _next) {
 
   log({ level: 'error', message: error?.type || error })
 
-  if (error.type) {
-    return res.status(500).json({ message: INTERNAL_ERROR, error: error.type })
+  if (error?.type) {
+    return res.status(500).json({ message: INTERNAL_ERROR, error: error.type, version })
   }
-  return res.status(500).json({ message: INTERNAL_ERROR, error })
+  return res.status(500).json({ message: INTERNAL_ERROR, version, error: { message: error.message, stack: error.stack } })
 }
 
 module.exports = errorHandler
