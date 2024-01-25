@@ -6,7 +6,7 @@ describe('alterarValoresParaRegex', () => {
   it('should convert specified fields to RegExp', () => {
     const queryString = {
       nome: 'test',
-      password: '1234',
+      password: 1234,
       descricao: 'description',
       other: 'field'
     }

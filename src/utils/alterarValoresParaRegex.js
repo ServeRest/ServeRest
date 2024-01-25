@@ -12,8 +12,10 @@ module.exports = queryString => {
       delete queryString[key]
     } else if (permittedKeys.includes(key)) {
       try {
+        // Ensure queryString[key] is a string
+        const queryStringValue = typeof queryString[key] === 'string' ? queryString[key] : String(queryString[key])
         // Add 'i' flag for case-insensitive matching
-        queryString[key] = new RegExp(escapeStringRegexp(queryString[key]), 'i')
+        queryString[key] = new RegExp(escapeStringRegexp(queryStringValue), 'i')
       } catch (error) /* istanbul ignore next */ {
         log({ level: 'error', message: `Failed to convert ${key} to RegExp: ${error.message}` })
         throw error
