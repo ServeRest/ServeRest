@@ -2,7 +2,7 @@
 
 const axios = require('axios')
 
-const { log } = require('../utils/logger')
+const logger = require('../utils/logger')
 
 module.exports = async () => {
   try {
@@ -12,7 +12,7 @@ module.exports = async () => {
     const randomFinancialContributor = getRandomElement(uniqueUserNames)
     return randomFinancialContributor
   } catch (error) {
-    log({ level: 'error', message: 'Failed to get financial contributor.' })
+    logger.log({ level: 'error', message: 'Failed to get financial contributor.' })
   }
 }
 
