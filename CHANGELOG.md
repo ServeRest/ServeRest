@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.29.1-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.29.0...v2.29.1-beta.1) (2024-02-01)
+
+
+### Chores
+
+* **patch:** entender IP de cada request2 ([d1f4882](https://github.com/ServeRest/ServeRest/commit/d1f488293b59d63d0f5486b5309002386a8dd83f))
+
 # [2.29.0](https://github.com/ServeRest/ServeRest/compare/v2.28.7...v2.29.0) (2024-02-01)
 
 
