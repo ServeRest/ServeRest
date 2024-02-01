@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.29.0](https://github.com/ServeRest/ServeRest/compare/v2.28.7...v2.29.0) (2024-02-01)
+
+
+### Features
+
+* block IP that is doing excessive number of requests ([0158cda](https://github.com/ServeRest/ServeRest/commit/0158cda9c1640fcbadcc6153146bf5953f2a2b32))
+
+
+### Tests
+
+* **getRandomFinancialContributor:** improve unit test code coverage to 100% ([1e18bc3](https://github.com/ServeRest/ServeRest/commit/1e18bc34cce941a7bdd081267d54aa888fc79cb6))
+
 ## [2.28.7](https://github.com/ServeRest/ServeRest/compare/v2.28.6...v2.28.7) (2024-01-25)
 
 
