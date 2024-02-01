@@ -10,6 +10,7 @@ const timeout = require('connect-timeout')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
 const ddTrace = require('dd-trace')
+const ipfilter = require('express-ipfilter').IpFilter
 
 const {
   aplicacaoExecutandoLocalmente,
@@ -30,6 +31,14 @@ const app = express()
 if (!aplicacaoExecutandoLocalmente()) {
   ddTrace.init()
   ddTrace.use('express')
+}
+
+/* istanbul ignore if */
+if (process.env.BLOCKED_IPS) {
+  app.use(ipfilter(process.env.BLOCKED_IPS.split(','), {
+    mode: 'deny',
+    log: false
+  }))
 }
 
 app.set('json spaces', 4)
