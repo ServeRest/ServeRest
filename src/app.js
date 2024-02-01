@@ -36,8 +36,8 @@ if (!aplicacaoExecutandoLocalmente()) {
 /* istanbul ignore if */
 if (process.env.BLOCKED_IPS) {
   app.use(ipfilter(process.env.BLOCKED_IPS.split(','), {
-    mode: 'deny',
-    log: false
+    mode: 'deny'
+    // log: false
   }))
 }
 
