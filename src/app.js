@@ -35,10 +35,14 @@ if (!aplicacaoExecutandoLocalmente()) {
 
 /* istanbul ignore if */
 if (process.env.BLOCKED_IPS) {
-  app.use(ipfilter(process.env.BLOCKED_IPS.split(','), {
-    mode: 'deny'
+  app.use((req, res) => {
+    console.log('req.ip:', req.ip)
+    console.log('req.socket.remoteAddress:', req.socket.remoteAddress)
+    ipfilter(process.env.BLOCKED_IPS.split(','), {
+      mode: 'deny'
     // log: false
-  }))
+    })
+  })
 }
 
 app.set('json spaces', 4)
