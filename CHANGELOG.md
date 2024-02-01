@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.29.1-beta.2](https://github.com/ServeRest/ServeRest/compare/v2.29.1-beta.1...v2.29.1-beta.2) (2024-02-01)
+
+
+### Chores
+
+* **patch:** identificar IP real ([7d9890c](https://github.com/ServeRest/ServeRest/commit/7d9890ccd36ee7460c216f5a43103aa5e4147834))
+
 ## [2.29.1-beta.1](https://github.com/ServeRest/ServeRest/compare/v2.29.0...v2.29.1-beta.1) (2024-02-01)
 
 
