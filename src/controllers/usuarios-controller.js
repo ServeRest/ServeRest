@@ -15,7 +15,10 @@ exports.getOne = async (req, res) => {
   if (!usuario) {
     return res.status(400).json({ message: constant.USER_NOT_FOUND })
   }
-  return res.status(200).send(usuario)
+  const { administrador, ...resto } = usuario
+  const usuarioModificado = { ...resto, adm: administrador }
+  return res.status(200).send(usuarioModificado)
+  // return res.status(200).send(usuario)
 }
 
 exports.post = async (req, res) => {

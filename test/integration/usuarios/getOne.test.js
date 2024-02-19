@@ -13,7 +13,7 @@ describe(`${rotaUsuarios}/:id GET`, () => {
       nome: usuario.nome,
       email: usuario.email,
       password: usuario.password,
-      administrador: usuario.administrador,
+      adm: usuario.administrador,
       _id: usuario._id
     })
   })

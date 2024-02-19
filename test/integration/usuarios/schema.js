@@ -17,7 +17,7 @@ const getOne = Joi.object().keys({
   nome: Joi.string().required(),
   email: Joi.string().required(),
   password: Joi.string().required(),
-  administrador: Joi.string().required(),
+  adm: Joi.string().required(),
   _id: Joi.string().regex(/^[a-zA-Z0-9]/).required()
 })
 
