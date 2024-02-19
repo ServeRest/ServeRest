@@ -9,6 +9,11 @@ describe(rotaUsuarios + ' CONTRATO - @smokeE2E', () => {
     joi.assert(body, schema.get)
   })
 
+  it('GET One', async () => {
+    const { body } = await request.get(`${rotaUsuarios}/0uxuPY0cbmQhpEz1`).expect(200)
+    joi.assert(body, schema.getOne)
+  })
+
   it('POST', async () => {
     const { body } = await request
       .post(rotaUsuarios)

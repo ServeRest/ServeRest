@@ -13,6 +13,14 @@ const get = Joi.object().keys({
   )
 })
 
+const getOne = Joi.object().keys({
+  nome: Joi.string().required(),
+  email: Joi.string().required(),
+  password: Joi.string().required(),
+  administrador: Joi.string().required(),
+  _id: Joi.string().regex(/^[a-zA-Z0-9]/).required()
+})
+
 const post = Joi.object().keys({
   nome: Joi.string().required(),
   email: Joi.string().required(),
@@ -22,6 +30,7 @@ const post = Joi.object().keys({
 
 module.exports = {
   get,
+  getOne,
   post,
   put: post
 }
