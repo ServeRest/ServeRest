@@ -1,4 +1,4 @@
-FROM golang:1.18.0-alpine3.15@sha256:a2ca4f4c0828b1b426a3153b068bf32a21868911c57a9fc4dccdc5fbb6553b35
+FROM golang:1.21.7-alpine@sha256:0ff68fa7b2177e8d68b4555621c2321c804bcff839fd512c2681de49026573b7
 
 # hadolint ignore=DL3018
 RUN apk --no-cache add \

@@ -1,5 +1,5 @@
 # Production dockerfile - Delivered at Docker Hub
-FROM node:lts-alpine3.17@sha256:e0641d0ac1f49f045c8dc05bbedc066fc7c88bc2730ead423088eeb0788623a1 as base
+FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f as base
 
 LABEL repository="https://github.com/ServeRest/ServeRest" \
       homepage="https://github.com/ServeRest/ServeRest" \

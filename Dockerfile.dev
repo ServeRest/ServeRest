@@ -1,4 +1,4 @@
-FROM node:lts-alpine3.12@sha256:60ef0bed1dc2ec835cfe3c4226d074fdfaba571fd619c280474cc04e93f0ec5b as base
+FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f as base
 
 WORKDIR /app
 
@@ -11,10 +11,10 @@ FROM base as test
 ENV NODE_ENV=serverest-test
 
 # hadolint ignore=DL3018
-RUN apk --no-cache add git ca-certificates wget=1.21.1-r1 bash \
+RUN apk --no-cache add git ca-certificates wget bash \
   && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
-  && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.29-r0/glibc-2.29-r0.apk \
-  && apk --no-cache add glibc-2.29-r0.apk \
+  && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk \
+  && apk --no-cache add glibc-2.35-r1.apk \
   && rm -rf /var/cache/apk/*
 
 RUN git config --global --add safe.directory "*"
