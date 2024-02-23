@@ -1,20 +1,19 @@
 version: '3.8'
 
 services:
-  base:
+  test-base:
     platform: linux/amd64
     build:
       context: .
-      dockerfile: Dockerfile.dev
-      target: test
+      dockerfile: Dockerfile.test
     volumes:
       - ./test:/app/test:ro
 
   run-dev:
     build:
       context: .
-      dockerfile: Dockerfile.dev
-      target: dev
+      dockerfile: Dockerfile
+    entrypoint: npm run dev
     volumes:
       - .:/app:rw
     ports:
@@ -23,7 +22,7 @@ services:
 # All tests \/
 
   test-contract:
-    extends: base
+    extends: test-base
     environment:
       - PACT_BROKER_TOKEN
       - PACT_URL
@@ -33,7 +32,7 @@ services:
       - ./.git:/app/.git:ro
 
   test-unit:
-    extends: base
+    extends: test-base
     environment: # Datadog "CI Tests" variables
       - DD_CIVISIBILITY_AGENTLESS_ENABLED
       - DD_API_KEY
@@ -47,7 +46,7 @@ services:
       - ./coverage-unit:/app/coverage-unit:rw
 
   test-integration:
-    extends: base
+    extends: test-base
     command: npm run test:integration
     volumes:
       - ./coverage-integration:/app/coverage-integration:rw
@@ -70,7 +69,7 @@ services:
       NODE_ENV: 'serverest-development'
 
   test-e2e-localhost:
-    extends: base
+    extends: test-base
     command: npm run test:e2e
     environment:
       - TEST_TYPE=e2e-localhost
@@ -87,7 +86,7 @@ services:
     network_mode: 'service:run-app-e2e'
 
   test-mutation:
-    extends: base
+    extends: test-base
     environment:
       - STRYKER_DASHBOARD_API_KEY
       - TEST_TYPE=mutation
@@ -96,7 +95,7 @@ services:
       - ./reports:/app/reports:rw
 
   test-mutation-diff:
-    extends: base
+    extends: test-base
     environment:
       - STRYKER_DASHBOARD_API_KEY
       - TEST_TYPE=mutation
@@ -114,13 +113,13 @@ services:
 # Deploy test \/
 
   test-e2e-staging:
-    extends: base
+    extends: test-base
     command: npm run test:e2e -- --retries 1 --slow 1000
     environment:
       TEST_TYPE: 'e2e-staging'
 
   test-e2e-smoke-production:
-    extends: base
+    extends: test-base
     command: npm run test:smoke -- --retries 1 --slow 1000
     environment:
       TEST_TYPE: 'e2e-production'

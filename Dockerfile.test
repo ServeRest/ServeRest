@@ -1,14 +1,6 @@
-FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f as base
+FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f
 
 WORKDIR /app
-
-COPY package*.json ./
-
-RUN npm ci
-
-FROM base as test
-
-ENV NODE_ENV=serverest-test
 
 # hadolint ignore=DL3018
 RUN apk --no-cache add git ca-certificates wget bash \
@@ -19,16 +11,10 @@ RUN apk --no-cache add git ca-certificates wget bash \
 
 RUN git config --global --add safe.directory "*"
 
-COPY . .
+ENV NODE_ENV=serverest-test
 
-FROM base as dev
+COPY package*.json ./
 
-ENV NODE_ENV=serverest-development
-ENV ENVIRONMENT='docker'
-ENV TERM=xterm-256color
+RUN npm ci
 
 COPY . .
-
-EXPOSE 3000
-
-CMD [ "npm", "run", "dev" ]

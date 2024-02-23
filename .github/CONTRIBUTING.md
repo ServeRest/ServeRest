@@ -174,7 +174,7 @@ Execute `npm run commit` para ter um painel interativo que permite seguir o padr
 
 ### 💥 Dockerfile lint
 
-É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que os Dockerfile de [produção](../Dockerfile), [desenvolvimento, teste](../Dockerfile.dev) e de [teste de infra](../Dockerfile) seguem as melhores práticas em sua estrutura.
+É utilizado o linter [Hadolint - Haskell Dockerfile Linter](https://github.com/hadolint/hadolint) para garantir que os Dockerfile de [produção,desenvolvimento](../Dockerfile), [teste](../Dockerfile.test) e de [teste de infra](../Dockerfile) seguem as melhores práticas em sua estrutura.
 
 ---
 
