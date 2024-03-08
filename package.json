@@ -74,7 +74,7 @@
     "@commitlint/cli": "^12.1.1",
     "@commitlint/config-conventional": "^12.1.1",
     "@hapi/joi": "^17.1.1",
-    "@pact-foundation/pact": "^9.15.5",
+    "@pact-foundation/pact": "^12.3.0",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/commit-analyzer": "^8.0.1",
     "@semantic-release/exec": "^5.0.0",
