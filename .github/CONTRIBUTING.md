@@ -188,7 +188,7 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 
 | NPM dist-tag | branch |
 |:---:|:---:
-| @latest | master
+| @latest | trunk
 | @beta | beta
 
 Para ver todo o passo a passo da entrega contínua, como deploy em staging e produção, testes E2E em staging e produção e rollback automático se algum erro for detectado, acesse: https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml
