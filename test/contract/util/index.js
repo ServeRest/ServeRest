@@ -14,11 +14,11 @@ const currentGitBranch = require('child_process')
   .toString()
   .trim()
 
-const isDefaultBranch = currentGitBranch === 'trunk'
+const isMainBranch = currentGitBranch === 'trunk'
 
 module.exports = {
   dateOneMonthAgo,
   currentGitBranch,
   currentGitHash,
-  isDefaultBranch
+  isMainBranch
 }

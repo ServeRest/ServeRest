@@ -1,13 +1,14 @@
-FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f
+FROM node:lts-slim@sha256:357deca6eb61149534d32faaf5e4b2e4fa3549c2be610ee1019bf340ea8c51ec
 
 WORKDIR /app
 
-# hadolint ignore=DL3018
-RUN apk --no-cache add git ca-certificates wget bash \
-  && wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
-  && wget -q https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.35-r1/glibc-2.35-r1.apk \
-  && apk --no-cache add glibc-2.35-r1.apk \
-  && rm -rf /var/cache/apk/*
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  git \
+  ca-certificates \
+  wget \
+  bash \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN git config --global --add safe.directory "*"
 

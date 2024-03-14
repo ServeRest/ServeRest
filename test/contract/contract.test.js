@@ -7,7 +7,7 @@ const {
   dateOneMonthAgo,
   currentGitBranch,
   currentGitHash,
-  isDefaultBranch
+  isMainBranch
 } = require('./util')
 
 describe('ServeRest - Verificação do contrato', () => {
@@ -53,7 +53,7 @@ describe('ServeRest - Verificação do contrato', () => {
           latest: true
         }
       ],
-      includeWipPactsSince: isDefaultBranch ? dateOneMonthAgo() : undefined,
+      ...(isMainBranch ? { includeWipPactsSince: dateOneMonthAgo() } : {}),
       enablePending: true
     }
 
