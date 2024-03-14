@@ -14,11 +14,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Project checkout - Continuous Integration
       if: inputs.type_pipeline == 'continuous_integration'
       uses: actions/checkout@v3
@@ -33,7 +28,7 @@ jobs:
     - name: Run contract test
       run: make test-contract
       env:
-        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
 
   lint:
 
@@ -85,17 +80,12 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker-compose build test-unit
     - name: Run Unit Test
       run: make test-unit
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
@@ -114,17 +104,12 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker-compose build test-integration
     - name: Run Integration Test
       run: make test-integration
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
@@ -143,18 +128,13 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker-compose build run-app-e2e
     - run: docker-compose build test-e2e-localhost
     - name: Run E2E test in locally built docker image
       run: make test-e2e-localhost
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        DD_API_KEY: ${{ env.DD_API_KEY }}
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
@@ -184,16 +164,11 @@ jobs:
         path: coverage-integration
     - name: Merge coverage report
       run: npm run merge-lcov
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v1
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        SONAR_TOKEN: op://CI-CD/sonar/SONAR_TOKEN
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   test-infra-docker:
 
