@@ -34,7 +34,7 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v3
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+      uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -71,7 +71,7 @@ jobs:
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+      uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -170,7 +170,7 @@ jobs:
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+      uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -237,7 +237,7 @@ jobs:
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+      uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -328,7 +328,7 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
+      uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
