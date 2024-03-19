@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.29.1](https://github.com/ServeRest/ServeRest/compare/v2.29.0...v2.29.1) (2024-03-19)
+
+
+### Chores
+
+* ensure coding as close as possible to prod ([6bc4d8b](https://github.com/ServeRest/ServeRest/commit/6bc4d8bda40bffa09b23ddcd816e5101de67e155))
+* **patch:** update base image from docker to avoid CVE vulnerability ([6d32f22](https://github.com/ServeRest/ServeRest/commit/6d32f22af128600206e714e49a6d35042f0f91ca))
+
+
+### Documentation
+
+* **contributing:** update branch name used to generate [@latest](https://github.com/latest) tag ([82fac4b](https://github.com/ServeRest/ServeRest/commit/82fac4b7cb07101d1670817d895439cc87479e84))
+
+
+### Tests
+
+* adopt slim image to enable contract test to run ([0ae50b6](https://github.com/ServeRest/ServeRest/commit/0ae50b6a6ce8ab90bc2ca0c6d5b8e491d271c8b8))
+* **contract:** adjust configuration property to use correct type ([6c5c312](https://github.com/ServeRest/ServeRest/commit/6c5c312440c087a8774d39a9bb4227be50f4fdc9))
+* implement schema test on GET /user/:id endpoint ([a0e7c6e](https://github.com/ServeRest/ServeRest/commit/a0e7c6e37460c11d9c516c6ebff69cf55f5e41d2))
+* **pact:** bump version from 9.x.x to 12.3.0 ([6a77a0e](https://github.com/ServeRest/ServeRest/commit/6a77a0e6c9fa13bebba651656ba9b6706efe62f6))
+
 # [2.29.0](https://github.com/ServeRest/ServeRest/compare/v2.28.7...v2.29.0) (2024-02-01)
 
 
