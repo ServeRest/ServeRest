@@ -145,6 +145,14 @@ A página de status (_/status_) está disponível apenas localmente.
 
 > Fez teste de carga? O que acha de compartilhar com o autor do projeto o repositório e o relatório final contendo dados de RPS para auxiliar o ServeRest a entender o comportamento de sua infra?
 
+Obs: Para iniciar um teste de carga, realizar os passos:
+- acessar pasta test -> performance -> serveRest.jmx
+- importar arquivo para JMeter
+- rodar o teste (será chamado os serviços POST Cadastrar Usuário, POST Login, POST Cadastrar Produtos)
+
+mais detalhes ver readme.md [serverest-api-automation-jmeter](https://github.com/alefecvo/serverest-api-automation-jmeter)
+
+
 ## Badge
 
 Criou repositório utilizando o ServeRest? Adicione o código abaixo no topo do README.md para ter a badge do projeto.
@@ -165,6 +173,8 @@ Os repositórios abaixo são exemplos de automação com boas práticas e que co
 - [Python > Automação com Pytest - Leonardo Tsuda](https://github.com/ltsuda/pytest-serverest-study)
 - [Robot Framework > Automação com RequestsLibrary - Mayara Fernandes](https://github.com/mayribeirofernandes/testesrobotframework/tree/HEAD/ExemploAPI_ServeRest)
 - [Ruby > Automação com HTTParty e RSpec - Bruno Quintanilha](https://github.com/braquintanilha/serverest-httparty-rspec)
+- [JMeter > Teste de Carga - Álefe Cardozo Silva](https://github.com/alefecvo/serverest-api-automation-jmeter)
+
 
 Para encontrar mais repositórios acesse https://github.com/search?q=serverest&type=Repositories
 
