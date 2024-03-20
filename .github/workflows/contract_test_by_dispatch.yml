@@ -24,3 +24,5 @@ jobs:
       env:
         PACT_URL: ${{ github.event.client_payload.pactUrl }}
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+        GIT_COMMIT: ${{ github.sha }}
+        GIT_BRANCH: ${{ github.ref_name }}
