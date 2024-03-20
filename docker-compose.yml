@@ -25,6 +25,8 @@ services:
     extends: test-base
     environment:
       - PACT_BROKER_TOKEN
+      - GIT_COMMIT
+      - GIT_BRANCH
       - PACT_URL
       - CI
     command: npm run test:contract

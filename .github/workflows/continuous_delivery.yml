@@ -79,3 +79,5 @@ jobs:
       run: make test-contract
       env:
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+        GIT_COMMIT: ${{ github.sha }}
+        GIT_BRANCH: ${{ github.ref_name }}

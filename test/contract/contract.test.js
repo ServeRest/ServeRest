@@ -11,11 +11,12 @@ const {
 } = require('./util')
 
 describe('ServeRest - Verificação do contrato', () => {
-  const SERVER_URL = 'http://localhost:3001'
+  const PORT = 3001
+  const SERVER_URL = `http://localhost:${PORT}`
   const server = http.createServer(app)
 
   before(() => {
-    server.listen(3001, () => console.log(`Server listening on ${SERVER_URL}`))
+    server.listen(PORT, () => console.log(`Server listening on ${SERVER_URL}`))
   })
 
   after(() => {
@@ -26,10 +27,11 @@ describe('ServeRest - Verificação do contrato', () => {
     const baseOptions = {
       provider: 'ServeRest - API Rest',
       logLevel: 'INFO',
+      verbose: false,
       pactBrokerToken: process.env.PACT_BROKER_TOKEN,
       providerBaseUrl: SERVER_URL,
-      providerVersionTags: [currentGitBranch],
-      providerVersion: currentGitHash,
+      providerVersionBranch: process.env.GIT_BRANCH ?? currentGitBranch,
+      providerVersion: process.env.GIT_COMMIT ?? currentGitHash,
       publishVerificationResult: isCI
     }
 
@@ -44,17 +46,17 @@ describe('ServeRest - Verificação do contrato', () => {
       pactBrokerUrl: 'https://paulogoncalves.pactflow.io',
       consumerVersionSelectors: [
         {
-          tag: currentGitBranch,
-          fallbackTag: 'main',
-          latest: true
+          mainBranch: true
         },
         {
-          tag: 'production',
-          latest: true
+          matchingBranch: true
+        },
+        {
+          deployed: true
         }
       ],
       ...(isMainBranch ? { includeWipPactsSince: dateOneMonthAgo() } : {}),
-      enablePending: true
+      enablePending: isMainBranch
     }
 
     return new Verifier({

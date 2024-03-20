@@ -400,10 +400,10 @@ jobs:
           -e PACT_BROKER_BASE_URL \
           -e PACT_BROKER_TOKEN \
           pactfoundation/pact-cli \
-          broker create-version-tag \
+          broker record-deployment \
           --pacticipant 'ServeRest - API Rest' \
           --version ${{ github.sha }} \
-          --tag staging
+          --environment staging
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
@@ -428,10 +428,10 @@ jobs:
           -e PACT_BROKER_BASE_URL \
           -e PACT_BROKER_TOKEN \
           pactfoundation/pact-cli \
-          broker create-version-tag \
+          broker record-deployment \
           --pacticipant 'ServeRest - API Rest' \
           --version ${{ github.sha }} \
-          --tag production
+          --environment production
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
