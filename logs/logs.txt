@@ -1,0 +1,58 @@
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        14.3.1                                                                         │
+  │ Browser:        Electron 130 (headless)                                                        │
+  │ Node Version:   v22.14.0 (C:\Program Files\nodejs\node.exe)                                    │
+  │ Specs:          1 found (login.cy.js)                                                          │
+  │ Searched:       cypress/integration/**/*.cy.{js,jsx,ts,tsx}                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  login.cy.js                                                                     (1 of 1)
+
+
+  Testes de Login na ServeRest
+    √ Deve logar com sucesso (4825ms)
+    √ Exibe erro para email não registrado (2189ms)
+    √ Exibe erro para senha inválida (1661ms)
+    √ Exibe erro para campos em branco (1392ms)
+    √ Exibe erro para senha em branco (1386ms)
+    √ Redireciona para página de cadastro (978ms)
+
+
+  6 passing (15s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        6                                                                                │
+  │ Passing:      6                                                                                │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     15 seconds                                                                       │
+  │ Spec Ran:     login.cy.js                                                                      │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+====================================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  login.cy.js                              00:15        6        6        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:15        6        6        -        -        -  
+

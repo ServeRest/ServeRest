@@ -1,0 +1,15 @@
+
+> serverest@2.29.7 start
+> node ./src/server.js
+
+[32m[1m[22m[39m
+[32m[1mServeRest v2.29.7 está em execução[22m[39m
+[37m[1mTeste o funcionamento acessando[22m[39m [33m[1mhttp://localhost:3000/usuarios[22m[39m [37m[1mno navegador[22m[39m
+[37m[1m[22m[39m
+[37m[1mQuer saber as rotas disponíveis e como utilizá-las? Acesse[22m[39m [33m[1mhttp://localhost:3000[22m[39m
+[37m[1mQuer alterar porta de execução, timeout do token, etc? Execute[22m[39m [33m[1mdocker run -p 3000:3000 paulogoncalvesbh/serverest --help[22m[39m
+[37m[1mPara outras dúvidas acesse[22m[39m [33m[1mgithub.com/ServeRest/ServeRest[22m[39m
+[33m[1m[22m[39m
+[36m[1mFeito com[22m[39m [31m[1m♥[22m[39m [36m[1mpara todos os QAs e apoiado por[22m[39m [31m[1mDaniele Araújo[22m[39m 
+
+[0mGET /usuarios [32m200[0m 20.954 ms - 253[0m

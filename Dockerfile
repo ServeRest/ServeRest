@@ -1,5 +1,19 @@
-# Production dockerfile - Delivered at Docker Hub
-FROM node:lts-alpine3.18@sha256:a02826c7340c37a29179152723190bcc3044f933c925f3c2d78abb20f794de3f as base
+# Estágio de build
+FROM node:23-alpine AS builder
+
+WORKDIR /app
+
+# Copia apenas os arquivos necessários para instalação das dependências
+COPY package*.json ./
+
+# Cria um package.json temporário sem os devDependencies problemáticos
+RUN npm install --package-lock-only && \
+    # Instalação explícita do request e outras dependências necessárias
+    npm install --production --legacy-peer-deps && \
+    npm install --no-save request
+
+# Estágio final
+FROM node:23-alpine
 
 LABEL repository="https://github.com/ServeRest/ServeRest" \
       homepage="https://github.com/ServeRest/ServeRest" \
@@ -7,16 +21,19 @@ LABEL repository="https://github.com/ServeRest/ServeRest" \
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copia node_modules do estágio de build
+COPY --from=builder /app/node_modules ./node_modules
 
-RUN npm ci --production --ignore-scripts
-
+# Copia o resto dos arquivos do projeto
 COPY . .
 
-ENV ENVIRONMENT='docker'
+# Configura variáveis de ambiente
+ENV ENVIRONMENT='docker' \
+    TERM=xterm-256color \
+    CI=true
 
-ENV TERM=xterm-256color
-
+# Expõe a porta
 EXPOSE 3000
 
-ENTRYPOINT [ "npm", "start", "--" ]
+# Comando para iniciar o servidor
+CMD ["node", "./src/server.js"]
