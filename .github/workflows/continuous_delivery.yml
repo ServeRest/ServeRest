@@ -47,7 +47,7 @@ jobs:
     - name: Node.js Setup
       uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: 22
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Install 1Password CLI

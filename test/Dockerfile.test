@@ -1,4 +1,4 @@
-FROM node:lts-slim@sha256:357deca6eb61149534d32faaf5e4b2e4fa3549c2be610ee1019bf340ea8c51ec
+FROM node:22-slim@sha256:5373f1906319b3a1f291da5d102f4ce5c77ccbe29eb637f072b6c7b70443fc36
 
 WORKDIR /app
 
@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   ca-certificates \
   wget \
   bash \
+  procps \
   && rm -rf /var/lib/apt/lists/*
 
 RUN git config --global --add safe.directory "*"
