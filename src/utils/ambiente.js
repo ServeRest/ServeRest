@@ -12,7 +12,7 @@ const environments = new Set([
 ])
 
 function formaDeExecucao () {
-  const env = process.env.ENVIRONMENT
+  const env = (process.env.ENVIRONMENT || '').trim()
   return environments.has(env) ? env : 'npm'
 }
 
@@ -32,15 +32,26 @@ const urlMapping = {
   cesarschool: 'https://cesarschool.serverest.dev'
 }
 
-function urlDocumentacao () {
+function urlDoAmbiente () {
   const environment = formaDeExecucao()
-  return urlMapping[environment] || `http://localhost:${conf.porta}`
+  return urlMapping[environment] || urlLocal()
+}
+
+function urlDoServerest () {
+  return urlMapping['serverest.dev']
+}
+
+function urlLocal () {
+  return `http://localhost:${conf.porta}`
 }
 
 module.exports = {
   aplicacaoExecutandoLocalmente,
   formaDeExecucao,
-  urlDocumentacao,
+  urlDoAmbiente,
+  urlDoServerest,
+  urlLocal,
+  urlDocumentacao: urlDoAmbiente,
   ehAmbienteDeDesenvolvimento,
   ehAmbienteDeTestes
 }

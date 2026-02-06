@@ -14,7 +14,8 @@ const ipfilter = require('express-ipfilter').IpFilter
 
 const {
   aplicacaoExecutandoLocalmente,
-  formaDeExecucao,
+  urlDoAmbiente,
+  urlDoServerest,
   urlDocumentacao,
   ehAmbienteDeTestes
 } = require('./utils/ambiente')
@@ -74,17 +75,12 @@ if (aplicacaoExecutandoLocalmente() && !ehAmbienteDeTestes) {
   app.use(require('express-status-monitor')({ title: 'ServeRest Status' }))
 }
 
-const hostMapping = {
-  'serverest.dev': 'serverest.dev',
-  'staging.serverest.dev': 'staging.serverest.dev',
-  agilizei: 'agilizei.serverest.dev',
-  compassuol: 'compassuol.serverest.dev',
-  cesarschool: 'cesarschool.serverest.dev'
-}
+const currentUrl = urlDoAmbiente()
+const serverestUrl = urlDoServerest()
 
-const environment = formaDeExecucao()
-
-swaggerDocument.host = hostMapping?.[environment] ?? swaggerDocument.host
+swaggerDocument.servers = currentUrl === serverestUrl
+  ? [{ url: serverestUrl }]
+  : [{ url: currentUrl }, { url: serverestUrl }]
 
 swaggerDocument.info.version = packageJson.version
 
