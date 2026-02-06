@@ -13,6 +13,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - FORCE_RELEASE_BANNER=true
     entrypoint: npm run dev
     volumes:
       - .:/app:rw
