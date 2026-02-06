@@ -3,12 +3,12 @@
 'use strict'
 
 const path = require('path')
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), quiet: true })
 
 const colors = require('colors')
 const debug = require('debug')('nodestr:server')
 const http = require('http')
-const open = require('open')
+const open = require('open').default
 
 const { version } = require('../package.json')
 const { formaDeExecucao, urlDocumentacao, aplicacaoExecutandoLocalmente } = require('./utils/ambiente')
@@ -17,7 +17,10 @@ const getRandomFinancialContributor = require('./utils/getRandomFinancialContrib
 
 const DEFAULT_PORT = 3000
 
-const argv = require('yargs')
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+
+const argv = yargs(hideBin(process.argv))
   .default({
     porta: conf.porta,
     timeout: conf.tokenTimeout,
@@ -35,8 +38,9 @@ const argv = require('yargs')
   .alias('h', 'help')
   .alias('v', 'version')
   .usage('Ajuda do ServeRest')
-  .usage('\nModo de uso: npx serverest <opcao>')
-  .usage('             docker run -p 3000:3000 paulogoncalvesbh/serverest <opcao>')
+  .usage('\nModo de uso:')
+  .usage('npx serverest <Option>')
+  .usage('docker run -p 3000:3000 paulogoncalvesbh/serverest <Option>')
   .describe('p', 'Porta que será utilizada (default: 3000)')
   .describe('t', 'Timeout da autenticação em segundos (default: 600)')
   .describe('d', 'Desabilitar o início automático da documentação')
@@ -114,12 +118,14 @@ function onError (error) {
       console.error(colors.red.bold(bind, 'requires elevated privileges'))
       process.exit(1)
 
+    /* eslint-disable-next-line no-fallthrough */
     case 'EADDRINUSE':
       console.error(colors.red.bold(bind, `já está em uso.
 Feche o programa/serviço que está usando a porta ${port} ou execute o ServeRest em outra porta.
 Execute 'npx serverest -h' para saber como executar em outra porta.\n`))
       process.exit(1)
 
+    /* eslint-disable-next-line no-fallthrough */
     default:
       throw error
   }

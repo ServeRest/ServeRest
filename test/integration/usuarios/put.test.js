@@ -1,15 +1,15 @@
 const chai = require('chai')
-const faker = require('faker')
+const { faker } = require('@faker-js/faker')
 
 const rotaUsuarios = '/usuarios'
 
 describe(rotaUsuarios + ' PUT', () => {
   it('Cadastro com sucesso', async () => {
     const { body } = await request.put(rotaUsuarios + '/a').send({
-      nome: faker.name.firstName() + ' ' + faker.name.lastName(),
+      nome: faker.person.firstName() + ' ' + faker.person.lastName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      administrador: `${faker.datatype.boolean()}`
+      administrador: `${faker.helpers.arrayElement([true, false])}`
     }).expect(201)
 
     chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
@@ -17,10 +17,10 @@ describe(rotaUsuarios + ' PUT', () => {
 
   it('Email já utilizado', async () => {
     const usuario = {
-      nome: faker.name.firstName() + ' ' + faker.name.lastName(),
+      nome: faker.person.firstName() + ' ' + faker.person.lastName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      administrador: `${faker.datatype.boolean()}`
+      administrador: `${faker.helpers.arrayElement([true, false])}`
     }
 
     await request.post(rotaUsuarios).send(usuario).expect(201)
@@ -43,10 +43,10 @@ describe(rotaUsuarios + ' PUT', () => {
 
   it('Registro alterado', async () => {
     const usuario = {
-      nome: faker.name.firstName() + ' ' + faker.name.lastName(),
+      nome: faker.person.firstName() + ' ' + faker.person.lastName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      administrador: `${faker.datatype.boolean()}`
+      administrador: `${faker.helpers.arrayElement([true, false])}`
     }
 
     const { body } = await request.post(rotaUsuarios).send(usuario).expect(201)

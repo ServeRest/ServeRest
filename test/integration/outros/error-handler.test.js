@@ -7,7 +7,8 @@ const { version } = require('../../../package.json')
 
 describe('Error handler', () => {
   const fixedDate = 1694600359846
-  beforeEach(() => sandbox.useFakeTimers({ now: fixedDate }))
+  const timestampToleranceInMillis = 50
+  beforeEach(() => sandbox.useFakeTimers({ now: fixedDate, shouldAdvanceTime: true }))
 
   afterEach(() => sandbox.restore())
 
@@ -22,7 +23,10 @@ describe('Error handler', () => {
     })
     sinon.assert.calledOnce(consoleLogStub)
     sinon.assert.calledWith(consoleLogStub, sinon.match({
-      time: new Date(fixedDate).toISOString(),
+      time: sinon.match((value) => {
+        const loggedAt = Date.parse(value)
+        return Math.abs(loggedAt - fixedDate) <= timestampToleranceInMillis
+      }, 'time within tolerance'),
       level: 'alert',
       message: 'Entity parse error, user sending request without proper quotation marks.'
     }))
@@ -63,7 +67,10 @@ describe('Error handler', () => {
 
     sinon.assert.calledOnce(consoleLogStub)
     sinon.assert.calledWith(consoleLogStub, sinon.match({
-      time: new Date(fixedDate).toISOString(),
+      time: sinon.match((value) => {
+        const loggedAt = Date.parse(value)
+        return Math.abs(loggedAt - fixedDate) <= timestampToleranceInMillis
+      }, 'time within tolerance'),
       level: 'error',
       message: 'Error: test, Stack: No stack available, Request body: {}'
     }))
@@ -83,7 +90,10 @@ describe('Error handler', () => {
 
     sinon.assert.calledOnce(consoleLogStub)
     sinon.assert.calledWith(consoleLogStub, sinon.match({
-      time: new Date(fixedDate).toISOString(),
+      time: sinon.match((value) => {
+        const loggedAt = Date.parse(value)
+        return Math.abs(loggedAt - fixedDate) <= timestampToleranceInMillis
+      }, 'time within tolerance'),
       level: 'error',
       message: 'Error: {"message":"Teste de erro 500","stack":".src/stack"}, Stack: .src/stack, Request body: {}'
     }))

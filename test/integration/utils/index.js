@@ -1,4 +1,4 @@
-const faker = require('faker')
+const { faker } = require('@faker-js/faker')
 
 async function cadastrarCarrinho ({
   idProduto,
@@ -19,10 +19,10 @@ async function cadastrarCarrinho ({
 }
 
 async function cadastrarProduto ({
-  nome = faker.commerce.productName() + faker.datatype.number() + faker.datatype.number(),
-  preco = faker.datatype.number(),
-  descricao = faker.random.words(),
-  quantidade = faker.datatype.number(),
+  nome = faker.commerce.productName() + faker.number.int() + faker.number.int(),
+  preco = faker.number.int(),
+  descricao = faker.lorem.words(),
+  quantidade = faker.number.int(),
   authorization
 } = {}) {
   const { body } = await request.post('/produtos').send({
@@ -41,10 +41,10 @@ async function cadastrarProduto ({
 }
 
 async function cadastrarUsuario ({
-  nome = faker.name.firstName() + ' ' + faker.name.lastName(),
+  nome = faker.person.firstName() + ' ' + faker.person.lastName(),
   email = faker.internet.email(),
   password = faker.internet.password(),
-  administrador = `${faker.datatype.boolean()}`
+  administrador = `${faker.helpers.arrayElement([true, false])}`
 } = {}) {
   const { body } = await request.post('/usuarios').send({
     nome,
@@ -63,11 +63,11 @@ async function cadastrarUsuario ({
 
 function dadosProduto () {
   return {
-    nome: faker.commerce.productName() + faker.datatype.number() + faker.datatype.number(),
-    preco: faker.datatype.number(),
-    descricao: faker.random.words(),
-    quantidade: faker.datatype.number(),
-    imagem: faker.random.words()
+    nome: faker.commerce.productName() + faker.number.int() + faker.number.int(),
+    preco: faker.number.int(),
+    descricao: faker.lorem.words(),
+    quantidade: faker.number.int(),
+    imagem: faker.lorem.words()
   }
 }
 

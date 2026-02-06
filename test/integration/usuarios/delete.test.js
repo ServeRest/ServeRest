@@ -1,5 +1,5 @@
 const chai = require('chai')
-const faker = require('faker')
+const { faker } = require('@faker-js/faker')
 const sandbox = require('sinon').createSandbox()
 
 const rotaUsuarios = '/usuarios'
@@ -10,10 +10,10 @@ describe(rotaUsuarios + ' DELETE', () => {
 
   it('Registro excluído com sucesso', async () => {
     const { body } = await request.post(rotaUsuarios).send({
-      nome: faker.name.firstName() + ' ' + faker.name.lastName(),
+      nome: faker.person.firstName() + ' ' + faker.person.lastName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      administrador: `${faker.datatype.boolean()}`
+      administrador: `${faker.helpers.arrayElement([true, false])}`
     }).expect(201)
 
     const { body: bodyDel } = await request.del(`${rotaUsuarios}/${body._id}`).expect(200)

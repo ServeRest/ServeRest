@@ -11,7 +11,7 @@ build:
 	@DOCKER_BUILDKIT=1 docker build --file Dockerfile --tag ${NAME_IMAGE} .
 
 run:
-	@docker run -p 3000:3000 ${NAME_IMAGE}
+	@docker run -p 3000:3000 ${NAME_IMAGE} $(ARGS)
 
 clean:
 	@docker rmi -f ${NAME_IMAGE}

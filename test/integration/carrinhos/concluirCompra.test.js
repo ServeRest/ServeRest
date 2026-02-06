@@ -1,5 +1,5 @@
 const chai = require('chai')
-const faker = require('faker')
+const { faker } = require('@faker-js/faker')
 
 const rotaCarrinhos = '/carrinhos'
 const rotaConcluirCompra = `${rotaCarrinhos}/concluir-compra`
@@ -9,7 +9,7 @@ describe(rotaConcluirCompra + ' DELETE', () => {
   it('Registro excluído com sucesso', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
-    const quantidade = faker.datatype.number()
+    const quantidade = faker.number.int()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body: bodyNovoCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
