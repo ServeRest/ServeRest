@@ -62,7 +62,7 @@ exports.concluiCompra = async carrinho => {
 
 exports.removeCarrinho = async carrinho => {
   const { produtos, _id } = carrinho
-  this.reabasteceEstoque(produtos)
+  await this.reabasteceEstoque(produtos)
   await this.deleteById(_id)
 }
 
@@ -92,12 +92,12 @@ exports.quantidadeTotal = async (produtos) => {
   }, Promise.resolve(0))
 }
 
-exports.reabasteceEstoque = produtos => {
-  produtos.forEach(async (produto) => {
+exports.reabasteceEstoque = async produtos => {
+  for (const produto of produtos) {
     const { idProduto, quantidade } = produto
     const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
     await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
-  })
+  }
 }
 
 const idUsuario = async (authorization) => {
