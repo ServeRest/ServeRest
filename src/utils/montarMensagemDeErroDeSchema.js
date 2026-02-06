@@ -1,4 +1,3 @@
-
 module.exports = error => {
   const detalhesDoErro = error.details.body || error.details.query || error.details.params
   const mensagemDeErro = {}
