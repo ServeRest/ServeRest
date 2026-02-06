@@ -11,7 +11,7 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
   } else if (process.env.TEST_TYPE === 'e2e-production') {
     URL = 'https://serverest.dev'
   } else if (process.env.TEST_TYPE === 'e2e-localhost') {
-    URL = 'http://localhost:3000'
+    URL = 'http://127.0.0.1:3000'
   }
 
   // Set 'monitor=true' header to all requests to avoid logging on moesif tool

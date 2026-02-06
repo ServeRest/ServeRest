@@ -89,7 +89,7 @@ server.on('error', onError)
 server.on('listening', onListening)
 
 if (!argv.nodoc) {
-  open(urlDocumentacao())
+  open(urlDocumentacao()).catch(() => {})
 }
 
 function normalizePort (val) {

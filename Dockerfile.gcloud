@@ -1,10 +1,10 @@
 # Production dockerfile - Delivered at Google Cloud
 # hadolint ignore=DL3029
-FROM --platform=linux/amd64 datadog/serverless-init:1.2.1-alpine@sha256:61bfb550f733736c1b6bdb7922bd68677844551f372037be53a3eb98835dbed3 as datadog-serverless
+FROM --platform=linux/amd64 datadog/serverless-init:1.2.1-alpine@sha256:61bfb550f733736c1b6bdb7922bd68677844551f372037be53a3eb98835dbed3 AS datadog-serverless
 
-FROM datadog/dd-lib-js-init:v5.11.0@sha256:9a1e2f052a3891d21e2df354423cd8ebee4d32af5a5bf0e786b3207ddcc9fb8a as datadog-lib-js-init
+FROM datadog/dd-lib-js-init:v5.11.0@sha256:9a1e2f052a3891d21e2df354423cd8ebee4d32af5a5bf0e786b3207ddcc9fb8a AS datadog-lib-js-init
 
-FROM node:22-alpine3.20@sha256:2289fb1fba0f4633b08ec47b94a89c7e20b829fc5679f9b7b298eaa2f1ed8b7e as base
+FROM node:22-alpine3.20@sha256:2289fb1fba0f4633b08ec47b94a89c7e20b829fc5679f9b7b298eaa2f1ed8b7e AS base
 
 ENV ENVIRONMENT='docker'
 
