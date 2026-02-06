@@ -107,6 +107,8 @@ services:
     build:
       context: .
       dockerfile: test/infra/Dockerfile.terratest
+    environment:
+      - DOCKER_BUILDKIT=0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
