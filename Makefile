@@ -17,7 +17,12 @@ clean:
 	@docker rmi -f ${NAME_IMAGE}
 
 stop:
-	@docker stop `docker ps -q`
+	@containers=$$(docker ps -q); \
+	if [ -z "$$containers" ]; then \
+		echo "Nenhum container Docker em execução."; \
+	else \
+		docker stop $$containers; \
+	fi
 
 # COMANDOS DE DESENVOLVIMENTO \/
 
