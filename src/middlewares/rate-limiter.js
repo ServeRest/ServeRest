@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-
 const { RateLimiterMemory } = require('rate-limiter-flexible')
 
 const {

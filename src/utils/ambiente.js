@@ -1,5 +1,3 @@
-/* istanbul ignore file */
-
 const { conf } = require('./conf')
 
 const environments = new Set([
