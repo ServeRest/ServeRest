@@ -193,8 +193,8 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         SONAR_TOKEN: op://CI-CD/sonar/SONAR_TOKEN
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v7.0.0
       with:
         args: >
           -Dsonar.organization=serverest
