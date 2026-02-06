@@ -61,6 +61,7 @@ services:
       - DD_GIT_REPOSITORY_URL
       - DD_GIT_COMMIT_SHA
       - DD_GIT_BRANCH
+      - CI
 
   run-app-e2e:
     build:
@@ -82,6 +83,7 @@ services:
       - DD_GIT_REPOSITORY_URL
       - DD_GIT_COMMIT_SHA
       - DD_GIT_BRANCH
+      - CI
     depends_on:
       - run-app-e2e
     network_mode: 'service:run-app-e2e'
