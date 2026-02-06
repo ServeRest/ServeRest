@@ -92,7 +92,12 @@ const uiOptions = {
   customSiteTitle: 'ServeRest',
   customfavIcon: '/favicon.ico',
   customCss: `
-  .topbar-wrapper img { content:url(https://user-images.githubusercontent.com/29241659/118382797-365f3900-b5cf-11eb-9c82-0298a5c75b7e.png); width:150px; height:auto; }
+  .swagger-ui .topbar-wrapper .link {
+    display: block;
+    height: 60px;
+    background: url(https://user-images.githubusercontent.com/29241659/118382797-365f3900-b5cf-11eb-9c82-0298a5c75b7e.png) no-repeat center / contain;
+  }
+  .swagger-ui .topbar-wrapper .link svg { display: none; }
   .swagger-ui .topbar { background-color: #000000; border-bottom: 20px solid #7900e2; }`
 }
 
