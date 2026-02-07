@@ -58,7 +58,8 @@
   transform: scale(1.2);
 }
 
-.swagger-ui .release-toast {
+.swagger-ui .release-toast,
+.release-toast {
   position: fixed;
   right: 20px;
   bottom: 20px;
@@ -83,13 +84,15 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
-.swagger-ui .release-toast__content {
+.swagger-ui .release-toast__content,
+.release-toast__content {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.swagger-ui .release-toast__title {
+.swagger-ui .release-toast__title,
+.release-toast__title {
   font-weight: 700;
   font-size: 16px;
   display: inline-flex;
@@ -97,12 +100,14 @@
   gap: 6px;
 }
 
-.swagger-ui .release-toast__title-icon {
+.swagger-ui .release-toast__title-icon,
+.release-toast__title-icon {
   font-size: 16px;
   line-height: 1;
 }
 
-.swagger-ui .release-toast__meta {
+.swagger-ui .release-toast__meta,
+.release-toast__meta {
   color: #6b7280;
   font-size: 14px;
   max-width: 300px;
@@ -111,7 +116,8 @@
   text-overflow: ellipsis;
 }
 
-.swagger-ui .release-toast__link {
+.swagger-ui .release-toast__link,
+.release-toast__link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -126,11 +132,13 @@
   border-radius: 6px;
 }
 
-.swagger-ui .release-toast__link:hover {
+.swagger-ui .release-toast__link:hover,
+.release-toast__link:hover {
   background: #6d28d9;
 }
 
-.swagger-ui .release-toast__close {
+.swagger-ui .release-toast__close,
+.release-toast__close {
   background: transparent;
   border: 0;
   color: inherit;
@@ -141,7 +149,8 @@
   opacity: 0.7;
 }
 
-.swagger-ui .release-toast__close:hover {
+.swagger-ui .release-toast__close:hover,
+.release-toast__close:hover {
   opacity: 1;
   background: rgba(15, 23, 42, 0.08);
   border-radius: 999px;

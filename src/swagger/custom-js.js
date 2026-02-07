@@ -43,8 +43,8 @@
     }
     if (!latestVersion || (!current && !forceBanner)) return
     if (latestVersion === current && !forceBanner) return
-    const root = document.querySelector('.swagger-ui')
-    if (!root || document.querySelector('.release-toast')) return
+    if (document.querySelector('.release-toast')) return
+    const root = document.querySelector('.swagger-ui') || document.body
 
     const toast = document.createElement('div')
     toast.className = 'release-toast'
@@ -361,9 +361,10 @@
     nodes.forEach(node => translateNodeText(node, language))
   }
 
-  function renderLanguageSwitcher () {
-    const root = document.querySelector('.swagger-ui')
-    if (!root || root.querySelector('.lang-switcher')) return
+  function renderLanguageSwitcher (parent) {
+    if (document.querySelector('.lang-switcher')) return
+    const root = parent || document.querySelector('.swagger-ui')
+    if (!root) return
     const wrapper = document.createElement('div')
     wrapper.className = 'lang-switcher'
     wrapper.setAttribute('aria-label', 'Seleção de idioma')
@@ -452,10 +453,20 @@
 
   function checkVersionThenObserve () {
     const root = document.querySelector('.swagger-ui')
-    if (!root) {
-      setTimeout(checkVersionThenObserve, 500)
+    if (root) {
+      runVersionCheckAndObserve()
       return
     }
+    const mo = new MutationObserver(function () {
+      if (document.querySelector('.swagger-ui')) {
+        mo.disconnect()
+        runVersionCheckAndObserve()
+      }
+    })
+    mo.observe(document.documentElement, { childList: true, subtree: true })
+  }
+
+  function runVersionCheckAndObserve () {
     const normalizedCurrent = normalizeVersion(currentVersion)
     const storedVersion = window.sessionStorage.getItem(docsVersionKey)
     if (storedVersion && storedVersion !== normalizedCurrent) {
@@ -526,7 +537,7 @@
         }
       }, 0)
     })
-    renderLanguageSwitcher()
+    renderLanguageSwitcher(root)
     scheduleTranslations()
     if (hasOpenOperationHash()) {
       setEndpointBlockOpen(true)
@@ -554,7 +565,7 @@
     preloadFlags()
     preloadSwaggerJson()
     prefetchSwaggerSpecs()
-    if (document.body) renderLanguageSwitcher(document.body)
+    if (document.body) renderReleaseToast()
     checkVersionThenObserve()
   }
 
