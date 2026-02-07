@@ -118,13 +118,10 @@ const uiOptionsBase = {
 }
 
 app.use('/', swaggerUi.serve)
-app.get('/', async (req, res, next) => {
+app.get('/', (req, res, next) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
   const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
   const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
-  if (latestReleasePromise) {
-    await latestReleasePromise
-  }
   const localizedSwagger = localizeSwaggerDocument(swaggerDocument, language)
   const customJsStr = buildCustomJsStr(
     latestReleaseInfo,

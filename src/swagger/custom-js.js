@@ -34,9 +34,10 @@
     return toastTranslations[language] || toastTranslations['pt-BR']
   }
 
-  function renderReleaseToast () {
+  function renderReleaseToast (releaseDataOverride) {
+    const info = releaseDataOverride !== undefined ? releaseDataOverride : releaseInfo
     const current = normalizeVersion(currentVersion)
-    let latestVersion = normalizeVersion(releaseInfo && (releaseInfo.version || releaseInfo.tag))
+    let latestVersion = normalizeVersion(info && (info.version || info.tag))
     if (forceBanner) {
       latestVersion = normalizeVersion('999.999.999')
     }
@@ -71,7 +72,7 @@
 
     const link = document.createElement('a')
     link.className = 'release-toast__link'
-    link.href = (releaseInfo && releaseInfo.url) ? releaseInfo.url : 'https://github.com/ServeRest/ServeRest/releases'
+    link.href = (info && info.url) ? info.url : 'https://github.com/ServeRest/ServeRest/releases'
     link.textContent = translation.link
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
@@ -494,7 +495,21 @@
     }
     shouldRefreshEndpointBlock = setRefreshFlagFromState(language)
     updateSwaggerSpec(language, shouldRefreshEndpointBlock)
-    setTimeout(renderReleaseToast, 2000)
+    renderReleaseToast()
+    fetch('https://api.github.com/repos/ServeRest/ServeRest/releases/latest', {
+      headers: { Accept: 'application/json' }
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.tag_name && data.html_url) {
+          renderReleaseToast({
+            tag: data.tag_name,
+            version: normalizeVersion(data.tag_name),
+            url: data.html_url
+          })
+        }
+      })
+      .catch(() => {})
   }
 
   if (document.readyState === 'loading') {
