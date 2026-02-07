@@ -577,12 +577,41 @@
     shouldRefreshEndpointBlock = setRefreshFlagFromState(language)
     updateSwaggerSpec(language, shouldRefreshEndpointBlock)
     renderReleaseToast()
+    const releaseCacheKey = 'serverest_github_release'
+    const releaseCacheTtlMs = 10 * 60 * 1000 // 10 min
+    function getCachedRelease (requireFresh) {
+      try {
+        const raw = window.localStorage.getItem(releaseCacheKey)
+        if (!raw) return null
+        const parsed = JSON.parse(raw)
+        if (!parsed || !parsed.data) return null
+        if (requireFresh && (!parsed.cachedAt || (Date.now() - parsed.cachedAt) > releaseCacheTtlMs)) return null
+        return parsed.data
+      } catch (_) {
+        return null
+      }
+    }
+    const cached = getCachedRelease(true)
+    if (cached && cached.tag_name && cached.html_url) {
+      renderReleaseToast({
+        tag: cached.tag_name,
+        version: normalizeVersion(cached.tag_name),
+        url: cached.html_url
+      })
+      return
+    }
     fetch('https://api.github.com/repos/ServeRest/ServeRest/releases/latest', {
       headers: { Accept: 'application/json' }
     })
       .then(r => r.json())
       .then(data => {
         if (data.tag_name && data.html_url) {
+          try {
+            window.localStorage.setItem(releaseCacheKey, JSON.stringify({
+              data: { tag_name: data.tag_name, html_url: data.html_url },
+              cachedAt: Date.now()
+            }))
+          } catch (_) {}
           renderReleaseToast({
             tag: data.tag_name,
             version: normalizeVersion(data.tag_name),
@@ -590,7 +619,16 @@
           })
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        const stale = getCachedRelease(false)
+        if (stale && stale.tag_name && stale.html_url) {
+          renderReleaseToast({
+            tag: stale.tag_name,
+            version: normalizeVersion(stale.tag_name),
+            url: stale.html_url
+          })
+        }
+      })
   }
 
   function init () {
