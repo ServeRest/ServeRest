@@ -176,6 +176,31 @@
     es: '/flags/flag_spain.svg'
   }
 
+  function preloadFlags () {
+    if (typeof document === 'undefined' || !document.head) return
+    Object.values(flagUrls).forEach(href => {
+      const link = document.createElement('link')
+      link.rel = 'preload'
+      link.as = 'image'
+      link.href = href
+      document.head.appendChild(link)
+    })
+  }
+
+  const swaggerJsonUrls = ['/swagger.json?lang=pt-BR', '/swagger.json?lang=en', '/swagger.json?lang=es']
+
+  function preloadSwaggerJson () {
+    if (typeof document === 'undefined' || !document.head) return
+    swaggerJsonUrls.forEach(href => {
+      const link = document.createElement('link')
+      link.rel = 'preload'
+      link.as = 'fetch'
+      link.href = href
+      link.crossOrigin = ''
+      document.head.appendChild(link)
+    })
+  }
+
   const supportedLanguages = [
     { code: 'pt-BR', label: 'Português (Brasil)' },
     { code: 'en', label: 'English (UK)' },
@@ -204,6 +229,19 @@
   }
 
   const swaggerSpecCache = {}
+
+  function prefetchSwaggerSpecs () {
+    const queryLang = getLanguageFromQuery()
+    const preferred = getPreferredLanguage()
+    const code = supportedLanguages.some(l => l.code === queryLang)
+      ? queryLang
+      : (supportedLanguages.some(l => l.code === preferred) ? preferred : 'pt-BR')
+    const url = '/swagger.json?lang=' + encodeURIComponent(code)
+    fetch(url)
+      .then(r => r.json())
+      .then(spec => { swaggerSpecCache[code] = spec })
+      .catch(() => {})
+  }
 
   function updateSwaggerSpec (language, shouldRefreshOpenOps = false) {
     const specUrl = new URL('/swagger.json', window.location.origin)
@@ -512,9 +550,17 @@
       .catch(() => {})
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkVersionThenObserve)
-  } else {
+  function init () {
+    preloadFlags()
+    preloadSwaggerJson()
+    prefetchSwaggerSpecs()
+    if (document.body) renderLanguageSwitcher(document.body)
     checkVersionThenObserve()
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init)
+  } else {
+    init()
   }
 })()
