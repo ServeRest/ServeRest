@@ -24,7 +24,7 @@
   border-radius: 999px;
   padding: 4px 8px;
   z-index: 9999;
-  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+  box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5);
 }
 
 .swagger-ui .lang-switcher__button {
@@ -55,7 +55,7 @@
 
 .swagger-ui .lang-switcher__button.is-active {
   opacity: 1;
-  transform: scale(1.2);
+  transform: scale(1.3);
 }
 
 .swagger-ui .release-toast,
@@ -70,13 +70,12 @@
   border-radius: 10px;
   font-size: 14px;
   max-width: 360px;
-  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+  box-shadow: 0px 6px 16px rgba(124, 58, 237, 0.534);
   z-index: 9999;
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  border-left: 3px solid #8b5cf6;
-  animation: releaseToastScaleIn 1000ms ease-out;
+  animation: releaseToastScaleIn 2000ms ease-out;
 }
 
 @keyframes releaseToastScaleIn {
@@ -94,7 +93,7 @@
 .swagger-ui .release-toast__title,
 .release-toast__title {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 20px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -102,18 +101,19 @@
 
 .swagger-ui .release-toast__title-icon,
 .release-toast__title-icon {
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .swagger-ui .release-toast__meta,
 .release-toast__meta {
-  color: #6b7280;
-  font-size: 14px;
+  color: #424346;
+  font-size: 15px;
   max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .swagger-ui .release-toast__link,

@@ -187,20 +187,6 @@
     })
   }
 
-  const swaggerJsonUrls = ['/swagger.json?lang=pt-BR', '/swagger.json?lang=en', '/swagger.json?lang=es']
-
-  function preloadSwaggerJson () {
-    if (typeof document === 'undefined' || !document.head) return
-    swaggerJsonUrls.forEach(href => {
-      const link = document.createElement('link')
-      link.rel = 'preload'
-      link.as = 'fetch'
-      link.href = href
-      link.crossOrigin = ''
-      document.head.appendChild(link)
-    })
-  }
-
   const supportedLanguages = [
     { code: 'pt-BR', label: 'Português (Brasil)' },
     { code: 'en', label: 'English (UK)' },
@@ -224,18 +210,62 @@
     return url.searchParams.get('lang') || ''
   }
 
+  function getCurrentLanguageCode () {
+    const queryLang = getLanguageFromQuery()
+    const preferred = getPreferredLanguage()
+    return supportedLanguages.some(l => l.code === queryLang)
+      ? queryLang
+      : (supportedLanguages.some(l => l.code === preferred) ? preferred : 'pt-BR')
+  }
+
+  function preloadSwaggerJson () {
+    if (typeof document === 'undefined' || !document.head) return
+    const code = getCurrentLanguageCode()
+    const href = '/swagger.json?lang=' + encodeURIComponent(code)
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'fetch'
+    link.href = href
+    link.crossOrigin = ''
+    document.head.appendChild(link)
+  }
+
   function resetTranslationCache () {
     originalTextNodes = new WeakMap()
   }
 
   const swaggerSpecCache = {}
 
+  function updateSpecUrlInDom (specUrlString) {
+    const root = document.querySelector('.swagger-ui')
+    if (!root) return
+    root.querySelectorAll('input').forEach(input => {
+      if (input.value && input.value.includes('swagger.json')) {
+        input.value = specUrlString
+      }
+    })
+    root.querySelectorAll('a[href*="swagger.json"]').forEach(a => {
+      if (a.getAttribute('href') && a.getAttribute('href').includes('swagger.json')) {
+        a.setAttribute('href', specUrlString)
+      }
+    })
+    if (root.querySelectorAll) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false)
+      const textNodes = []
+      while (walker.nextNode()) textNodes.push(walker.currentNode)
+      textNodes.forEach(node => {
+        if (node.nodeValue && node.nodeValue.includes('swagger.json?lang=')) {
+          node.nodeValue = node.nodeValue.replace(
+            /https?:\/\/[^"\s]+\/swagger\.json\?lang=[^"\s&]+/g,
+            specUrlString
+          )
+        }
+      })
+    }
+  }
+
   function prefetchSwaggerSpecs () {
-    const queryLang = getLanguageFromQuery()
-    const preferred = getPreferredLanguage()
-    const code = supportedLanguages.some(l => l.code === queryLang)
-      ? queryLang
-      : (supportedLanguages.some(l => l.code === preferred) ? preferred : 'pt-BR')
+    const code = getCurrentLanguageCode()
     const url = '/swagger.json?lang=' + encodeURIComponent(code)
     fetch(url)
       .then(r => r.json())
@@ -246,6 +276,7 @@
   function updateSwaggerSpec (language, shouldRefreshOpenOps = false) {
     const specUrl = new URL('/swagger.json', window.location.origin)
     specUrl.searchParams.set('lang', language)
+    updateSpecUrlInDom(specUrl.toString())
     const applySpec = (spec) => {
       if (!window.ui || !window.ui.specActions) return
       resetTranslationCache()
@@ -253,6 +284,7 @@
       if (window.ui.specActions.updateUrl) {
         window.ui.specActions.updateUrl(specUrl.toString())
       }
+      setTimeout(() => updateSpecUrlInDom(specUrl.toString()), 0)
       if (window.ui.specActions.updateJsonSpec) {
         window.ui.specActions.updateJsonSpec(spec)
       }
