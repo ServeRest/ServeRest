@@ -5,5 +5,11 @@
   "functions": 100,
   "statements": 100,
   "reporter": ["text", "lcov"],
-  "exclude": ["test/**", "src/swagger/customization.js", "src/middlewares/moesif-monitor-middleware.js", "src/middlewares/rate-limiter.js", "src/utils/ambiente.js"]
+  "exclude": [
+    "test/**",
+    "src/swagger/customization.js",
+    "src/middlewares/moesif-monitor-middleware.js",
+    "src/middlewares/rate-limiter.js",
+    "src/utils/ambiente.js"
+  ]
 }
