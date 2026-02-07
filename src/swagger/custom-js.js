@@ -1,4 +1,4 @@
-/* global __RELEASE_INFO__, __CURRENT_VERSION__, __FORCE_BANNER__, NodeFilter, MutationObserver */
+/* global __RELEASE_INFO__, __CURRENT_VERSION__, __FORCE_BANNER__, NodeFilter, MutationObserver, caches */
 (function () {
   const releaseInfo = __RELEASE_INFO__
   const currentVersion = __CURRENT_VERSION__
@@ -202,6 +202,8 @@
     originalTextNodes = new WeakMap()
   }
 
+  const swaggerSpecCache = {}
+
   function updateSwaggerSpec (language, shouldRefreshOpenOps = false) {
     const specUrl = new URL('/swagger.json', window.location.origin)
     specUrl.searchParams.set('lang', language)
@@ -238,9 +240,17 @@
         refreshOpenOperations()
       }
     }
+    const cached = swaggerSpecCache[language]
+    if (cached) {
+      applySpec(cached)
+      return
+    }
     fetch(specUrl.toString())
       .then(response => response.json())
-      .then(applySpec)
+      .then(spec => {
+        swaggerSpecCache[language] = spec
+        applySpec(spec)
+      })
       .catch(() => {})
   }
 
@@ -386,12 +396,52 @@
     return shouldRefreshEndpointBlockNow(currentLanguage)
   }
 
+  const docsVersionKey = 'serverest-docs-version'
+
+  function clearCachesAndReloadForNewVersion (newVersion) {
+    const unregister = typeof navigator !== 'undefined' && navigator.serviceWorker && navigator.serviceWorker.getRegistrations
+      ? navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister())))
+      : Promise.resolve()
+    const clearCaches = typeof caches !== 'undefined' && caches.keys
+      ? caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      : Promise.resolve()
+    Promise.all([unregister, clearCaches]).then(() => {
+      window.sessionStorage.setItem(docsVersionKey, newVersion)
+      window.location.reload()
+    })
+  }
+
+  function checkVersionThenObserve () {
+    const root = document.querySelector('.swagger-ui')
+    if (!root) {
+      setTimeout(checkVersionThenObserve, 500)
+      return
+    }
+    const normalizedCurrent = normalizeVersion(currentVersion)
+    const storedVersion = window.sessionStorage.getItem(docsVersionKey)
+    if (storedVersion && storedVersion !== normalizedCurrent) {
+      clearCachesAndReloadForNewVersion(normalizedCurrent)
+      return
+    }
+    if (!storedVersion) {
+      window.sessionStorage.setItem(docsVersionKey, normalizedCurrent)
+    }
+    observe()
+  }
+
+  function registerServiceWorker () {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/swagger-sw.js').catch(() => {})
+    }
+  }
+
   function observe () {
     const root = document.querySelector('.swagger-ui')
     if (!root) {
       setTimeout(observe, 500)
       return
     }
+    registerServiceWorker()
     let shouldRefreshEndpointBlock = false
     if (window.performance && window.performance.getEntriesByType) {
       const navEntries = window.performance.getEntriesByType('navigation')
@@ -448,8 +498,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', observe)
+    document.addEventListener('DOMContentLoaded', checkVersionThenObserve)
   } else {
-    observe()
+    checkVersionThenObserve()
   }
 })()

@@ -7,6 +7,7 @@ const express = require('express')
 const morgan = require('morgan')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
+const { readFileSync } = require('fs')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
 const ddTrace = require('dd-trace')
@@ -25,7 +26,6 @@ const moesifMiddleware = require('./middlewares/moesif-monitor-middleware')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
-const packageJson = require('../package.json')
 const { fetchLatestRelease } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger/customization')
 const { localizeSwaggerDocument } = require('./swagger/translations')
@@ -88,7 +88,7 @@ swaggerDocument.servers = currentUrl === serverestUrl
   ? [{ url: serverestUrl }]
   : [{ url: currentUrl }, { url: serverestUrl }]
 
-swaggerDocument.info.version = packageJson.version
+swaggerDocument.info.version = version
 
 let latestReleaseInfo = null
 let latestReleasePromise = null
@@ -119,6 +119,7 @@ const uiOptionsBase = {
 
 app.use('/', swaggerUi.serve)
 app.get('/', async (req, res, next) => {
+  res.set('Cache-Control', 'no-cache, max-age=0')
   const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
   const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
   if (latestReleasePromise) {
@@ -127,7 +128,7 @@ app.get('/', async (req, res, next) => {
   const localizedSwagger = localizeSwaggerDocument(swaggerDocument, language)
   const customJsStr = buildCustomJsStr(
     latestReleaseInfo,
-    packageJson.version,
+    version,
     forceReleaseBanner
   )
   const uiOptions = {
@@ -138,12 +139,20 @@ app.get('/', async (req, res, next) => {
 })
 app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
 app.use('/flags', express.static(join(__dirname, '../docs/flags')))
+app.use('/images', express.static(join(__dirname, '../docs/images')))
 app.get('/swagger.json', (req, res) => {
   const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
   const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
   res.status(200).json(localizeSwaggerDocument(swaggerDocument, language))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
+app.get('/swagger-sw.js', (req, res) => {
+  const workerCode = readFileSync(join(__dirname, 'swagger/swagger-sw.js'), 'utf8')
+    .replace(/__VERSION__/g, version)
+  res.set('Content-Type', 'application/javascript; charset=utf-8')
+  res.set('Cache-Control', 'no-store')
+  res.send(workerCode)
+})
 
 /* istanbul ignore if */
 if (!ehAmbienteDeTestes) {
