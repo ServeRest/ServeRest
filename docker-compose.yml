@@ -121,10 +121,12 @@ services:
     extends: test-base
     command: npm run test:e2e -- --retries 1 --slow 1000
     environment:
-      TEST_TYPE: 'e2e-staging'
+      - TEST_TYPE=e2e-staging
+      - CI
 
   test-e2e-smoke-production:
     extends: test-base
     command: npm run test:smoke -- --retries 1 --slow 1000
     environment:
-      TEST_TYPE: 'e2e-production'
+      - TEST_TYPE=e2e-production
+      - CI
