@@ -49,6 +49,18 @@ jobs:
     - name: Lint
       run: npm run lint
 
+  i18n-validate:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v3
+    - name: Node.js Setup
+      uses: actions/setup-node@v4
+    - name: Validate Swagger translations
+      run: npm run i18n:validate
+
   commit-lint:
 
     runs-on: ubuntu-22.04

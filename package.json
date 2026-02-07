@@ -41,6 +41,7 @@
     "test:e2e": "mocha --config test/integration/.mocharc.js --fgrep @skipE2E --invert",
     "test:smoke": "mocha --config test/integration/.mocharc.js --grep @smokeE2E",
     "merge-lcov": "npx lcov-result-merger@3.1.0 'coverage-**/lcov.info' 'lcov.info'",
+    "i18n:validate": "node ./scripts/i18n-validate.js",
     "lint": "standard",
     "lint:fix": "standard --fix",
     "lint:staged": "lint-staged",
