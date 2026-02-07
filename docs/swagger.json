@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "description": "**O ServeRest é uma API REST gratuita que simula uma loja virtual com intuito de servir de material de estudos de testes de API.**\n\n**Não deixe de seguir o [autor do projeto](https://github.com/PauloGoncalvesBH) e deixar um star no repositório: [github.com/ServeRest/ServeRest](https://github.com/ServeRest/ServeRest)**\n\nEssa página documenta todas as rotas e como acessá-las. Para mais detalhes do ServeRest (como executar localmente utilizando Docker ou NPM, alterar timeout de autenticação, etc) acesse [o repositório do ServeRest](https://github.com/serverest/serverest).\n\nEstá utilizando Postman? Importe o [JSON do Swagger](https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json) para ter acesso às collections.\n\nVai fazer teste de carga? Leia a seção '[Teste de Carga](https://github.com/ServeRest/ServeRest#teste-de-carga)'.\n\n\nMuito obrigado ♥ a todos que apoiam o projeto [financeiramente](https://opencollective.com/serverest#section-contributors) ou [com código, ideias e divulgação](https://github.com/ServeRest/ServeRest#contribuidores-), graças a vocês **mais de R$ 2000,00 foram doados para a ONG [Todas as letras](https://todasasletras.org/)** até o momento.\n\nO ServeRest possui um front, com status em beta, não deixe de conhecer: [front.serverest.dev](https://front.serverest.dev).\n\nPrecisa de apoio? [Abra uma issue](https://github.com/ServeRest/ServeRest/issues) ou contate o mantenedor do projeto:\n",
+        "description": "info.description",
         "version": "2.X.X",
         "title": "ServeRest",
         "contact": {
@@ -23,19 +23,19 @@
     "tags": [
         {
             "name": "Login",
-            "description": "Autentique o seu usuário para montar um carrinho e, se for administrador, gerenciar os produtos"
+            "description": "tags.login.description"
         },
         {
             "name": "Usuários",
-            "description": "Gerencie os usuários, consulte dados para login e cadastre administrador"
+            "description": "tags.usuarios.description"
         },
         {
             "name": "Produtos",
-            "description": "Consulte produtos cadastrados ou, como administrador, gerencie os produtos da loja"
+            "description": "tags.produtos.description"
         },
         {
             "name": "Carrinhos",
-            "description": "Consulte os carrinhos cadastrados, faça um para o seu usuário e, no final, desista da compra pois estava só dando uma olhadinha"
+            "description": "tags.carrinhos.description"
         }
     ],
     "paths": {
@@ -44,14 +44,14 @@
                 "tags": [
                     "Login"
                 ],
-                "summary": "Realizar login",
-                "description": "A duração do token retornado em authorization é de 600 segundos (10 minutos). Caso esteja expirado irá receber status code 401 (Unauthorized).\n",
+                "summary": "paths.login.post.summary",
+                "description": "paths.login.post.description",
                 "requestBody": {
                     "$ref": "#/components/requestBodies/requestBodyLogin"
                 },
                 "responses": {
                     "200": {
-                        "description": "Login realizado com sucesso",
+                        "description": "paths.login.post.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -61,7 +61,7 @@
                         }
                     },
                     "401": {
-                        "description": "E-mail e/ou senha inválidos",
+                        "description": "paths.login.post.responses.401.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -78,7 +78,7 @@
                 "tags": [
                     "Usuários"
                 ],
-                "summary": "Listar usuários cadastrados",
+                "summary": "paths.usuarios.get.summary",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/_id"
@@ -98,7 +98,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de usuários",
+                        "description": "paths.usuarios.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -113,14 +113,14 @@
                 "tags": [
                     "Usuários"
                 ],
-                "summary": "Cadastrar usuário",
-                "description": "Não é permitido cadastrar usuário com email já utilizado",
+                "summary": "paths.usuarios.post.summary",
+                "description": "paths.usuarios.post.description",
                 "requestBody": {
                     "$ref": "#/components/requestBodies/requestBodyUsuarios"
                 },
                 "responses": {
                     "201": {
-                        "description": "Cadastro com sucesso",
+                        "description": "paths.usuarios.post.responses.201.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -140,13 +140,13 @@
                 "tags": [
                     "Usuários"
                 ],
-                "summary": "Buscar usuário por ID",
+                "summary": "paths.usuariosById.get.summary",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do usuário",
+                        "description": "paths.usuariosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "0uxuPY0cbmQhpEz1"
@@ -155,7 +155,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Usuário encontrado",
+                        "description": "paths.usuariosById.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -165,7 +165,7 @@
                         }
                     },
                     "400": {
-                        "description": "Usuário não encontrado",
+                        "description": "paths.usuariosById.get.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -186,14 +186,14 @@
                 "tags": [
                     "Usuários"
                 ],
-                "summary": "Excluir usuário",
-                "description": "Não é permitido excluir usuário com carrinho.",
+                "summary": "paths.usuariosById.delete.summary",
+                "description": "paths.usuariosById.delete.description",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do usuário",
+                        "description": "paths.usuariosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "0uxuPY0cbmQhpEz1"
@@ -202,7 +202,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Registro excluído com sucesso | Nenhum registro excluído",
+                        "description": "paths.usuariosById.delete.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -218,7 +218,7 @@
                         }
                     },
                     "400": {
-                        "description": "Usuário com carrinho cadastrado",
+                        "description": "paths.usuariosById.delete.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -233,14 +233,14 @@
                 "tags": [
                     "Usuários"
                 ],
-                "summary": "Editar usuário",
-                "description": "Não é permitido cadastrar usuário com email já utilizado.\nCaso não seja encontrado usuário com o ID informado é realizado novo cadastro ao invés de alteração.\n",
+                "summary": "paths.usuariosById.put.summary",
+                "description": "paths.usuariosById.put.description",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do usuário",
+                        "description": "paths.usuariosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "0uxuPY0cbmQhpEz1"
@@ -252,7 +252,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Alterado com sucesso",
+                        "description": "paths.usuariosById.put.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -262,7 +262,7 @@
                         }
                     },
                     "201": {
-                        "description": "Cadastro com sucesso",
+                        "description": "paths.usuariosById.put.responses.201.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -282,7 +282,7 @@
                 "tags": [
                     "Produtos"
                 ],
-                "summary": "Listar produtos cadastrados",
+                "summary": "paths.produtos.get.summary",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/_id"
@@ -302,7 +302,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de produtos",
+                        "description": "paths.produtos.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -322,14 +322,14 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Cadastrar produto",
-                "description": "Não é permitido cadastrar produto com nome já utilizado",
+                "summary": "paths.produtos.post.summary",
+                "description": "paths.produtos.post.description",
                 "requestBody": {
                     "$ref": "#/components/requestBodies/requestBodyProduto"
                 },
                 "responses": {
                     "201": {
-                        "description": "Cadastro com sucesso",
+                        "description": "paths.produtos.post.responses.201.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -355,13 +355,13 @@
                 "tags": [
                     "Produtos"
                 ],
-                "summary": "Buscar produto por ID",
+                "summary": "paths.produtosById.get.summary",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do produto",
+                        "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "BeeJh5lz3k6kSIzA"
@@ -370,7 +370,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Produto encontrado",
+                        "description": "paths.produtosById.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -380,7 +380,7 @@
                         }
                     },
                     "400": {
-                        "description": "Produto não encontrado",
+                        "description": "paths.produtosById.get.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -406,14 +406,14 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Excluir produto",
-                "description": "Não é permitido excluir produto que faz parte de carrinho.",
+                "summary": "paths.produtosById.delete.summary",
+                "description": "paths.produtosById.delete.description",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do produto",
+                        "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "K6leHdftCeOJj8BJ"
@@ -422,7 +422,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Registro excluído com sucesso | Nenhum registro excluído",
+                        "description": "paths.produtosById.delete.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -438,7 +438,7 @@
                         }
                     },
                     "400": {
-                        "description": "Produto faz parte de carrinho",
+                        "description": "paths.produtosById.delete.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -464,14 +464,14 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Editar produto",
-                "description": "Não é permitido cadastrar produto com nome já utilizado.\nCaso não seja encontrado usuário com o ID informado é realizado novo cadastro ao invés de alteração.\n",
+                "summary": "paths.produtosById.put.summary",
+                "description": "paths.produtosById.put.description",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do produto",
+                        "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "K6leHdftCeOJj8BJ"
@@ -483,7 +483,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Alterado com sucesso",
+                        "description": "paths.produtosById.put.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -493,7 +493,7 @@
                         }
                     },
                     "201": {
-                        "description": "Cadastro com sucesso",
+                        "description": "paths.produtosById.put.responses.201.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -519,8 +519,8 @@
                 "tags": [
                     "Carrinhos"
                 ],
-                "summary": "Listar carrinhos cadastrados",
-                "description": "Os carrinhos retornados são únicos por usuário",
+                "summary": "paths.carrinhos.get.summary",
+                "description": "paths.carrinhos.get.description",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/_id"
@@ -537,7 +537,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de carrinhos",
+                        "description": "paths.carrinhos.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -557,14 +557,14 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Cadastrar carrinho",
-                "description": "O carrinho é vinculado ao usuário do token enviado no header `Authorization`, sendo possível cadastrar apenas 1 carrinho por usuário.\nAo cadastrar carrinho com sucesso é feita a redução da quantidade no cadastro de cada produto inserido no carrinho.\n",
+                "summary": "paths.carrinhos.post.summary",
+                "description": "paths.carrinhos.post.description",
                 "requestBody": {
                     "$ref": "#/components/requestBodies/requestBodyCarrinho"
                 },
                 "responses": {
                     "201": {
-                        "description": "Cadastro com sucesso",
+                        "description": "paths.carrinhos.post.responses.201.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -574,7 +574,7 @@
                         }
                     },
                     "400": {
-                        "description": "Algo deu errado",
+                        "description": "paths.carrinhos.post.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -600,13 +600,13 @@
                 "tags": [
                     "Carrinhos"
                 ],
-                "summary": "Buscar carrinho por ID",
+                "summary": "paths.carrinhosById.get.summary",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "_id",
                         "required": true,
-                        "description": "ID do carrinho",
+                        "description": "paths.carrinhosById.parameters._id.description",
                         "schema": {
                             "type": "string",
                             "default": "qbMqntef4iTOwWfg"
@@ -615,7 +615,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Carrinho encontrado",
+                        "description": "paths.carrinhosById.get.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -625,7 +625,7 @@
                         }
                     },
                     "400": {
-                        "description": "Carrinho não encontrado",
+                        "description": "paths.carrinhosById.get.responses.400.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -653,11 +653,11 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Excluir carrinho",
-                "description": "Ao concluir uma compra o carrinho é excluído.\nO carrinho excluído será o vinculado ao usuário do `token` utilizado.\n",
+                "summary": "paths.carrinhosConcluirCompra.delete.summary",
+                "description": "paths.carrinhosConcluirCompra.delete.description",
                 "responses": {
                     "200": {
-                        "description": "Registro excluído com sucesso | Não foi encontrado carrinho para esse usuário",
+                        "description": "paths.carrinhosConcluirCompra.delete.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -688,11 +688,11 @@
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Excluir carrinho e retornar produtos para estoque",
-                "description": "Ao cancelar uma compra o carrinho é excluído e o estoque dos produtos desse carrinho é reabastecido.\nO carrinho excluído será o vinculado ao usuário do `token` utilizado.\n",
+                "summary": "paths.carrinhosCancelarCompra.delete.summary",
+                "description": "paths.carrinhosCancelarCompra.delete.description",
                 "responses": {
                     "200": {
-                        "description": "Registro excluído com sucesso | Não foi encontrado carrinho para esse usuário",
+                        "description": "paths.carrinhosCancelarCompra.delete.responses.200.description",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -764,6 +764,8 @@
                 "in": "query",
                 "name": "preco",
                 "required": false,
+                "description": "components.parameters.preco.description",
+                "example": 470,
                 "schema": {
                     "type": "integer",
                     "minimum": 1
@@ -781,6 +783,8 @@
                 "in": "query",
                 "name": "quantidade",
                 "required": false,
+                "description": "components.parameters.quantidade.description",
+                "example": 0,
                 "schema": {
                     "type": "integer",
                     "minimum": 0
@@ -790,6 +794,8 @@
                 "in": "query",
                 "name": "precoTotal",
                 "required": false,
+                "description": "components.parameters.precoTotal.description",
+                "example": 1300,
                 "schema": {
                     "type": "integer",
                     "minimum": 1
@@ -799,6 +805,8 @@
                 "in": "query",
                 "name": "quantidadeTotal",
                 "required": false,
+                "description": "components.parameters.quantidadeTotal.description",
+                "example": 2,
                 "schema": {
                     "type": "integer",
                     "minimum": 0
@@ -885,7 +893,7 @@
         },
         "responses": {
             "EmailJaUtilizado": {
-                "description": "E-mail já cadastrado",
+                "description": "components.responses.EmailJaUtilizado.description",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -895,7 +903,7 @@
                 }
             },
             "ProdutoNomeDuplicado": {
-                "description": "Já existe produto com esse nome",
+                "description": "components.responses.ProdutoNomeDuplicado.description",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -905,7 +913,7 @@
                 }
             },
             "TokenInvalido": {
-                "description": "Token ausente, inválido ou expirado",
+                "description": "components.responses.TokenInvalido.description",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -915,7 +923,7 @@
                 }
             },
             "RotaParaAdministradores": {
-                "description": "Rota exclusiva para administradores (`administrador = true`)",
+                "description": "components.responses.RotaParaAdministradores.description",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -930,7 +938,7 @@
                 "type": "apiKey",
                 "in": "header",
                 "name": "Authorization",
-                "description": "Informe o valor de `Authorization` retornado na rota _/login_"
+                "description": "components.securitySchemes.ApiKeyAuth.description"
             }
         },
         "schemas": {

@@ -33,7 +33,7 @@
     "commit": "cz",
     "start": "node ./src/server.js",
     "start:debug": "node --inspect=0.0.0.0 ./src/server.js",
-    "dev": "nodemon --legacy-watch -e json,js,css ./src/server.js --nodoc",
+    "dev": "nodemon --legacy-watch -e json,js,css,svg ./src/server.js --nodoc",
     "test:mutation": "stryker run ./test/stryker.conf.js",
     "test:mutation:diff": "stryker-diff-runner --path ./test/stryker.conf.js --branch trunk",
     "test:unit": "nyc --report-dir ./coverage-unit --check-coverage false mocha --config test/unit/.mocharc.js",

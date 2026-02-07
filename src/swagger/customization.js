@@ -13,9 +13,10 @@ function buildCustomJsStr (releaseInfo, currentVersion, forceBanner) {
     __FORCE_BANNER__: JSON.stringify(forceBanner)
   }
 
-  return Object.keys(replacements).reduce((output, key) => {
+  const customJsStr = Object.keys(replacements).reduce((output, key) => {
     return output.split(key).join(replacements[key])
   }, customJsTemplate)
+  return customJsStr
 }
 
 module.exports = {

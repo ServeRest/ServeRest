@@ -8,6 +8,56 @@
 
 .swagger-ui .topbar { background-color: #000000; border-bottom: 20px solid #7900e2; }
 
+.swagger-ui .markdown code,
+.swagger-ui .renderedMarkdown code {
+  font-size: 12px;
+}
+
+.swagger-ui .lang-switcher {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 4px 8px;
+  z-index: 9999;
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+}
+
+.swagger-ui .lang-switcher__button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swagger-ui .lang-switcher__flag {
+  display: block;
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.swagger-ui .lang-switcher__button:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.swagger-ui .lang-switcher__button.is-active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
 .swagger-ui .release-toast {
   position: fixed;
   right: 20px;
@@ -19,7 +69,7 @@
   border-radius: 10px;
   font-size: 14px;
   max-width: 360px;
-  box-shadow: 0 6px 12px rgba(121, 0, 226, 0.25);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
   z-index: 9999;
   display: flex;
   gap: 12px;

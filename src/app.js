@@ -28,8 +28,10 @@ const rateLimiter = require('./middlewares/rate-limiter')
 const packageJson = require('../package.json')
 const { fetchLatestRelease } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger/customization')
+const { localizeSwaggerDocument } = require('./swagger/translations')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'
+const supportedLanguages = new Set(['pt-BR', 'en', 'es'])
 
 const app = express()
 
@@ -117,20 +119,30 @@ const uiOptionsBase = {
 
 app.use('/', swaggerUi.serve)
 app.get('/', async (req, res, next) => {
+  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
+  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
   if (latestReleasePromise) {
     await latestReleasePromise
   }
+  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, language)
+  const customJsStr = buildCustomJsStr(
+    latestReleaseInfo,
+    packageJson.version,
+    forceReleaseBanner
+  )
   const uiOptions = {
     ...uiOptionsBase,
-    customJsStr: buildCustomJsStr(
-      latestReleaseInfo,
-      packageJson.version,
-      forceReleaseBanner
-    )
+    customJsStr
   }
-  return swaggerUi.setup(swaggerDocument, uiOptions)(req, res, next)
+  return swaggerUi.setup(localizedSwagger, uiOptions)(req, res, next)
 })
 app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
+app.use('/flags', express.static(join(__dirname, '../docs/flags')))
+app.get('/swagger.json', (req, res) => {
+  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
+  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
+  res.status(200).json(localizeSwaggerDocument(swaggerDocument, language))
+})
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 
 /* istanbul ignore if */
