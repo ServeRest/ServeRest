@@ -1,13 +1,54 @@
-/* Topbar e logo da documentação */
-.swagger-ui .topbar-wrapper .link {
-  display: block;
-  height: 60px;
-  background: url(/images/serverest_logo.png) no-repeat center / contain;
+/* Topbar: link nativo desabilitado; logo exibida em #serverest-logo.topbar-logo (criado via JS) */
+.swagger-ui .topbar-wrapper {
+  display: flex;
+  align-items: center;
 }
 
-.swagger-ui .topbar-wrapper .link svg { display: none; }
+.swagger-ui .topbar-wrapper .link {
+  display: none;
+}
 
-.swagger-ui .topbar { background-color: #000000; border-bottom: 20px solid #7900e2; }
+/* Logo = só o SVG (id + classe), proporção exata, letras brancas, fundo transparente */
+#serverest-logo.topbar-logo {
+  position: relative;
+  display: block;
+  width: calc(60px * 3864 / 1530);
+  height: 60px;
+  padding: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+#serverest-logo.topbar-logo::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: calc(100% + 4px);
+  height: 100%;
+  background-color: #ffffff;
+  -webkit-mask-image: linear-gradient(white, white), url(/images/serverest_logo.svg);
+  -webkit-mask-size: 100% 100%, 100% 100%;
+  -webkit-mask-position: center, center;
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-composite: destination-out;
+  mask-image: linear-gradient(white, white), url(/images/serverest_logo.svg);
+  mask-size: 100% 100%, 100% 100%;
+  mask-position: center, center;
+  mask-repeat: no-repeat, no-repeat;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.swagger-ui .topbar {
+  position: relative;
+  background-color: #000000;
+  border-bottom: 20px solid #7900e2;
+}
 
 .swagger-ui .markdown code,
 .swagger-ui .renderedMarkdown code {

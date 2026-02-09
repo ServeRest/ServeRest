@@ -119,6 +119,7 @@
       }, 0)
     })
     renderLanguageSwitcher(root)
+    setupTopbarLogo(root)
     scheduleTranslations()
     if (hasOpenOperationHash()) {
       setEndpointBlockOpen(true)
@@ -126,6 +127,24 @@
     const shouldRefreshEndpointBlock = setRefreshFlagFromState(language)
     updateSwaggerSpec(language, shouldRefreshEndpointBlock)
     runReleaseCheck()
+  }
+
+  function setupTopbarLogo (root) {
+    function run () {
+      const wrapper = root.querySelector('.topbar-wrapper')
+      const link = wrapper && wrapper.querySelector('.link')
+      if (!wrapper || !link) return
+      if (document.getElementById('serverest-logo')) return
+      const logo = document.createElement('div')
+      logo.id = 'serverest-logo'
+      logo.className = 'topbar-logo'
+      wrapper.insertBefore(logo, link)
+      link.style.display = 'none'
+      link.removeAttribute('href')
+      link.setAttribute('aria-hidden', 'true')
+    }
+    run()
+    setTimeout(run, 300)
   }
 
   function init () {

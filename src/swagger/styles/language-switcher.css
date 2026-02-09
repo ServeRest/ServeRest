@@ -2,7 +2,7 @@
 .swagger-ui .lang-switcher {
   position: fixed;
   left: 16px;
-  top: 16px;
+  top: 24px;
   display: flex;
   gap: 6px;
   background: rgba(255, 255, 255, 0.92);
@@ -11,10 +11,16 @@
   padding: 4px 8px;
   z-index: 9999;
   box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5);
+  transition: box-shadow 1.5s ease-out;
+}
+
+.swagger-ui .lang-switcher.lang-switcher--glow {
+  transition: box-shadow 0.15s ease-out;
 }
 
 .swagger-ui .lang-switcher__button {
   border: 0;
+  border-radius: 999px;
   background: transparent;
   cursor: pointer;
   font-size: 16px;
@@ -42,4 +48,17 @@
 .swagger-ui .lang-switcher__button.is-active {
   opacity: 1;
   transform: scale(1.3);
+}
+
+/* Brilho (shadow) em volta do lang-switcher na cor do país */
+.swagger-ui .lang-switcher[data-glow-lang='pt-BR'].lang-switcher--glow {
+  box-shadow: 0 0 6px #009739, 0 0 15px #009739;
+}
+
+.swagger-ui .lang-switcher[data-glow-lang='en'].lang-switcher--glow {
+  box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff;
+}
+
+.swagger-ui .lang-switcher[data-glow-lang='es'].lang-switcher--glow {
+  box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b;
 }

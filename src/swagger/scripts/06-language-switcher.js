@@ -4,10 +4,12 @@ function renderLanguageSwitcher (parent) {
   if (document.querySelector('.lang-switcher')) return
   const root = parent || document.querySelector('.swagger-ui')
   if (!root) return
+  const currentLang = getPreferredLanguage()
+  root.setAttribute('data-docs-lang', currentLang)
   const wrapper = document.createElement('div')
   wrapper.className = 'lang-switcher'
   wrapper.setAttribute('aria-label', 'Seleção de idioma')
-  const currentLang = getPreferredLanguage()
+  let glowTimeoutId = null
   supportedLanguages.forEach(language => {
     const button = document.createElement('button')
     button.type = 'button'
@@ -35,6 +37,18 @@ function renderLanguageSwitcher (parent) {
       const previousLanguage = getPreferredLanguage()
       window.sessionStorage.setItem(lastLanguageKey, previousLanguage)
       setPreferredLanguage(language.code)
+      root.setAttribute('data-docs-lang', language.code)
+      if (glowTimeoutId) clearTimeout(glowTimeoutId)
+      wrapper.classList.remove('lang-switcher--glow')
+      wrapper.removeAttribute('data-glow-lang')
+      wrapper.offsetHeight
+      wrapper.classList.add('lang-switcher--glow')
+      wrapper.setAttribute('data-glow-lang', language.code)
+      glowTimeoutId = setTimeout(() => {
+        glowTimeoutId = null
+        wrapper.classList.remove('lang-switcher--glow')
+        wrapper.removeAttribute('data-glow-lang')
+      }, 1000)
       const url = new URL(window.location.href)
       url.searchParams.set('lang', language.code)
       window.history.replaceState({}, '', url.toString())
@@ -45,6 +59,7 @@ function renderLanguageSwitcher (parent) {
       const shouldRefresh = setRefreshFlagFromState(language.code)
       updateSwaggerSpec(language.code, shouldRefresh)
       applyTranslations(language.code)
+      setTimeout(() => applyTranslations(language.code), 100)
       updateReleaseToastLanguage(language.code)
     })
     wrapper.appendChild(button)
