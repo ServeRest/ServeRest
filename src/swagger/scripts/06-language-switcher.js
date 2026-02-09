@@ -14,6 +14,7 @@ function renderLanguageSwitcher (parent) {
     button.className = 'lang-switcher__button'
     button.setAttribute('data-lang', language.code)
     button.setAttribute('aria-label', language.label)
+    button.setAttribute('title', language.label)
     const flagUrl = flagUrls[language.code]
     if (flagUrl) {
       const img = document.createElement('img')

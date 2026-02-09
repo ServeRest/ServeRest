@@ -30,7 +30,7 @@ const PREFETCH_PATHS = [
   '/swagger.json?lang=es',
   '/favicon.ico',
   '/flags/flag_brazil.svg',
-  '/flags/flag_spain.svg',
+  '/flags/flag_peru.svg',
   '/flags/flag_uk.svg',
   '/images/serverest_logo.png',
   '/swagger-ui.css',

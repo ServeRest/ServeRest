@@ -1,13 +1,13 @@
 const flagUrls = {
   'pt-BR': '/flags/flag_brazil.svg',
   en: '/flags/flag_uk.svg',
-  es: '/flags/flag_spain.svg'
+  es: '/flags/flag_peru.svg'
 }
 
 const supportedLanguages = [
-  { code: 'pt-BR', label: 'Português (Brasil)' },
-  { code: 'en', label: 'English (UK)' },
-  { code: 'es', label: 'Español' }
+  { code: 'pt-BR', label: 'Português do Brasil' },
+  { code: 'es', label: 'Español' },
+  { code: 'en', label: 'English' }
 ]
 
 function getPreferredLanguage () {
