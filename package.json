@@ -111,6 +111,9 @@
     }
   },
   "standard": {
+    "ignore": [
+      "src/swagger/scripts/*.js"
+    ],
     "globals": [
       "after",
       "afterEach",

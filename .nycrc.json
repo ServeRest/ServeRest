@@ -7,7 +7,7 @@
   "reporter": ["text", "lcov"],
   "exclude": [
     "test/**",
-    "src/swagger/customization.js",
+    "src/swagger/index.js",
     "src/middlewares/moesif-monitor-middleware.js",
     "src/middlewares/rate-limiter.js",
     "src/utils/ambiente.js"

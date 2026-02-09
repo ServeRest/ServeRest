@@ -1,0 +1,45 @@
+/* Seletor de idioma (bandeiras) */
+.swagger-ui .lang-switcher {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 4px 8px;
+  z-index: 9999;
+  box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5);
+}
+
+.swagger-ui .lang-switcher__button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swagger-ui .lang-switcher__flag {
+  display: block;
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.swagger-ui .lang-switcher__button:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.swagger-ui .lang-switcher__button.is-active {
+  opacity: 1;
+  transform: scale(1.3);
+}

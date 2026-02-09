@@ -27,7 +27,7 @@ const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
 const { fetchLatestRelease } = require('./utils/github-release')
-const { buildCustomJsStr, customCss } = require('./swagger/customization')
+const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'

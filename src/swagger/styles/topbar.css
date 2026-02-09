@@ -1,0 +1,15 @@
+/* Topbar e logo da documentação */
+.swagger-ui .topbar-wrapper .link {
+  display: block;
+  height: 60px;
+  background: url(/images/serverest_logo.png) no-repeat center / contain;
+}
+
+.swagger-ui .topbar-wrapper .link svg { display: none; }
+
+.swagger-ui .topbar { background-color: #000000; border-bottom: 20px solid #7900e2; }
+
+.swagger-ui .markdown code,
+.swagger-ui .renderedMarkdown code {
+  font-size: 12px;
+}
