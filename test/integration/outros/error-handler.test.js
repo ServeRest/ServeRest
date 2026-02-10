@@ -127,4 +127,23 @@ describe('Error handler', () => {
       descricao: 'descricao deve ser uma string'
     })
   })
+
+  it('should return 400 for malformed URL parameters - @skipE2E', async () => {
+    const consoleLogStub = sandbox.stub(console, 'log')
+
+    const { body, status } = await request.get('/usuarios/%%C2%A8%&74745754jfhjfbmurt745gfj6jfjrg')
+
+    chai.expect(status).to.equal(400)
+    chai.expect(body.message).to.include('Parâmetro de URL inválido')
+
+    sinon.assert.calledOnce(consoleLogStub)
+    sinon.assert.calledWith(consoleLogStub, sinon.match({
+      time: sinon.match((value) => {
+        const loggedAt = Date.parse(value)
+        return Math.abs(loggedAt - fixedDate) <= timestampToleranceInMillis
+      }, 'time within tolerance'),
+      level: 'alert',
+      message: sinon.match(/URI decode error: Failed to decode param '%%C2%A8%&74745754jfhjfbmurt745gfj6jfjrg'/)
+    }))
+  })
 })

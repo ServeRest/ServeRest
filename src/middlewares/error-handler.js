@@ -9,6 +9,12 @@ function errorHandler (error, _req, res, _next) {
   if (erroDeSchema) {
     return res.status(400).json(montarMensagemDeErroDeSchema(error))
   }
+  if (error.name === 'URIError') {
+    log({ message: `URI decode error: ${error.message}` })
+    return res.status(400).json({
+      message: 'Parâmetro de URL inválido. Verifique os caracteres especiais e tente novamente.'
+    })
+  }
   // https://github.com/expressjs/body-parser#errors
   if (error.type === 'entity.parse.failed') {
     log({ message: 'Entity parse error, user sending request without proper quotation marks.' })
