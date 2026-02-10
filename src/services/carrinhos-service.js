@@ -10,6 +10,16 @@ const produtosService = require('../services/produtos-service')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
 
+// Index frequently searched fields for better query performance
+/* istanbul ignore next */
+datastore.ensureIndex({ fieldName: 'idUsuario' })
+/* istanbul ignore next */
+datastore.ensureIndex({ fieldName: 'precoTotal' })
+/* istanbul ignore next */
+datastore.ensureIndex({ fieldName: 'quantidadeTotal' })
+/* istanbul ignore next */
+datastore.ensureIndex({ fieldName: 'produtos.idProduto' })
+
 exports.getAll = queryString => {
   queryString = alterarValoresParaRegex(queryString)
   return datastore.find(queryString)
@@ -21,6 +31,10 @@ exports.getOne = id => {
 
 exports.existeCarrinho = pesquisa => {
   return datastore.findOne(pesquisa)
+}
+
+exports.existeCarrinhoComProduto = idProduto => {
+  return datastore.findOne({ produtos: { $elemMatch: { idProduto } } })
 }
 
 exports.criarCarrinho = async body => {
@@ -39,17 +53,15 @@ exports.extrairProdutosDuplicados = arrayProdutos => {
 }
 
 exports.getProdutosComPrecoUnitarioOuErro = async arrayProdutos => {
-  const produtosComPrecoUnitario = []
-  for (const produto of arrayProdutos) {
-    const { precoUnitario: preco, error } = await produtosService.getPrecoUnitarioOuErro(produto)
-    if (error) {
-      const index = arrayProdutos.indexOf(produto)
-      const item = { ...error.item, index }
-      return { error: { ...error, item } }
-    }
-    produtosComPrecoUnitario.push({ ...produto, precoUnitario: preco })
+  // Use batch lookup instead of per-item queries to reduce round-trips
+  const { produtosComPreco, error } = await produtosService.getPrecosUnitariosPorLote(arrayProdutos)
+
+  if (error) {
+    const item = { ...error.item, index: error.index }
+    return { error: { ...error, item } }
   }
-  return { produtosComPrecoUnitario }
+
+  return { produtosComPrecoUnitario: produtosComPreco }
 }
 
 exports.deleteById = async id => {
@@ -80,24 +92,20 @@ exports.usuarioJaPossuiCarrinho = async (authorization) => {
 }
 
 exports.precoTotal = async (produtos) => {
-  return produtos.reduce(async (precoAnterior, produto) => {
-    return (await precoAnterior) + produto.precoUnitario * produto.quantidade
-  }, Promise.resolve(0))
+  return produtos.reduce((total, produto) => {
+    return total + (produto.precoUnitario * produto.quantidade)
+  }, 0)
 }
 
 exports.quantidadeTotal = async (produtos) => {
-  return produtos.reduce(async (quantidadeAnterior, produto) => {
-    await produtosService.updateQuantidade(produto)
-    return (await quantidadeAnterior) + produto.quantidade
-  }, Promise.resolve(0))
+  // Use batch update to reduce round-trips instead of updating per-item
+  await produtosService.updateQuantidadePorLote(produtos)
+  return produtos.reduce((total, produto) => total + produto.quantidade, 0)
 }
 
 exports.reabasteceEstoque = async produtos => {
-  for (const produto of produtos) {
-    const { idProduto, quantidade } = produto
-    const { quantidade: quantidadeEmEstoque } = await produtosService.getDadosDoProduto({ _id: idProduto })
-    await produtosService.updateById(idProduto, { $set: { quantidade: quantidadeEmEstoque + quantidade } })
-  }
+  // Use batch restore to reduce round-trips instead of restoring per-item
+  await produtosService.restoreQuantidadePorLote(produtos)
 }
 
 const idUsuario = async (authorization) => {

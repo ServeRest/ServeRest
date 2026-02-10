@@ -33,7 +33,7 @@ describe(rotaUsuarios + ' DELETE', () => {
     const idUsuario = 'jSlx8zTdhRcoMS64'
     const idCarrinho = 'IU1c72V7iMKAxqt9'
 
-    sandbox.stub(carrinhosService, 'getAll').returns([{
+    sandbox.stub(carrinhosService, 'existeCarrinho').returns({
       produtos: [{
         idProduto: 'duYhYQtodnlMCAEr',
         quantidade: 1,
@@ -43,11 +43,11 @@ describe(rotaUsuarios + ' DELETE', () => {
       quantidadeTotal: 1,
       idUsuario,
       _id: idCarrinho
-    }])
+    })
 
     const { body } = await request.del(`${rotaUsuarios}/${idUsuario}`).expect(400)
 
-    sandbox.assert.calledOnce(carrinhosService.getAll)
+    sandbox.assert.calledOnce(carrinhosService.existeCarrinho)
     chai.assert.deepEqual(body, { message: 'Não é permitido excluir usuário com carrinho cadastrado', idCarrinho })
   })
 })

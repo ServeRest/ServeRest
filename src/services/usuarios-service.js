@@ -7,6 +7,10 @@ const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/usuarios.db'), autoload: true })
 
+// Index frequently searched fields for better query performance
+/* istanbul ignore next */
+datastore.ensureIndex({ fieldName: 'email', sparse: true })
+
 exports.getAll = queryString => {
   queryString = alterarValoresParaRegex(queryString)
   return datastore.find(queryString)
@@ -25,8 +29,8 @@ exports.existeUsuario = async pesquisa => {
 }
 
 exports.usuarioEhAdministrador = async ({ email, password }) => {
-  const resultado = await datastore.find({ email, password })
-  return JSON.parse(resultado[0].administrador)
+  const resultado = await datastore.findOne({ email, password })
+  return JSON.parse(resultado.administrador)
 }
 
 exports.createUser = async body => {

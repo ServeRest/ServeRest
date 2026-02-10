@@ -1,1 +1,3 @@
 {"nome":"Fulano da Silva","email":"fulano@qa.com","password":"teste","administrador":"true","_id":"0uxuPY0cbmQhpEz1"}
+{"$$indexCreated":{"fieldName":"email","unique":false,"sparse":true}}
+{"$$indexCreated":{"fieldName":"email","sparse":true}}

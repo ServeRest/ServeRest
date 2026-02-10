@@ -34,11 +34,9 @@ exports.post = async (req, res) => {
 }
 
 exports.delete = async (req, res) => {
-  const carrinhoDoUsuario = await carrinhosService.getAll({ produtos: { $elemMatch: { idProduto: req.params.id } } })
-  const usuarioTemCarrinho = carrinhoDoUsuario.length > 0
-  if (usuarioTemCarrinho) {
-    const idCarrinhos = carrinhoDoUsuario.map(carrinhos => carrinhos._id)
-    return res.status(400).send({ message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos })
+  const carrinhoComProduto = await carrinhosService.existeCarrinhoComProduto(req.params.id)
+  if (carrinhoComProduto) {
+    return res.status(400).send({ message: constant.DELETE_PRODUCT_WITH_CART, idCarrinhos: [carrinhoComProduto._id] })
   }
   const quantidadeRegistrosExcluidos = await service.deleteById(req.params.id)
   const message = quantidadeRegistrosExcluidos === 0 ? constant.DELETE_NONE : constant.DELETE_SUCCESS
