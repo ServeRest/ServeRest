@@ -20,38 +20,29 @@ const transformCommitType = type => {
   return commitTypeMapping[type] || commitTypeMapping.default
 }
 
+// O conventional-changelog-writer entrega o commit dentro de um Proxy imutável e espera
+// de volta apenas um patch, que ele mescla com o commit original. Por isso nada aqui é
+// alterado no objeto recebido: tudo é derivado em cópias novas.
 const customTransform = (commit, context) => {
   const issues = []
 
-  commit.notes.forEach(note => {
-    note.title = 'BREAKING CHANGES'
-  })
+  let subject = commit.subject
 
-  commit.type = transformCommitType(commit.type)
-
-  if (commit.scope === '*') {
-    commit.scope = ''
-  }
-
-  if (typeof commit.hash === 'string') {
-    commit.shortHash = commit.hash.substring(0, 7)
-  }
-
-  if (typeof commit.subject === 'string') {
+  if (typeof subject === 'string') {
     let url = context.repository
       ? `${context.host}/${context.owner}/${context.repository}`
       : context.repoUrl
     if (url) {
       url = `${url}/issues/`
       // Issue URLs.
-      commit.subject = commit.subject.replace(/#([0-9]+)/g, (_, issue) => {
+      subject = subject.replace(/#([0-9]+)/g, (_, issue) => {
         issues.push(issue)
         return `[#${issue}](${url}${issue})`
       })
     }
     if (context.host) {
       // User URLs.
-      commit.subject = commit.subject.replace(/\B@([a-z0-9](?:-?[a-z0-9/]){0,38})/g, (_, username) => {
+      subject = subject.replace(/\B@([a-z0-9](?:-?[a-z0-9/]){0,38})/g, (_, username) => {
         if (username.includes('/')) {
           return `@${username}`
         }
@@ -60,15 +51,17 @@ const customTransform = (commit, context) => {
     }
   }
 
-  // remove references that already appear in the subject
-  commit.references = commit.references.filter(reference => {
-    if (issues.indexOf(reference.issue) === -1) {
-      return true
-    }
-    return false
-  })
-
-  return commit
+  return {
+    notes: commit.notes.map(note => ({ ...note, title: 'BREAKING CHANGES' })),
+    type: transformCommitType(commit.type),
+    scope: commit.scope === '*' ? '' : commit.scope,
+    shortHash: typeof commit.hash === 'string' ? commit.hash.substring(0, 7) : commit.shortHash,
+    subject,
+    // remove references that already appear in the subject
+    references: commit.references
+      .filter(reference => issues.indexOf(reference.issue) === -1)
+      .map(reference => ({ ...reference }))
+  }
 }
 
 module.exports = {
