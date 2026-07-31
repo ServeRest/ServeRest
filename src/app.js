@@ -50,6 +50,11 @@ if (process.env.BLOCKED_IPS) {
 }
 
 app.set('json spaces', 4)
+// Confia em exatamente um proxy, que é o do Cloud Run. Sem isso req.ip resolve para o
+// endereço do proxy e todos os clientes viram a mesma chave no rate limiter. Com 'true'
+// o Express passaria a ler o primeiro endereço do X-Forwarded-For, que o próprio cliente
+// pode forjar, então o número de saltos precisa ser explícito.
+app.set('trust proxy', 1)
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(queryParser())
