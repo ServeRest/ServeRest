@@ -92,9 +92,11 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true \
-          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=true \
-          --update-env-vars=DD_APPSEC_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=false \
+          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false \
+          --update-env-vars=DD_APPSEC_ENABLED=false \
+          --concurrency=80 \
+          --timeout=60s
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: staging.serverest.dev
@@ -192,9 +194,11 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true \
-          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=true \
-          --update-env-vars=DD_APPSEC_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=false \
+          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false \
+          --update-env-vars=DD_APPSEC_ENABLED=false \
+          --concurrency=80 \
+          --timeout=60s
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
@@ -260,9 +264,11 @@ jobs:
           --update-env-vars=DD_RUNTIME_METRICS_ENABLED=true \
           --update-env-vars=DD_TRACE_HEADER_TAGS=true \
           --update-env-vars=DD_LOGS_ENABLED=true \
-          --update-env-vars=DD_PROFILING_ENABLED=true \
-          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=true \
-          --update-env-vars=DD_APPSEC_ENABLED=true
+          --update-env-vars=DD_PROFILING_ENABLED=false \
+          --update-env-vars=DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false \
+          --update-env-vars=DD_APPSEC_ENABLED=false \
+          --concurrency=80 \
+          --timeout=60s
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: compassuol
