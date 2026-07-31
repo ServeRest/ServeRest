@@ -41,6 +41,13 @@ jobs:
 
     runs-on: ubuntu-22.04
 
+    # 'id-token' é exigido pelo trusted publishing do npm, que autentica via OIDC
+    permissions:
+      id-token: write
+      contents: write
+      issues: write
+      pull-requests: write
+
     steps:
     - name: Project checkout
       uses: actions/checkout@v3
@@ -48,6 +55,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
+    # O Node 22 embute o npm 10.x e o trusted publishing exige 11.5.1 ou superior
+    - name: Update npm to a version that supports trusted publishing
+      run: npm install -g npm@latest
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Install 1Password CLI
@@ -63,15 +73,16 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GH_TOKEN: op://CI-CD/GitHub/GH_TOKEN
-        NPM_TOKEN: op://CI-CD/npm/NPM_TOKEN
         DOCKER_REGISTRY_USER: op://CI-CD/docker/username
         DOCKER_REGISTRY_PASSWORD: op://CI-CD/docker/password
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
+    # Sem NPM_TOKEN: o npm detecta o ambiente OIDC e publica via trusted publishing.
+    # A versão vem do package.json, que já traz semantic-release 25 e @semantic-release/npm 13,
+    # as primeiras com suporte a OIDC.
     - name: Release on NPM and Docker
-      run: npx semantic-release@21.0.7
+      run: npx semantic-release
       env:
         GITHUB_TOKEN: ${{ env.GH_TOKEN }}
-        NPM_TOKEN: ${{ env.NPM_TOKEN }}
         DOCKER_REGISTRY_USER: ${{ env.DOCKER_REGISTRY_USER }}
         DOCKER_REGISTRY_PASSWORD: ${{ env.DOCKER_REGISTRY_PASSWORD }}
     - run: docker compose build test-contract
