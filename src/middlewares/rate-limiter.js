@@ -28,10 +28,12 @@ module.exports = async (req, res, next) => {
   }
 
   try {
-    await Promise.all([
-      limitePorIp.consume(req.ip),
-      limiteGlobal.consume('global')
-    ])
+    // O global vem primeiro de propósito. Avaliar os dois em paralelo faria a requisição
+    // consumir a cota individual mesmo quando o bloqueio viesse do limite agregado, o que
+    // penalizaria clientes inocentes durante congestionamento e, pior, criaria uma chave
+    // por endereço no mapa mesmo para requisições já rejeitadas.
+    await limiteGlobal.consume('global')
+    await limitePorIp.consume(req.ip)
     return next()
   } catch (limiteAtingido) {
     return res.status(429).send({
