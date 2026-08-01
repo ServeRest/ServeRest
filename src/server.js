@@ -14,8 +14,38 @@ const { version } = require('../package.json')
 const { formaDeExecucao, urlDocumentacao, aplicacaoExecutandoLocalmente } = require('./utils/ambiente')
 const { conf } = require('./utils/conf')
 const getRandomFinancialContributor = require('./utils/getRandomFinancialContributor')
+const { log } = require('./utils/logger')
 
 const DEFAULT_PORT = 3000
+
+// Erros fora do ciclo de uma requisição encerram o processo sem deixar registro da causa,
+// o que no Cloud Run aparece apenas como um container reiniciando sem explicação.
+/* istanbul ignore next */
+process.on('uncaughtException', erro => {
+  // Responder a uma requisição já encerrada é inofensivo: a resposta chegou ao cliente e o
+  // processo segue íntegro. Derrubar o servidor por isso custaria uma indisponibilidade
+  // inteira para corrigir nada.
+  if (erro.code === 'ERR_HTTP_HEADERS_SENT') {
+    log({ level: 'error', message: `Tentativa de responder requisição já encerrada: ${erro.message}` })
+    return
+  }
+
+  encerrar(`Exceção não capturada: ${erro.message}. Stack: ${erro.stack}`)
+})
+
+/* istanbul ignore next */
+process.on('unhandledRejection', motivo => {
+  encerrar(`Promise rejeitada sem tratamento: ${motivo instanceof Error ? motivo.stack : motivo}`)
+})
+
+// Sai de imediato em vez de drenar as conexões abertas. Com max-instances 1 no Cloud Run
+// não existe outra instância para atender quem chegar durante a drenagem, então esperar
+// só adiaria a subida do container substituto e prolongaria a indisponibilidade.
+/* istanbul ignore next */
+function encerrar (mensagem) {
+  log({ level: 'error', message: mensagem })
+  process.exit(1)
+}
 
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
