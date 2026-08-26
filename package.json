@@ -1,8 +1,8 @@
 {
   "name": "serverest",
   "version": "3.2.2",
-  "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
-  "author": "Paulo Gonçalves <author@serverest.dev> (https://www.linkedin.com/in/paulo-goncalves/)",
+  "description": "Servidor REST local de forma r\u00e1pida e simples para estudo de testes de API",
+  "author": "Paulo Gon\u00e7alves <author@serverest.dev> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "GPL-3.0",
   "main": "./src/server.js",
   "bin": {
@@ -131,5 +131,8 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
+  },
+  "overrides": {
+    "crypto-js": "4.2.0"
   }
 }
