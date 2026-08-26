@@ -10,7 +10,7 @@ const { LOAD_TEST_DETECTED } = require('../utils/constants')
 // para o endereço do proxy do Cloud Run e este limite passaria a valer para todos somados.
 const limitePorIp = new RateLimiterMemory({
   points: 300, // requests
-  duration: 30 // segundo por IP
+  duration: 30 // segundos, por IP
 })
 
 // Limite agregado do container. Existe porque o limite por IP, sozinho, não impõe teto ao
@@ -35,7 +35,7 @@ module.exports = async (req, res, next) => {
     await limiteGlobal.consume('global')
     await limitePorIp.consume(req.ip)
     return next()
-  } catch (limiteAtingido) {
+  } catch (_) {
     return res.status(429).send({
       message: LOAD_TEST_DETECTED
     })
