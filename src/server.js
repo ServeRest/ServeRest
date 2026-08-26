@@ -7,7 +7,9 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env'), quiet: true
 
 const colors = require('colors')
 const debug = require('debug')('nodestr:server')
+const fs = require('fs')
 const http = require('http')
+const util = require('util')
 const open = require('open').default
 
 const { version } = require('../package.json')
@@ -21,7 +23,12 @@ const DEFAULT_PORT = 3000
 // Erros fora do ciclo de uma requisição encerram o processo sem deixar registro da causa,
 // o que no Cloud Run aparece apenas como um container reiniciando sem explicação.
 /* istanbul ignore next */
-process.on('uncaughtException', erro => {
+process.on('uncaughtException', valor => {
+  // Node permite lançar qualquer valor, não só Error. Sem esta normalização, um throw de
+  // string ou null faria o próprio handler lançar ao acessar .code, perdendo o registro
+  // da causa, que é justamente o que estes handlers existem para garantir.
+  const erro = valor instanceof Error ? valor : new Error(util.inspect(valor))
+
   // Responder a uma requisição já encerrada é inofensivo: a resposta chegou ao cliente e o
   // processo segue íntegro. Derrubar o servidor por isso custaria uma indisponibilidade
   // inteira para corrigir nada.
@@ -35,7 +42,7 @@ process.on('uncaughtException', erro => {
 
 /* istanbul ignore next */
 process.on('unhandledRejection', motivo => {
-  encerrar(`Promise rejeitada sem tratamento: ${motivo instanceof Error ? motivo.stack : motivo}`)
+  encerrar(`Promise rejeitada sem tratamento: ${motivo instanceof Error ? motivo.stack : util.inspect(motivo)}`)
 })
 
 // Sai de imediato em vez de drenar as conexões abertas. Com max-instances 1 no Cloud Run
@@ -43,6 +50,10 @@ process.on('unhandledRejection', motivo => {
 // só adiaria a subida do container substituto e prolongaria a indisponibilidade.
 /* istanbul ignore next */
 function encerrar (mensagem) {
+  // console.log é assíncrono quando stdout é um pipe, caso do Cloud Run, e process.exit
+  // não drena writes pendentes. A escrita síncrona no stderr garante que a causa fique
+  // registrada mesmo que o log estruturado seja truncado pelo encerramento.
+  fs.writeSync(2, `${mensagem}\n`)
   log({ level: 'error', message: mensagem })
   process.exit(1)
 }
