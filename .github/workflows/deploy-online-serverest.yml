@@ -33,7 +33,7 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
     - name: Authentication on GCloud
@@ -105,7 +105,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - run: docker compose build test-e2e-staging
     - name: Run E2E test in staging environment
       run: make test-e2e-staging
@@ -197,7 +197,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     - run: docker compose build test-e2e-smoke-production
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
@@ -364,7 +364,7 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'staging' tag
       run: |
@@ -387,7 +387,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v2
       env:
