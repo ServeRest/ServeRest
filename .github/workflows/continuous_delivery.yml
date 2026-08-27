@@ -24,7 +24,7 @@ jobs:
   #     with:
   #       files: src
   #   - name: Load secrets from 1password
-  #     uses: 1password/load-secrets-action@v2
+  #     uses: 1password/load-secrets-action@v3
   #     env:
   #       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
   #       STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
@@ -69,7 +69,7 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v3
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GH_TOKEN: op://CI-CD/GitHub/GH_TOKEN
