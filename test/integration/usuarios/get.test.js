@@ -40,4 +40,24 @@ describe(rotaUsuarios + ' GET', () => {
       inexistente: 'inexistente não é permitido'
     })
   })
+
+  it('Query string - Filtros de texto não devem aceitar emojis', async () => {
+    const { body } = await request.get(rotaUsuarios).query({
+      nome: '😇',
+      email: '😅qa@teste.com',
+      password: '🚧'
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      email: 'email não deve conter emojis ou caracteres não textuais',
+      password: 'password não deve conter emojis ou caracteres não textuais'
+    })
+  })
+
+  it('Query string - Filtro numérico continua sendo aceito', async () => {
+    const { body } = await request.get(rotaUsuarios).query({ nome: 123 }).expect(200)
+
+    chai.assert.deepEqual(body, { quantidade: 0, usuarios: [] })
+  })
 })

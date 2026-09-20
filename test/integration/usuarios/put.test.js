@@ -54,4 +54,19 @@ describe(rotaUsuarios + ' PUT', () => {
 
     chai.assert.deepEqual(bodyPut, { message: 'Registro alterado com sucesso' })
   })
+
+  it('Bad request - Campos de texto não devem aceitar emojis', async () => {
+    const { body } = await request.put(rotaUsuarios + '/a').send({
+      nome: '😇QA Tester',
+      email: '😅qa@teste.com',
+      password: '🚧teste1',
+      administrador: 'true'
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      email: 'email não deve conter emojis ou caracteres não textuais',
+      password: 'password não deve conter emojis ou caracteres não textuais'
+    })
+  })
 })

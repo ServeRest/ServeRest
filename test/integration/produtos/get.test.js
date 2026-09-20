@@ -58,4 +58,13 @@ describe(rotaProdutos + ' GET', () => {
       quantidade: 'quantidade deve ser maior ou igual a 0'
     })
   })
+
+  it('Query string - Filtros de texto não devem aceitar emojis', async () => {
+    const { body } = await request.get(rotaProdutos).query({ nome: '😇', descricao: '🚧' }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      descricao: 'descricao não deve conter emojis ou caracteres não textuais'
+    })
+  })
 })

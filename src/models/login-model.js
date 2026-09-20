@@ -2,9 +2,11 @@
 
 const { Joi } = require('express-validation')
 
+const { email, texto } = require('../utils/textoSemEmoji')
+
 exports.schemaPost = {
   body: Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required()
+    email: email().required(),
+    password: texto().required()
   })
 }

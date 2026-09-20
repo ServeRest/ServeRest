@@ -62,4 +62,30 @@ describe(rotaUsuarios + ' POST', () => {
       administrador: "administrador deve ser 'true' ou 'false'"
     })
   })
+
+  it('Bad request - Campos de texto não devem aceitar emojis', async () => {
+    const { body } = await request.post(rotaUsuarios).send({
+      nome: '😇QA Tester',
+      email: '😅qa@teste.com',
+      password: '🚧teste1',
+      administrador: 'true'
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      email: 'email não deve conter emojis ou caracteres não textuais',
+      password: 'password não deve conter emojis ou caracteres não textuais'
+    })
+  })
+
+  it('Cadastro com acentuação no nome com sucesso', async () => {
+    const { body } = await request.post(rotaUsuarios).send({
+      nome: 'José Ação ' + faker.person.lastName(),
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+      administrador: `${faker.helpers.arrayElement([true, false])}`
+    }).expect(201)
+
+    chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
+  })
 })

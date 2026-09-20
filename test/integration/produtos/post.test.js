@@ -139,6 +139,30 @@ describe(rotaProdutos + ' POST', () => {
     })
   })
 
+  it('Bad request - Campos de texto não devem aceitar emojis', async () => {
+    const { body } = await request
+      .post(rotaProdutos)
+      .send({ ...utils.dadosProduto(), nome: '😇Mouse', descricao: '🚧Periférico', imagem: '🖼️foto.png' })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      descricao: 'descricao não deve conter emojis ou caracteres não textuais',
+      imagem: 'imagem não deve conter emojis ou caracteres não textuais'
+    })
+  })
+
+  it('Cadastro com acentuação no nome e na descrição com sucesso', async () => {
+    const { body } = await request
+      .post(rotaProdutos)
+      .send({ ...utils.dadosProduto(), descricao: 'Periférico de precisão para programação' })
+      .set('authorization', authorizationAdministrador)
+      .expect(201)
+
+    chai.assert.deepEqual(body, { message: 'Cadastro realizado com sucesso', _id: body._id })
+  })
+
   describe('Number.MAX_SAFE_INTEGER', () => {
     it('Deve retornar erro 400 ao enviar número inteiro maior que Number.MAX_SAFE_INTEGER', async () => {
       let produto = utils.dadosProduto()

@@ -18,6 +18,7 @@ module.exports = error => {
       'object.unknown': `${propriedade} não é permitido`,
       'string.base': `${propriedade} deve ser uma string`,
       'string.email': `${propriedade} deve ser um email válido`,
+      'string.emoji': `${propriedade} não deve conter emojis ou caracteres não textuais`,
       'string.empty': `${propriedade} não pode ficar em branco`,
       'string.pattern.base': `${propriedade} deve ter exatamente 16 caracteres alfanuméricos`,
       default: `${erro.message} - Erro ${erro.type} - Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues`

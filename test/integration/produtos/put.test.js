@@ -94,4 +94,17 @@ describe(rotaProdutos + ' PUT', () => {
       inexistente: 'inexistente não é permitido'
     })
   })
+
+  it('Bad request - Campos de texto não devem aceitar emojis', async () => {
+    const { body } = await request
+      .put(rotaProdutos + '/a')
+      .send({ ...utils.dadosProduto(), nome: '😇Mouse', descricao: '🚧Periférico' })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      nome: 'nome não deve conter emojis ou caracteres não textuais',
+      descricao: 'descricao não deve conter emojis ou caracteres não textuais'
+    })
+  })
 })
