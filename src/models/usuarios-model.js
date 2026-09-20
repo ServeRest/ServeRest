@@ -2,12 +2,14 @@
 
 const { Joi } = require('express-validation')
 
+const { email, filtroDeTexto, texto } = require('../utils/textoSemEmoji')
+
 exports.schemaGet = {
   query: Joi.object({
     _id: Joi.any(),
-    nome: Joi.any(),
-    email: Joi.string().email(),
-    password: Joi.any(),
+    nome: filtroDeTexto(),
+    email: email(),
+    password: filtroDeTexto(),
     administrador: Joi.any().valid('true', 'false')
   })
 }
@@ -20,9 +22,9 @@ exports.schemaGetOne = {
 
 exports.schemaPost = {
   body: Joi.object({
-    nome: Joi.string().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    nome: texto().required(),
+    email: email().required(),
+    password: texto().required(),
     administrador: Joi.any().valid('true', 'false').required()
   })
 }

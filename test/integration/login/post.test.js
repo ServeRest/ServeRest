@@ -58,4 +58,16 @@ describe(rotaLogin + ' POST', () => {
       password: 'password é obrigatório'
     })
   })
+
+  it('Bad request - Campos de texto não devem aceitar emojis', async () => {
+    const { body } = await request.post(rotaLogin).send({
+      email: '😅qa@teste.com',
+      password: '🚧teste1'
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      email: 'email não deve conter emojis ou caracteres não textuais',
+      password: 'password não deve conter emojis ou caracteres não textuais'
+    })
+  })
 })
