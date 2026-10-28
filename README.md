@@ -105,6 +105,15 @@ Utilize esse comportamento nos seus testes, validando a presença/ausência dess
 
 </details>
 
+### Chave de assinatura JWT
+
+Por padrão, uma chave aleatória é criada para cada processo. Os tokens deixam
+de ser válidos após uma reinicialização e não são compartilhados entre instâncias.
+Para manter os tokens entre reinicializações ou compartilhá-los entre instâncias,
+configure `JWT_SECRET` com o mesmo valor aleatório de pelo menos 32 bytes e
+guarde-o em local seguro. Um valor vazio, curto ou igual à chave pública antiga
+será rejeitado. Para gerar um valor seguro, use `openssl rand -hex 32` uma vez.
+
 ### Localmente com docker
 
 Execute o seguinte comando no terminal:
