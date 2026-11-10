@@ -127,6 +127,29 @@ describe('Painel de fluxo da requisição', () => {
     expect(model.howKey).to.equal('ui.flow.how.stage.body')
   })
 
+  it('408 com etapa falhando: textos de tempo limite, com ou sem reason', () => {
+    const semReason = modelo('body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, auth;st=failed;dur=5001.20, schema;st=not_run, rules;st=not_run', 408)
+    const comReason = modelo('body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, auth;st=failed;dur=5001.20;reason=token_missing, schema;st=not_run, rules;st=not_run', 408)
+    ;[semReason, comReason].forEach(model => {
+      expect(model.summary).to.equal('stopped')
+      expect(model.failedStage).to.equal('auth')
+      expect(model.whyKey).to.equal('ui.flow.why.status.timeout')
+      expect(model.howKey).to.equal('ui.flow.how.status.timeout')
+    })
+  })
+
+  it('500 com etapa falhando: textos de erro inesperado, mesmo com regra falhando', () => {
+    const leitura = modelo('body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, schema;st=ok;dur=0.10, read;st=failed;dur=0.40', 500)
+    expect(leitura.failedStage).to.equal('read')
+    expect(leitura.whyKey).to.equal('ui.flow.why.status.unexpected_error')
+    expect(leitura.howKey).to.equal('ui.flow.how.status.unexpected_error')
+    const regra = modelo(headerComRegraFalhando('enough_stock'), 500)
+    expect(regra.failedStage).to.equal('rules')
+    expect(regra.failedRule).to.equal('enough_stock')
+    expect(regra.whyKey).to.equal('ui.flow.why.status.unexpected_error')
+    expect(regra.howKey).to.equal('ui.flow.how.status.unexpected_error')
+  })
+
   it('405 sem etapa falhando: resumo outside', () => {
     const model = modelo(headers.rotaInexistente, 405)
     expect(model.summary).to.equal('outside')
@@ -155,7 +178,7 @@ describe('Painel de fluxo da requisição', () => {
     expect(model.whyKey).to.equal('ui.flow.why.stage.rules')
     expect(orfa.name).to.equal('extra.orphan')
     expect(orfa.labelKey).to.equal(null)
-    const falhaDesconhecida = modelo('cache;st=failed;dur=0.2', 500)
+    const falhaDesconhecida = modelo('cache;st=failed;dur=0.2', 400)
     expect(falhaDesconhecida.summary).to.equal('stopped')
     expect(falhaDesconhecida.whyKey).to.equal(null)
     expect(falhaDesconhecida.howKey).to.equal(null)
@@ -175,7 +198,9 @@ describe('Painel de fluxo da requisição', () => {
       ...regras.map(regra => modelo(headerComRegraFalhando(regra), 400)),
       ...motivosDeAuth.map(motivo => modelo(`auth;st=failed;reason=${motivo}`, 401)),
       ...['body', 'rate_limit', 'auth', 'schema', 'read', 'rules', 'write'].map(etapa => modelo(`${etapa};st=failed`, 400)),
-      ...['ok', 'skipped', 'not_run'].map(st => modelo(`read;st=${st}`, 200))
+      ...['ok', 'skipped', 'not_run'].map(st => modelo(`read;st=${st}`, 200)),
+      modelo('auth;st=failed', 408),
+      modelo('read;st=failed', 500)
     ]
     const chavesNoScript = scriptSource.match(/'ui\.(flow\.[a-z_.]*[a-z_]|response)'/g).map(chave => chave.slice(1, -1))
     const chaves = new Set([...modelos.flatMap(chavesDoModelo), ...chavesNoScript])
