@@ -6,6 +6,13 @@
   const stagesHeader = 'x-serverest-stages'
   const slowMotionKey = 'serverestFlowSlowMotion'
 
+  // Com tempos reais uma etapa lenta ocuparia quase toda a barra e esconderia as demais. A raiz
+  // quadrada mantém a etapa mais lenta como a mais larga, mas suaviza a diferença; etapas sem
+  // duração recebem a largura de uma etapa rápida típica (0,2 ms).
+  function segmentGrow (stage) {
+    return Math.sqrt(typeof stage.dur === 'number' && stage.dur > 0 ? stage.dur : 0.2)
+  }
+
   // Em pt-BR e es o separador decimal é a vírgula; a página guarda o idioma na URL e no localStorage.
   function formatDuration (dur) {
     let language = ''
@@ -274,7 +281,7 @@
       return h('span', {
         key: stage.name,
         className: 'serverest-flow-seg' + (stage.st === 'failed' ? ' serverest-flow-seg-fail' : '') + (skipped ? ' serverest-flow-seg-skip' : ''),
-        style: { flexGrow: stage.width }
+        style: { flexGrow: segmentGrow(stage) }
       }, fill(state, delay))
     }
 
