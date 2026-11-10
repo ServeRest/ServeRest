@@ -71,7 +71,10 @@
     }
   }
 
-  function failureKeys (stage, rule) {
+  function failureKeys (stage, rule, status) {
+    // 408 marca como failed a etapa em execução no timeout, e 500 ou mais é erro inesperado: a etapa não explica a falha.
+    if (status === 408) return { whyKey: 'ui.flow.why.status.timeout', howKey: 'ui.flow.how.status.timeout' }
+    if (status >= 500) return { whyKey: 'ui.flow.why.status.unexpected_error', howKey: 'ui.flow.how.status.unexpected_error' }
     if (rule) {
       const why = knownKey('ui.flow.why.rule.' + rule.code)
       const how = knownKey('ui.flow.how.rule.' + rule.code)
@@ -112,7 +115,7 @@
     let keys = { whyKey: null, howKey: null }
     if (failedStage) {
       summary = 'stopped'
-      keys = failureKeys(failedStage, failedRule)
+      keys = failureKeys(failedStage, failedRule, status)
     } else if (status >= 400) {
       summary = 'outside'
       keys = { whyKey: 'ui.flow.why.outside', howKey: 'ui.flow.how.outside' }
