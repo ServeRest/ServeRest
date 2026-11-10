@@ -47,6 +47,8 @@ describe('GENERICO', () => {
 
     joi.assert(headers, joi.object().keys({
       'access-control-allow-origin': joi.any(),
+      'access-control-expose-headers': joi.any(),
+      'x-serverest-stages': joi.any(),
       'x-dns-prefetch-control': joi.any(),
       'x-frame-options': joi.any(),
       'strict-transport-security': joi.any(),
