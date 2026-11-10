@@ -1,13 +1,28 @@
 /* Painel "Fluxo da requisição" abaixo da resposta do "Try it out" */
 .swagger-ui .serverest-flow {
+  --fg: #15202b;
+  --muted: #586673;
+  --line: #d5dde4;
+  --accent: #0b6a8a;
+  --ok: #1c7f47;
+  --ok-soft: #e1f3e8;
+  --fail: #b8322a;
+  --fail-soft: #fbe6e3;
+  --skip: #9aa7b2;
+  --track: #dfe6ec;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin: 16px 0 8px;
-  padding: 14px 16px;
-  border: 1px solid #d8dde7;
+  padding: 14px;
+  border: 1.5px solid var(--fg);
   border-radius: 8px;
   background: #ffffff;
-  color: #1f2937;
-  font-family: sans-serif;
-  font-size: 13px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .swagger-ui .serverest-flow-header {
@@ -15,19 +30,22 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
-  margin-bottom: 12px;
 }
 
 .swagger-ui .serverest-flow-title {
   margin: 0;
+  color: var(--fg);
   font-size: 14px;
   font-weight: 700;
 }
 
 .swagger-ui .serverest-flow-summary {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0;
+  color: var(--fg);
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -42,64 +60,81 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
   cursor: pointer;
+}
+
+.swagger-ui .serverest-flow-slow-motion input {
+  accent-color: var(--accent);
 }
 
 .swagger-ui .serverest-flow-replay {
   padding: 4px 12px;
-  border: 1px solid #9ca3af;
+  border: 1px solid var(--line);
   border-radius: 4px;
   background: #ffffff;
+  color: var(--fg);
   font-size: 12px;
   cursor: pointer;
 }
 
+.swagger-ui .serverest-flow button:focus-visible,
+.swagger-ui .serverest-flow input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .swagger-ui .serverest-flow-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  min-height: 26px;
-  margin-bottom: 12px;
+  gap: 2px;
+  height: 16px;
 }
 
-.swagger-ui .serverest-flow-segment {
-  display: flex;
+.swagger-ui .serverest-flow-seg {
   flex-basis: 0;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: max-content;
-  min-height: 26px;
-  padding: 0 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  white-space: nowrap;
+  min-width: 28px;
+  border-radius: 2px;
+  background: var(--track);
   overflow: hidden;
-  animation: serverestFlowIn 220ms ease-out;
 }
 
-.swagger-ui .serverest-flow-segment-response {
-  flex-grow: 0;
-  background: #1f2937;
-  color: #ffffff;
+.swagger-ui .serverest-flow-seg-response {
+  flex: 0 0 24px;
 }
 
-.swagger-ui .serverest-flow-segment.serverest-flow-active {
-  animation: serverestFlowPulse 900ms ease-in-out infinite;
+.swagger-ui .serverest-flow-seg-skip {
+  background: repeating-linear-gradient(135deg, var(--skip) 0 3px, transparent 3px 6px);
 }
 
-.swagger-ui .serverest-flow-st-ok.serverest-flow-segment { background: #2f9e6b; color: #ffffff; }
-.swagger-ui .serverest-flow-st-failed.serverest-flow-segment { background: #c53030; color: #ffffff; }
-.swagger-ui .serverest-flow-st-skipped.serverest-flow-segment { background: #6b7280; color: #ffffff; }
-.swagger-ui .serverest-flow-st-not_run.serverest-flow-segment { background: #e5e7eb; color: #4b5563; }
-.swagger-ui .serverest-flow-st-unknown.serverest-flow-segment { background: #d1d5db; color: #1f2937; }
+.swagger-ui .serverest-flow-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--ok);
+}
+
+.swagger-ui .serverest-flow-seg-fail .serverest-flow-fill { background: var(--fail); }
+.swagger-ui .serverest-flow-seg-response .serverest-flow-fill { background: var(--fg); }
+
+.swagger-ui .serverest-flow-fill-full {
+  width: 100%;
+}
+
+.swagger-ui .serverest-flow-fill-running {
+  animation-name: serverestFlowFill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
 
 .swagger-ui .serverest-flow-outside {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 4px;
-  margin: 0 0 12px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .swagger-ui .serverest-flow-stages,
@@ -109,18 +144,31 @@
   padding: 0;
 }
 
+.swagger-ui .serverest-flow-stages {
+  display: flex;
+  flex-direction: column;
+}
+
 .swagger-ui .serverest-flow-stage {
-  border-top: 1px solid #eef1f5;
-  animation: serverestFlowIn 220ms ease-out;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.swagger-ui .serverest-flow-stage:first-child {
+  border-top: 0;
 }
 
 .swagger-ui .serverest-flow-row {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto 1rem;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
-  padding: 6px 0;
+  min-height: 40px;
+  padding: 8px 6px;
   border: 0;
+  border-radius: 4px;
   background: none;
   color: inherit;
   font: inherit;
@@ -131,98 +179,163 @@
   cursor: pointer;
 }
 
-.swagger-ui .serverest-flow-status {
-  flex-shrink: 0;
-  min-width: 11em;
-  padding: 1px 8px;
-  border-radius: 10px;
-  font-size: 11px;
+.swagger-ui .serverest-flow-mark {
+  color: var(--skip);
+  font-family: var(--mono);
+  font-weight: 600;
   text-align: center;
 }
 
-.swagger-ui .serverest-flow-st-ok > .serverest-flow-row .serverest-flow-status,
-.swagger-ui .serverest-flow-rule.serverest-flow-st-ok .serverest-flow-status { background: #d1fae5; color: #065f46; }
-.swagger-ui .serverest-flow-st-failed > .serverest-flow-row .serverest-flow-status,
-.swagger-ui .serverest-flow-rule.serverest-flow-st-failed .serverest-flow-status { background: #fee2e2; color: #991b1b; }
-.swagger-ui .serverest-flow-st-skipped > .serverest-flow-row .serverest-flow-status,
-.swagger-ui .serverest-flow-rule.serverest-flow-st-skipped .serverest-flow-status { background: #e5e7eb; color: #374151; }
-.swagger-ui .serverest-flow-st-not_run > .serverest-flow-row .serverest-flow-status,
-.swagger-ui .serverest-flow-rule.serverest-flow-st-not_run .serverest-flow-status { background: #f3f4f6; color: #6b7280; }
+.swagger-ui .serverest-flow-ok > .serverest-flow-row .serverest-flow-mark { color: var(--ok); }
+.swagger-ui .serverest-flow-fail > .serverest-flow-row { background: var(--fail-soft); }
+.swagger-ui .serverest-flow-fail > .serverest-flow-row .serverest-flow-mark,
+.swagger-ui .serverest-flow-fail > .serverest-flow-row .serverest-flow-right { color: var(--fail); }
+.swagger-ui .serverest-flow-done > .serverest-flow-row .serverest-flow-mark { color: var(--fg); }
+
+.swagger-ui .serverest-flow-spinner {
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  margin: 0 auto;
+  border: 2px solid var(--accent);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: serverestFlowSpin 0.7s linear infinite;
+}
 
 .swagger-ui .serverest-flow-name {
   font-weight: 600;
 }
 
+.swagger-ui .serverest-flow-pending > .serverest-flow-row .serverest-flow-name,
+.swagger-ui .serverest-flow-skip > .serverest-flow-row .serverest-flow-name,
+.swagger-ui .serverest-flow-not_run > .serverest-flow-row .serverest-flow-name {
+  color: var(--muted);
+}
+
+.swagger-ui .serverest-flow-right {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
 .swagger-ui .serverest-flow-dur {
-  margin-left: auto;
-  color: #6b7280;
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
-.swagger-ui .serverest-flow-stage-failed > .serverest-flow-row .serverest-flow-name {
-  color: #991b1b;
+.swagger-ui .serverest-flow-caret {
+  color: var(--muted);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+.swagger-ui .serverest-flow-row[aria-expanded="true"] .serverest-flow-caret {
+  transform: rotate(90deg);
 }
 
 .swagger-ui .serverest-flow-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 0 10px 22px;
+  gap: 9px;
+  padding: 4px 8px 14px 2.1rem;
+  font-size: 13px;
+}
+
+.swagger-ui .serverest-flow-description {
+  margin: 0;
+  color: var(--muted);
+}
+
+.swagger-ui .serverest-flow-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.swagger-ui .serverest-flow-rule {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.2rem 1fr;
+  gap: 4px;
+  margin: 0;
+}
+
+.swagger-ui .serverest-flow-rule-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.swagger-ui .serverest-flow-rule-ok .serverest-flow-mark { color: var(--ok); }
+.swagger-ui .serverest-flow-rule-fail { color: var(--fail); font-weight: 500; }
+.swagger-ui .serverest-flow-rule-fail .serverest-flow-mark { color: var(--fail); }
+.swagger-ui .serverest-flow-rule-skip { color: var(--muted); }
+
+.swagger-ui .serverest-flow-item {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.swagger-ui .serverest-flow-item-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.swagger-ui .serverest-flow-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 3px solid var(--fail);
+}
+
+.swagger-ui .serverest-flow-how {
+  border-left-color: var(--ok);
 }
 
 .swagger-ui .serverest-flow-block-title {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 12px;
+  font-weight: 600;
 }
 
 .swagger-ui .serverest-flow-block-text {
   margin: 0;
 }
 
-.swagger-ui .serverest-flow-block-why,
-.swagger-ui .serverest-flow-block-how {
-  padding: 6px 10px;
-  border-left: 3px solid #c53030;
-  background: #fef2f2;
+.swagger-ui .serverest-flow-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-.swagger-ui .serverest-flow-block-how {
-  border-left-color: #2f9e6b;
-  background: #f0fdf4;
+@keyframes serverestFlowFill {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
-.swagger-ui .serverest-flow-rule {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 0 4px 22px;
-  color: #4b5563;
-}
-
-.swagger-ui .serverest-flow-item {
-  display: inline-flex;
-  gap: 4px;
-  margin-left: auto;
-}
-
-@keyframes serverestFlowIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes serverestFlowPulse {
-  0% { opacity: 0.45; }
-  50% { opacity: 1; }
-  100% { opacity: 0.45; }
+@keyframes serverestFlowSpin {
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .swagger-ui .serverest-flow-segment,
-  .swagger-ui .serverest-flow-stage,
-  .swagger-ui .serverest-flow-segment.serverest-flow-active {
+  .swagger-ui .serverest-flow-fill-running,
+  .swagger-ui .serverest-flow-spinner {
     animation: none;
+  }
+
+  .swagger-ui .serverest-flow-fill-running {
+    width: 100%;
+  }
+
+  .swagger-ui .serverest-flow-caret {
+    transition: none;
   }
 
   .swagger-ui .serverest-flow-controls {
