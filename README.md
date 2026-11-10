@@ -132,6 +132,8 @@ Toda resposta das rotas `/login`, `/usuarios`, `/produtos` e `/carrinhos` inform
 |---|---|
 | `X-ServeRest-Stages` | Todas as etapas da rota, em ordem de execução, com status, duração e detalhes |
 
+A página de documentação desenha essas etapas logo abaixo da resposta de cada "Try it out": mostra onde a requisição parou, por que parou e como seguir, sem precisar ler o cabeçalho.
+
 O cabeçalho é listado em `Access-Control-Expose-Headers`. Requisições `OPTIONS` (preflight de CORS) e as demais rotas (`/`, `/version`, `/swagger.json`) não possuem esse cabeçalho.
 
 Exemplo de 401 sem token em `POST /carrinhos`:

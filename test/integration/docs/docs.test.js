@@ -7,6 +7,19 @@ describe('/ GET', () => {
   it('retorna 200 quando lang é válido', async () => {
     await request.get('/').query({ lang: 'en' }).expect(200)
   })
+  it('inclui o plugin do painel de fluxo no script da página', async () => {
+    const { text } = await request.get('/').expect(200)
+    expect(text).to.include('serverestFlowPanelPlugin')
+  })
+})
+
+describe('/swagger-ui-init.js GET', () => {
+  it('registra o plugin padrão DownloadUrl e o plugin do painel de fluxo', async () => {
+    await request.get('/').expect(200)
+    const { text } = await request.get('/swagger-ui-init.js').expect(200)
+    expect(text).to.include('window.SwaggerUIBundle.plugins.DownloadUrl.apply')
+    expect(text).to.include('serverestFlowPanelPlugin')
+  })
 })
 
 describe('/swagger.json GET', () => {
