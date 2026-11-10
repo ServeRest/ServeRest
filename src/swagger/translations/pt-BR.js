@@ -93,5 +93,6 @@ module.exports = {
   'components.responses.ProdutoNomeDuplicado.description': 'Já existe produto com esse nome',
   'components.responses.TokenInvalido.description': 'Token ausente, inválido ou expirado',
   'components.responses.RotaParaAdministradores.description': 'Rota exclusiva para administradores (`administrador = true`)',
+  'components.headers.XServeRestStages.description': 'Etapas da rota em ordem de execução. Cada entrada tem `st` (`ok`, `failed`, `skipped` ou `not_run`), `dur` em milissegundos quando a etapa executou, `reason` quando `auth` falha e `item` quando uma regra falha em um item específico. Entradas `<etapa>.<regra>` detalham as regras da etapa. Formato completo no README do projeto.',
   'components.securitySchemes.ApiKeyAuth.description': 'Informe o valor de `Authorization` retornado na rota _/login_'
 }

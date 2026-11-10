@@ -124,6 +124,48 @@ Em ambos os comandos de subida de ambiente local será utilizado a última vers�
 
 Você pode encontrar as versões disponíveis na [lista de tags no Docker Hub](https://hub.docker.com/r/paulogoncalvesbh/serverest/tags) e na [lista de versões do NPM](https://www.npmjs.com/package/serverest).
 
+## Etapas da requisição
+
+Toda resposta das rotas `/login`, `/usuarios`, `/produtos` e `/carrinhos` informa por quais etapas do servidor a requisição passou, quanto tempo cada uma levou e qual delas interrompeu a requisição. Assim é possível entender, sem ler o código, por que a resposta foi 401 e não 400 quando o token e o body estão errados ao mesmo tempo.
+
+| Cabeçalho | Conteúdo |
+|---|---|
+| `X-ServeRest-Stages` | Todas as etapas da rota, em ordem de execução, com status, duração e detalhes |
+
+O cabeçalho é listado em `Access-Control-Expose-Headers`. Requisições `OPTIONS` (preflight de CORS) e as demais rotas (`/`, `/version`, `/swagger.json`) não possuem esse cabeçalho.
+
+Exemplo de 401 sem token em `POST /carrinhos`:
+
+```
+X-ServeRest-Stages: body;st=ok;dur=0.21, rate_limit;st=skipped, auth;st=failed;dur=0.05;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run
+```
+
+Cada entrada é um nome seguido de parâmetros `;chave=valor`, separadas por vírgula. Nome e valores usam apenas letras, números, `_` e `.`.
+
+| Parâmetro | Valores | Presente quando |
+|---|---|---|
+| `st` | `ok`, `failed`, `skipped`, `not_run` | Sempre |
+| `dur` | Milissegundos com duas casas decimais | A etapa executou (`ok` ou `failed`) |
+| `reason` | `token_missing`, `bad_format`, `token_expired`, `token_invalid`, `user_not_found`, `not_admin` | A etapa `auth` falhou |
+| `item` | Índice, a partir de zero, do item em `produtos` | Uma regra falhou em um item específico |
+
+| Status | Significado |
+|---|---|
+| `ok` | Executou e deixou a requisição continuar |
+| `failed` | Executou e interrompeu a requisição. No máximo uma etapa e uma regra por resposta |
+| `skipped` | Não se aplica neste ambiente (rate limit ao executar localmente) |
+| `not_run` | Não executou porque uma etapa anterior interrompeu a requisição |
+
+As etapas são `body`, `rate_limit`, `auth`, `schema`, `read` (rotas GET), `rules` (regras de negócio e, enquanto a rota não for detalhada, também a gravação) e `write` (gravação, hoje apenas em `POST /carrinhos`). Entradas no formato `<etapa>.<regra>`, como `rules.enough_stock`, são regras da etapa citada antes do ponto: vêm logo depois dela e nunca possuem `dur`.
+
+Casos que merecem atenção:
+
+- Status 400 ou maior sem nenhuma etapa `failed` significa que a resposta veio de fora das etapas: rota inexistente (405) ou URL malformada (400).
+- Em um timeout (408) a etapa que estava executando quando o tempo acabou é a marcada como `failed`.
+- Em `POST /carrinhos` as regras `rules.product_exists` e `rules.enough_stock` são avaliadas item a item, na ordem do array, e param no primeiro item que falha. Portanto `rules.product_exists;st=ok` ao lado de `rules.enough_stock;st=failed;item=1` significa "nenhum produto inexistente até o item que falhou", e não "todos os produtos existem".
+
+Evolução: versões futuras apenas adicionam entradas, como uma etapa `write` depois de `rules` ou entradas `rules.<regra>` em mais rotas. A gramática, os nomes dos parâmetros, os valores de status e os nomes das etapas acima são estáveis; renomear ou remover algum deles é uma quebra de compatibilidade.
+
 ## Teste de carga
 
 ### IMPORTANTE

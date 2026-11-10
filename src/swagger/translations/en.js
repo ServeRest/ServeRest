@@ -93,5 +93,6 @@ module.exports = {
   'components.responses.ProdutoNomeDuplicado.description': 'A product with this name already exists',
   'components.responses.TokenInvalido.description': 'Token missing, invalid or expired',
   'components.responses.RotaParaAdministradores.description': 'Route exclusive to administrators (`administrador = true`)',
+  'components.headers.XServeRestStages.description': 'Stages of the route in execution order. Each entry has `st` (`ok`, `failed`, `skipped` or `not_run`), `dur` in milliseconds when the stage ran, `reason` when `auth` fails and `item` when a rule fails on a specific item. Entries named `<stage>.<rule>` detail the rules of that stage. Full format in the project README.',
   'components.securitySchemes.ApiKeyAuth.description': 'Provide the `Authorization` value returned by the _/login_ route'
 }
