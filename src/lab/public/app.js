@@ -18,6 +18,8 @@
   const RESPONSE_DELAY = 300
   const NARROW = '(max-width: 1099px)'
   const TOKEN_PILL = { none: 'lab.token.none', active: 'lab.token.active', expired: 'lab.token.expired' }
+  const AUTH_CAPTION = { session: 'lab.auth.from_session', empty: 'lab.auth.empty', edited: 'lab.auth.edited' }
+  const AUTH_PREVIEW_CHARS = 22
 
   /* ---------- Textos ---------- */
 
@@ -391,8 +393,17 @@
     return state.drafts[route.key]
   }
 
+  function authValue (route) {
+    return core.authValueFor(draftFor(route), state.token)
+  }
+
   function currentRequest (route) {
-    return core.buildRequest(route, draftFor(route), { baseUrl, token: state.token, authHeader: state.authHeader })
+    return core.buildRequest(route, draftFor(route), { baseUrl, authValue: authValue(route), authHeader: state.authHeader })
+  }
+
+  function authCaptionState (draft) {
+    if (typeof draft.auth === 'string') return 'edited'
+    return state.token ? 'session' : 'empty'
   }
 
   function renderRequest () {
@@ -416,7 +427,7 @@
       el('div', { class: 'req-line' }, methodBadge(route.method), el('code', { class: 'req-path', text: route.path })),
       el('h1', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
       route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
-      el('div', { class: 'auth-note', id: 'auth-note' })
+      authNote(route, draft)
     ])
 
     const groups = [
@@ -447,6 +458,56 @@
     )
     refreshPreview()
     setBusy(state.busy)
+  }
+
+  // O campo é montado uma vez por rota: refreshPreview roda a cada tecla e só ajusta textos e
+  // classes, para que digitar não tire o foco nem mova o cursor.
+  function authNote (route, draft) {
+    if (!route.needsToken) {
+      return el('div', { class: 'auth-note', id: 'auth-note' }, lockIcon(16),
+        el('span', null, el('strong', { text: t('lab.auth.public_title') }), ' ', t('lab.auth.public')))
+    }
+    const input = el('input', {
+      class: 'input mono',
+      id: 'auth-input',
+      type: 'text',
+      autocomplete: 'off',
+      spellcheck: 'false',
+      autocapitalize: 'off',
+      'aria-describedby': 'auth-caption auth-error'
+    })
+    input.value = authValue(route)
+    const error = el('p', { class: 'auth-error', id: 'auth-error' })
+    const clearError = () => {
+      input.removeAttribute('aria-invalid')
+      error.textContent = ''
+    }
+    input.addEventListener('input', () => {
+      draft.auth = input.value
+      clearError()
+      refreshPreview()
+    })
+    const useSession = el('button', {
+      type: 'button',
+      class: 'btn btn-quiet',
+      id: 'auth-use-session',
+      text: t('lab.auth.use_session'),
+      onclick: () => {
+        delete draft.auth
+        clearError()
+        refreshPreview()
+        input.focus()
+        announce(fillText('lab.auth.follows_session', { header: state.authHeader }))
+      }
+    })
+    return el('div', { class: 'auth-note', id: 'auth-note' }, lockIcon(16),
+      el('div', { class: 'auth-body' },
+        el('strong', { text: t('lab.auth.needed_title') }),
+        el('label', { class: 'param-label', for: 'auth-input' }, el('code', { text: state.authHeader })),
+        input,
+        el('p', { class: 'auth-caption', id: 'auth-caption' }),
+        error,
+        useSession))
   }
 
   function paramField (param, draft) {
@@ -533,25 +594,24 @@
     const route = state.selected
     if (!route || !$('sent')) return
     const request = currentRequest(route)
-    const note = $('auth-note')
-    note.className = 'auth-note' + (route.needsToken ? (state.token ? ' ok' : ' need') : '')
-    note.textContent = ''
-    note.append(lockIcon(16))
-    if (!route.needsToken) {
-      note.append(el('span', null, el('strong', { text: t('lab.auth.public_title') }), ' ', t('lab.auth.public')))
-    } else if (state.token) {
-      note.append(el('span', null, el('strong', { text: t('lab.auth.needed_title') }), ' ', fillText('lab.auth.with_token', { header: state.authHeader })))
-    } else {
-      note.append(el('span', null, el('strong', { text: t('lab.auth.needed_title') }), ' ', fillText('lab.auth.without_token', { header: state.authHeader })))
+    const sendsAuth = request.headers.some(header => header[0] === state.authHeader)
+    if (route.needsToken) {
+      const draft = draftFor(route)
+      const captionState = authCaptionState(draft)
+      $('auth-note').className = 'auth-note' + (sendsAuth ? ' ok' : ' need')
+      $('auth-caption').textContent = t(AUTH_CAPTION[captionState])
+      $('auth-use-session').hidden = captionState !== 'edited'
+      const input = $('auth-input')
+      if (captionState !== 'edited' && input.value !== authValue(route)) input.value = authValue(route)
     }
     const list = $('sent')
     list.textContent = ''
     list.append(el('dt', { text: t('lab.sent.url') }), el('dd', { text: request.method + ' ' + request.url }))
     request.headers.forEach(header => {
-      const value = header[0] === state.authHeader ? header[1].slice(0, 22) + '…' : header[1]
-      list.append(el('dt', { text: header[0] }), el('dd', { text: value }))
+      const long = header[0] === state.authHeader && header[1].length > AUTH_PREVIEW_CHARS
+      list.append(el('dt', { text: header[0] }), el('dd', { text: long ? header[1].slice(0, AUTH_PREVIEW_CHARS) + '…' : header[1] }))
     })
-    if (route.needsToken && !state.token) {
+    if (route.needsToken && !sendsAuth) {
       list.append(el('dt', { text: state.authHeader }), el('dd', { class: 'absent', text: t('lab.sent.not_sent') }))
     }
     $('curl-pre').textContent = core.curlOf(request)
@@ -609,6 +669,7 @@
       status: null,
       statusText: '',
       ms: 0,
+      requestHeaders: request.headers.map(header => [header[0], header[1]]),
       headers: [],
       stagesHeader: null,
       bodyText: '',
@@ -644,6 +705,14 @@
       input.setAttribute('aria-invalid', 'true')
       input.focus()
       announce(fillText('lab.params.missing', { name: missing.name }))
+      return
+    }
+    if (route.needsToken && !core.isSendableHeaderValue(authValue(route))) {
+      const input = $('auth-input')
+      input.setAttribute('aria-invalid', 'true')
+      $('auth-error').textContent = t('lab.auth.invalid')
+      input.focus()
+      announce(t('lab.auth.invalid'))
       return
     }
     state.busy = true
@@ -847,8 +916,11 @@
     if (pretty !== null && !truncated) pre.innerHTML = core.highlightJson(shownText)
     else pre.textContent = shownText || t('lab.response.empty_body')
 
-    const headers = el('dl', { class: 'sent' })
-    record.headers.forEach(header => headers.append(el('dt', { text: header[0] }), el('dd', { text: header[1] })))
+    const headerList = list => {
+      const node = el('dl', { class: 'sent' })
+      list.forEach(header => node.append(el('dt', { text: header[0] }), el('dd', { text: header[1] })))
+      return node
+    }
 
     append(area, [
       el('div', { class: 'res-line' },
@@ -858,8 +930,11 @@
       el('div', { class: 'code res-body' }, pre),
       truncated ? el('p', { class: 'muted small', text: fillText('lab.response.truncated', { count: body.length }) }) : null,
       el('details', { class: 'headers' },
+        el('summary', { text: fillText('lab.response.request_headers', { count: record.requestHeaders.length }) }),
+        headerList(record.requestHeaders)),
+      el('details', { class: 'headers' },
         el('summary', { text: fillText('lab.response.headers', { count: record.headers.length }) }),
-        headers)
+        headerList(record.headers))
     ])
   }
 

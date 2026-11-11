@@ -168,7 +168,7 @@ describe('Página do lab: funções puras', () => {
   describe('Requisição', () => {
     const routes = core.buildRoutes(swaggerDocument)
     const rota = key => routes.find(route => route.key === key)
-    const opcoes = { baseUrl: 'http://localhost:3000', token: 'Bearer abc', authHeader: 'Authorization' }
+    const opcoes = { baseUrl: 'http://localhost:3000', authValue: 'Bearer abc', authHeader: 'Authorization' }
 
     it('buildRequest codifica os valores dos parâmetros de caminho', () => {
       const request = core.buildRequest(rota('get /usuarios/{_id}'), rascunho({ 'path:_id': 'a/b c?' }), opcoes)
@@ -200,12 +200,44 @@ describe('Página do lab: funções puras', () => {
       expect(comToken.headers).to.deep.equal([['Content-Type', 'application/json'], ['Authorization', 'Bearer abc']])
       const outroHeader = core.buildRequest(rota('delete /carrinhos/concluir-compra'), rascunho({}), { ...opcoes, authHeader: 'X-Token' })
       expect(outroHeader.headers).to.deep.equal([['X-Token', 'Bearer abc']])
-      ;[null, undefined, ''].forEach(token => {
-        const semToken = core.buildRequest(rota('post /carrinhos'), rascunho({}, '{}'), { ...opcoes, token })
-        expect(semToken.headers.map(header => header[0])).to.deep.equal(['Content-Type'])
+      ;[null, undefined, '', '   ', ' \t '].forEach(authValue => {
+        const semToken = core.buildRequest(rota('post /carrinhos'), rascunho({}, '{}'), { ...opcoes, authValue })
+        expect(semToken.headers.map(header => header[0]), JSON.stringify(authValue)).to.deep.equal(['Content-Type'])
       })
       const publica = core.buildRequest(rota('get /produtos'), rascunho({}), opcoes)
       expect(publica.headers).to.deep.equal([])
+    })
+
+    it('buildRequest envia o valor editado como foi digitado, sem acrescentar Bearer', () => {
+      const request = core.buildRequest(rota('delete /carrinhos/concluir-compra'), rascunho({}), { ...opcoes, authValue: 'abc.def' })
+      expect(request.headers).to.deep.equal([['Authorization', 'abc.def']])
+    })
+
+    it('buildRequest tira espaços e tabs das pontas do valor do header de autenticação', () => {
+      const request = core.buildRequest(rota('delete /carrinhos/concluir-compra'), rascunho({}), { ...opcoes, authValue: ' \tBearer abc \t ' })
+      expect(request.headers).to.deep.equal([['Authorization', 'Bearer abc']])
+      expect(core.curlOf(request)).to.include("-H 'Authorization: Bearer abc'")
+    })
+
+    it('buildRequest nunca põe o header de autenticação em rota pública, mesmo com valor', () => {
+      const publica = core.buildRequest(rota('get /produtos'), rascunho({}), { ...opcoes, authValue: 'abc' })
+      expect(publica.headers).to.deep.equal([])
+    })
+
+    it('authValueFor usa o valor editado da rota e, sem edição, o token da sessão', () => {
+      expect(core.authValueFor(rascunho({}), 'Bearer abc')).to.equal('Bearer abc')
+      expect(core.authValueFor(rascunho({}), null)).to.equal('')
+      expect(core.authValueFor({ ...rascunho({}), auth: '' }, 'Bearer abc')).to.equal('')
+      expect(core.authValueFor({ ...rascunho({}), auth: 'abc' }, 'Bearer abc')).to.equal('abc')
+    })
+
+    it('isSendableHeaderValue aceita só caracteres que podem ir em um header HTTP', () => {
+      const token = jwt.sign({ email: 'fulano@qa.com', password: 'teste' }, 'segredo')
+      expect(core.isSendableHeaderValue('Bearer ' + token)).to.equal(true)
+      expect(core.isSendableHeaderValue('')).to.equal(true)
+      expect(core.isSendableHeaderValue('Bearer açúcar')).to.equal(true)
+      expect(core.isSendableHeaderValue('Bearer abc\ndef')).to.equal(false)
+      expect(core.isSendableHeaderValue('Bearer abc😀')).to.equal(false)
     })
 
     it('buildRequest mantém {nome} quando o parâmetro de caminho está vazio', () => {

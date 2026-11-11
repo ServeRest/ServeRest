@@ -277,7 +277,24 @@
 
   /* Requisição */
 
-  // options: { baseUrl, token, authHeader }. Parâmetro de caminho vazio fica como {nome}: quem
+  // draft.auth existe só quando o aluno editou o header da rota; sem ele, a rota segue a sessão.
+  function authValueFor (draft, sessionToken) {
+    if (draft && typeof draft.auth === 'string') return draft.auth
+    return sessionToken || ''
+  }
+
+  // Valor de header HTTP aceita tab, os caracteres de 0x20 a 0x7E e os de 0x80 a 0xFF.
+  function isSendableHeaderValue (value) {
+    return /^[\t\x20-\x7e\x80-\xff]*$/.test(String(value))
+  }
+
+  // O fetch do navegador tira espaços e tabs das pontas do valor; a página tira antes, para que
+  // a prévia, o curl e o que vai pela rede sejam iguais.
+  function trimHeaderValue (value) {
+    return typeof value === 'string' ? value.replace(/^[ \t]+|[ \t]+$/g, '') : value
+  }
+
+  // options: { baseUrl, authValue, authHeader }. Parâmetro de caminho vazio fica como {nome}: quem
   // executa confere antes e não envia.
   function buildRequest (route, draft, options) {
     const path = route.path.replace(/\{([^}]+)\}/g, (placeholder, name) => {
@@ -291,7 +308,8 @@
     const hasBody = !!route.body && typeof draft.body === 'string' && draft.body.trim() !== ''
     const headers = []
     if (hasBody) headers.push(['Content-Type', 'application/json'])
-    if (route.needsToken && options.token) headers.push([options.authHeader, options.token])
+    const authValue = trimHeaderValue(options.authValue)
+    if (route.needsToken && authValue) headers.push([options.authHeader, authValue])
     return {
       method: route.method.toUpperCase(),
       url: options.baseUrl + path + (query ? '?' + query : ''),
@@ -355,6 +373,8 @@
     authHeaderOf,
     buildRoutes,
     tagOrder,
+    authValueFor,
+    isSendableHeaderValue,
     buildRequest,
     shellQuote,
     curlOf,
