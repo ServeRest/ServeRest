@@ -36,8 +36,8 @@
       </div>
       <p class="token-state" id="token-state"></p>
       <form id="login-form" class="login-grid" novalidate>
-        <label class="field"><span>{{lab.session.email}}</span><input class="input" id="login-email" type="email" autocomplete="username"></label>
-        <label class="field"><span>{{lab.session.password}}</span><input class="input" id="login-password" type="password" autocomplete="current-password"></label>
+        <label class="field"><span>{{lab.session.email}}</span><input class="input" id="login-email" type="email" autocomplete="off"></label>
+        <label class="field"><span>{{lab.session.password}}</span><input class="input mono" id="login-password" type="text" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
         <div class="session-actions">
           <button class="btn" type="submit" id="login-btn">{{lab.session.login}}</button>
           <button class="btn" type="button" id="logout-btn" disabled>{{lab.session.logout}}</button>
