@@ -56,3 +56,11 @@
 .swagger-ui .renderedMarkdown code {
   font-size: 12px;
 }
+
+/* O seletor de idioma é fixo no canto esquerdo. Abaixo desta largura ele cobriria a logo,
+   que agora é o link para a página inicial, então a logo começa depois dele. */
+@media (max-width: 1700px) {
+  .swagger-ui .topbar-wrapper {
+    padding-left: 126px;
+  }
+}
