@@ -264,7 +264,7 @@ describe('Página do lab: funções puras', () => {
 
   describe('Textos', () => {
     const labDir = join(__dirname, '../../src/lab')
-    const arquivos = ['page.html', 'public/core.js'].map(file => readFileSync(join(labDir, file), 'utf8'))
+    const arquivos = ['page.html', 'public/core.js', 'public/app.js'].map(file => readFileSync(join(labDir, file), 'utf8'))
     const referenciadas = new Set(arquivos.flatMap(source => [
       ...[...source.matchAll(/\{\{(lab\.[a-z0-9_.]+)\}\}/g)].map(match => match[1]),
       ...[...source.matchAll(/'(lab\.[a-z0-9_.]+)'/g)].map(match => match[1])
