@@ -59,6 +59,14 @@ describe('/lab GET', () => {
     }
   })
 
+  // Com um campo de senha preenchido, o Chrome trata a troca de rota como login enviado,
+  // consulta a senha de exemplo no serviço de senhas vazadas e abre um aviso que bloqueia a aba.
+  it('não tem campo do tipo senha, para o gerenciador de senhas do navegador não agir na página', async () => {
+    const { text } = await request.get('/lab').expect(200)
+    expect(text).to.not.match(/type="password"/i)
+    expect(text).to.not.match(/autocomplete="(current-password|new-password|username)"/i)
+  })
+
   it('não deixa marcador de template sem substituir', async () => {
     for (const lang of ['pt-BR', 'en', 'es']) {
       const { text } = await request.get('/lab').query({ lang }).expect(200)
