@@ -5,7 +5,9 @@ const en = require('../../../src/swagger/translations/en')
 const es = require('../../../src/swagger/translations/es')
 
 const tiposDosArquivos = {
-  'core.js': /javascript/
+  'core.js': /javascript/,
+  'app.js': /javascript/,
+  'lab.css': /text\/css/
 }
 
 function blocoDeTextos (html) {
