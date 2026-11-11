@@ -170,7 +170,7 @@ module.exports = {
   'components.securitySchemes.ApiKeyAuth.description': 'Provide the `Authorization` value returned by the _/login_ route',
   'lab.page.title': 'Try the API | ServeRest',
   'lab.page.skip_link': 'Skip to the request',
-  'lab.topbar.docs': 'Documentation',
+  'lab.topbar.docs': 'Swagger documentation',
   'lab.topbar.languages': 'Page language',
   'lab.lang.pt_br': 'Português do Brasil',
   'lab.lang.es': 'Español',

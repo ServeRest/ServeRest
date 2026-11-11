@@ -129,16 +129,24 @@
     runReleaseCheck()
   }
 
+  // A logo leva à página inicial no idioma atual; o seletor de idioma também chama esta função.
+  function updateTopbarLogoHref (language) {
+    const logo = document.getElementById('serverest-logo')
+    if (logo) logo.setAttribute('href', '/?lang=' + encodeURIComponent(language))
+  }
+
   function setupTopbarLogo (root) {
     function run () {
       const wrapper = root.querySelector('.topbar-wrapper')
       const link = wrapper && wrapper.querySelector('.link')
       if (!wrapper || !link) return
       if (document.getElementById('serverest-logo')) return
-      const logo = document.createElement('div')
+      const logo = document.createElement('a')
       logo.id = 'serverest-logo'
       logo.className = 'topbar-logo'
+      logo.setAttribute('aria-label', 'ServeRest')
       wrapper.insertBefore(logo, link)
+      updateTopbarLogoHref(getPreferredLanguage())
       link.style.display = 'none'
       link.removeAttribute('href')
       link.setAttribute('aria-hidden', 'true')

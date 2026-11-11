@@ -8,14 +8,16 @@
   display: none;
 }
 
-/* Logo = só o SVG (id + classe), proporção exata, letras brancas, fundo transparente */
+/* Logo = só o SVG (id + classe), proporção exata, letras brancas, fundo transparente.
+   É um link para a página inicial: flex e max-width anulam a regra do Swagger UI para .topbar a */
 #serverest-logo.topbar-logo {
   position: relative;
   display: block;
   width: calc(60px * 3864 / 1530);
   height: 60px;
+  max-width: none;
   padding: 0;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   overflow: hidden;
   background: transparent;
   box-sizing: border-box;

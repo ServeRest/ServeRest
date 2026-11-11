@@ -69,7 +69,7 @@ describe('app release info', () => {
     originalAmbienteCache = undefined
   })
 
-  it('deve aguardar a busca da release no GET / quando há sucesso', async () => {
+  it('deve aguardar a busca da release no GET /swagger quando há sucesso', async () => {
     const fetchStub = sinon.stub().resolves({
       tag: 'v1.0.0',
       version: '1.0.0',
@@ -84,16 +84,16 @@ describe('app release info', () => {
     }
     const app = loadAppWithReleaseStub(fetchStub, ambienteStub)
 
-    await supertest(app).get('/').expect(200)
+    await supertest(app).get('/swagger').expect(200)
 
     chai.expect(fetchStub.calledOnce).to.equal(true)
   })
 
-  it('deve continuar no GET / quando a busca da release falha', async () => {
+  it('deve continuar no GET /swagger quando a busca da release falha', async () => {
     const fetchStub = sinon.stub().rejects(new Error('network error'))
     const app = loadAppWithReleaseStub(fetchStub)
 
-    await supertest(app).get('/').expect(200)
+    await supertest(app).get('/swagger').expect(200)
 
     chai.expect(fetchStub.calledOnce).to.equal(true)
   })
