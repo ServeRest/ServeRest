@@ -30,9 +30,17 @@ const { iniciar, etapa } = require('./utils/etapas')
 const { fetchLatestRelease } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
+const { renderLabPage, LAB_ASSETS_DIR } = require('./lab')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'
 const supportedLanguages = new Set(['pt-BR', 'en', 'es'])
+// Rota provisória: a página do lab vai virar a página inicial.
+const LAB_ROUTE = '/lab'
+
+function idiomaDaRequisicao (req) {
+  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
+  return supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
+}
 
 const app = express()
 
@@ -138,9 +146,7 @@ const uiOptionsBase = {
 app.use('/', swaggerUi.serve)
 app.get('/', (req, res, next) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
-  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
-  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
-  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, language)
+  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req))
   const customJsStr = buildCustomJsStr(
     latestReleaseInfo,
     version,
@@ -155,10 +161,13 @@ app.get('/', (req, res, next) => {
 app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
 app.use('/flags', express.static(join(__dirname, '../docs/flags')))
 app.use('/images', express.static(join(__dirname, '../docs/images')))
+app.use('/lab/assets', express.static(LAB_ASSETS_DIR))
+app.get(LAB_ROUTE, (req, res) => {
+  res.set('Cache-Control', 'no-cache, max-age=0')
+  res.type('html').send(renderLabPage(idiomaDaRequisicao(req), version))
+})
 app.get('/swagger.json', (req, res) => {
-  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
-  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
-  res.status(200).json(localizeSwaggerDocument(swaggerDocument, language))
+  res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 app.get('/swagger-sw.js', (req, res) => {
