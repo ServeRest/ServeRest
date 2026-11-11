@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="{{lang}}" data-version="{{version}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{lab.page.title}}</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
+<script src="/lab/assets/core.js?v={{version}}" defer></script>
+<script src="/lab/assets/app.js?v={{version}}" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="brand-name">ServeRest</span>
+    <span class="version" id="version"></span>
+  </div>
+  <span class="grow"></span>
+  <a class="docs-link" id="docs-link" href="/?lang={{lang}}">{{lab.topbar.docs}}</a>
+  <nav class="flags" aria-label="{{lab.topbar.languages}}">
+    <a class="flag" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" title="{{lab.lang.pt_br}}"><img src="/flags/flag_brazil.svg" alt="{{lab.lang.pt_br}}" width="20" height="14"></a>
+    <a class="flag" href="?lang=es" hreflang="es" lang="es" data-lang="es" title="{{lab.lang.es}}"><img src="/flags/flag_peru.svg" alt="{{lab.lang.es}}" width="20" height="14"></a>
+    <a class="flag" href="?lang=en" hreflang="en" lang="en" data-lang="en" title="{{lab.lang.en}}"><img src="/flags/flag_uk.svg" alt="{{lab.lang.en}}" width="20" height="14"></a>
+  </nav>
+</header>
+
+<div class="app">
+  <aside class="side" aria-label="{{lab.side.label}}">
+    <section class="card session" aria-labelledby="session-title">
+      <div class="card-head">
+        <h2 class="card-title" id="session-title">{{lab.session.title}}</h2>
+        <span class="pill" id="token-pill"></span>
+      </div>
+      <p class="token-state" id="token-state"></p>
+      <form id="login-form" class="login-grid" novalidate>
+        <label class="field"><span>{{lab.session.email}}</span><input class="input" id="login-email" type="email" autocomplete="username"></label>
+        <label class="field"><span>{{lab.session.password}}</span><input class="input" id="login-password" type="password" autocomplete="current-password"></label>
+        <div class="session-actions">
+          <button class="btn" type="submit" id="login-btn">{{lab.session.login}}</button>
+          <button class="btn" type="button" id="logout-btn" disabled>{{lab.session.logout}}</button>
+        </div>
+      </form>
+      <p class="session-msg" id="session-msg"></p>
+    </section>
+
+    <section class="card routes" id="routes" aria-labelledby="routes-title">
+      <div class="routes-head">
+        <h2 class="card-title" id="routes-title">{{lab.routes.title}}</h2>
+        <span class="muted small" id="routes-count"></span>
+        <button class="btn btn-quiet routes-toggle" type="button" id="routes-toggle" aria-expanded="true" aria-controls="route-list">{{lab.routes.hide}}</button>
+      </div>
+      <label class="filter">
+        <span class="sr-only">{{lab.routes.filter}}</span>
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input class="input" type="search" id="filter" placeholder="{{lab.routes.filter_placeholder}}" autocomplete="off">
+      </label>
+      <div class="route-list" id="route-list"></div>
+    </section>
+  </aside>
+
+  <main class="center">
+    <section class="card request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
+    <section class="card response" id="response" aria-labelledby="res-title">
+      <div class="card-head">
+        <h2 class="card-title" id="res-title">{{lab.response.title}}</h2>
+        <span class="grow"></span>
+        <span id="res-origin"></span>
+      </div>
+      <div id="res-body-area"><p class="muted small">{{lab.response.empty}}</p></div>
+    </section>
+  </main>
+
+  <div class="right">
+    <section class="card flow" id="flow" aria-labelledby="flow-title">
+      <div class="card-head">
+        <h2 class="flow-title" id="flow-title"></h2>
+        <div class="flow-controls" id="flow-controls">
+          <label class="slow"><input type="checkbox" id="slow"> <span id="slow-label"></span></label>
+          <button class="btn" type="button" id="replay" disabled></button>
+        </div>
+      </div>
+      <div id="flow-body"></div>
+    </section>
+
+    <section class="card history" id="history" aria-labelledby="hist-title">
+      <div class="card-head">
+        <h2 class="card-title" id="hist-title">{{lab.history.title}}</h2>
+        <span class="muted small" id="hist-count"></span>
+        <span class="grow"></span>
+        <button class="btn btn-quiet" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
+      </div>
+      <div id="history-body"></div>
+    </section>
+  </div>
+</div>
+<p class="sr-only" id="announcer" aria-live="polite"></p>
+
+<script type="application/json" id="lab-texts">{{texts}}</script>
+</body>
+</html>
