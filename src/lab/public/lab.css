@@ -186,13 +186,18 @@ a { color: var(--accent); }
 .req-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
 .req-desc { color: var(--muted); font-size: 0.9rem; display: flex; flex-direction: column; gap: 4px; max-width: 70ch; }
 .req-desc code { font-size: 0.82rem; background: var(--sunken); padding: 0 4px; border-radius: 3px; color: var(--fg); }
-.auth-note { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; font-size: 0.86rem; padding: 9px 12px; border-radius: 6px; background: var(--sunken); }
+.auth-note { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 0.86rem; padding: 9px 12px; border-radius: 6px; background: var(--sunken); }
 .auth-note .lock { margin-top: 2px; display: inline-flex; }
 .auth-note.need { background: var(--warn-soft); }
 .auth-note.need .lock { color: var(--warn); }
 .auth-note.ok { background: var(--ok-soft); }
 .auth-note.ok .lock { color: var(--ok); }
 .auth-note strong { font-weight: 600; }
+.auth-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.auth-caption { font-size: 0.78rem; color: var(--muted); }
+.auth-error { font-size: 0.8rem; color: var(--fail); font-weight: 500; }
+.auth-error:empty { display: none; }
+.auth-body .btn-quiet { align-self: flex-start; margin-left: -8px; color: var(--accent); }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 legend { padding: 0; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 .params { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 12px; }
