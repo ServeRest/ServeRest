@@ -34,8 +34,6 @@ const { renderLabPage, LAB_ASSETS_DIR } = require('./lab')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'
 const supportedLanguages = new Set(['pt-BR', 'en', 'es'])
-// Rota provisória: a página do lab vai virar a página inicial.
-const LAB_ROUTE = '/lab'
 
 function idiomaDaRequisicao (req) {
   const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
@@ -143,26 +141,37 @@ const uiOptionsBase = {
   }
 }
 
-app.use('/', swaggerUi.serve)
-app.get('/', (req, res, next) => {
-  res.set('Cache-Control', 'no-cache, max-age=0')
-  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req))
-  const customJsStr = buildCustomJsStr(
-    latestReleaseInfo,
-    version,
-    forceReleaseBanner
-  )
+function setupDoSwagger (idioma, releaseInfo) {
+  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, idioma)
   const uiOptions = {
     ...uiOptionsBase,
-    customJsStr
+    customJsStr: buildCustomJsStr(releaseInfo, version, forceReleaseBanner)
   }
-  return swaggerUi.setup(localizedSwagger, uiOptions)(req, res, next)
+  return swaggerUi.setup(localizedSwagger, uiOptions)
+}
+
+// O swagger-ui-express só preenche o /swagger-ui-init.js quando a página do Swagger é renderizada.
+// Sem esta renderização, quem abre só a página inicial faz o service worker guardar um init vazio
+// e o /swagger fica em branco para essa pessoa até a próxima versão.
+setupDoSwagger('pt-BR', null)
+
+// Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
+app.use('/', swaggerUi.serve)
+app.get('/swagger', (req, res, next) => {
+  // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
+  if (req.path !== '/swagger') {
+    const inicioDaQuery = req.originalUrl.indexOf('?')
+    const query = inicioDaQuery === -1 ? '' : req.originalUrl.slice(inicioDaQuery)
+    return res.redirect(302, '/swagger' + query)
+  }
+  res.set('Cache-Control', 'no-cache, max-age=0')
+  return setupDoSwagger(idiomaDaRequisicao(req), latestReleaseInfo)(req, res, next)
 })
 app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
 app.use('/flags', express.static(join(__dirname, '../docs/flags')))
 app.use('/images', express.static(join(__dirname, '../docs/images')))
 app.use('/lab/assets', express.static(LAB_ASSETS_DIR))
-app.get(LAB_ROUTE, (req, res) => {
+app.get('/', (req, res) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
   res.type('html').send(renderLabPage(idiomaDaRequisicao(req), version))
 })

@@ -170,7 +170,7 @@ module.exports = {
   'components.securitySchemes.ApiKeyAuth.description': 'Informe o valor de `Authorization` retornado na rota _/login_',
   'lab.page.title': 'Testar a API | ServeRest',
   'lab.page.skip_link': 'Ir para a requisição',
-  'lab.topbar.docs': 'Documentação',
+  'lab.topbar.docs': 'Documentação Swagger',
   'lab.topbar.languages': 'Idioma da página',
   'lab.lang.pt_br': 'Português do Brasil',
   'lab.lang.es': 'Español',
