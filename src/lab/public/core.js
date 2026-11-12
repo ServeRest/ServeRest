@@ -171,6 +171,22 @@
     return Math.min(1700, Math.max(420, stage.dur * 480))
   }
 
+  const FIXED_COLUMN = '22px'
+
+  function ranStage (stage) {
+    return stage.st === 'ok' || stage.st === 'failed'
+  }
+
+  // Colunas da grade do desenho do fluxo. Etapa que não rodou e resposta têm a mesma coluna fixa e
+  // estreita; as etapas que rodaram dividem o resto pela raiz da duração, nunca mais estreitas que a
+  // coluna fixa. Não é um eixo de tempo linear.
+  function flowColumns (model) {
+    return model.stages
+      .map(stage => ranStage(stage) ? 'minmax(' + FIXED_COLUMN + ', ' + segmentGrow(stage).toFixed(3) + 'fr)' : FIXED_COLUMN)
+      .concat(FIXED_COLUMN)
+      .join(' ')
+  }
+
   /* OpenAPI */
 
   function refLookup (spec, ref) {
@@ -188,14 +204,21 @@
     return current || null
   }
 
-  function exampleOf (spec, content) {
-    if (!content) return undefined
+  // Exemplo declarado no próprio conteúdo: example ou o primeiro de examples.
+  function declaredExample (spec, content) {
     if (content.example !== undefined) return content.example
     if (content.examples) {
       const first = Object.keys(content.examples)[0]
       const example = first ? resolve(spec, content.examples[first]) : null
       if (example && example.value !== undefined) return example.value
     }
+    return undefined
+  }
+
+  function exampleOf (spec, content) {
+    if (!content) return undefined
+    const declared = declaredExample(spec, content)
+    if (declared !== undefined) return declared
     const schema = resolve(spec, content.schema)
     if (schema && schema.example !== undefined) return schema.example
     if (schema && schema.properties) {
@@ -206,6 +229,44 @@
       }, {})
     }
     return undefined
+  }
+
+  // Exemplo de corpo de uma resposta documentada: só o que o documento traz. Uma folha sem exemplo
+  // fica de fora, em vez de virar um valor inventado; o limite de profundidade protege de schema
+  // recursivo.
+  function sampleOf (spec, node, depth) {
+    const schema = resolve(spec, node)
+    if (!schema || depth > 6) return undefined
+    if (schema.example !== undefined) return schema.example
+    if (schema.type === 'array' || schema.items) {
+      const item = sampleOf(spec, schema.items, depth + 1)
+      return item === undefined ? undefined : [item]
+    }
+    if (schema.properties) {
+      const out = {}
+      Object.keys(schema.properties).forEach(name => {
+        const value = sampleOf(spec, schema.properties[name], depth + 1)
+        if (value !== undefined) out[name] = value
+      })
+      return Object.keys(out).length ? out : undefined
+    }
+    return undefined
+  }
+
+  function responseExample (spec, content) {
+    if (!content) return undefined
+    const declared = declaredExample(spec, content)
+    return declared !== undefined ? declared : sampleOf(spec, content.schema, 0)
+  }
+
+  // Respostas documentadas da operação, na ordem do documento, para o aluno saber o que verificar.
+  function responsesOf (spec, operation) {
+    const responses = operation.responses || {}
+    return Object.keys(responses).map(status => {
+      const response = resolve(spec, responses[status]) || {}
+      const content = response.content ? response.content['application/json'] : null
+      return { status, description: response.description || '', example: responseExample(spec, content) }
+    })
   }
 
   function headerSchemes (spec) {
@@ -258,6 +319,8 @@
           tag: (operation.tags && operation.tags[0]) || '',
           summary: operation.summary || '',
           description: operation.description || '',
+          operationId: operation.operationId || '',
+          responses: responsesOf(spec, operation),
           params: paramsOf(spec, item.parameters || [], operation.parameters || []),
           body: content ? { example: example === undefined ? {} : example } : null,
           needsToken: security.some(requirement => Object.keys(requirement).some(name => schemeIds.includes(name)))
@@ -273,6 +336,14 @@
       if (!order.includes(route.tag)) order.push(route.tag)
     })
     return order
+  }
+
+  // Link da rota na página do Swagger (#/<tag>/<operationId>), no idioma da página. Sem operationId
+  // no documento, vale o que o Swagger UI gera: o método em minúsculas e o caminho com "_" no lugar
+  // de tudo que não é letra, dígito ou "_". Operação sem tag fica no grupo "default" do Swagger UI.
+  function swaggerLink (route, language) {
+    const id = route.operationId || route.method.toLowerCase() + route.path.replace(/[^A-Za-z0-9_]/g, '_')
+    return '/swagger?lang=' + encodeURIComponent(language) + '#/' + encodeURIComponent(route.tag || 'default') + '/' + encodeURIComponent(id)
   }
 
   /* Requisição */
@@ -339,6 +410,89 @@
     }
   }
 
+  // De onde veio o valor do campo de autenticação e até quando ele vale, para a legenda do campo.
+  // expiresAt e now: Date ou milissegundos. filledFrom: hora do envio do histórico que preencheu o
+  // campo; só conta junto com edited, porque preencher grava o valor como edição da rota.
+  function tokenCaptionState ({ hasToken, expiresAt, now, edited, filledFrom }) {
+    if (edited) return filledFrom ? 'filled' : 'edited'
+    if (!hasToken) return 'none'
+    if (!expiresAt) return 'active_no_exp'
+    return Number(expiresAt) <= Number(now) ? 'expired' : 'active'
+  }
+
+  /* Histórico: os envios ficam do mais recente para o mais antigo. */
+
+  function recordKey (record) {
+    return record.method.toLowerCase() + ' ' + record.path
+  }
+
+  // Chave da rota (como route.key) para o envio mais recente dela.
+  function lastResultByRoute (history) {
+    const latest = new Map()
+    history.forEach(record => {
+      const key = recordKey(record)
+      if (!latest.has(key)) latest.set(key, record)
+    })
+    return latest
+  }
+
+  // Condição de "Preencher a requisição com este envio": o envio está no histórico e a rota dele
+  // tem um envio mais recente.
+  function isOlderThanLatest (record, history) {
+    return history.includes(record) && lastResultByRoute(history).get(recordKey(record)) !== record
+  }
+
+  // Compara o comando curl inteiro (método, URL, headers e corpo) guardado no envio com o da
+  // requisição montada agora a partir do rascunho.
+  function recordDiffersFromDraft (record, request) {
+    return curlOf(request) !== record.curl
+  }
+
+  /* Texto */
+
+  function safeHref (url) {
+    try {
+      const parsed = new URL(url)
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // Markdown mínimo da introdução do documento: **negrito** e [texto](url), com link dentro de
+  // negrito. Devolve pedaços de texto para quem desenha criar os nós; nada vira HTML. Link que não é
+  // http(s) vira só o texto dele. Um ** sem par some, e o que vem depois dele fica sem negrito.
+  function parseInlineMarkdown (text) {
+    const source = String(text || '')
+    const pattern = /\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
+    const out = []
+    let boldPieces = null
+    const add = (value, href) => {
+      if (!value) return
+      const piece = href ? { text: value, href } : { text: value }
+      if (boldPieces) boldPieces.push(piece)
+      else out.push({ ...piece, bold: false })
+    }
+    let last = 0
+    let match = pattern.exec(source)
+    while (match) {
+      add(source.slice(last, match.index))
+      if (match[0] !== '**') {
+        add(match[1], safeHref(match[2]))
+      } else if (boldPieces) {
+        boldPieces.forEach(piece => out.push({ ...piece, bold: true }))
+        boldPieces = null
+      } else {
+        boldPieces = []
+      }
+      last = match.index + match[0].length
+      match = pattern.exec(source)
+    }
+    add(source.slice(last))
+    if (boldPieces) boldPieces.forEach(piece => out.push({ ...piece, bold: false }))
+    return out
+  }
+
   function escapeHtml (value) {
     return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
@@ -368,17 +522,25 @@
     parseStages,
     buildFlowModel,
     stepDelay,
+    flowColumns,
     resolve,
     exampleOf,
+    responsesOf,
     authHeaderOf,
     buildRoutes,
     tagOrder,
+    swaggerLink,
     authValueFor,
     isSendableHeaderValue,
     buildRequest,
     shellQuote,
     curlOf,
     decodeJwtExp,
+    tokenCaptionState,
+    lastResultByRoute,
+    isOlderThanLatest,
+    recordDiffersFromDraft,
+    parseInlineMarkdown,
     highlightJson
   }
 

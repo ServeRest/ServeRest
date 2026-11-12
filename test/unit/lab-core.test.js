@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 
 const core = require('../../src/lab/public/core')
 const ptBr = require('../../src/swagger/translations/pt-BR')
+const { localizeSwaggerDocument } = require('../../src/swagger/translations')
 const swaggerDocument = require('../../docs/swagger.json')
 
 const textosDoFluxo = Object.keys(ptBr)
@@ -92,6 +93,21 @@ describe('Página do lab: funções puras', () => {
       expect(core.formatDuration(1.5, 'es')).to.equal('1,50')
       expect(core.formatDuration(1.5, 'en')).to.equal('1.50')
     })
+
+    it('flowColumns: requisição que parou tem coluna fixa para cada etapa que não rodou e para a resposta', () => {
+      const model = core.buildFlowModel(core.parseStages(headers.semToken), 401, textosDoFluxo)
+      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.458fr) minmax(22px, 0.300fr) minmax(22px, 0.224fr) 22px 22px 22px 22px')
+    })
+
+    it('flowColumns: requisição que passou divide as colunas pela raiz da duração, e etapa pulada fica fixa', () => {
+      const model = core.buildFlowModel(core.parseStages(headers.criado), 201, textosDoFluxo)
+      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.424fr) 22px minmax(22px, 1.187fr) minmax(22px, 0.566fr) minmax(22px, 1.449fr) minmax(22px, 1.010fr) 22px')
+    })
+
+    it('flowColumns: etapa que rodou sem duração usa a duração mínima do painel', () => {
+      const model = core.buildFlowModel(core.parseStages('body;st=ok, auth;st=failed;reason=token_missing, write;st=not_run'), 401, textosDoFluxo)
+      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.447fr) minmax(22px, 0.447fr) 22px 22px')
+    })
   })
 
   describe('OpenAPI', () => {
@@ -162,6 +178,117 @@ describe('Página do lab: funções puras', () => {
     it('tagOrder segue a ordem do documento e acrescenta tags não declaradas', () => {
       const order = core.tagOrder({ tags: [{ name: 'B' }, { name: 'A' }] }, [{ tag: 'A' }, { tag: 'C' }, { tag: 'B' }])
       expect(order).to.deep.equal(['B', 'A', 'C'])
+    })
+
+    describe('responsesOf', () => {
+      it('lê as respostas documentadas de POST /carrinhos, inclusive a que vem por $ref', () => {
+        const documento = localizeSwaggerDocument(swaggerDocument, 'pt-BR')
+        expect(core.responsesOf(documento, documento.paths['/carrinhos'].post)).to.deep.equal([
+          {
+            status: '201',
+            description: ptBr['paths.carrinhos.post.responses.201.description'],
+            example: { message: 'Cadastro realizado com sucesso', _id: 'jogfODIlXsqxNFS2' }
+          },
+          {
+            status: '400',
+            description: ptBr['paths.carrinhos.post.responses.400.description'],
+            example: { message: 'Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente' }
+          },
+          {
+            status: '401',
+            description: ptBr['components.responses.TokenInvalido.description'],
+            example: { message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' }
+          }
+        ])
+      })
+
+      it('usa example e examples do conteúdo antes do schema', () => {
+        const spec = { components: { examples: { ok: { value: { v: 2 } } } } }
+        const operation = {
+          responses: {
+            200: { description: 'a', content: { 'application/json': { example: { v: 1 }, schema: { example: { v: 9 } } } } },
+            201: { description: 'b', content: { 'application/json': { examples: { primeiro: { $ref: '#/components/examples/ok' } } } } },
+            202: { description: 'c', content: { 'application/json': { examples: {}, schema: { example: 'do schema' } } } }
+          }
+        }
+        expect(core.responsesOf(spec, operation).map(response => response.example)).to.deep.equal([{ v: 1 }, { v: 2 }, 'do schema'])
+      })
+
+      it('monta o exemplo só com o que o schema documenta, sem inventar valor para folha sem exemplo', () => {
+        const spec = { components: { schemas: { item: { properties: { id: { example: 'abc' }, nota: { type: 'string' } } } } } }
+        const schema = {
+          properties: {
+            quantidade: { type: 'number', example: 2 },
+            itens: { type: 'array', items: { $ref: '#/components/schemas/item' } },
+            vazios: { type: 'array', items: { type: 'string' } },
+            semExemplo: { properties: { a: { type: 'string' } } }
+          }
+        }
+        const [response] = core.responsesOf(spec, { responses: { 200: { description: 'd', content: { 'application/json': { schema } } } } })
+        expect(response.example).to.deep.equal({ quantidade: 2, itens: [{ id: 'abc' }] })
+      })
+
+      it('resposta sem conteúdo JSON, sem exemplo ou sem descrição dá exemplo undefined e descrição vazia', () => {
+        const operation = {
+          responses: {
+            204: { description: 'sem corpo' },
+            400: { content: { 'text/plain': { example: 'x' } } },
+            500: { content: { 'application/json': { schema: { type: 'string' } } } },
+            502: { $ref: '#/naoExiste' }
+          }
+        }
+        expect(core.responsesOf({}, operation)).to.deep.equal([
+          { status: '204', description: 'sem corpo', example: undefined },
+          { status: '400', description: '', example: undefined },
+          { status: '500', description: '', example: undefined },
+          { status: '502', description: '', example: undefined }
+        ])
+        expect(core.responsesOf({}, {})).to.deep.equal([])
+      })
+
+      it('para em schema recursivo', () => {
+        const spec = { components: { schemas: { no: { properties: { filho: { $ref: '#/components/schemas/no' }, nome: { example: 'n' } } } } } }
+        const [response] = core.responsesOf(spec, { responses: { 200: { content: { 'application/json': { schema: { $ref: '#/components/schemas/no' } } } } } })
+        let profundidade = 0
+        let atual = response.example
+        while (atual.filho) {
+          atual = atual.filho
+          profundidade++
+        }
+        expect(atual).to.deep.equal({ nome: 'n' })
+        expect(profundidade).to.equal(5)
+      })
+
+      it('buildRoutes guarda as respostas documentadas e o operationId de cada rota', () => {
+        const carrinho = routes.find(route => route.key === 'post /carrinhos')
+        expect(carrinho.responses).to.deep.equal(core.responsesOf(swaggerDocument, swaggerDocument.paths['/carrinhos'].post))
+        expect(routes.every(route => route.operationId === '')).to.equal(true)
+        const comId = core.buildRoutes({ paths: { '/x': { get: { operationId: 'listarX', tags: ['X'] } } } })
+        expect(comId[0]).to.include({ operationId: 'listarX' })
+        expect(comId[0].responses).to.deep.equal([])
+      })
+    })
+
+    describe('swaggerLink', () => {
+      const rota = key => routes.find(route => route.key === key)
+
+      it('sem operationId, usa o id que o Swagger UI gera a partir do método e do caminho', () => {
+        expect(core.swaggerLink(rota('post /carrinhos'), 'pt-BR')).to.equal('/swagger?lang=pt-BR#/Carrinhos/post_carrinhos')
+      })
+
+      it('caminho com parâmetro troca por "_" tudo que não é letra, dígito ou "_", e codifica a tag', () => {
+        expect(core.swaggerLink(rota('get /usuarios/{_id}'), 'en')).to.equal('/swagger?lang=en#/Usu%C3%A1rios/get_usuarios___id_')
+        expect(core.swaggerLink(rota('delete /carrinhos/concluir-compra'), 'es')).to.equal('/swagger?lang=es#/Carrinhos/delete_carrinhos_concluir_compra')
+      })
+
+      it('com operationId, usa o do documento', () => {
+        const route = { method: 'post', path: '/login', tag: 'Login', operationId: 'fazerLogin' }
+        expect(core.swaggerLink(route, 'pt-BR')).to.equal('/swagger?lang=pt-BR#/Login/fazerLogin')
+      })
+
+      it('operação sem tag vai para o grupo default, como no Swagger UI', () => {
+        expect(core.swaggerLink({ method: 'get', path: '/x', tag: '', operationId: '' }, 'pt-BR')).to.equal('/swagger?lang=pt-BR#/default/get_x')
+      })
     })
   })
 
@@ -279,6 +406,173 @@ describe('Página do lab: funções puras', () => {
         expect(() => core.decodeJwtExp(valor)).to.not.throw()
         expect(core.decodeJwtExp(valor), String(valor)).to.equal(null)
       })
+    })
+  })
+
+  describe('tokenCaptionState', () => {
+    const agora = new Date('2026-11-12T12:00:00Z')
+    const daquiAUmMinuto = new Date(agora.getTime() + 60000)
+    const haUmMilissegundo = new Date(agora.getTime() - 1)
+    const estado = (entrada) => core.tokenCaptionState({ hasToken: false, expiresAt: null, now: agora, edited: false, filledFrom: null, ...entrada })
+
+    it('none: sem token e sem edição, mesmo com uma validade guardada', () => {
+      expect(estado({})).to.equal('none')
+      expect(estado({ expiresAt: daquiAUmMinuto })).to.equal('none')
+    })
+
+    it('active: token com validade no futuro', () => {
+      expect(estado({ hasToken: true, expiresAt: daquiAUmMinuto })).to.equal('active')
+    })
+
+    it('active_no_exp: token sem validade conhecida', () => {
+      expect(estado({ hasToken: true })).to.equal('active_no_exp')
+    })
+
+    it('expired: token com validade no passado ou exatamente agora', () => {
+      expect(estado({ hasToken: true, expiresAt: haUmMilissegundo })).to.equal('expired')
+      expect(estado({ hasToken: true, expiresAt: agora })).to.equal('expired')
+    })
+
+    it('edited: o campo editado vale mais que o token, com ou sem token', () => {
+      expect(estado({ edited: true })).to.equal('edited')
+      expect(estado({ edited: true, hasToken: true, expiresAt: haUmMilissegundo })).to.equal('edited')
+    })
+
+    it('filled: campo preenchido por um envio do histórico', () => {
+      expect(estado({ edited: true, filledFrom: haUmMilissegundo })).to.equal('filled')
+      expect(estado({ edited: true, hasToken: true, expiresAt: daquiAUmMinuto, filledFrom: haUmMilissegundo })).to.equal('filled')
+    })
+
+    it('filledFrom sem edição não conta: o campo segue o token', () => {
+      expect(estado({ filledFrom: haUmMilissegundo, hasToken: true, expiresAt: daquiAUmMinuto })).to.equal('active')
+    })
+
+    it('aceita validade e relógio em milissegundos', () => {
+      expect(estado({ hasToken: true, expiresAt: daquiAUmMinuto.getTime(), now: agora.getTime() })).to.equal('active')
+      expect(estado({ hasToken: true, expiresAt: haUmMilissegundo.getTime(), now: agora.getTime() })).to.equal('expired')
+    })
+  })
+
+  describe('Histórico', () => {
+    const routes = core.buildRoutes(swaggerDocument)
+    const rota = key => routes.find(route => route.key === key)
+    const opcoes = { baseUrl: 'http://localhost:3000', authValue: 'Bearer abc', authHeader: 'Authorization' }
+    const envio = (id, method, path) => ({ id, method, path, curl: '' })
+
+    it('lastResultByRoute devolve o envio mais recente de cada rota, com a chave da rota', () => {
+      const antigo = envio(1, 'POST', '/carrinhos')
+      const produtos = envio(2, 'GET', '/produtos')
+      const recente = envio(3, 'POST', '/carrinhos')
+      const ultimos = core.lastResultByRoute([recente, produtos, antigo])
+      expect(ultimos.size).to.equal(2)
+      expect(ultimos.get(rota('post /carrinhos').key)).to.equal(recente)
+      expect(ultimos.get(rota('get /produtos').key)).to.equal(produtos)
+      expect(ultimos.has('post /login')).to.equal(false)
+      expect(core.lastResultByRoute([]).size).to.equal(0)
+    })
+
+    it('isOlderThanLatest só é verdade para um envio do histórico com envio mais recente da mesma rota', () => {
+      const antigo = envio(1, 'POST', '/carrinhos')
+      const produtos = envio(2, 'GET', '/produtos')
+      const recente = envio(3, 'POST', '/carrinhos')
+      const historico = [recente, produtos, antigo]
+      expect(core.isOlderThanLatest(antigo, historico)).to.equal(true)
+      expect(core.isOlderThanLatest(recente, historico)).to.equal(false)
+      expect(core.isOlderThanLatest(produtos, historico)).to.equal(false)
+      expect(core.isOlderThanLatest(envio(4, 'POST', '/carrinhos'), historico)).to.equal(false)
+      expect(core.isOlderThanLatest(antigo, [])).to.equal(false)
+    })
+
+    describe('recordDiffersFromDraft', () => {
+      function enviado (route, draft, options = opcoes) {
+        return { curl: core.curlOf(core.buildRequest(route, draft, options)) }
+      }
+
+      it('é falso quando a requisição é a mesma do envio', () => {
+        const route = rota('post /carrinhos')
+        const record = enviado(route, rascunho({}, '{"produtos": []}'))
+        expect(core.recordDiffersFromDraft(record, core.buildRequest(route, rascunho({}, '{"produtos": []}'), opcoes))).to.equal(false)
+      })
+
+      it('é verdade quando o corpo mudou', () => {
+        const route = rota('post /carrinhos')
+        const record = enviado(route, rascunho({}, '{"produtos": []}'))
+        expect(core.recordDiffersFromDraft(record, core.buildRequest(route, rascunho({}, '{"produtos": [1]}'), opcoes))).to.equal(true)
+      })
+
+      it('é verdade quando um parâmetro de caminho ou de consulta mudou', () => {
+        const porId = rota('get /usuarios/{_id}')
+        const record = enviado(porId, rascunho({ 'path:_id': 'abc' }))
+        expect(core.recordDiffersFromDraft(record, core.buildRequest(porId, rascunho({ 'path:_id': 'abd' }), opcoes))).to.equal(true)
+        const lista = rota('get /usuarios')
+        const semFiltro = enviado(lista, rascunho({}))
+        expect(core.recordDiffersFromDraft(semFiltro, core.buildRequest(lista, rascunho({ 'query:nome': 'Fulano' }), opcoes))).to.equal(true)
+      })
+
+      it('é verdade quando o Authorization mudou ou deixou de ir, e falso quando só mudaram espaços das pontas', () => {
+        const route = rota('delete /carrinhos/concluir-compra')
+        const record = enviado(route, rascunho({}))
+        const com = authValue => core.buildRequest(route, rascunho({}), { ...opcoes, authValue })
+        expect(core.recordDiffersFromDraft(record, com('Bearer xyz'))).to.equal(true)
+        expect(core.recordDiffersFromDraft(record, com(''))).to.equal(true)
+        expect(core.recordDiffersFromDraft(record, com('  Bearer abc\t'))).to.equal(false)
+      })
+    })
+  })
+
+  describe('parseInlineMarkdown', () => {
+    it('separa texto comum e negrito', () => {
+      expect(core.parseInlineMarkdown('O **ServeRest** simula uma loja')).to.deep.equal([
+        { text: 'O ', bold: false },
+        { text: 'ServeRest', bold: true },
+        { text: ' simula uma loja', bold: false }
+      ])
+    })
+
+    it('transforma [texto](url) http ou https em pedaço com href', () => {
+      expect(core.parseInlineMarkdown('Veja [o repositório](https://github.com/ServeRest/ServeRest) e [o site](http://serverest.dev).')).to.deep.equal([
+        { text: 'Veja ', bold: false },
+        { text: 'o repositório', href: 'https://github.com/ServeRest/ServeRest', bold: false },
+        { text: ' e ', bold: false },
+        { text: 'o site', href: 'http://serverest.dev/', bold: false },
+        { text: '.', bold: false }
+      ])
+    })
+
+    it('mantém o link dentro de negrito', () => {
+      expect(core.parseInlineMarkdown('**Apoie em [Open Collective](https://opencollective.com/serverest)!**')).to.deep.equal([
+        { text: 'Apoie em ', bold: true },
+        { text: 'Open Collective', href: 'https://opencollective.com/serverest', bold: true },
+        { text: '!', bold: true }
+      ])
+    })
+
+    it('link que não é http nem https vira só o texto dele', () => {
+      ;['javascript:alert1', 'mailto:paulo@serverest.dev', 'data:text/html,x', '/relativo', 'http://', 'nada'].forEach(url => {
+        expect(core.parseInlineMarkdown(`[clique](${url})`), url).to.deep.equal([{ text: 'clique', bold: false }])
+      })
+      expect(core.parseInlineMarkdown('**[clique](javascript:alert1)**')).to.deep.equal([{ text: 'clique', bold: true }])
+    })
+
+    it('texto com < continua texto, sem virar marcação', () => {
+      expect(core.parseInlineMarkdown('a <script>alert(1)</script> & **<b>**')).to.deep.equal([
+        { text: 'a <script>alert(1)</script> & ', bold: false },
+        { text: '<b>', bold: true }
+      ])
+    })
+
+    it('** sem par some e o resto fica sem negrito', () => {
+      expect(core.parseInlineMarkdown('a **b [c](https://c.dev/)')).to.deep.equal([
+        { text: 'a ', bold: false },
+        { text: 'b ', bold: false },
+        { text: 'c', href: 'https://c.dev/', bold: false }
+      ])
+    })
+
+    it('texto vazio ou ausente não gera pedaço', () => {
+      expect(core.parseInlineMarkdown('')).to.deep.equal([])
+      expect(core.parseInlineMarkdown(undefined)).to.deep.equal([])
+      expect(core.parseInlineMarkdown('****')).to.deep.equal([])
     })
   })
 

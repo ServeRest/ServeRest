@@ -18,7 +18,14 @@
   const RESPONSE_DELAY = 300
   const NARROW = '(max-width: 1099px)'
   const TOKEN_PILL = { none: 'lab.token.none', active: 'lab.token.active', expired: 'lab.token.expired' }
-  const AUTH_CAPTION = { session: 'lab.auth.from_session', empty: 'lab.auth.empty', edited: 'lab.auth.edited' }
+  // A legenda não distingue a validade do token: os três estados com token mostram o mesmo texto.
+  const AUTH_CAPTION = {
+    none: 'lab.auth.empty',
+    active: 'lab.auth.from_session',
+    active_no_exp: 'lab.auth.from_session',
+    expired: 'lab.auth.from_session',
+    edited: 'lab.auth.edited'
+  }
   const AUTH_PREVIEW_CHARS = 22
 
   /* ---------- Textos ---------- */
@@ -401,11 +408,6 @@
     return core.buildRequest(route, draftFor(route), { baseUrl, authValue: authValue(route), authHeader: state.authHeader })
   }
 
-  function authCaptionState (draft) {
-    if (typeof draft.auth === 'string') return 'edited'
-    return state.token ? 'session' : 'empty'
-  }
-
   function renderRequest () {
     const box = $('request')
     box.textContent = ''
@@ -596,13 +598,13 @@
     const request = currentRequest(route)
     const sendsAuth = request.headers.some(header => header[0] === state.authHeader)
     if (route.needsToken) {
-      const draft = draftFor(route)
-      const captionState = authCaptionState(draft)
+      const edited = typeof draftFor(route).auth === 'string'
+      const captionState = core.tokenCaptionState({ hasToken: !!state.token, expiresAt: state.tokenExp, now: Date.now(), edited })
       $('auth-note').className = 'auth-note' + (sendsAuth ? ' ok' : ' need')
       $('auth-caption').textContent = t(AUTH_CAPTION[captionState])
-      $('auth-use-session').hidden = captionState !== 'edited'
+      $('auth-use-session').hidden = !edited
       const input = $('auth-input')
-      if (captionState !== 'edited' && input.value !== authValue(route)) input.value = authValue(route)
+      if (!edited && input.value !== authValue(route)) input.value = authValue(route)
     }
     const list = $('sent')
     list.textContent = ''
