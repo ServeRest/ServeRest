@@ -27,7 +27,7 @@ const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
 const { iniciar, etapa } = require('./utils/etapas')
-const { fetchLatestRelease } = require('./utils/github-release')
+const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 const { renderLabPage, LAB_ASSETS_DIR } = require('./lab')
@@ -125,6 +125,20 @@ if (!ehAmbienteDeTestes) {
   atualizarReleaseInfo()
 }
 
+const PAGINA_DE_RELEASES = 'https://github.com/ServeRest/ServeRest/releases'
+const PREFIXO_DAS_RELEASES = 'https://github.com/ServeRest/ServeRest/'
+
+// Aviso de versão nova da página inicial, calculado a cada requisição como o do Swagger. Forçado e
+// sem dados da release, o aviso vai sem versão. O link que a API devolve só é usado se for do
+// repositório; qualquer outro vira a lista de releases.
+function avisoDeVersao (releaseInfo) {
+  const haVersaoNova = releaseInfo !== null && isNewerVersion(releaseInfo.version, version)
+  if (!haVersaoNova && !forceReleaseBanner) return null
+  if (releaseInfo === null) return { version: '', url: PAGINA_DE_RELEASES }
+  const urlConfiavel = typeof releaseInfo.url === 'string' && releaseInfo.url.startsWith(PREFIXO_DAS_RELEASES)
+  return { version: releaseInfo.version, url: urlConfiavel ? releaseInfo.url : PAGINA_DE_RELEASES }
+}
+
 const uiOptionsBase = {
   customSiteTitle: 'ServeRest',
   customfavIcon: '/favicon.ico',
@@ -173,7 +187,7 @@ app.use('/images', express.static(join(__dirname, '../docs/images')))
 app.use('/lab/assets', express.static(LAB_ASSETS_DIR))
 app.get('/', (req, res) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
-  res.type('html').send(renderLabPage(idiomaDaRequisicao(req), version))
+  res.type('html').send(renderLabPage(idiomaDaRequisicao(req), version, avisoDeVersao(latestReleaseInfo)))
 })
 app.get('/swagger.json', (req, res) => {
   res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))

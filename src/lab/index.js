@@ -50,8 +50,16 @@ const valuesByLanguage = {
   es: pageValues('es', es)
 }
 
-function renderLabPage (language, pageVersion) {
-  return renderTemplate(template, { ...valuesByLanguage[language], version: escapeHtml(pageVersion) })
+// notice: { version, url } ou nada. Os dois atributos ficam vazios sem aviso; com aviso, a url
+// nunca é vazia, e a versão vazia quer dizer aviso sem número de versão.
+function renderLabPage (language, pageVersion, notice) {
+  const aviso = notice || { version: '', url: '' }
+  return renderTemplate(template, {
+    ...valuesByLanguage[language],
+    version: escapeHtml(pageVersion),
+    noticeVersion: escapeHtml(aviso.version),
+    noticeUrl: escapeHtml(aviso.url)
+  })
 }
 
 // Renderiza os três idiomas ao carregar: um texto faltando derruba o servidor e os testes, não o aluno.
