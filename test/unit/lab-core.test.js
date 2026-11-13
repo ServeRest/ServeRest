@@ -351,7 +351,7 @@ describe('Página do lab: funções puras', () => {
       expect(publica.headers).to.deep.equal([])
     })
 
-    it('authValueFor usa o valor editado da rota e, sem edição, o token da sessão', () => {
+    it('authValueFor usa o valor editado da rota e, sem edição, o token da página', () => {
       expect(core.authValueFor(rascunho({}), 'Bearer abc')).to.equal('Bearer abc')
       expect(core.authValueFor(rascunho({}), null)).to.equal('')
       expect(core.authValueFor({ ...rascunho({}), auth: '' }, 'Bearer abc')).to.equal('')
