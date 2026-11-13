@@ -180,9 +180,14 @@
   // Colunas da grade do desenho do fluxo. Etapa que não rodou e resposta têm a mesma coluna fixa e
   // estreita; as etapas que rodaram dividem o resto pela raiz da duração, nunca mais estreitas que a
   // coluna fixa. Não é um eixo de tempo linear.
+  // Quando as frações somam menos de 1, a grade reparte só essa parte do resto, e o desenho para antes
+  // do fim da coluna (etapas rápidas, o normal num servidor local). Aí elas crescem na mesma proporção
+  // até somar pelo menos 1, arredondadas para cima.
   function flowColumns (model) {
+    const total = model.stages.filter(ranStage).reduce((sum, stage) => sum + segmentGrow(stage), 0)
+    const grow = stage => total < 1 ? Math.ceil(segmentGrow(stage) / total * 1000) / 1000 : segmentGrow(stage)
     return model.stages
-      .map(stage => ranStage(stage) ? 'minmax(' + FIXED_COLUMN + ', ' + segmentGrow(stage).toFixed(3) + 'fr)' : FIXED_COLUMN)
+      .map(stage => ranStage(stage) ? 'minmax(' + FIXED_COLUMN + ', ' + grow(stage).toFixed(3) + 'fr)' : FIXED_COLUMN)
       .concat(FIXED_COLUMN)
       .join(' ')
   }
