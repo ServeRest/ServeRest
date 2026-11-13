@@ -1902,7 +1902,13 @@
   // É aqui que o fluxo diz como terminou: o envio pendente mostra o status em todo lugar (revealPending).
   function flowAnnounce (message) {
     revealPending()
-    if (!flow.quiet) announceResult(message)
+    if (flow.quiet) return
+    // O fluxo terminou escondido (a pessoa foi para uma rota sem envios): o veredito sem rota soaria como o
+    // da rota que está na tela. Como numa resposta que chega depois da troca de rota, o anúncio diz de
+    // qual rota ela é e que está no Histórico.
+    const record = flow.record
+    if (record && state.shownId !== record.id) announceResult(fillText('lab.announce.other_route', { route: record.method + ' ' + record.path }))
+    else announceResult(message)
   }
 
   function renderFlow (record, live, animate, quiet) {
