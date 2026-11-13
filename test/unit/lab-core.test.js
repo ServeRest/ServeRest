@@ -642,8 +642,13 @@ describe('Página do lab: funções puras', () => {
         ['ui.flow.how.auth.user_not_found', 'lab.flow.how.user_not_found']
       ])
       trocas.forEach(([origem]) => expect(ptBr, origem).to.have.property(origem))
-      expect(ptBr['lab.flow.how.user_not_found']).to.match(/\{instruction\}$/)
-      expect(ptBr['lab.auth.how_to_get']).to.include(`“${ptBr['lab.token.use']}”`)
+      // A instrução nomeia o botão pelo rótulo inteiro nos três idiomas, não só em pt-BR.
+      const idiomas = { 'pt-BR': ptBr, en: require('../../src/swagger/translations/en'), es: require('../../src/swagger/translations/es') }
+      Object.keys(idiomas).forEach(idioma => {
+        const textos = idiomas[idioma]
+        expect(textos['lab.flow.how.user_not_found'], idioma).to.match(/\{instruction\}$/)
+        expect(textos['lab.auth.how_to_get'], idioma).to.include(`“${textos['lab.token.use']}”`)
+      })
     })
   })
 
