@@ -1391,7 +1391,8 @@
     state.history.unshift(record)
     if (state.history.length > MAX_HISTORY) state.history.length = MAX_HISTORY
     const closed = currentLayout() === 'abas' && state.sideTab !== 'historico'
-    if (closed) state.unseen++
+    // Os novos nunca passam do total: a lista guarda só os últimos MAX_HISTORY envios.
+    if (closed) state.unseen = Math.min(state.unseen + 1, state.history.length)
     renderHistory()
     paintRouteMarks()
     // Com a aba fechada, a contagem sobe na hora em que o envio entra na lista: ela só diz que houve um
@@ -1421,11 +1422,18 @@
   }
 
   // Tirar e pôr a classe no mesmo quadro não reinicia a animação: ler o layout no meio obriga o
-  // navegador a ver as duas mudanças.
+  // navegador a ver as duas mudanças. No fim a classe sai: uma classe que fica faz a animação tocar de
+  // novo sempre que o elemento volta a aparecer (a contagem, quando a lista de abas volta).
   function restartAnimation (node, className) {
     node.classList.remove(className)
     node.getBoundingClientRect()
     node.classList.add(className)
+    const done = event => {
+      if (event.target !== node) return
+      node.removeEventListener('animationend', done)
+      node.classList.remove(className)
+    }
+    node.addEventListener('animationend', done)
   }
 
   // O fluxo do envio pendente chegou ao veredito (ou deu lugar a outro envio): o status aparece em todos os
@@ -1451,7 +1459,6 @@
   function flashEntry (entry) {
     if (!entry || state.reduced) return
     restartAnimation(entry, 'is-arriving')
-    entry.addEventListener('animationend', () => entry.classList.remove('is-arriving'), { once: true })
   }
 
   // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
