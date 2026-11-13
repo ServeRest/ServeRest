@@ -653,7 +653,7 @@
     paintHistBadge(false)
     if (tabbed) {
       // O foco estava num painel que a aba fechada esconde: a aba dele passa a ser a escolhida.
-      const owner = Object.keys(SIDE_PANELS).find(id => sidePanel(id).contains(document.activeElement))
+      const owner = Object.keys(SIDE_PANELS).find(id => sidePanel(id).contains(active))
       if (owner && owner !== state.sideTab) selectSideTab(owner, false)
     } else if (focusedTab && SIDE_PANELS[focusedTab]) {
       focusPanel(focusedTab)
@@ -662,12 +662,23 @@
 
   // Fora das abas os painéis não recebem o foco pelo Tab; o tabindex -1 existe só enquanto o foco está nele.
   function focusPanel (id) {
+    holdFocus(id)
+    sidePanel(id).focus({ preventScroll: true })
+  }
+
+  // Tirar o tabindex do painel que está com o foco joga o foco no body. Ele fica com -1 enquanto o foco
+  // estiver nele; ao sair, recebe o tabindex de repouso do layout da hora (0 só no Histórico com abas).
+  const heldPanels = new Set()
+  function holdFocus (id) {
     const panel = sidePanel(id)
     panel.tabIndex = -1
+    if (heldPanels.has(id)) return
+    heldPanels.add(id)
     panel.addEventListener('blur', () => {
-      if (!(sideTabbed() && id === 'historico')) panel.removeAttribute('tabindex')
+      heldPanels.delete(id)
+      if (sideTabbed() && id === 'historico') panel.tabIndex = 0
+      else panel.removeAttribute('tabindex')
     }, { once: true })
-    panel.focus({ preventScroll: true })
   }
 
   // Com abas, cada painel é um tabpanel nomeado pela aba; fora delas, uma zona nomeada pelo próprio h2.
@@ -691,6 +702,7 @@
       // O painel do Histórico começa por texto (a contagem ou o aviso de vazio), não por um controle: como
       // pede o padrão de abas, ele mesmo recebe o foco depois da aba. O das Rotas começa pelo filtro.
       if (tabbed && id === 'historico') panel.tabIndex = 0
+      else if (panel === document.activeElement) holdFocus(id)
       else panel.removeAttribute('tabindex')
     })
   }
