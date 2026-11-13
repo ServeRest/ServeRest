@@ -190,14 +190,18 @@
 
   let announceTimer = null
   function announce (message) {
-    if (state.countNote) {
-      message = message + ' ' + state.countNote
-      state.countNote = ''
-    }
     const region = $('announcer')
     region.textContent = ''
     clearTimeout(announceTimer)
     announceTimer = setTimeout(() => { region.textContent = message }, 30)
+  }
+
+  // O anúncio do resultado de um envio termina com a contagem do Histórico quando o envio entrou com a
+  // aba Histórico fechada. A contagem vai uma vez só, e nunca junto de outro anúncio.
+  function announceResult (message) {
+    const note = state.countNote
+    state.countNote = ''
+    announce(note ? message + ' ' + note : message)
   }
 
   // Markdown mínimo das descrições do OpenAPI: um parágrafo por linha e `código`.
@@ -646,9 +650,13 @@
       else $('result').after(history)
       if (focused) focused.focus({ preventScroll: true })
     }
-    // Com quatro zonas o Histórico está à vista: os envios marcados como novos passam a vistos. Numa coluna
-    // só ele fica embaixo do Resultado, talvez fora da tela, então a marca espera a volta das abas.
-    if (layout === 'quatro') state.unseen = 0
+    // Com quatro zonas o Histórico está à vista: os envios marcados como novos passam a vistos (e a
+    // contagem não precisa mais ir no anúncio). Numa coluna só ele fica embaixo do Resultado, talvez fora
+    // da tela, então a marca espera a volta das abas.
+    if (layout === 'quatro') {
+      state.unseen = 0
+      state.countNote = ''
+    }
     paintSideTabs()
     paintHistBadge(false)
     if (tabbed) {
@@ -710,8 +718,11 @@
   function selectSideTab (id, focus) {
     state.sideTab = id
     paintSideTabs()
-    // Abrir a aba é ver os envios: o destaque da contagem sai.
-    if (id === 'historico') state.unseen = 0
+    // Abrir a aba é ver os envios: o destaque da contagem sai, e ela não vai mais no anúncio.
+    if (id === 'historico') {
+      state.unseen = 0
+      state.countNote = ''
+    }
     paintHistBadge(false)
     if (id === 'historico') keepEntryInView()
     if (focus) $('side-tab-' + id).focus()
@@ -1281,7 +1292,7 @@
         state.pickedId = null
         show(record, 'live')
       } else {
-        announce(fillText('lab.announce.other_route', { route: record.method + ' ' + record.path }))
+        announceResult(fillText('lab.announce.other_route', { route: record.method + ' ' + record.path }))
       }
       if (hadFocus && $('run') && document.activeElement === document.body) $('run').focus({ preventScroll: true })
     })
@@ -1518,6 +1529,7 @@
     state.history = []
     state.shownId = null
     state.unseen = 0
+    state.countNote = ''
     state.pendingId = null
     renderHistory()
     paintRouteMarks()
@@ -1648,10 +1660,14 @@
     state.shownId = null
     markCurrentEntry()
     setResultMode(false)
-    clearTimeout(flow.timer)
-    flow.run++
-    flow.record = null
-    flow.model = null
+    // O fluxo do envio que ainda espera o veredito continua, escondido: no fim dele a entrada e a marca da
+    // rota mostram o status e o resultado é anunciado, como com o fluxo à vista. Os outros param aqui.
+    if (!(flow.record && flow.record.id === state.pendingId)) {
+      clearTimeout(flow.timer)
+      flow.run++
+      flow.record = null
+      flow.model = null
+    }
     state.offer = null
     const box = $('result-empty')
     box.textContent = ''
@@ -1842,17 +1858,23 @@
   // É aqui que o fluxo diz como terminou: o envio pendente mostra o status em todo lugar (revealPending).
   function flowAnnounce (message) {
     revealPending()
-    if (!flow.quiet) announce(message)
+    if (!flow.quiet) announceResult(message)
   }
 
   function renderFlow (record, live, animate, quiet) {
-    // Outro envio toma o lugar do fluxo: o que estava pendente não vai mostrar o veredito, então mostra o status.
-    if (state.pendingId !== null && state.pendingId !== record.id) revealPending()
+    // Outro envio toma o lugar do fluxo: o que estava pendente não vai mostrar o veredito, então mostra o
+    // status. Ele não é anunciado, e a contagem que ia no anúncio dele sai junto.
+    if (state.pendingId !== null && state.pendingId !== record.id) {
+      revealPending()
+      state.countNote = ''
+    }
     clearTimeout(flow.timer)
     flow.run++
     flow.record = record
     flow.live = !!live
-    flow.quiet = !!quiet
+    // O resultado de um envio pendente nunca foi anunciado: voltar à rota dele mostra o veredito na hora
+    // e o anuncia, mesmo numa exibição quieta.
+    flow.quiet = !!quiet && state.pendingId !== record.id
     flow.model = null
     $('flow-body').textContent = ''
     $('replay').disabled = true
