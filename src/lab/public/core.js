@@ -532,14 +532,17 @@
     swaggerLink,
     authValueFor,
     isSendableHeaderValue,
+    trimHeaderValue,
     buildRequest,
     shellQuote,
     curlOf,
     decodeJwtExp,
     tokenCaptionState,
+    recordKey,
     lastResultByRoute,
     isOlderThanLatest,
     recordDiffersFromDraft,
+    safeHref,
     parseInlineMarkdown,
     highlightJson
   }

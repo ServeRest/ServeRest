@@ -16,17 +16,29 @@
   const MAX_BODY_CHARS = 300000
   const MAX_HISTORY = 50
   const RESPONSE_DELAY = 300
-  const NARROW = '(max-width: 1099px)'
-  const TOKEN_PILL = { none: 'lab.token.none', active: 'lab.token.active', expired: 'lab.token.expired' }
-  // A legenda não distingue a validade do token: os três estados com token mostram o mesmo texto.
-  const AUTH_CAPTION = {
-    none: 'lab.auth.empty',
-    active: 'lab.auth.from_session',
-    active_no_exp: 'lab.auth.from_session',
-    expired: 'lab.auth.from_session',
-    edited: 'lab.auth.edited'
+  const THEME_KEY = 'serverestTheme'
+  const TEXT_KEY = 'serverestTextSize'
+  // Só GET recebe o valor documentado no parâmetro de caminho; em DELETE e PUT ele é apenas exemplo.
+  const PREFILL_METHODS = ['get']
+  // Os textos "Como seguir" do fluxo são do painel do Swagger, que tem outro jeito de obter o token.
+  // Nesta página, os que dizem como conseguir um token viram a instrução única do campo Authorization,
+  // a mesma palavra por palavra em todo lugar.
+  const HOW_KEYS = {
+    'ui.flow.how.auth.token_missing': 'lab.auth.how_to_get',
+    'ui.flow.how.auth.token_expired': 'lab.auth.how_to_get',
+    'ui.flow.how.auth.token_invalid': 'lab.auth.how_to_get',
+    'ui.flow.how.stage.auth': 'lab.auth.how_to_get',
+    'ui.flow.how.auth.user_not_found': 'lab.flow.how.user_not_found'
   }
-  const AUTH_PREVIEW_CHARS = 22
+  // A legenda do campo Authorization para cada estado de core.tokenCaptionState.
+  const AUTH_CAPTION = {
+    none: 'lab.auth.how_to_get',
+    active: 'lab.token.active',
+    active_no_exp: 'lab.token.active_no_exp',
+    expired: 'lab.token.expired',
+    edited: 'lab.auth.edited',
+    filled: 'lab.auth.filled_from'
+  }
 
   /* ---------- Textos ---------- */
 
@@ -135,11 +147,13 @@
     return status >= 400 ? '✗' : '•'
   }
 
-  function statusChip (record) {
+  // compact: só símbolo e código (fileira do histórico); o texto completo fica para o leitor de tela.
+  function statusChip (record, compact) {
     if (record.error) {
       return el('span', { class: 'chip fail' }, el('span', { 'aria-hidden': 'true', text: '✗' }), t('lab.history.failed'))
     }
-    return el('span', { class: 'chip ' + statusClass(record.status) }, el('span', { 'aria-hidden': 'true', text: statusGlyph(record.status) }), statusLine(record))
+    return el('span', { class: 'chip ' + statusClass(record.status) }, el('span', { 'aria-hidden': 'true', text: statusGlyph(record.status) }),
+      compact ? [el('span', { 'aria-hidden': 'true', text: String(record.status) }), el('span', { class: 'sr-only', text: statusLine(record) })] : statusLine(record))
   }
 
   function methodBadge (method) {
@@ -154,12 +168,10 @@
     }
   }
 
+  // A troca para uma coluna é uma consulta de recipiente em rem (vem antes com texto maior); o CSS
+  // publica o layout em --layout, e o script lê de lá em vez de repetir a medida (currentLayout).
   function isNarrow () {
-    try {
-      return window.matchMedia(NARROW).matches
-    } catch (e) {
-      return false
-    }
+    return currentLayout() === 'pilha'
   }
 
   function readSlowMotion () {
@@ -178,6 +190,10 @@
 
   let announceTimer = null
   function announce (message) {
+    if (state.countNote) {
+      message = message + ' ' + state.countNote
+      state.countNote = ''
+    }
     const region = $('announcer')
     region.textContent = ''
     clearTimeout(announceTimer)
@@ -195,6 +211,40 @@
     })
   }
 
+  // Link para fora da página: sempre em outra aba, e o leitor de tela fica sabendo.
+  function externalLink (href, label) {
+    return el('a', { href, target: '_blank', rel: 'noopener' }, label, el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
+  }
+
+  // Markdown da introdução do documento (core.parseInlineMarkdown): pedaços em negrito seguidos viram
+  // um <strong> só, e cada link um <a> de verdade. Tudo entra como texto; nada passa por innerHTML.
+  function markdownNodes (block) {
+    const out = []
+    let bold = null
+    core.parseInlineMarkdown(block).forEach(piece => {
+      const node = piece.href ? externalLink(piece.href, piece.text) : piece.text
+      if (!piece.bold) {
+        bold = null
+        out.push(node)
+        return
+      }
+      if (!bold) {
+        bold = el('strong')
+        out.push(bold)
+      }
+      append(bold, node)
+    })
+    return out
+  }
+
+  function markdownParagraphs (source) {
+    return String(source || '').split(/\n\s*\n/).map(block => block.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
+  }
+
+  function plainMarkdown (block) {
+    return core.parseInlineMarkdown(block).map(piece => piece.text).join('')
+  }
+
   /* ---------- Estado ---------- */
 
   const state = {
@@ -204,16 +254,33 @@
     routes: [],
     selected: null,
     drafts: {},
+    // O token da página: só o botão da resposta de POST /login o define.
     token: null,
     tokenAt: null,
     tokenExp: null,
-    tokenEmail: null,
+    offer: null,
     history: [],
     shownId: null,
+    // Envio cujo conteúdo acabou de ser devolvido à requisição (mostra a confirmação no lugar do botão).
+    filledId: null,
+    // O envio que a pessoa escolheu no Histórico (só ele oferece "Preencher a requisição com este envio")
+    // e se esse preenchimento mudou o campo Authorization.
+    pickedId: null,
+    fillAuthChanged: false,
     seq: 0,
     loadSeq: 0,
     busy: false,
-    loginBusy: false,
+    tab: null,
+    // Coluna da esquerda: a aba escolhida (a página sempre abre em Rotas, a escolha não é guardada) e a
+    // contagem do Histórico que vai junto do próximo anúncio quando a aba Histórico está fechada.
+    sideTab: 'rotas',
+    countNote: '',
+    // Quantos envios chegaram com a aba Histórico fechada (a contagem fica roxa enquanto houver algum).
+    unseen: 0,
+    // O envio cujo fluxo ainda anda: até o veredito, nenhum lugar da página mostra o status dele.
+    pendingId: null,
+    // O envio mostrado em Resultado acabou de chegar (live) ou é um envio anterior.
+    shownLive: false,
     slow: readSlowMotion(),
     reduced: prefersReducedMotion()
   }
@@ -232,6 +299,184 @@
       if (code === language) link.setAttribute('aria-current', 'true')
       else link.removeAttribute('aria-current')
     })
+  }
+
+  // Aviso de versão nova: o servidor escreve a versão e a URL da release na raiz (vazias quando não há
+  // aviso; a versão vazia é o aviso sem número). O link só existe na marcação sem href: ele vem daqui.
+  function paintNotice () {
+    const root = document.documentElement
+    const href = core.safeHref(root.getAttribute('data-notice-url') || '')
+    const latest = root.getAttribute('data-notice-version') || ''
+    const notice = $('version-notice')
+    if (!href) return
+    notice.href = href
+    notice.textContent = latest ? fillText('lab.version.notice', { version: latest }) : t('lab.version.notice_plain')
+    notice.append(el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
+    notice.hidden = false
+  }
+
+  /* ---------- Preferências ---------- */
+
+  function readPref (key, allowed, fallback) {
+    try {
+      const value = window.localStorage.getItem(key)
+      return allowed.includes(value) ? value : fallback
+    } catch (e) {
+      return fallback
+    }
+  }
+
+  function savePref (key, value) {
+    try {
+      window.localStorage.setItem(key, value)
+    } catch (e) {}
+  }
+
+  const prefs = {
+    theme: readPref(THEME_KEY, ['system', 'light', 'dark'], 'system'),
+    text: readPref(TEXT_KEY, ['normal', 'grande', 'maior'], 'normal')
+  }
+
+  function systemDark () {
+    try {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    } catch (e) {
+      return false
+    }
+  }
+
+  function applyTheme () {
+    const dark = prefs.theme === 'dark' || (prefs.theme === 'system' && systemDark())
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+  }
+
+  function applyText () {
+    document.documentElement.setAttribute('data-text', prefs.text)
+  }
+
+  function setRadio (name, value) {
+    document.querySelectorAll('input[name="' + name + '"]').forEach(input => { input.checked = input.value === value })
+  }
+
+  function paintSlowChoice () {
+    setRadio('pref-slow', state.slow ? 'on' : 'off')
+    $('slow').checked = state.slow
+  }
+
+  // Câmera lenta: a caixa no fluxo e a escolha no painel são o mesmo ajuste.
+  function setSlow (enabled) {
+    state.slow = enabled
+    saveSlowMotion(enabled)
+    paintSlowChoice()
+    // Desligar no meio da animação leva direto ao estado final, como no painel do Swagger.
+    if (!state.slow && flow.model && flow.active < flow.end) {
+      clearTimeout(flow.timer)
+      flow.run++
+      flow.active = flow.end
+      paintFlow()
+      finishFlow()
+    }
+  }
+
+  function placePrefs () {
+    const panel = $('prefs-panel')
+    const button = $('prefs-btn').getBoundingClientRect()
+    const width = panel.offsetWidth
+    const left = Math.max(12, Math.min(button.right - width, document.documentElement.clientWidth - 12 - width))
+    panel.style.left = Math.round(left + window.scrollX) + 'px'
+    panel.style.top = Math.round(button.bottom + window.scrollY + 8) + 'px'
+  }
+
+  function openPrefs () {
+    const panel = $('prefs-panel')
+    panel.hidden = false
+    $('prefs-btn').setAttribute('aria-expanded', 'true')
+    placePrefs()
+    const first = panel.querySelector('input:checked') || panel.querySelector('input')
+    first.focus()
+  }
+
+  function closePrefs (returnFocus) {
+    const panel = $('prefs-panel')
+    if (panel.hidden) return
+    panel.hidden = true
+    $('prefs-btn').setAttribute('aria-expanded', 'false')
+    if (returnFocus) $('prefs-btn').focus()
+  }
+
+  function setupPrefs () {
+    const panel = $('prefs-panel')
+    const button = $('prefs-btn')
+    setRadio('pref-theme', prefs.theme)
+    setRadio('pref-text', prefs.text)
+    paintSlowChoice()
+    applyTheme()
+    applyText()
+    if (state.reduced) {
+      $('prefs-slow-choices').hidden = true
+      $('prefs-slow-reduced').hidden = false
+    }
+    button.addEventListener('click', () => {
+      if (panel.hidden) openPrefs()
+      else closePrefs(false)
+    })
+    $('prefs-close').addEventListener('click', () => closePrefs(true))
+    panel.addEventListener('change', event => {
+      const input = event.target
+      if (input.name === 'pref-theme') {
+        prefs.theme = input.value
+        savePref(THEME_KEY, prefs.theme)
+        applyTheme()
+      } else if (input.name === 'pref-text') {
+        prefs.text = input.value
+        savePref(TEXT_KEY, prefs.text)
+        applyText()
+        placePrefs()
+      } else if (input.name === 'pref-slow') {
+        setSlow(input.value === 'on')
+      }
+    })
+    panel.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closePrefs(true)
+      }
+    })
+    // Clicar fora ou levar o foco para fora fecha o painel; ele não prende o foco.
+    document.addEventListener('pointerdown', event => {
+      if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) closePrefs(false)
+    })
+    panel.addEventListener('focusout', event => {
+      if (event.relatedTarget && !panel.contains(event.relatedTarget) && event.relatedTarget !== button) closePrefs(false)
+    })
+    window.addEventListener('resize', () => { if (!panel.hidden) placePrefs() })
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
+    } catch (e) {}
+  }
+
+  /* ---------- Sobre o ServeRest ---------- */
+
+  function renderAbout (spec) {
+    const info = (spec && spec.info) || {}
+    const blocks = markdownParagraphs(info.description)
+    const box = $('about-text')
+    box.textContent = ''
+    if (!blocks.length) return
+    blocks.forEach((block, index) => {
+      const paragraph = el('p', null, markdownNodes(block))
+      // A introdução termina em "contate o mantenedor do projeto:"; o contato vem de info.contact.
+      const contactUrl = info.contact && core.safeHref(info.contact.url)
+      if (index === blocks.length - 1 && contactUrl && info.contact.name) paragraph.append(' ', externalLink(contactUrl, info.contact.name))
+      box.append(paragraph)
+    })
+    $('about').hidden = false
+  }
+
+  function introSentence () {
+    const info = (state.spec && state.spec.info) || {}
+    const first = markdownParagraphs(info.description)[0]
+    return first ? plainMarkdown(first) : ''
   }
 
   function setupTopbar () {
@@ -269,10 +514,10 @@
       state.authHeader = core.authHeaderOf(spec)
       const wanted = state.selected ? state.selected.key : routeKeyFromHash()
       state.selected = state.routes.find(route => route.key === wanted) || state.routes[0] || null
-      prefillLogin()
       renderRoutes()
       renderRequest()
-      renderSession()
+      renderAbout(spec)
+      showForSelected()
     }).catch(error => {
       if (seq !== state.loadSeq) return
       state.specError = (error && error.message) || String(error)
@@ -281,20 +526,6 @@
       renderRequest()
       announce(t('lab.routes.error'))
     })
-  }
-
-  function loginRoute () {
-    return state.routes.find(route => route.method === 'post' && route.path === LOGIN_PATH) || null
-  }
-
-  function prefillLogin () {
-    const route = loginRoute()
-    const example = route && route.body ? route.body.example : null
-    if (!example || typeof example !== 'object') return
-    const email = $('login-email')
-    const password = $('login-password')
-    if (!email.value && typeof example.email === 'string') email.value = example.email
-    if (!password.value && typeof example.password === 'string') password.value = example.password
   }
 
   /* ---------- Rotas ---------- */
@@ -335,6 +566,9 @@
     $('routes-count').textContent = query
       ? fillText('lab.routes.count_filtered', { shown: shown.length, total: state.routes.length })
       : fillText('lab.routes.count', { count: state.routes.length })
+    $('side-count-rotas').textContent = query
+      ? fillText('lab.routes.count_filtered', { shown: shown.length, total: state.routes.length })
+      : String(state.routes.length)
     if (!shown.length) {
       list.append(el('p', { class: 'empty', text: fillText('lab.routes.empty', { query: $('filter').value.trim() }) }))
       return
@@ -359,9 +593,175 @@
         methodBadge(route.method),
         el('span', { class: 'path', text: route.path }),
         lock,
-        el('span', { class: 'sum', text: route.summary }))))
+        el('span', { class: 'sum', text: route.summary }),
+        el('span', { class: 'last' }))))
       })
-      list.append(el('div', { class: 'group' }, el('h3', null, tag || t('lab.routes.untagged'), el('span', { text: String(items.length) })), ul))
+      // A descrição do grupo fica sob o nome dele, como o Swagger UI mostra a descrição de cada tag.
+      const description = tagDescription(tag)
+      const name = tag || t('lab.routes.untagged')
+      const count = el('span', { text: String(items.length) })
+      const desc = description ? el('p', { class: 'group-desc', text: description }) : null
+      list.append(el('div', { class: 'group' }, el('h3', null, name, count), desc, ul))
+    })
+    paintRouteMarks()
+  }
+
+  /* ---------- Coluna da esquerda: abas, ou o Histórico em coluna própria ---------- */
+
+  // O layout vem do CSS: consultas de recipiente em rem (mudam com o tamanho do texto) põem em --layout
+  // pilha (uma coluna), abas (três zonas, Rotas e Histórico como abas) ou quatro (o Histórico numa quarta
+  // coluna, à direita do Resultado). O script só lê o resultado e o repete em data-layout na raiz, para o
+  // CSS das abas e para quem precisa ancorar algo na página (um tour guiado, os testes).
+  function currentLayout () {
+    const value = getComputedStyle($('app')).getPropertyValue('--layout').trim()
+    return ['pilha', 'abas', 'quatro'].includes(value) ? value : 'abas'
+  }
+
+  function sideTabbed () {
+    return currentLayout() === 'abas'
+  }
+
+  const SIDE_PANELS = { rotas: { panel: 'routes', title: 'routes-title' }, historico: { panel: 'history', title: 'hist-title' } }
+
+  function sidePanel (id) {
+    return $(SIDE_PANELS[id].panel)
+  }
+
+  // O Histórico fica no DOM onde está na tela, para o teclado seguir a ordem visual: com abas, logo depois
+  // das Rotas, dentro da coluna; com quatro zonas e numa coluna só, depois do Resultado. A lista de abas
+  // só existe no layout com abas (fora dele, uma aba sozinha não seria aba).
+  function placeSide () {
+    const layout = currentLayout()
+    const tabbed = layout === 'abas'
+    const active = document.activeElement
+    // A aba com o foco some quando a lista de abas se esconde: o foco vai para o painel dela.
+    const focusedTab = active && $('side-tabs').contains(active) ? active.id.replace('side-tab-', '') : null
+    document.documentElement.setAttribute('data-layout', layout)
+    $('side-tabs').hidden = !tabbed
+    const history = $('history')
+    const inSide = history.parentElement === $('side')
+    if (tabbed !== inSide) {
+      const focused = history.contains(active) ? active : null
+      if (tabbed) $('side').append(history)
+      else $('result').after(history)
+      if (focused) focused.focus({ preventScroll: true })
+    }
+    // Com quatro zonas o Histórico está à vista: os envios marcados como novos passam a vistos. Numa coluna
+    // só ele fica embaixo do Resultado, talvez fora da tela, então a marca espera a volta das abas.
+    if (layout === 'quatro') state.unseen = 0
+    paintSideTabs()
+    paintHistBadge(false)
+    if (tabbed) {
+      // O foco estava num painel que a aba fechada esconde: a aba dele passa a ser a escolhida.
+      const owner = Object.keys(SIDE_PANELS).find(id => sidePanel(id).contains(document.activeElement))
+      if (owner && owner !== state.sideTab) selectSideTab(owner, false)
+    } else if (focusedTab && SIDE_PANELS[focusedTab]) {
+      focusPanel(focusedTab)
+    }
+  }
+
+  // Fora das abas os painéis não recebem o foco pelo Tab; o tabindex -1 existe só enquanto o foco está nele.
+  function focusPanel (id) {
+    const panel = sidePanel(id)
+    panel.tabIndex = -1
+    panel.addEventListener('blur', () => {
+      if (!(sideTabbed() && id === 'historico')) panel.removeAttribute('tabindex')
+    }, { once: true })
+    panel.focus({ preventScroll: true })
+  }
+
+  // Com abas, cada painel é um tabpanel nomeado pela aba; fora delas, uma zona nomeada pelo próprio h2.
+  function paintSideTabs () {
+    const tabbed = sideTabbed()
+    Object.keys(SIDE_PANELS).forEach(id => {
+      const panel = sidePanel(id)
+      const title = SIDE_PANELS[id].title
+      const tab = $('side-tab-' + id)
+      const on = state.sideTab === id
+      tab.setAttribute('aria-selected', on ? 'true' : 'false')
+      tab.tabIndex = on ? 0 : -1
+      panel.classList.toggle('side-off', tabbed && !on)
+      if (tabbed) {
+        panel.setAttribute('role', 'tabpanel')
+        panel.setAttribute('aria-labelledby', tab.id)
+      } else {
+        panel.removeAttribute('role')
+        panel.setAttribute('aria-labelledby', title)
+      }
+      // O painel do Histórico começa por texto (a contagem ou o aviso de vazio), não por um controle: como
+      // pede o padrão de abas, ele mesmo recebe o foco depois da aba. O das Rotas começa pelo filtro.
+      if (tabbed && id === 'historico') panel.tabIndex = 0
+      else panel.removeAttribute('tabindex')
+    })
+  }
+
+  function selectSideTab (id, focus) {
+    state.sideTab = id
+    paintSideTabs()
+    // Abrir a aba é ver os envios: o destaque da contagem sai.
+    if (id === 'historico') state.unseen = 0
+    paintHistBadge(false)
+    if (id === 'historico') keepEntryInView()
+    if (focus) $('side-tab-' + id).focus()
+  }
+
+  // Abas com o teclado, como as da Requisição: setas, Home e End, com ativação automática. A escolha não
+  // é guardada: o Histórico some ao recarregar, e uma aba Histórico lembrada abriria um painel vazio no
+  // lugar das rotas.
+  function setupSide () {
+    const ids = Object.keys(SIDE_PANELS)
+    ids.forEach((id, index) => {
+      const tab = $('side-tab-' + id)
+      tab.addEventListener('click', () => selectSideTab(id, false))
+      tab.addEventListener('keydown', event => {
+        let next = null
+        if (event.key === 'ArrowRight') next = (index + 1) % ids.length
+        else if (event.key === 'ArrowLeft') next = (index - 1 + ids.length) % ids.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = ids.length - 1
+        if (next === null) return
+        event.preventDefault()
+        selectSideTab(ids[next], true)
+      })
+    })
+    // O layout depende da largura e do tamanho do texto: confere a cada mudança de tamanho, e só mexe no
+    // DOM quando ele troca.
+    let last = null
+    const check = () => {
+      const now = currentLayout()
+      if (now === last) return
+      last = now
+      placeSide()
+    }
+    if (window.ResizeObserver) new ResizeObserver(() => window.requestAnimationFrame(check)).observe(document.body)
+    window.addEventListener('resize', check)
+    check()
+  }
+
+  function tagDescription (tag) {
+    const found = ((state.spec && state.spec.tags) || []).find(item => item.name === tag)
+    return found && found.description ? found.description : ''
+  }
+
+  function latestFor (key) {
+    return core.lastResultByRoute(state.history).get(key) || null
+  }
+
+  // Cada rota mostra a marca do seu envio mais recente (símbolo e código): a lista vira o registro
+  // do que já foi tentado. Atualiza no lugar, sem refazer a lista, para não perder a rolagem.
+  function paintRouteMarks () {
+    // A marca espera o veredito do fluxo: um envio pendente não muda a marca da rota.
+    const latest = core.lastResultByRoute(state.history.filter(item => item.id !== state.pendingId))
+    document.querySelectorAll('.route').forEach(button => {
+      const mark = button.querySelector('.last')
+      const record = latest.get(button.getAttribute('data-key')) || null
+      mark.textContent = ''
+      if (!record) return
+      const code = record.error ? t('lab.history.failed') : String(record.status)
+      const status = record.error ? t('lab.history.failed') : statusLine(record)
+      mark.className = 'last chip ' + (record.error ? 'fail' : statusClass(record.status))
+      mark.append(el('span', { 'aria-hidden': 'true', text: (record.error ? '✗' : statusGlyph(record.status)) + ' ' + code }),
+        el('span', { class: 'sr-only', text: fillText('lab.routes.last', { status }) }))
     })
   }
 
@@ -373,8 +773,11 @@
       else button.removeAttribute('aria-current')
     })
     renderRequest()
+    // O resultado acompanha a rota: o envio mais recente dela, marcado como anterior, ou um estado vazio.
+    showForSelected()
     if (fromClick && isNarrow()) {
-      setRoutesCollapsed(true)
+      // A lista fica aberta enquanto a pessoa explora; depois do primeiro envio, fecha a cada escolha.
+      if (state.history.length) setRoutesCollapsed(true)
       $('request').focus({ preventScroll: true })
       $('request').scrollIntoView({ block: 'start' })
     }
@@ -393,11 +796,16 @@
     if (!state.drafts[route.key]) {
       const params = {}
       route.params.forEach(param => {
-        params[param.in + ':' + param.name] = param.in === 'path' && param.def !== undefined ? String(param.def) : ''
+        params[param.in + ':' + param.name] = prefills(route, param) ? String(param.def) : ''
       })
+      // Sem a chave auth a rota segue o token da página; a primeira edição do campo cria a chave.
       state.drafts[route.key] = { params, body: route.body ? JSON.stringify(route.body.example, null, 2) : '' }
     }
     return state.drafts[route.key]
+  }
+
+  function prefills (route, param) {
+    return param.in === 'path' && param.def !== undefined && PREFILL_METHODS.includes(route.method)
   }
 
   function authValue (route) {
@@ -408,6 +816,18 @@
     return core.buildRequest(route, draftFor(route), { baseUrl, authValue: authValue(route), authHeader: state.authHeader })
   }
 
+  // O link da rota na documentação mora no cabeçalho da zona e some quando não há rota escolhida. O nome
+  // acessível é uma frase só, que começa pelo texto visível (quem usa comando de voz diz o que vê).
+  function paintDocLink (route) {
+    const link = $('doc-link')
+    link.hidden = !route
+    if (!route) return
+    const label = t('lab.docs.route_short')
+    link.href = core.swaggerLink(route, language)
+    link.setAttribute('aria-label', fillText('lab.docs.route_name', { label }))
+    link.replaceChildren(label, el('span', { 'aria-hidden': 'true', text: ' ↗' }))
+  }
+
   function renderRequest () {
     const box = $('request')
     box.textContent = ''
@@ -415,60 +835,130 @@
       let message = t('lab.request.loading')
       if (state.specError) message = t('lab.request.no_spec')
       else if (state.spec) message = t('lab.request.choose')
-      box.append(el('h2', { class: 'card-title', id: 'req-title', text: t('lab.request.title') }), el('p', { class: 'muted small', text: message }))
+      box.append(el('p', { class: 'muted small', id: 'req-title', text: message }))
+      paintDocLink(null)
       return
     }
     const route = state.selected
     const draft = draftFor(route)
+    paintDocLink(route)
 
+    // Bancada: título, barra de endereço com Executar, o que será enviado e as outras partes em abas.
+    // O título da rota abre a zona; o grupo e a descrição dele ficam na lista de rotas.
     append(box, [
-      el('div', { class: 'eyebrow' },
-        el('span', { class: 'card-title', text: t('lab.request.title') }),
-        el('span', { 'aria-hidden': 'true', text: '·' }),
-        el('span', { text: route.tag || t('lab.routes.untagged') })),
-      el('div', { class: 'req-line' }, methodBadge(route.method), el('code', { class: 'req-path', text: route.path })),
-      el('h1', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
+      el('h3', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
       route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
-      authNote(route, draft)
-    ])
-
-    const groups = [
-      { kind: 'path', legend: t('lab.params.path'), items: route.params.filter(param => param.in === 'path') },
-      { kind: 'query', legend: t('lab.params.query'), items: route.params.filter(param => param.in === 'query') }
-    ]
-    groups.forEach(group => {
-      if (!group.items.length) return
-      const grid = el('div', { class: 'params' })
-      group.items.forEach(param => grid.append(paramField(param, draft)))
-      box.append(el('fieldset', null, el('legend', { text: group.legend }), grid))
-    })
-
-    if (route.body) box.append(bodyEditor(route, draft))
-
-    box.append(
-      el('div', null,
-        el('h3', { class: 'card-title sent-title', text: t('lab.sent.title') }),
-        el('dl', { class: 'sent', id: 'sent' })),
+      el('div', { class: 'req-bar' },
+        methodBadge(route.method),
+        // A base e o caminho: a base sai quando não cabe; o title guarda a URL inteira.
+        el('code', { class: 'req-path', title: baseUrl + route.path },
+          el('span', { class: 'req-base', text: baseUrl }),
+          el('span', { class: 'req-route' }, el('span', { dir: 'ltr', text: route.path }))),
+        el('button', { type: 'button', class: 'btn btn-primary', id: 'run', onclick: execute })),
       el('div', { class: 'actions' },
-        el('button', { type: 'button', class: 'btn btn-primary', id: 'run', onclick: execute }),
         el('button', { type: 'button', class: 'btn', id: 'copy-curl', onclick: copyCurl, text: t('lab.actions.copy_curl') }),
         el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: 'Ctrl' }), enter: el('kbd', { text: 'Enter' }) })),
         el('span', { class: 'copy-msg', id: 'copy-msg' })),
-      el('details', { class: 'curl', id: 'curl-details' },
-        el('summary', { text: t('lab.curl.show') }),
-        el('div', { class: 'code' }, el('pre', { id: 'curl-pre' })))
-    )
+      // Será enviado fica sempre à vista, fora das abas. Nas rotas com cadeado a linha do header é o campo.
+      el('section', { class: 'sent-block', 'aria-labelledby': 'sent-title' },
+        el('h4', { class: 'sent-title', id: 'sent-title', text: t('lab.sent.title') }),
+        el('dl', { class: 'sent', id: 'sent' }, route.needsToken ? authGroup(route, draft) : null),
+        route.needsToken ? null : el('p', { class: 'auth-public' }, lockIcon(14), el('span', null, t('lab.auth.public_title') + ' ' + t('lab.auth.public'))))
+    ])
+
+    const tabs = []
+    if (route.params.length) {
+      const content = []
+      const groups = [
+        { legend: t('lab.params.path'), items: route.params.filter(param => param.in === 'path') },
+        { legend: t('lab.params.query'), items: route.params.filter(param => param.in === 'query') }
+      ]
+      groups.forEach(group => {
+        if (!group.items.length) return
+        const grid = el('div', { class: 'params' })
+        group.items.forEach(param => grid.append(paramField(route, param, draft)))
+        content.push(el('fieldset', null, el('legend', { text: group.legend }), grid))
+      })
+      tabs.push({ id: 'params', label: t('lab.tabs.params'), content, focusable: true })
+    }
+    if (route.body) tabs.push({ id: 'body', label: t('lab.tabs.body'), content: bodyEditor(route, draft), focusable: true })
+    tabs.push({ id: 'curl', label: t('lab.tabs.curl'), content: el('div', { class: 'code', id: 'curl-details' }, el('pre', { id: 'curl-pre' })) })
+    tabs.push({ id: 'responses', label: t('lab.tabs.responses'), content: docResponses(route) })
+    append(box, tabWidget(tabs))
+    selectTab(tabs.some(tab => tab.id === state.tab) ? state.tab : tabs[0].id)
     refreshPreview()
     setBusy(state.busy)
   }
 
+  // Respostas documentadas da rota (responses do documento): status, descrição e exemplo de corpo,
+  // para o aluno saber o que verificar.
+  function docResponses (route) {
+    if (!route.responses.length) return el('p', { class: 'muted small', text: t('lab.responses.none') })
+    return [
+      el('p', { class: 'doc-intro', text: t('lab.responses.intro') }),
+      el('ul', { class: 'doc-responses' }, route.responses.map(response => el('li', null,
+        el('span', { class: 'doc-code', text: response.status }),
+        el('span', { class: 'doc-desc' }, richInline(response.description)),
+        response.example !== undefined
+          ? el('div', { class: 'code doc-example' }, docExample(response.example))
+          : el('p', { class: 'doc-none', text: t('lab.responses.no_example') }))))
+    ]
+  }
+
+  function docExample (example) {
+    const pre = el('pre')
+    // highlightJson escapa cada pedaço antes de envolvê-lo (a mesma marcação da resposta).
+    pre.innerHTML = core.highlightJson(JSON.stringify(example, null, 2))
+    return pre
+  }
+
+  function richInline (source) {
+    return String(source || '').split('`').map((piece, index) => index % 2 ? el('code', { text: piece }) : piece)
+  }
+
+  // Abas com o teclado: setas esquerda e direita, Home e End; a aba escolhida vale para as outras rotas.
+  function tabWidget (tabs) {
+    const list = el('div', { class: 'tabs', role: 'tablist', 'aria-label': t('lab.request.title') })
+    const buttons = tabs.map(tab => el('button', { type: 'button', role: 'tab', class: 'tab', id: 'tab-' + tab.id, 'aria-controls': 'panel-' + tab.id, text: tab.label }))
+    buttons.forEach((button, index) => {
+      button.addEventListener('click', () => selectTab(tabs[index].id))
+      button.addEventListener('keydown', event => {
+        let next = null
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length
+        else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = tabs.length - 1
+        if (next === null) return
+        event.preventDefault()
+        selectTab(tabs[next].id)
+        buttons[next].focus()
+      })
+      list.append(button)
+    })
+    const panels = tabs.map(tab => el('div', {
+      class: 'tab-panel',
+      role: 'tabpanel',
+      id: 'panel-' + tab.id,
+      'aria-labelledby': 'tab-' + tab.id,
+      tabindex: tab.focusable ? null : '0'
+    }, tab.content))
+    return [list, panels]
+  }
+
+  function selectTab (id) {
+    if (!$('panel-' + id)) return
+    state.tab = id
+    document.querySelectorAll('#request [role="tab"]').forEach(button => {
+      const on = button.id === 'tab-' + id
+      button.setAttribute('aria-selected', on ? 'true' : 'false')
+      button.tabIndex = on ? 0 : -1
+    })
+    document.querySelectorAll('#request [role="tabpanel"]').forEach(panel => { panel.hidden = panel.id !== 'panel-' + id })
+  }
+
   // O campo é montado uma vez por rota: refreshPreview roda a cada tecla e só ajusta textos e
-  // classes, para que digitar não tire o foco nem mova o cursor.
-  function authNote (route, draft) {
-    if (!route.needsToken) {
-      return el('div', { class: 'auth-note', id: 'auth-note' }, lockIcon(16),
-        el('span', null, el('strong', { text: t('lab.auth.public_title') }), ' ', t('lab.auth.public')))
-    }
+  // visibilidade, para que digitar não tire o foco nem mova o cursor.
+  function authGroup (route, draft) {
     const input = el('input', {
       class: 'input mono',
       id: 'auth-input',
@@ -486,33 +976,37 @@
     }
     input.addEventListener('input', () => {
       draft.auth = input.value
+      delete draft.authFrom
       clearError()
       refreshPreview()
     })
-    const useSession = el('button', {
+    const undo = el('button', {
       type: 'button',
       class: 'btn btn-quiet',
-      id: 'auth-use-session',
-      text: t('lab.auth.use_session'),
+      id: 'auth-undo',
+      text: t('lab.auth.undo'),
       onclick: () => {
         delete draft.auth
+        delete draft.authFrom
         clearError()
         refreshPreview()
         input.focus()
-        announce(fillText('lab.auth.follows_session', { header: state.authHeader }))
+        announce(t(state.token ? 'lab.auth.undone_with_token' : 'lab.auth.undone_empty'))
       }
     })
-    return el('div', { class: 'auth-note', id: 'auth-note' }, lockIcon(16),
-      el('div', { class: 'auth-body' },
-        el('strong', { text: t('lab.auth.needed_title') }),
-        el('label', { class: 'param-label', for: 'auth-input' }, el('code', { text: state.authHeader })),
+    const discard = el('button', { type: 'button', class: 'btn btn-quiet', id: 'auth-discard', text: t('lab.token.discard'), onclick: discardToken })
+    const lock = lockIcon(13)
+    lock.append(el('span', { class: 'sr-only', text: t('lab.routes.needs_token') }))
+    return el('div', { class: 'auth-group', id: 'auth-group' },
+      el('dt', null, lock, el('label', { for: 'auth-input', text: state.authHeader })),
+      el('dd', { class: 'auth-dd' },
         input,
         el('p', { class: 'auth-caption', id: 'auth-caption' }),
         error,
-        useSession))
+        el('div', { class: 'auth-actions' }, undo, discard)))
   }
 
-  function paramField (param, draft) {
+  function paramField (route, param, draft) {
     const id = 'param-' + param.in + '-' + param.name
     const key = param.in + ':' + param.name
     let input
@@ -527,7 +1021,7 @@
         type: 'text',
         autocomplete: 'off',
         spellcheck: 'false',
-        placeholder: param.example !== undefined ? fillText('lab.params.example', { example: param.example }) : null
+        placeholder: exampleOfParam(param) !== undefined ? fillText('lab.params.example', { example: exampleOfParam(param) }) : null
       })
     }
     input.value = draft.params[key]
@@ -538,14 +1032,23 @@
     }
     input.addEventListener('input', update)
     input.addEventListener('change', update)
-    const helpId = param.description ? id + '-help' : null
-    if (helpId) input.setAttribute('aria-describedby', helpId)
+    // Em DELETE e PUT o valor documentado vira só exemplo: uma frase diz por que o campo começa vazio.
+    const unfilled = param.in === 'path' && param.def !== undefined && !prefills(route, param)
+    const helps = [
+      param.description ? el('span', { class: 'param-help', id: id + '-help', text: param.description }) : null,
+      unfilled ? el('span', { class: 'param-help', id: id + '-empty', text: t('lab.params.no_prefill') }) : null
+    ].filter(Boolean)
+    if (helps.length) input.setAttribute('aria-describedby', helps.map(help => help.id).join(' '))
     return el('div', { class: 'field' },
       el('label', { class: 'param-label', for: id },
         el('code', { text: param.name }),
         param.required ? el('span', { class: 'req-mark', text: t('lab.params.required') }) : null),
       input,
-      helpId ? el('span', { class: 'param-help', id: helpId, text: param.description }) : null)
+      helps)
+  }
+
+  function exampleOfParam (param) {
+    return param.example !== undefined ? param.example : param.def
   }
 
   function bodyEditor (route, draft) {
@@ -575,7 +1078,8 @@
     checkJson(false)
     return el('div', { class: 'field' },
       el('div', { class: 'body-head' },
-        el('label', { for: 'body-editor', text: t('lab.body.label') }),
+        // A aba já diz Corpo (JSON); o rótulo completo fica para o leitor de tela.
+        el('label', { for: 'body-editor', class: 'sr-only', text: t('lab.body.label') }),
         el('span', { class: 'grow' }),
         el('button', {
           type: 'button',
@@ -596,27 +1100,47 @@
     const route = state.selected
     if (!route || !$('sent')) return
     const request = currentRequest(route)
-    const sendsAuth = request.headers.some(header => header[0] === state.authHeader)
-    if (route.needsToken) {
-      const edited = typeof draftFor(route).auth === 'string'
-      const captionState = core.tokenCaptionState({ hasToken: !!state.token, expiresAt: state.tokenExp, now: Date.now(), edited })
-      $('auth-note').className = 'auth-note' + (sendsAuth ? ' ok' : ' need')
-      $('auth-caption').textContent = t(AUTH_CAPTION[captionState])
-      $('auth-use-session').hidden = !edited
-      const input = $('auth-input')
-      if (!edited && input.value !== authValue(route)) input.value = authValue(route)
-    }
+    // As linhas antes do campo são refeitas; o grupo do campo nunca sai do lugar, então o foco fica.
     const list = $('sent')
-    list.textContent = ''
-    list.append(el('dt', { text: t('lab.sent.url') }), el('dd', { text: request.method + ' ' + request.url }))
+    const group = $('auth-group')
+    while (list.firstChild && list.firstChild !== group) list.firstChild.remove()
+    const rows = [el('dt', { text: t('lab.sent.url') }), el('dd', { text: request.method + ' ' + request.url })]
     request.headers.forEach(header => {
-      const long = header[0] === state.authHeader && header[1].length > AUTH_PREVIEW_CHARS
-      list.append(el('dt', { text: header[0] }), el('dd', { text: long ? header[1].slice(0, AUTH_PREVIEW_CHARS) + '…' : header[1] }))
+      if (route.needsToken && header[0] === state.authHeader) return
+      rows.push(el('dt', { text: header[0] }), el('dd', { text: header[1] }))
     })
-    if (route.needsToken && !sendsAuth) {
-      list.append(el('dt', { text: state.authHeader }), el('dd', { class: 'absent', text: t('lab.sent.not_sent') }))
-    }
+    rows.forEach(row => list.insertBefore(row, group))
+    if (route.needsToken) paintAuth(route)
     $('curl-pre').textContent = core.curlOf(request)
+    // Cada mudança no rascunho decide de novo se o envio mostrado em Resultado é diferente dele.
+    paintFill()
+  }
+
+  function tokenValues () {
+    return {
+      time: state.tokenAt ? clock(state.tokenAt) : '',
+      expires: state.tokenExp ? clock(state.tokenExp) : ''
+    }
+  }
+
+  // A linha de ajuda diz, em frases inteiras, de onde veio o valor do campo e até quando ele vale.
+  function paintAuth (route) {
+    const draft = draftFor(route)
+    const edited = typeof draft.auth === 'string'
+    const input = $('auth-input')
+    if (!edited && input.value !== authValue(route)) input.value = authValue(route)
+    const sends = !!core.trimHeaderValue(authValue(route))
+    const caption = $('auth-caption')
+    caption.textContent = ''
+    if (!sends) caption.append(el('strong', { class: 'auth-absent', text: t('lab.auth.absent') }), ' ')
+    const captionState = core.tokenCaptionState({ hasToken: !!state.token, expiresAt: state.tokenExp, now: Date.now(), edited, filledFrom: draft.authFrom })
+    // Preenchido por um envio, {time} é a hora desse envio; nos outros estados, a do token.
+    const values = captionState === 'filled' ? { time: clock(draft.authFrom) } : tokenValues()
+    const text = fillText(AUTH_CAPTION[captionState], values)
+    if (captionState === 'expired') caption.append(el('span', { class: 'auth-expired', text }), ' ', t('lab.auth.how_to_get'))
+    else caption.append(text)
+    $('auth-undo').hidden = !edited
+    $('auth-discard').hidden = edited || !state.token
   }
 
   function setBusy (busy) {
@@ -637,7 +1161,7 @@
       message.textContent = text
       message.className = 'copy-msg' + (ok ? '' : ' fail')
       announce(text)
-      if (!ok) $('curl-details').open = true
+      if (!ok) selectTab('curl')
       setTimeout(() => {
         if ($('copy-msg') === message) message.textContent = ''
       }, 2500)
@@ -671,7 +1195,14 @@
       status: null,
       statusText: '',
       ms: 0,
+      // Os headers enviados ficam no registro: quem revê pelo histórico vê qual Authorization foi.
       requestHeaders: request.headers.map(header => [header[0], header[1]]),
+      authSent: request.headers.some(header => header[0] === state.authHeader),
+      // O comando inteiro (método, URL, headers e corpo): compará-lo com o do rascunho diz se a
+      // requisição mudou desde este envio.
+      curl: core.curlOf(request),
+      // O rascunho como estava no envio, para "Preencher a requisição com este envio".
+      sent: null,
       headers: [],
       stagesHeader: null,
       bodyText: '',
@@ -705,6 +1236,7 @@
     if (missing) {
       const input = $('param-path-' + missing.name)
       input.setAttribute('aria-invalid', 'true')
+      selectTab('params')
       input.focus()
       announce(fillText('lab.params.missing', { name: missing.name }))
       return
@@ -717,109 +1249,102 @@
       announce(t('lab.auth.invalid'))
       return
     }
+    // Executar fica desabilitado durante o envio e perde o foco; ele volta, sem rolar a página.
+    const hadFocus = document.activeElement === $('run')
     state.busy = true
     setBusy(true)
+    const sent = { params: Object.assign({}, draft.params), body: draft.body, auth: route.needsToken ? authValue(route) : '' }
     send(route, currentRequest(route), 'route').then(record => {
+      record.sent = sent
       state.busy = false
       setBusy(false)
+      // Um envio anterior que ainda esperava o veredito mostra o status agora; o novo, se aparece em
+      // Resultado, fica pendente até o fluxo dele chegar ao veredito (na hora, sem a câmera lenta).
+      revealPending()
+      const showsHere = !!state.selected && state.selected.key === core.recordKey(record)
+      if (showsHere) state.pendingId = record.id
       addHistory(record)
-      show(record, true)
+      // Se a pessoa trocou de rota durante o envio, o resultado não aparece como se fosse da rota nova.
+      if (showsHere) {
+        state.pickedId = null
+        show(record, 'live')
+      } else {
+        announce(fillText('lab.announce.other_route', { route: record.method + ' ' + record.path }))
+      }
+      if (hadFocus && $('run') && document.activeElement === document.body) $('run').focus({ preventScroll: true })
     })
   }
 
-  /* ---------- Sessão ---------- */
+  /* ---------- Token da página ---------- */
 
-  function setSessionMessage (message, isError) {
-    const node = $('session-msg')
-    node.textContent = message || ''
-    node.className = 'session-msg' + (isError ? ' fail' : '')
+  // O único jeito de a página ter um token é a resposta real de POST /login: um botão logo abaixo do
+  // corpo o passa para o campo Authorization de todas as rotas com cadeado que não foram editadas.
+
+  function tokenOf (record) {
+    if (record.error || record.status !== 200 || record.method !== 'POST' || record.path !== LOGIN_PATH) return null
+    try {
+      const body = JSON.parse(record.bodyText)
+      return body && typeof body.authorization === 'string' && body.authorization ? body.authorization : null
+    } catch (e) {
+      return null
+    }
   }
 
-  function clearToken () {
+  function editedRoutes () {
+    return state.routes.filter(route => route.needsToken && state.drafts[route.key] && typeof state.drafts[route.key].auth === 'string').length
+  }
+
+  function tokenOffer (record) {
+    const token = tokenOf(record)
+    if (!token) return null
+    state.offer = { box: el('div', { class: 'token-offer', id: 'token-offer' }), token, record }
+    paintOffer(false)
+    return state.offer.box
+  }
+
+  // Devolve a frase de confirmação quando este é o token da página; senão mostra o botão.
+  function paintOffer (justUsed) {
+    const offer = state.offer
+    if (!offer) return null
+    if (state.token === offer.token) {
+      const text = [t(justUsed ? 'lab.token.used' : 'lab.token.in_use'), editedRoutes() ? t('lab.token.edited_kept') : ''].filter(Boolean).join(' ')
+      const done = el('p', { class: 'token-done', id: 'token-done', tabindex: '-1' }, el('span', { 'aria-hidden': 'true', text: '✓ ' }), text)
+      offer.box.replaceChildren(done)
+      return { node: done, text }
+    }
+    offer.box.replaceChildren(el('button', { type: 'button', class: 'btn btn-token', id: 'use-token', text: t('lab.token.use'), onclick: useToken }))
+    return null
+  }
+
+  function useToken () {
+    const offer = state.offer
+    state.token = offer.token
+    state.tokenAt = offer.record.at
+    state.tokenExp = core.decodeJwtExp(offer.token)
+    refreshPreview()
+    const done = paintOffer(true)
+    // O botão some: o foco vai para a frase que o substitui, e ela também é anunciada.
+    done.node.focus()
+    announce(done.text)
+  }
+
+  function discardToken () {
     state.token = null
     state.tokenAt = null
     state.tokenExp = null
-    state.tokenEmail = null
-    renderSession()
     refreshPreview()
-  }
-
-  function tokenState () {
-    if (!state.token) return 'none'
-    return state.tokenExp && state.tokenExp.getTime() <= Date.now() ? 'expired' : 'active'
-  }
-
-  function renderSession () {
-    const pill = $('token-pill')
-    const description = $('token-state')
-    const current = tokenState()
-    pill.className = 'pill' + (current === 'active' ? ' on' : current === 'expired' ? ' expired' : '')
-    pill.textContent = t(TOKEN_PILL[current])
-    const values = {
-      header: state.authHeader,
-      time: state.tokenAt ? clock(state.tokenAt) : '',
-      email: state.tokenEmail || '',
-      expires: state.tokenExp ? clock(state.tokenExp) : ''
-    }
-    if (current === 'none') description.textContent = fillText('lab.token.state_none', values)
-    else if (current === 'expired') description.textContent = fillText('lab.token.state_expired', values)
-    else if (state.tokenExp) description.textContent = fillText('lab.token.state_active', values)
-    else description.textContent = fillText('lab.token.state_active_no_exp', values)
-    $('logout-btn').disabled = !state.token
-    $('login-btn').textContent = state.token ? t('lab.session.login_again') : t('lab.session.login')
-  }
-
-  function login (event) {
-    event.preventDefault()
-    if (state.loginBusy) return
-    const email = $('login-email').value.trim()
-    const password = $('login-password').value
-    const route = loginRoute() || { method: 'post', path: LOGIN_PATH }
-    const request = {
-      method: 'POST',
-      url: baseUrl + LOGIN_PATH,
-      headers: [['Content-Type', 'application/json']],
-      body: JSON.stringify({ email, password })
-    }
-    const button = $('login-btn')
-    state.loginBusy = true
-    button.disabled = true
-    setSessionMessage(t('lab.session.logging_in'))
-    send(route, request, 'login').then(record => {
-      state.loginBusy = false
-      button.disabled = false
-      addHistory(record)
-      let body = null
-      try {
-        body = JSON.parse(record.bodyText)
-      } catch (e) {}
-      let message
-      let failed = true
-      if (record.error) {
-        message = fillText('lab.session.network_error', { error: record.error })
-      } else if (record.status === 200 && body && typeof body.authorization === 'string' && body.authorization) {
-        state.token = body.authorization
-        state.tokenAt = new Date()
-        state.tokenExp = core.decodeJwtExp(body.authorization)
-        state.tokenEmail = email
-        message = t('lab.session.logged_in')
-        failed = false
-      } else if (body && typeof body.message === 'string') {
-        message = fillText('lab.session.refused', { status: statusLine(record), message: body.message })
-      } else {
-        message = fillText('lab.session.refused_no_message', { status: statusLine(record) })
-      }
-      setSessionMessage(message, failed)
-      announce(message)
-      renderSession()
-      refreshPreview()
-    })
+    paintOffer(false)
+    if ($('auth-input')) $('auth-input').focus()
+    announce(t('lab.token.discarded'))
   }
 
   /* ---------- Histórico ---------- */
 
+  // O modelo é o mesmo do painel do Swagger; só os textos de como conseguir um token mudam (HOW_KEYS).
   function flowModelOf (record) {
-    return core.buildFlowModel(core.parseStages(record.stagesHeader), record.status, texts)
+    const model = core.buildFlowModel(core.parseStages(record.stagesHeader), record.status, texts)
+    if (model && HOW_KEYS[model.howKey]) model.howKey = HOW_KEYS[model.howKey]
+    return model
   }
 
   function stageName (stage) {
@@ -842,48 +1367,299 @@
   function addHistory (record) {
     state.history.unshift(record)
     if (state.history.length > MAX_HISTORY) state.history.length = MAX_HISTORY
+    const closed = currentLayout() === 'abas' && state.sideTab !== 'historico'
+    if (closed) state.unseen++
     renderHistory()
+    paintRouteMarks()
+    // Com a aba fechada, a contagem sobe na hora em que o envio entra na lista: ela só diz que houve um
+    // envio, não como ele terminou, então não estraga o fluxo. Fica roxa até a aba ser aberta.
+    if (closed) paintHistBadge(true)
+    // Com a aba Histórico fechada, a página não troca de aba sozinha: a contagem muda na aba e vai junto
+    // do próximo anúncio (o do resultado), para um anúncio não apagar o outro.
+    const count = state.history.length
+    state.countNote = closed
+      ? fillText(count === 1 ? 'lab.history.count_note_one' : 'lab.history.count_note', { count })
+      : ''
   }
 
-  function renderHistory () {
-    const box = $('history-body')
-    box.textContent = ''
-    $('hist-count').textContent = state.history.length ? String(state.history.length) : ''
-    $('hist-clear').hidden = !state.history.length
-    if (!state.history.length) {
-      box.append(el('p', { class: 'muted small', text: t('lab.history.empty') }))
-      return
+  // A contagem na aba Histórico: o total de envios, numa caixa que fica roxa cheia enquanto houver envios
+  // que chegaram com a aba fechada.
+  function paintHistBadge (roll) {
+    const badge = $('side-count-historico')
+    const num = $('hist-badge-num')
+    const count = state.history.length
+    badge.hidden = !count
+    num.textContent = count ? String(count) : ''
+    const fresh = state.unseen > 0
+    badge.classList.toggle('is-new', fresh)
+    $('hist-badge-new').textContent = fresh ? ' ' + fillText(state.unseen === 1 ? 'lab.history.new_one' : 'lab.history.new', { count: state.unseen }) : ''
+    if (!roll || state.reduced) return
+    restartAnimation(num, 'is-rolling')
+  }
+
+  // Tirar e pôr a classe no mesmo quadro não reinicia a animação: ler o layout no meio obriga o
+  // navegador a ver as duas mudanças.
+  function restartAnimation (node, className) {
+    node.classList.remove(className)
+    node.getBoundingClientRect()
+    node.classList.add(className)
+  }
+
+  // O fluxo do envio pendente chegou ao veredito (ou deu lugar a outro envio): o status aparece em todos os
+  // lugares de uma vez. Com o Histórico à vista, a entrada ganha o contorno que some em 2 s. A entrada muda
+  // no lugar, sem refazer a lista, para o foco ficar onde está.
+  function revealPending () {
+    const id = state.pendingId
+    if (id === null) return
+    state.pendingId = null
+    const record = state.history.find(item => item.id === id)
+    if (!record) return
+    const entry = document.querySelector('#history-body .entry[data-id="' + id + '"]')
+    if (entry) entry.replaceChildren(...entryParts(record))
+    paintRouteMarks()
+    if (state.shownId === id) {
+      renderShown(record, state.shownLive)
+      renderResponse(record, state.shownLive)
     }
-    const list = el('ol', { class: 'history-list' })
+    const layout = currentLayout()
+    if (layout === 'quatro' || (layout === 'abas' && state.sideTab === 'historico')) flashEntry(entry)
+  }
+
+  function flashEntry (entry) {
+    if (!entry || state.reduced) return
+    restartAnimation(entry, 'is-arriving')
+    entry.addEventListener('animationend', () => entry.classList.remove('is-arriving'), { once: true })
+  }
+
+  // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
+  function authSentText (record) {
+    return parts(record.authSent ? 'lab.history.auth_with' : 'lab.history.auth_without', { header: el('span', { class: 'auth-word', text: state.authHeader }) })
+  }
+
+  // O Histórico é um painel próprio: uma lista vertical de envios, o mais recente primeiro. Escolher um
+  // mostra o fluxo e a resposta dele sem enviar de novo (e seleciona a rota dele). A ordem dos filhos é
+  // a das colunas da tabela; nas entradas estreitas o CSS só reposiciona a hora.
+  function renderHistory () {
+    const list = $('history-body')
+    const count = state.history.length
+    list.textContent = ''
+    $('hist-count').textContent = count ? fillText(count === 1 ? 'lab.history.count_one' : 'lab.history.count', { count }) : ''
+    paintHistBadge(false)
+    $('hist-clear').hidden = !count
+    $('hist-scroll').hidden = !count
+    $('hist-empty').hidden = !!count
+    $('hist-empty').textContent = t('lab.history.empty')
     state.history.forEach(record => {
-      const where = flowWhere(record)
-      const text = record.kind === 'login' ? fillText('lab.history.session_entry', { flow: where.text }) : where.text
       list.append(el('li', null, el('button', {
         type: 'button',
         class: 'entry',
         'data-id': String(record.id),
         'aria-current': record.id === state.shownId ? 'true' : null,
-        onclick: () => show(record, false)
-      },
+        onclick: () => pickHistory(record)
+      }, entryParts(record))))
+    })
+  }
+
+  // Os filhos de uma entrada. Enquanto o fluxo do envio não chega ao veredito, status e onde parou dão
+  // lugar a uma frase só: a entrada diz que o envio existe, não como terminou.
+  function entryParts (record) {
+    const head = [
       el('time', { datetime: record.at.toISOString(), text: clock(record.at) }),
       methodBadge(record.method),
       el('span', { class: 'path', text: record.path }),
-      statusChip(record),
-      el('span', { class: 'where ' + where.className, text }))))
-    })
-    box.append(list)
+      el('span', { class: 'auth-sent' }, authSentText(record))
+    ]
+    if (record.id === state.pendingId) return head.concat(el('span', { class: 'pending-note', text: t('lab.pending.short') }))
+    const where = flowWhere(record)
+    return head.concat(statusChip(record), el('span', { class: 'where ' + where.className, text: where.text }))
+  }
+
+  // A entrada mostrada fica à vista dentro do painel; só a lista rola, nunca a página.
+  function keepEntryInView () {
+    const entry = document.querySelector('.entry[aria-current="true"]')
+    const box = $('hist-scroll')
+    if (!entry || box.scrollHeight <= box.clientHeight) return
+    const head = box.querySelector('.hist-cols')
+    const headHeight = head && getComputedStyle(head).display !== 'none' ? head.offsetHeight : 0
+    const boxRect = box.getBoundingClientRect()
+    const rect = entry.getBoundingClientRect()
+    if (rect.top < boxRect.top + headHeight) box.scrollTop -= boxRect.top + headHeight - rect.top
+    else if (rect.bottom > boxRect.bottom) box.scrollTop += rect.bottom - boxRect.bottom
+  }
+
+  function pickHistory (record) {
+    const route = state.routes.find(item => item.key === core.recordKey(record))
+    if (route && route !== state.selected) {
+      state.selected = route
+      writeHash(route)
+      document.querySelectorAll('.route').forEach(button => {
+        if (button.getAttribute('data-key') === route.key) button.setAttribute('aria-current', 'true')
+        else button.removeAttribute('aria-current')
+      })
+      renderRequest()
+    }
+    state.pickedId = record.id
+    show(record, 'history')
+  }
+
+  function clearHistory () {
+    state.history = []
+    state.shownId = null
+    state.unseen = 0
+    state.pendingId = null
+    renderHistory()
+    paintRouteMarks()
+    showForSelected()
+    announce(t('lab.history.clear_done'))
+    // O botão Limpar some com o histórico: o foco vai para a frase do painel vazio que o substitui.
+    $('hist-empty').focus({ preventScroll: true })
   }
 
   /* ---------- Exibição de um registro ---------- */
 
-  function show (record, live) {
-    state.shownId = record.id
+  // A zona Resultado sempre diz qual requisição mostra; ao trocar de rota, mostra o envio mais
+  // recente dessa rota (marcado como anterior) ou um estado vazio para ela.
+  function showForSelected () {
+    const route = state.selected
+    const record = route ? latestFor(route.key) : null
+    state.pickedId = null
+    if (record) show(record, 'history', true)
+    else renderResultEmpty(route)
+  }
+
+  function setResultMode (hasRecord) {
+    $('result-empty').hidden = hasRecord
+    $('shown').hidden = !hasRecord
+    $('flow').hidden = !hasRecord
+    $('response').hidden = !hasRecord
+    if (!hasRecord) {
+      $('shown-fill').hidden = true
+      $('shown-fill').removeAttribute('data-state')
+    }
+  }
+
+  function markCurrentEntry () {
     document.querySelectorAll('.entry').forEach(button => {
-      if (button.getAttribute('data-id') === String(record.id)) button.setAttribute('aria-current', 'true')
+      if (button.getAttribute('data-id') === String(state.shownId)) button.setAttribute('aria-current', 'true')
       else button.removeAttribute('aria-current')
     })
+  }
+
+  // mode: 'live' (acabou de chegar) ou 'history' (envio anterior, sem animação).
+  function show (record, mode, quiet) {
+    const live = mode === 'live'
+    state.shownId = record.id
+    state.shownLive = live
+    markCurrentEntry()
+    setResultMode(true)
+    renderShown(record, live)
     renderResponse(record, live)
-    renderFlow(record, live, live && state.slow && !state.reduced)
+    renderFlow(record, live, live && state.slow && !state.reduced, quiet)
+    if (!quiet) revealFlow()
+    keepEntryInView()
+  }
+
+  function renderShown (record, live) {
+    const box = $('shown')
+    box.textContent = ''
+    append(box, [
+      el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
+      methodBadge(record.method),
+      el('code', { class: 'shown-path', text: record.path }),
+      // Até o veredito, o cabeçalho não mostra status: só método, caminho e hora. O lugar do status fica
+      // guardado por uma cópia invisível (fora da árvore de acessibilidade), para o cabeçalho ter a mesma
+      // altura antes e depois e o fluxo não pular no veredito, em qualquer largura.
+      record.id === state.pendingId ? el('span', { class: 'chip-slot', 'aria-hidden': 'true' }, statusChip(record)) : statusChip(record),
+      originTag(record, live)
+    ])
+    if (state.filledId !== record.id) state.filledId = null
+    paintFill()
+  }
+
+  /* ---------- Preencher a requisição com um envio ---------- */
+
+  // Escolher um envio antigo não mexe no rascunho. Quando o que está na requisição é diferente do que
+  // este envio mandou (o comando curl dos dois não bate), uma ação logo abaixo do cabeçalho traz de
+  // volta o envio. Só redesenha quando o estado muda, para não tirar o foco do botão.
+  function paintFill () {
+    const box = $('shown-fill')
+    const record = state.history.find(item => item.id === state.shownId)
+    const route = state.selected
+    let mode = 'none'
+    const picked = record && record.id === state.pickedId && core.isOlderThanLatest(record, state.history)
+    if (picked && record.sent && route && core.recordKey(record) === route.key && !$('shown').hidden) {
+      if (core.recordDiffersFromDraft(record, currentRequest(route))) {
+        state.filledId = null
+        mode = 'differs'
+      } else if (state.filledId === record.id) {
+        mode = 'done'
+      }
+    }
+    const key = mode + ':' + (record ? record.id : '')
+    if (box.getAttribute('data-state') === key) return
+    box.setAttribute('data-state', key)
+    box.textContent = ''
+    box.hidden = mode === 'none'
+    if (mode === 'differs') {
+      box.append(el('span', { class: 'fill-note', text: t('lab.fill.differs') }),
+        el('button', { type: 'button', class: 'btn', id: 'fill-btn', text: t('lab.fill.action'), onclick: () => fillFromRecord(record) }))
+    } else if (mode === 'done') {
+      box.append(el('p', { class: 'fill-done', id: 'fill-done', tabindex: '-1' }, el('span', { 'aria-hidden': 'true', text: '✓ ' }), fillText('lab.fill.done', { time: clock(record.at) }), state.fillAuthChanged ? ' ' + t('lab.fill.auth_changed') : ''))
+    }
+  }
+
+  // Devolve à zona Requisição o que o envio mandou: parâmetros de caminho e de consulta, corpo e o
+  // valor de Authorization (como edição desta rota, só se for diferente do que o campo já mostra).
+  function fillFromRecord (record) {
+    const route = state.routes.find(item => item.key === core.recordKey(record))
+    if (!route || !record.sent) return
+    const draft = draftFor(route)
+    draft.params = Object.assign({}, record.sent.params)
+    draft.body = record.sent.body
+    const authChanged = route.needsToken && authValue(route) !== record.sent.auth
+    if (authChanged) {
+      draft.auth = record.sent.auth
+      draft.authFrom = record.at
+    } else if (route.needsToken) {
+      delete draft.authFrom
+    }
+    state.filledId = record.id
+    state.fillAuthChanged = authChanged
+    renderRequest()
+    // O botão some: o foco vai para a frase que o substitui, e ela também é anunciada.
+    const done = $('fill-done')
+    if (done) done.focus({ preventScroll: true })
+    announce(fillText('lab.fill.announce', { route: record.method + ' ' + record.path, time: clock(record.at) }) + (authChanged ? ' ' + t('lab.fill.auth_changed') : ''))
+  }
+
+  function renderResultEmpty (route) {
+    state.shownId = null
+    markCurrentEntry()
+    setResultMode(false)
+    clearTimeout(flow.timer)
+    flow.run++
+    flow.record = null
+    flow.model = null
+    state.offer = null
+    const box = $('result-empty')
+    box.textContent = ''
+    const first = !state.history.length
+    const intro = first ? introSentence() : ''
+    append(box, [
+      intro ? el('p', { class: 'result-lead', text: intro }) : null,
+      route ? el('p', { class: 'result-route' }, parts('lab.result.not_sent', { route: el('code', { text: route.method.toUpperCase() + ' ' + route.path }) })) : null,
+      el('p', { text: t('lab.result.not_sent_how') }),
+      el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })
+    ])
+  }
+
+  // Numa coluna só, o resultado fica abaixo da requisição: quando ele aparece, o cabeçalho do
+  // resultado é rolado até a vista. O foco não sai do lugar; a região ao vivo já anuncia.
+  function revealFlow () {
+    if (!isNarrow()) return
+    const top = $('shown').getBoundingClientRect().top
+    if (top >= 0 && top <= window.innerHeight * 0.4) return
+    $('shown').scrollIntoView({ block: 'start', behavior: state.reduced ? 'auto' : 'smooth' })
   }
 
   function originTag (record, live) {
@@ -894,16 +1670,17 @@
   function renderResponse (record, live) {
     const area = $('res-body-area')
     area.textContent = ''
-    const origin = $('res-origin')
-    origin.textContent = ''
-    origin.append(originTag(record, live))
-    const sessionTag = record.kind === 'login' ? el('span', { class: 'tag', text: t('lab.response.session_request') }) : null
+    state.offer = null
+    // Até o veredito do fluxo, nem status nem corpo: a resposta chega junto com ele.
+    if (record.id === state.pendingId) {
+      area.append(el('p', { class: 'pending-note', text: t('lab.pending.response') }))
+      return
+    }
     if (record.error) {
       area.append(el('div', { class: 'net-error' },
         el('strong', { text: t('lab.response.network_error') }),
         el('span', { class: 'small', text: fillText('lab.response.network_detail', { error: record.error }) }),
-        el('span', { class: 'res-url', text: record.method + ' ' + record.url }),
-        sessionTag))
+        el('span', { class: 'res-url', text: record.method + ' ' + record.url })))
       return
     }
     const body = record.bodyText
@@ -928,9 +1705,10 @@
       el('div', { class: 'res-line' },
         statusChip(record),
         el('span', { class: 'res-meta' }, parts('lab.time.browser', { time: el('strong', { text: formatMs(record.ms) }) }))),
-      el('p', { class: 'res-url' }, record.method + ' ' + record.url, sessionTag ? ' ' : null, sessionTag),
+      el('p', { class: 'res-url', text: record.method + ' ' + record.url }),
       el('div', { class: 'code res-body' }, pre),
       truncated ? el('p', { class: 'muted small', text: fillText('lab.response.truncated', { count: body.length }) }) : null,
+      tokenOffer(record),
       el('details', { class: 'headers' },
         el('summary', { text: fillText('lab.response.request_headers', { count: record.requestHeaders.length }) }),
         headerList(record.requestHeaders)),
@@ -1004,6 +1782,7 @@
   function rightColumn (stage, stateName) {
     if (stateName === 'pending') return el('span', { class: 'flow-right', text: t('ui.flow.pending') })
     if (stateName === 'running') return el('span', { class: 'flow-right', text: t('ui.flow.running') })
+    // Etapa que não rodou: o status fica nesta coluna, no lugar da duração (visual; o leitor de tela já tem o srStatus).
     if (stateName === 'skip' || stateName === 'not_run') {
       return el('span', { class: 'flow-right', 'aria-hidden': 'true' }, codeOrLabel(stage.statusKey, stage.st))
     }
@@ -1011,8 +1790,10 @@
     return el('span', { class: 'flow-right flow-dur', text: core.formatDuration(stage.dur, language) + ' ms' })
   }
 
+  // {instruction} só existe em lab.flow.how.user_not_found; os outros textos não têm marcador.
   function textBlock (titleKey, bodyKey, className) {
-    return el('div', { class: 'flow-block ' + className }, el('strong', { class: 'flow-block-title', text: t(titleKey) }), el('p', { text: t(bodyKey) }))
+    return el('div', { class: 'flow-block ' + className }, el('strong', { class: 'flow-block-title', text: t(titleKey) }),
+      el('p', { text: fillText(bodyKey, { instruction: t('lab.auth.how_to_get') }) }))
   }
 
   function ruleRow (rule) {
@@ -1045,29 +1826,39 @@
     body.append(el('p', { class: 'flow-note strong' }, content))
   }
 
-  function renderFlow (record, live, animate) {
+  // quiet: ao trocar de rota o envio anterior volta sem ser anunciado como se tivesse acabado de chegar.
+  // É aqui que o fluxo diz como terminou: o envio pendente mostra o status em todo lugar (revealPending).
+  function flowAnnounce (message) {
+    revealPending()
+    if (!flow.quiet) announce(message)
+  }
+
+  function renderFlow (record, live, animate, quiet) {
+    // Outro envio toma o lugar do fluxo: o que estava pendente não vai mostrar o veredito, então mostra o status.
+    if (state.pendingId !== null && state.pendingId !== record.id) revealPending()
     clearTimeout(flow.timer)
     flow.run++
     flow.record = record
     flow.live = !!live
+    flow.quiet = !!quiet
     flow.model = null
     $('flow-body').textContent = ''
     $('replay').disabled = true
 
     if (record.error) {
       flowNote(record, t('lab.flow.no_response'))
-      announce(t('lab.response.network_error'))
+      flowAnnounce(t('lab.response.network_error'))
       return
     }
     if (record.stagesHeader === null) {
       flowNote(record, parts('lab.flow.no_header', { header: el('code', { class: 'nowrap', text: 'X-ServeRest-Stages' }) }))
-      announce(fillText('lab.announce.no_flow', { status: statusLine(record) }))
+      flowAnnounce(fillText('lab.announce.no_flow', { status: statusLine(record) }))
       return
     }
     const model = flowModelOf(record)
     if (!model) {
       flowNote(record, parts('lab.flow.empty_header', { header: el('code', { class: 'nowrap', text: 'X-ServeRest-Stages' }) }))
-      announce(fillText('lab.announce.no_flow', { status: statusLine(record) }))
+      flowAnnounce(fillText('lab.announce.no_flow', { status: statusLine(record) }))
       return
     }
     drawFlow(record, model, animate)
@@ -1080,18 +1871,35 @@
     flow.end = stages.length + 1
     flow.active = animate ? nextActive(stages, 0) : flow.end
 
-    append(body, flowContext(record, model))
+    // O veredito vem primeiro; os tempos viram legenda, abaixo da cascata.
+    const [context, times] = flowContext(record, model)
+    body.append(context)
     const summary = el('p', { class: 'flow-summary waiting' })
-    const bar = el('div', { class: 'flow-bar', 'aria-hidden': 'true' })
     const outside = el('div', { class: 'flow-outside', hidden: true })
     const list = el('ol', { class: 'flow-stages' })
-    flow.segs = []
     flow.rows = []
+    // Uma grade só (core.flowColumns): o resumo, cada linha e as linhas das colunas usam as mesmas
+    // colunas, uma por etapa e a da resposta.
+    const columns = stages.length + 1
+    body.style.setProperty('--wf-cols', core.flowColumns(model))
+    const cellsOf = className => {
+      const cells = []
+      for (let column = 0; column < columns; column++) {
+        cells.push(el('span', { class: 'wf-cell' + (column < stages.length ? ' wf-cell-stage' : ''), 'data-column': String(column) }))
+      }
+      return el('span', { class: className, 'aria-hidden': 'true' }, cells)
+    }
+    const segOf = (cell, failed, response) => {
+      const seg = el('span', { class: 'flow-seg' + (failed ? ' flow-seg-fail' : '') + (response ? ' flow-seg-response' : '') })
+      cell.append(seg)
+      return seg
+    }
+    const summaryBar = cellsOf('wf-summary')
+    const scale = el('div', { class: 'wf-scale', 'aria-hidden': 'true' }, el('span', { class: 'wf-label', text: t('lab.flow.summary_label') }), summaryBar)
     stages.forEach((stage, index) => {
-      const seg = el('span', { class: 'flow-seg' + (stage.st === 'failed' ? ' flow-seg-fail' : '') })
-      seg.style.flexGrow = String(core.segmentGrow(stage))
-      bar.append(seg)
-      flow.segs.push(seg)
+      const track = cellsOf('wf-track')
+      const seg = segOf(track.children[index], stage.st === 'failed')
+      const summarySeg = segOf(summaryBar.children[index], stage.st === 'failed')
 
       const isFailed = model.failedStage === stage.name && stage.st === 'failed'
       const expandable = !!stage.descriptionKey || stage.rules.length > 0 || (isFailed && !!model.whyKey)
@@ -1101,8 +1909,10 @@
         : el('div', { class: 'flow-row' })
       let details = null
       if (expandable) {
+        // Na etapa que parou, Por que parou aqui e Como seguir bastam; a descrição geral sai para caber.
+        const explains = isFailed && !!model.whyKey
         details = el('div', { class: 'flow-details', id: detailsId, hidden: true },
-          stage.descriptionKey ? el('p', { class: 'flow-description', text: t(stage.descriptionKey) }) : null,
+          stage.descriptionKey && !explains ? el('p', { class: 'flow-description', text: t(stage.descriptionKey) }) : null,
           stage.rules.length ? el('ul', { class: 'flow-rules' }, stage.rules.map(ruleRow)) : null,
           isFailed && model.whyKey ? textBlock('ui.flow.why_title', model.whyKey, 'flow-why') : null,
           isFailed && model.howKey ? textBlock('ui.flow.how_title', model.howKey, 'flow-how') : null)
@@ -1110,17 +1920,24 @@
       }
       const li = el('li', { class: 'flow-stage' }, row, details)
       list.append(li)
-      flow.rows.push({ stage, li, row, details, expandable, state: null })
+      linkSummary(li, summaryBar.children[index], summarySeg)
+      // Clicar no segmento do resumo abre a linha da etapa, como clicar na própria linha.
+      if (expandable) summaryBar.children[index].addEventListener('click', () => setExpanded(index, details.hidden))
+      flow.rows.push({ stage, li, row, details, expandable, track, seg, summarySeg, state: null })
     })
-    const responseSeg = el('span', { class: 'flow-seg flow-seg-response' })
-    bar.append(responseSeg)
-    flow.segs.push(responseSeg)
+    const responseTrack = cellsOf('wf-track')
+    const responseSeg = segOf(responseTrack.children[stages.length], false, true)
+    const responseSummarySeg = segOf(summaryBar.children[stages.length], false, true)
     const responseRow = el('div', { class: 'flow-row' })
     const responseLi = el('li', { class: 'flow-stage flow-response' }, responseRow)
     list.append(responseLi)
-    flow.responseRow = { li: responseLi, row: responseRow, state: null }
+    linkSummary(responseLi, summaryBar.children[stages.length], responseSummarySeg)
+    flow.responseRow = { li: responseLi, row: responseRow, track: responseTrack, seg: responseSeg, summarySeg: responseSummarySeg, state: null }
 
-    body.append(summary, bar, outside, list, el('p', { class: 'flow-hint', text: t('lab.flow.hint') }))
+    // Linhas das colunas: uma camada só, sobre o resumo e a lista inteira.
+    const lines = el('div', { class: 'wf-lines', 'aria-hidden': 'true' }, cellsOf('wf-lines-cols'))
+    lines.firstChild.querySelectorAll('.wf-cell').forEach(cell => { cell.className = '' })
+    body.append(summary, outside, el('div', { class: 'wf' }, scale, list, lines), times, el('p', { class: 'flow-hint', text: t('lab.flow.hint') }))
     flow.summaryEl = summary
     flow.outsideEl = outside
     paintFlow()
@@ -1151,19 +1968,20 @@
       row.state = stateName
       row.li.className = 'flow-stage flow-' + stateName
       const finished = stateName !== 'pending' && stateName !== 'running'
+      const skipped = stateName === 'skip' || stateName === 'not_run'
       // O status para leitor de tela só entra quando a etapa terminou.
       row.row.replaceChildren(...[
         stageMark(stateName),
         finished ? srStatus(row.stage) : null,
         codeOrLabel(row.stage.labelKey, row.stage.name, 'flow-name'),
-        rightColumn(row.stage, stateName),
-        row.expandable ? el('span', { class: 'flow-caret', 'aria-hidden': 'true', text: '▶' }) : null
+        row.track,
+        endColumn(rightColumn(row.stage, stateName), row.expandable)
       ].filter(Boolean))
-      const seg = flow.segs[index]
-      seg.classList.toggle('flow-seg-skip', stateName === 'skip' || stateName === 'not_run')
-      seg.replaceChildren()
-      const fill = fillEl(stateName, delayAt(stages, index))
-      if (fill) seg.append(fill)
+      // O segmento enche no resumo e na linha ao mesmo tempo, com a mesma duração.
+      fillBoth(row, stateName, delayAt(stages, index))
+      // Etapa que não rodou: o mesmo encaixe hachurado no resumo e na linha.
+      row.seg.classList.toggle('flow-seg-skip', skipped)
+      row.summarySeg.classList.toggle('flow-seg-skip', skipped)
     })
     const responseState = stateAt(stages, stages.length, flow.active)
     const response = flow.responseRow
@@ -1174,11 +1992,33 @@
     if (responseState === 'done') right = el('span', { class: 'flow-right flow-dur', text: flow.model.statusCode !== null ? String(flow.model.statusCode) : '' })
     else right = el('span', { class: 'flow-right', text: responseState === 'running' ? t('ui.flow.running') : t('ui.flow.pending') })
     const mark = responseState === 'running' ? stageMark('running') : markEl(responseState === 'done' ? '→' : '○')
-    response.row.replaceChildren(mark, el('span', { class: 'flow-name', text: t('ui.response') }), right)
-    const responseSeg = flow.segs[flow.segs.length - 1]
-    responseSeg.replaceChildren()
-    const fill = fillEl(responseState, RESPONSE_DELAY)
-    if (fill) responseSeg.append(fill)
+    response.row.replaceChildren(mark, el('span', { class: 'flow-name', text: t('ui.response') }), response.track, endColumn(right, false))
+    fillBoth(response, responseState, RESPONSE_DELAY)
+  }
+
+  // A seta ocupa sempre o mesmo lugar, para o texto da coluna final alinhar em todas as linhas.
+  function endColumn (right, expandable) {
+    return el('span', { class: 'flow-end' }, right, el('span', { class: 'flow-caret', 'aria-hidden': 'true', text: expandable ? '▶' : '' }))
+  }
+
+  function fillBoth (row, stateName, delay) {
+    [row.seg, row.summarySeg].forEach(seg => {
+      const fill = fillEl(stateName, delay)
+      seg.replaceChildren(...(fill ? [fill] : []))
+    })
+  }
+
+  // O bloco inteiro da etapa (a linha e a explicação aberta) liga ao seu segmento no resumo: passar o
+  // mouse ou levar o foco para dentro dele contorna o segmento; passar o mouse no segmento contorna o bloco.
+  function linkSummary (block, cell, summarySeg) {
+    const on = () => { block.classList.add('linked'); summarySeg.classList.add('linked') }
+    const off = () => { block.classList.remove('linked'); summarySeg.classList.remove('linked') }
+    cell.addEventListener('mouseenter', on)
+    cell.addEventListener('mouseleave', off)
+    block.addEventListener('mouseenter', () => summarySeg.classList.add('linked'))
+    block.addEventListener('mouseleave', () => { if (!block.contains(document.activeElement)) summarySeg.classList.remove('linked') })
+    block.addEventListener('focusin', () => summarySeg.classList.add('linked'))
+    block.addEventListener('focusout', event => { if (!block.contains(event.relatedTarget)) summarySeg.classList.remove('linked') })
   }
 
   function setExpanded (index, open) {
@@ -1211,20 +2051,7 @@
       spoken = fillText('lab.announce.completed', { status: statusLine(record) })
     }
     $('replay').disabled = false
-    announce(spoken)
-  }
-
-  function renderFlowEmpty () {
-    const body = $('flow-body')
-    body.textContent = ''
-    const bar = el('div', { class: 'flow-bar', 'aria-hidden': 'true' })
-    ;[3, 2, 4, 3, 2].forEach(grow => {
-      const seg = el('span', { class: 'flow-seg' })
-      seg.style.flexGrow = String(grow)
-      bar.append(seg)
-    })
-    bar.append(el('span', { class: 'flow-seg flow-seg-response' }))
-    body.append(el('div', { class: 'flow-empty' }, bar, el('p', { class: 'flow-note', text: t('lab.flow.empty') })))
+    flowAnnounce(spoken)
   }
 
   function setupFlowControls () {
@@ -1234,18 +2061,7 @@
     const slow = $('slow')
     slow.checked = state.slow
     if (state.reduced) $('flow-controls').hidden = true
-    slow.addEventListener('change', () => {
-      state.slow = !!slow.checked
-      saveSlowMotion(state.slow)
-      // Desligar no meio da animação leva direto ao estado final, como no painel do Swagger.
-      if (!state.slow && flow.model && flow.active < flow.end) {
-        clearTimeout(flow.timer)
-        flow.run++
-        flow.active = flow.end
-        paintFlow()
-        finishFlow()
-      }
-    })
+    slow.addEventListener('change', () => setSlow(!!slow.checked))
     $('replay').addEventListener('click', () => {
       if (flow.record) renderFlow(flow.record, flow.live, state.slow && !state.reduced)
     })
@@ -1255,23 +2071,15 @@
 
   function init () {
     setupTopbar()
+    paintNotice()
     setupFlowControls()
-    renderFlowEmpty()
+    setupPrefs()
+    setupSide()
     renderHistory()
-    renderSession()
-    $('login-form').addEventListener('submit', login)
-    $('logout-btn').addEventListener('click', () => {
-      clearToken()
-      setSessionMessage(t('lab.session.logged_out'))
-      announce(t('lab.session.logged_out'))
-    })
+    renderResultEmpty(null)
     $('filter').addEventListener('input', renderRoutes)
     $('routes-toggle').addEventListener('click', () => setRoutesCollapsed(!$('routes').classList.contains('collapsed')))
-    $('hist-clear').addEventListener('click', () => {
-      state.history = []
-      state.shownId = null
-      renderHistory()
-    })
+    $('hist-clear').addEventListener('click', clearHistory)
     document.addEventListener('keydown', event => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && $('request').contains(document.activeElement)) {
         event.preventDefault()
@@ -1284,10 +2092,10 @@
       const route = state.routes.find(item => item.key === key)
       if (route && route !== state.selected) selectRoute(route, false)
     })
+    // A linha de ajuda passa a dizer que o token expirou sem esperar outra ação.
     setInterval(() => {
-      if (state.token) renderSession()
+      if (state.token) refreshPreview()
     }, 15000)
-    if (isNarrow()) setRoutesCollapsed(true)
     loadSpec()
   }
 
