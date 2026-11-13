@@ -348,10 +348,10 @@
 
   /* Requisição */
 
-  // draft.auth existe só quando o aluno editou o header da rota; sem ele, a rota segue a sessão.
-  function authValueFor (draft, sessionToken) {
+  // draft.auth existe só quando o aluno editou o header da rota; sem ele, a rota segue o token da página.
+  function authValueFor (draft, pageToken) {
     if (draft && typeof draft.auth === 'string') return draft.auth
-    return sessionToken || ''
+    return pageToken || ''
   }
 
   // Valor de header HTTP aceita tab, os caracteres de 0x20 a 0x7E e os de 0x80 a 0xFF.
