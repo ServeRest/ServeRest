@@ -195,7 +195,7 @@ module.exports = {
   'lab.prefs.slow_on': 'Activada',
   'lab.prefs.slow_off': 'Desactivada',
   'lab.prefs.slow_reduced': 'Su sistema pide menos movimiento, así que el flujo aparece sin animación.',
-  'lab.prefs.note': 'Las opciones valen al instante y quedan guardadas en este navegador.',
+  'lab.prefs.note': 'Las opciones se aplican al instante y quedan guardadas en este navegador.',
   'lab.side.tabs': 'Rutas e Historial',
   'lab.routes.title': 'Rutas',
   'lab.routes.hide': 'Ocultar lista',
