@@ -280,6 +280,9 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
   gap: 16px;
   padding-top: 16px; padding-bottom: 16px;
 }
+/* Até app.js (com defer) escrever o layout na raiz, as zonas ficam invisíveis: antes dele não há abas
+   e o Histórico ainda está fora da coluna da esquerda, e a página pularia uns 47 px quando ele roda. */
+:root:not([data-layout]) .app { visibility: hidden; }
 .zone { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
 .zone-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 2.875rem; padding: 6px 16px; border-bottom: 1px solid var(--border); }
 .zone-title { font-size: 1.1875rem; font-weight: 600; }
