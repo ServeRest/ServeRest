@@ -1455,23 +1455,23 @@
     const fresh = state.unseen > 0
     badge.classList.toggle('is-new', fresh)
     $('hist-badge-new').textContent = fresh ? ' ' + fillText(state.unseen === 1 ? 'lab.history.new_one' : 'lab.history.new', { count: state.unseen }) : ''
-    if (!roll || state.reduced) return
-    restartAnimation(num, 'is-rolling')
+    if (roll) playOnce(num, COUNT_ROLL, { duration: 450, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' })
   }
 
-  // Tirar e pôr a classe no mesmo quadro não reinicia a animação: ler o layout no meio obriga o
-  // navegador a ver as duas mudanças. No fim a classe sai: uma classe que fica faz a animação tocar de
-  // novo sempre que o elemento volta a aparecer (a contagem, quando a lista de abas volta).
-  function restartAnimation (node, className) {
-    node.classList.remove(className)
-    node.getBoundingClientRect()
-    node.classList.add(className)
-    const done = event => {
-      if (event.target !== node) return
-      node.removeEventListener('animationend', done)
-      node.classList.remove(className)
-    }
-    node.addEventListener('animationend', done)
+  // A contagem sobe de baixo, e a entrada nova ganha um contorno roxo que se apaga. Só cor e posição.
+  const COUNT_ROLL = [{ transform: 'translateY(90%)', opacity: 0 }, { transform: 'none', opacity: 1 }]
+  const ENTRY_ARRIVE = [{ boxShadow: 'inset 0 0 0 2px var(--accent)' }, { boxShadow: 'inset 0 0 0 2px transparent' }]
+
+  // Os dois sinais são animações de script (Web Animations), que tocam uma vez só. Uma animação de CSS
+  // recomeça do início sempre que o elemento volta a aparecer depois de um display: none (o painel da aba
+  // fechada, a lista de abas fora do layout com abas) e repetiria o sinal sem envio novo. Esta segue o
+  // relógio mesmo escondida e, se já acabou, não toca de novo. Tocar outra vez cancela a anterior.
+  const playing = new WeakMap()
+  function playOnce (node, keyframes, options) {
+    if (!node.animate || prefersReducedMotion()) return
+    const previous = playing.get(node)
+    if (previous) previous.cancel()
+    playing.set(node, node.animate(keyframes, options))
   }
 
   // O fluxo do envio pendente chegou ao veredito (ou deu lugar a outro envio): o status aparece em todos os
@@ -1495,8 +1495,7 @@
   }
 
   function flashEntry (entry) {
-    if (!entry || state.reduced) return
-    restartAnimation(entry, 'is-arriving')
+    if (entry) playOnce(entry, ENTRY_ARRIVE, { duration: 2000, easing: 'ease-out' })
   }
 
   // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
