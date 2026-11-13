@@ -1127,7 +1127,7 @@
     const list = $('sent')
     const group = $('auth-group')
     while (list.firstChild && list.firstChild !== group) list.firstChild.remove()
-    const rows = [el('dt', { text: t('lab.sent.url') }), el('dd', { text: request.method + ' ' + request.url })]
+    const rows = [el('dt', { text: t('lab.sent.url') }), el('dd', null, sentUrl(request))]
     request.headers.forEach(header => {
       if (route.needsToken && header[0] === state.authHeader) return
       rows.push(el('dt', { text: header[0] }), el('dd', { text: header[1] }))
@@ -1137,6 +1137,17 @@
     $('curl-pre').textContent = core.curlOf(request)
     // Cada mudança no rascunho decide de novo se o envio mostrado em Resultado é diferente dele.
     paintFill()
+  }
+
+  // A linha da URL em Será enviado: o método fica na linha da URL (um espaço que não quebra) e uma URL
+  // longa quebra entre os pedaços dela: depois de "//" e antes de cada / do caminho e de cada ? ou &. Um
+  // pedaço só quebra no meio quando sozinho não cabe na linha (overflow-wrap do CSS).
+  function sentUrl (request) {
+    const match = /^([a-z][a-z0-9+.-]*:\/\/)([^/?#]*)([\s\S]*)$/i.exec(request.url)
+    const pieces = (match ? match[3] : request.url).split(/(?=[/?&])/).filter(Boolean)
+    if (match && match[2]) pieces.unshift(match[2])
+    const head = request.method + ' ' + (match ? match[1] : pieces.shift() || '')
+    return [head, pieces.map(piece => [el('wbr'), piece])]
   }
 
   function tokenValues () {
