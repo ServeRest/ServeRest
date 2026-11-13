@@ -96,7 +96,7 @@ describe('Página do lab: funções puras', () => {
 
     it('flowColumns: requisição que parou tem coluna fixa para cada etapa que não rodou e para a resposta', () => {
       const model = core.buildFlowModel(core.parseStages(headers.semToken), 401, textosDoFluxo)
-      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.458fr) minmax(22px, 0.300fr) minmax(22px, 0.224fr) 22px 22px 22px 22px')
+      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.467fr) minmax(22px, 0.306fr) minmax(22px, 0.228fr) 22px 22px 22px 22px')
     })
 
     it('flowColumns: requisição que passou divide as colunas pela raiz da duração, e etapa pulada fica fixa', () => {
@@ -106,7 +106,17 @@ describe('Página do lab: funções puras', () => {
 
     it('flowColumns: etapa que rodou sem duração usa a duração mínima do painel', () => {
       const model = core.buildFlowModel(core.parseStages('body;st=ok, auth;st=failed;reason=token_missing, write;st=not_run'), 401, textosDoFluxo)
-      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.447fr) minmax(22px, 0.447fr) 22px 22px')
+      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.500fr) minmax(22px, 0.500fr) 22px 22px')
+    })
+
+    it('flowColumns: etapas rápidas crescem na mesma proporção até as frações somarem pelo menos 1, para o desenho ir até o fim da coluna', () => {
+      // O caso comum num servidor local: o limite de requisições pulado e duas etapas de décimos de milissegundo.
+      const rapidas = 'body;st=ok;dur=0.19, rate_limit;st=skipped, auth;st=failed;dur=0.07;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run'
+      const colunas = core.flowColumns(core.buildFlowModel(core.parseStages(rapidas), 401, textosDoFluxo))
+      const fracoes = colunas.match(/[0-9.]+(?=fr\))/g).map(Number)
+      expect(colunas).to.equal('minmax(22px, 0.623fr) 22px minmax(22px, 0.378fr) 22px 22px 22px 22px')
+      expect(fracoes.reduce((soma, valor) => soma + valor, 0)).to.be.at.least(1)
+      expect(fracoes[0] / fracoes[1]).to.be.closeTo(Math.sqrt(0.19) / Math.sqrt(0.07), 0.01)
     })
   })
 
