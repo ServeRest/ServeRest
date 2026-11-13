@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="/lab/assets/legacy-links.js?v={{version}}"></script>
+<script src="/lab/assets/prefs-boot.js?v={{version}}"></script>
 <title>{{lab.page.title}}</title>
 <link rel="icon" href="/favicon.ico">
 <link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
@@ -14,42 +15,74 @@
 <a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
 
 <header class="topbar">
-  <div class="brand">
-    <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-    <span class="brand-name">ServeRest</span>
-    <span class="version" id="version"></span>
+  <div class="topbar-inner wrap">
+    <div class="brand">
+      <span class="logo" role="img" aria-label="{{lab.topbar.logo}}"></span>
+      <span class="version-box">
+        <span class="version" id="version"></span>
+        <a class="version-notice" id="version-notice" target="_blank" rel="noopener" hidden></a>
+      </span>
+    </div>
+    <span class="grow"></span>
+    <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
+    <button class="prefs-btn" type="button" id="prefs-btn" aria-expanded="false" aria-controls="prefs-panel">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 8h2M8 8h6M2 12h8M14 12h0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="11" cy="4" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="8" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span>{{lab.prefs.title}}</span>
+    </button>
+    <nav class="flags" aria-label="{{lab.topbar.languages}}">
+      <a class="flag" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" title="{{lab.lang.pt_br}}"><img src="/flags/flag_brazil.svg" alt="{{lab.lang.pt_br}}" width="20" height="14"></a>
+      <a class="flag" href="?lang=es" hreflang="es" lang="es" data-lang="es" title="{{lab.lang.es}}"><img src="/flags/flag_peru.svg" alt="{{lab.lang.es}}" width="20" height="14"></a>
+      <a class="flag" href="?lang=en" hreflang="en" lang="en" data-lang="en" title="{{lab.lang.en}}"><img src="/flags/flag_uk.svg" alt="{{lab.lang.en}}" width="20" height="14"></a>
+    </nav>
   </div>
-  <span class="grow"></span>
-  <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
-  <nav class="flags" aria-label="{{lab.topbar.languages}}">
-    <a class="flag" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" title="{{lab.lang.pt_br}}"><img src="/flags/flag_brazil.svg" alt="{{lab.lang.pt_br}}" width="20" height="14"></a>
-    <a class="flag" href="?lang=es" hreflang="es" lang="es" data-lang="es" title="{{lab.lang.es}}"><img src="/flags/flag_peru.svg" alt="{{lab.lang.es}}" width="20" height="14"></a>
-    <a class="flag" href="?lang=en" hreflang="en" lang="en" data-lang="en" title="{{lab.lang.en}}"><img src="/flags/flag_uk.svg" alt="{{lab.lang.en}}" width="20" height="14"></a>
-  </nav>
 </header>
 
-<div class="app">
-  <aside class="side" aria-label="{{lab.side.label}}">
-    <section class="card session" aria-labelledby="session-title">
-      <div class="card-head">
-        <h2 class="card-title" id="session-title">{{lab.session.title}}</h2>
-        <span class="pill" id="token-pill"></span>
-      </div>
-      <p class="token-state" id="token-state"></p>
-      <form id="login-form" class="login-grid" novalidate>
-        <label class="field"><span>{{lab.session.email}}</span><input class="input" id="login-email" type="email" autocomplete="off"></label>
-        <label class="field"><span>{{lab.session.password}}</span><input class="input mono" id="login-password" type="text" autocomplete="off" spellcheck="false" autocapitalize="off"></label>
-        <div class="session-actions">
-          <button class="btn" type="submit" id="login-btn">{{lab.session.login}}</button>
-          <button class="btn" type="button" id="logout-btn" disabled>{{lab.session.logout}}</button>
-        </div>
-      </form>
-      <p class="session-msg" id="session-msg"></p>
-    </section>
+<div class="prefs-panel" id="prefs-panel" role="dialog" aria-modal="false" aria-labelledby="prefs-title" hidden>
+  <div class="prefs-head">
+    <h2 id="prefs-title">{{lab.prefs.title}}</h2>
+    <span class="grow"></span>
+    <button class="btn btn-quiet" type="button" id="prefs-close">{{lab.prefs.close}}</button>
+  </div>
+  <fieldset>
+    <legend>{{lab.prefs.theme}}</legend>
+    <div class="choices">
+      <label class="choice"><input type="radio" name="pref-theme" value="system"> {{lab.prefs.theme_system}}</label>
+      <label class="choice"><input type="radio" name="pref-theme" value="light"> {{lab.prefs.theme_light}}</label>
+      <label class="choice"><input type="radio" name="pref-theme" value="dark"> {{lab.prefs.theme_dark}}</label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>{{lab.prefs.text}}</legend>
+    <div class="choices">
+      <label class="choice"><input type="radio" name="pref-text" value="normal"> {{lab.prefs.text_normal}}</label>
+      <label class="choice"><input type="radio" name="pref-text" value="grande"> {{lab.prefs.text_large}}</label>
+      <label class="choice"><input type="radio" name="pref-text" value="maior"> {{lab.prefs.text_larger}}</label>
+    </div>
+  </fieldset>
+  <fieldset id="prefs-slow">
+    <legend>{{lab.prefs.slow}}</legend>
+    <div class="choices" id="prefs-slow-choices">
+      <label class="choice"><input type="radio" name="pref-slow" value="on"> {{lab.prefs.slow_on}}</label>
+      <label class="choice"><input type="radio" name="pref-slow" value="off"> {{lab.prefs.slow_off}}</label>
+    </div>
+    <p class="prefs-note" id="prefs-slow-reduced" hidden>{{lab.prefs.slow_reduced}}</p>
+  </fieldset>
+  <p class="prefs-note">{{lab.prefs.note}}</p>
+</div>
 
-    <section class="card routes" id="routes" aria-labelledby="routes-title">
-      <div class="routes-head">
-        <h2 class="card-title" id="routes-title">{{lab.routes.title}}</h2>
+<!-- As quatro zonas. A coluna da esquerda (.side) tem as abas Rotas e Histórico só no layout com três
+     zonas (data-layout="abas"): nesse layout o script põe o Histórico aqui, depois das Rotas; com quatro
+     zonas e numa coluna só ele fica depois do Resultado, para o teclado seguir a tela. -->
+<main class="app wrap" id="app">
+  <h1 class="sr-only">{{lab.page.heading}}</h1>
+  <div class="side" id="side">
+    <div class="side-tabs" id="side-tabs" role="tablist" aria-label="{{lab.side.tabs}}">
+      <button class="side-tab" type="button" role="tab" id="side-tab-rotas" aria-controls="routes" aria-selected="true"><span class="tab-label">{{lab.routes.title}}</span> <span class="tab-count" id="side-count-rotas"></span></button>
+      <button class="side-tab" type="button" role="tab" id="side-tab-historico" aria-controls="history" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.history.title}}</span> <span class="tab-count" id="side-count-historico" hidden><span class="count-num" id="hist-badge-num"></span></span><span class="sr-only" id="hist-badge-new"></span></button>
+    </div>
+    <section class="zone zone-routes" id="routes" aria-labelledby="routes-title">
+      <div class="zone-head">
+        <h2 class="zone-title" id="routes-title">{{lab.routes.title}}</h2>
         <span class="muted small" id="routes-count"></span>
         <button class="btn btn-quiet routes-toggle" type="button" id="routes-toggle" aria-expanded="true" aria-controls="route-list">{{lab.routes.hide}}</button>
       </div>
@@ -60,24 +93,24 @@
       </label>
       <div class="route-list" id="route-list"></div>
     </section>
-  </aside>
+  </div>
 
-  <main class="center">
-    <section class="card request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
-    <section class="card response" id="response" aria-labelledby="res-title">
-      <div class="card-head">
-        <h2 class="card-title" id="res-title">{{lab.response.title}}</h2>
-        <span class="grow"></span>
-        <span id="res-origin"></span>
-      </div>
-      <div id="res-body-area"><p class="muted small">{{lab.response.empty}}</p></div>
-    </section>
-  </main>
+  <section class="zone zone-request" id="request-zone" aria-labelledby="request-zone-title">
+    <div class="zone-head">
+      <h2 class="zone-title" id="request-zone-title">{{lab.request.title}}</h2>
+      <a class="head-doc-link" id="doc-link" target="_blank" rel="noopener" hidden></a>
+    </div>
+    <section class="request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
+  </section>
 
-  <div class="right">
-    <section class="card flow" id="flow" aria-labelledby="flow-title">
-      <div class="card-head">
-        <h2 class="flow-title" id="flow-title"></h2>
+  <section class="zone zone-result" id="result" aria-labelledby="result-title">
+    <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2></div>
+    <div class="result-empty" id="result-empty" tabindex="-1"></div>
+    <p class="shown" id="shown" hidden></p>
+    <div class="shown-fill" id="shown-fill" hidden></div>
+    <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
+      <div class="section-head">
+        <h3 class="section-title" id="flow-title"></h3>
         <div class="flow-controls" id="flow-controls">
           <label class="slow"><input type="checkbox" id="slow"> <span id="slow-label"></span></label>
           <button class="btn" type="button" id="replay" disabled></button>
@@ -85,18 +118,34 @@
       </div>
       <div id="flow-body"></div>
     </section>
-
-    <section class="card history" id="history" aria-labelledby="hist-title">
-      <div class="card-head">
-        <h2 class="card-title" id="hist-title">{{lab.history.title}}</h2>
-        <span class="muted small" id="hist-count"></span>
-        <span class="grow"></span>
-        <button class="btn btn-quiet" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
+    <section class="response" id="response" aria-labelledby="res-title" hidden>
+      <div class="section-head">
+        <h3 class="section-title" id="res-title">{{lab.response.title}}</h3>
       </div>
-      <div id="history-body"></div>
+      <div id="res-body-area"></div>
     </section>
+  </section>
+
+  <section class="zone zone-history" id="history" aria-labelledby="hist-title">
+    <div class="zone-head">
+      <h2 class="zone-title" id="hist-title">{{lab.history.title}}</h2>
+      <span class="muted small" id="hist-count"></span>
+      <button class="btn btn-quiet hist-clear" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
+    </div>
+    <p class="hist-empty" id="hist-empty" tabindex="-1"></p>
+    <div class="hist-scroll" id="hist-scroll" hidden>
+      <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span>{{lab.history.col_auth}}</span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_where}}</span></div>
+      <ol class="history-list" id="history-body" aria-labelledby="hist-title"></ol>
+    </div>
+  </section>
+</main>
+
+<footer class="about wrap" id="about" aria-labelledby="about-title" hidden>
+  <div class="about-inner">
+    <h2 id="about-title">{{lab.about.title}}</h2>
+    <div class="about-text" id="about-text"></div>
   </div>
-</div>
+</footer>
 <p class="sr-only" id="announcer" aria-live="polite"></p>
 
 <script type="application/json" id="lab-texts">{{texts}}</script>

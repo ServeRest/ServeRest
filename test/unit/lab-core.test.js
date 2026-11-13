@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const { execFileSync } = require('child_process')
-const { readFileSync } = require('fs')
-const { join } = require('path')
+const { readFileSync, readdirSync, statSync } = require('fs')
+const { join, sep } = require('path')
 const vm = require('vm')
 const jwt = require('jsonwebtoken')
 
@@ -471,6 +471,11 @@ describe('Página do lab: funções puras', () => {
       expect(core.lastResultByRoute([]).size).to.equal(0)
     })
 
+    it('recordKey dá ao envio a mesma chave da rota dele', () => {
+      expect(core.recordKey(envio(1, 'POST', '/carrinhos'))).to.equal(rota('post /carrinhos').key)
+      expect(core.recordKey(envio(2, 'GET', '/usuarios/{_id}'))).to.equal(rota('get /usuarios/{_id}').key)
+    })
+
     it('isOlderThanLatest só é verdade para um envio do histórico com envio mais recente da mesma rota', () => {
       const antigo = envio(1, 'POST', '/carrinhos')
       const produtos = envio(2, 'GET', '/produtos')
@@ -517,6 +522,16 @@ describe('Página do lab: funções puras', () => {
         expect(core.recordDiffersFromDraft(record, com(''))).to.equal(true)
         expect(core.recordDiffersFromDraft(record, com('  Bearer abc\t'))).to.equal(false)
       })
+    })
+  })
+
+  describe('safeHref', () => {
+    it('aceita só URL absoluta http ou https e devolve a forma normalizada', () => {
+      expect(core.safeHref('https://github.com/ServeRest/ServeRest/releases')).to.equal('https://github.com/ServeRest/ServeRest/releases')
+      expect(core.safeHref('http://localhost:3000')).to.equal('http://localhost:3000/')
+      expect(core.safeHref('javascript:alert(1)')).to.equal(null)
+      expect(core.safeHref('/swagger')).to.equal(null)
+      expect(core.safeHref('')).to.equal(null)
     })
   })
 
@@ -590,7 +605,9 @@ describe('Página do lab: funções puras', () => {
 
   describe('Textos', () => {
     const labDir = join(__dirname, '../../src/lab')
-    const arquivos = ['page.html', 'public/core.js', 'public/app.js'].map(file => readFileSync(join(labDir, file), 'utf8'))
+    // Todos os arquivos de src/lab, e não uma lista fixa: um arquivo novo que use uma chave entra sozinho.
+    const nomes = readdirSync(labDir, { recursive: true }).filter(nome => statSync(join(labDir, nome)).isFile())
+    const arquivos = nomes.map(nome => readFileSync(join(labDir, nome), 'utf8'))
     const referenciadas = new Set(arquivos.flatMap(source => [
       ...[...source.matchAll(/\{\{(lab\.[a-z0-9_.]+)\}\}/g)].map(match => match[1]),
       ...[...source.matchAll(/'(lab\.[a-z0-9_.]+)'/g)].map(match => match[1])
@@ -608,6 +625,75 @@ describe('Página do lab: funções puras', () => {
 
     it('nenhuma chave lab.* termina em .summary', () => {
       expect(chavesDoLab.filter(key => key.endsWith('.summary'))).to.deep.equal([])
+    })
+
+    it('a lista lida inclui a página, os scripts e o CSS', () => {
+      expect(nomes.map(nome => nome.split(sep).join('/'))).to.include.members(['page.html', 'index.js', 'public/app.js', 'public/core.js', 'public/prefs-boot.js', 'public/lab.css'])
+    })
+
+    it('os textos do fluxo trocados pela página existem e viram a instrução única de como obter um token', () => {
+      const app = readFileSync(join(labDir, 'public/app.js'), 'utf8')
+      const trocas = [...app.matchAll(/'(ui\.flow\.how\.[a-z_.]+)': '(lab\.[a-z_.]+)'/g)].map(match => [match[1], match[2]])
+      expect(trocas).to.deep.equal([
+        ['ui.flow.how.auth.token_missing', 'lab.auth.how_to_get'],
+        ['ui.flow.how.auth.token_expired', 'lab.auth.how_to_get'],
+        ['ui.flow.how.auth.token_invalid', 'lab.auth.how_to_get'],
+        ['ui.flow.how.stage.auth', 'lab.auth.how_to_get'],
+        ['ui.flow.how.auth.user_not_found', 'lab.flow.how.user_not_found']
+      ])
+      trocas.forEach(([origem]) => expect(ptBr, origem).to.have.property(origem))
+      expect(ptBr['lab.flow.how.user_not_found']).to.match(/\{instruction\}$/)
+      expect(ptBr['lab.auth.how_to_get']).to.include(`“${ptBr['lab.token.use']}”`)
+    })
+  })
+
+  describe('Preferências', () => {
+    const publicDir = join(__dirname, '../../src/lab/public')
+    const fonteDoBoot = readFileSync(join(publicDir, 'prefs-boot.js'), 'utf8')
+    const fonteDoApp = readFileSync(join(publicDir, 'app.js'), 'utf8')
+
+    function chave (fonte, nome) {
+      const match = new RegExp(`const ${nome} = '([^']+)'`).exec(fonte)
+      return match ? match[1] : null
+    }
+
+    function rodarBoot (guardado, sistemaEscuro) {
+      const atributos = {}
+      const window = {
+        localStorage: { getItem: key => Object.prototype.hasOwnProperty.call(guardado, key) ? guardado[key] : null },
+        matchMedia: () => ({ matches: sistemaEscuro })
+      }
+      const document = { documentElement: { setAttribute: (nome, valor) => { atributos[nome] = valor } } }
+      vm.runInNewContext(fonteDoBoot, { window, document })
+      return atributos
+    }
+
+    it('prefs-boot.js e app.js usam as mesmas chaves do localStorage para tema e tamanho do texto', () => {
+      ['THEME_KEY', 'TEXT_KEY'].forEach(nome => {
+        expect(chave(fonteDoBoot, nome), nome).to.be.a('string')
+        expect(chave(fonteDoBoot, nome), nome).to.equal(chave(fonteDoApp, nome))
+      })
+    })
+
+    it('prefs-boot.js resolve o tema do sistema para claro ou escuro e aplica o tamanho guardado', () => {
+      const theme = chave(fonteDoBoot, 'THEME_KEY')
+      const text = chave(fonteDoBoot, 'TEXT_KEY')
+      expect(rodarBoot({}, true)).to.deep.equal({ 'data-theme': 'dark', 'data-text': 'normal' })
+      expect(rodarBoot({}, false)).to.deep.equal({ 'data-theme': 'light', 'data-text': 'normal' })
+      expect(rodarBoot({ [theme]: 'light', [text]: 'maior' }, true)).to.deep.equal({ 'data-theme': 'light', 'data-text': 'maior' })
+      expect(rodarBoot({ [theme]: 'dark', [text]: 'grande' }, false)).to.deep.equal({ 'data-theme': 'dark', 'data-text': 'grande' })
+      expect(rodarBoot({ [theme]: 'roxo', [text]: 'enorme' }, false)).to.deep.equal({ 'data-theme': 'light', 'data-text': 'normal' })
+    })
+
+    it('prefs-boot.js não quebra sem localStorage nem matchMedia', () => {
+      const atributos = {}
+      const window = {
+        get localStorage () { throw new Error('bloqueado') },
+        matchMedia: () => { throw new Error('sem suporte') }
+      }
+      const document = { documentElement: { setAttribute: (nome, valor) => { atributos[nome] = valor } } }
+      vm.runInNewContext(fonteDoBoot, { window, document })
+      expect(atributos).to.deep.equal({ 'data-theme': 'light', 'data-text': 'normal' })
     })
   })
 })

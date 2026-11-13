@@ -7,6 +7,7 @@ const es = require('../../../src/swagger/translations/es')
 
 const tiposDosArquivos = {
   'legacy-links.js': /javascript/,
+  'prefs-boot.js': /javascript/,
   'core.js': /javascript/,
   'app.js': /javascript/,
   'lab.css': /text\/css/
@@ -16,6 +17,18 @@ function blocoDeTextos (html) {
   const match = /<script type="application\/json" id="lab-texts">([\s\S]*?)<\/script>/.exec(html)
   return match ? match[1] : null
 }
+
+function escaparHtml (texto) {
+  return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+// Cada zona: o id da seção, o id do h2 que a nomeia e a chave do texto do h2.
+const zonas = [
+  ['routes', 'routes-title', 'lab.routes.title'],
+  ['request-zone', 'request-zone-title', 'lab.request.title'],
+  ['result', 'result-title', 'lab.result.title'],
+  ['history', 'hist-title', 'lab.history.title']
+]
 
 describe('/ GET (página inicial)', () => {
   it('retorna a página em pt-BR, sem cache e sem o header de etapas', async () => {
@@ -82,11 +95,82 @@ describe('/ GET (página inicial)', () => {
     expect(text).to.not.match(/autocomplete="(current-password|new-password|username)"/i)
   })
 
+  it('carrega o tema e o tamanho do texto guardados sem defer, depois dos links antigos e antes do CSS', async () => {
+    const { text } = await request.get('/').expect(200)
+    const tag = /<script src="\/lab\/assets\/prefs-boot\.js\?v=[^"]+"[^>]*>/.exec(text)
+    expect(tag).to.not.equal(null)
+    expect(tag[0]).to.not.match(/defer|async/)
+    expect(tag.index).to.be.greaterThan(text.indexOf('/lab/assets/legacy-links.js'))
+    expect(tag.index).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
+  })
+
   it('não deixa marcador de template sem substituir', async () => {
     for (const lang of ['pt-BR', 'en', 'es']) {
       const { text } = await request.get('/').query({ lang }).expect(200)
       expect(text, lang).to.not.include('{{')
     }
+  })
+})
+
+describe('/ GET (marcação da página inicial)', () => {
+  it('tem um <main> só, com as quatro zonas dentro, cada uma uma seção nomeada pelo seu h2', async () => {
+    const { text } = await request.get('/').expect(200)
+    expect(text.match(/<main\b/g)).to.have.length(1)
+    const main = /<main\b[^>]*>([\s\S]*)<\/main>/.exec(text)[1]
+    zonas.forEach(([id, titulo]) => {
+      expect(main, id).to.match(new RegExp(`<section [^>]*id="${id}" aria-labelledby="${titulo}"`))
+      expect(main, id).to.match(new RegExp(`<h2 [^>]*id="${titulo}"`))
+    })
+  })
+
+  it('dá a cada zona o título traduzido, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      zonas.forEach(([, titulo, chave]) => {
+        expect(text, `${lang} ${chave}`).to.include(`id="${titulo}">${escaparHtml(textos[chave])}</h2>`)
+      })
+    }
+  })
+
+  it('não tem script inline nem handler de evento na marcação', async () => {
+    const { text } = await request.get('/').expect(200)
+    const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+    expect(scripts.length).to.be.greaterThan(0)
+    scripts.forEach(([, atributos, conteudo]) => {
+      if (atributos === ' type="application/json" id="lab-texts"') return
+      expect(atributos).to.match(/ src="\/lab\/assets\/[a-z-]+\.js\?v=[^"]+"/)
+      expect(conteudo).to.equal('')
+    })
+    const tags = text.match(/<[a-zA-Z][^>]*>/g)
+    expect(tags.filter(tag => /\son[a-z]+\s*=/i.test(tag))).to.deep.equal([])
+  })
+
+  it('não pede nada a outro domínio: nenhum src, href ou url( absoluto, nem preconnect ou @import', async () => {
+    const { body } = await request.get('/version').expect(200)
+    const { text: html } = await request.get('/').expect(200)
+    const { text: css } = await request.get(`/lab/assets/lab.css?v=${body.version}`).expect(200)
+    const absoluto = /(?:src|href)\s*=\s*["']?\s*(?:[a-z][a-z0-9+.-]*:|\/\/)/gi
+    expect(html.match(absoluto)).to.equal(null)
+    for (const fonte of [html, css]) {
+      expect(fonte.match(/url\(\s*["']?\s*(?:https?:|\/\/)/gi)).to.equal(null)
+      expect(fonte).to.not.include('@import')
+    }
+    expect(html).to.not.match(/rel="preconnect"/)
+    expect(css).to.include('url("fonts/open-sans-latin-wght-normal.woff2")')
+  })
+
+  it('deixa o link do aviso de versão sem href: o script o preenche com data-notice-url', async () => {
+    const { text } = await request.get('/').expect(200)
+    const aviso = /<a [^>]*id="version-notice"[^>]*>/.exec(text)[0]
+    expect(aviso).to.not.include('href=')
+    expect(aviso).to.include('hidden')
+  })
+
+  it('sem release mais nova, os atributos do aviso de versão ficam vazios - @skipE2E', async () => {
+    const { text } = await request.get('/').expect(200)
+    const raiz = /<html [^>]*>/.exec(text)[0]
+    expect(raiz).to.include('data-notice-version=""')
+    expect(raiz).to.include('data-notice-url=""')
   })
 })
 
