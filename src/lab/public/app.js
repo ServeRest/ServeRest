@@ -626,6 +626,7 @@
   }
 
   const SIDE_PANELS = { rotas: { panel: 'routes', title: 'routes-title' }, historico: { panel: 'history', title: 'hist-title' } }
+  let lastFocus = null
 
   function sidePanel (id) {
     return $(SIDE_PANELS[id].panel)
@@ -637,18 +638,23 @@
   function placeSide () {
     const layout = currentLayout()
     const tabbed = layout === 'abas'
-    const active = document.activeElement
+    // Uma consulta de recipiente pode já ter escondido o elemento com o foco, e o navegador então já
+    // devolveu o foco ao body: o elemento é o último que o recebeu (lastFocus).
+    const active = document.activeElement === document.body && lastFocus && lastFocus.isConnected ? lastFocus : document.activeElement
     // A aba com o foco some quando a lista de abas se esconde: o foco vai para o painel dela.
     const focusedTab = active && $('side-tabs').contains(active) ? active.id.replace('side-tab-', '') : null
     document.documentElement.setAttribute('data-layout', layout)
     $('side-tabs').hidden = !tabbed
+    // A lista de rotas só fecha numa coluna. Fora dela volta aberta, senão o filtro ou a rota que receber
+    // o foco nas abas sumiria debaixo dele quando a pilha voltasse.
+    if (layout !== 'pilha' && $('routes').classList.contains('collapsed')) setRoutesCollapsed(false)
     const history = $('history')
     const inSide = history.parentElement === $('side')
     if (tabbed !== inSide) {
       const focused = history.contains(active) ? active : null
       if (tabbed) $('side').append(history)
       else $('result').after(history)
-      if (focused) focused.focus({ preventScroll: true })
+      if (focused) focusInView(focused)
     }
     // Com quatro zonas o Histórico está à vista: os envios marcados como novos passam a vistos (e a
     // contagem não precisa mais ir no anúncio). Numa coluna só ele fica embaixo do Resultado, talvez fora
@@ -665,13 +671,27 @@
       if (owner && owner !== state.sideTab) selectSideTab(owner, false)
     } else if (focusedTab && SIDE_PANELS[focusedTab]) {
       focusPanel(focusedTab)
+      return
+    }
+    // O layout novo escondeu o próprio controle com o foco (o botão que fecha a lista de rotas só existe
+    // numa coluna): o foco vai para o painel que o contém, em vez de cair no body.
+    if (active && active !== document.body && active.isConnected && !active.getClientRects().length) {
+      const owner = Object.keys(SIDE_PANELS).find(id => sidePanel(id).contains(active))
+      if (owner) focusPanel(owner)
     }
   }
 
   // Fora das abas os painéis não recebem o foco pelo Tab; o tabindex -1 existe só enquanto o foco está nele.
   function focusPanel (id) {
     holdFocus(id)
-    sidePanel(id).focus({ preventScroll: true })
+    focusInView(sidePanel(id))
+  }
+
+  // O foco que a página move fica à vista. Numa coluna só, o painel que o recebe pode estar longe da
+  // rolagem atual (o Histórico vai para o fim da página, as Rotas ficam no topo).
+  function focusInView (node) {
+    node.focus({ preventScroll: true })
+    node.scrollIntoView({ block: 'nearest' })
   }
 
   // Tirar o tabindex do painel que está com o foco joga o foco no body. Ele fica com -1 enquanto o foco
@@ -746,6 +766,13 @@
         event.preventDefault()
         selectSideTab(ids[next], true)
       })
+    })
+    // O último elemento a receber o foco. Sai quando a pessoa tira o foco dele sem levá-lo a outro lugar (um
+    // clique fora de qualquer controle). Quando é uma regra de CSS que o esconde, o blur chega com ele já
+    // sem caixa, e ele fica aqui para placeSide.
+    document.addEventListener('focusin', event => { lastFocus = event.target })
+    document.addEventListener('focusout', event => {
+      if (!event.relatedTarget && event.target.getClientRects().length) lastFocus = null
     })
     // O layout depende da largura e do tamanho do texto: confere a cada mudança de tamanho, e só mexe no
     // DOM quando ele troca.
