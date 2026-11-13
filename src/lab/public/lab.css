@@ -306,9 +306,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .tab-count { display: inline-block; min-width: 1.75em; padding: 2px 6px; overflow: hidden; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; line-height: 1.25; text-align: center; color: var(--graphite); font-variant-numeric: tabular-nums; }
 .tab-count:empty { display: none; }
 .tab-count.is-new { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* O movimento é uma animação de script (playOnce, em app.js): ela não recomeça quando a lista de abas volta. */
 .count-num { display: inline-block; }
-.count-num.is-rolling { animation: countRoll 0.45s cubic-bezier(0.2, 0.7, 0.3, 1); }
-@keyframes countRoll { from { transform: translateY(90%); opacity: 0; } to { transform: none; opacity: 1; } }
 .zone-request { container: req / inline-size; }
 .zone-result { container: result / inline-size; }
 
@@ -478,9 +477,6 @@ legend { padding: 0; font-family: var(--font-head); font-size: 0.9375rem; font-w
 /* A entrada mostrada em Resultado: barra à esquerda (como a rota escolhida), fundo e caminho sublinhado. */
 .entry[aria-current="true"] { border-left-color: var(--accent); background: var(--accent-tint); }
 .entry[aria-current="true"] .path { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
-/* Entrada que acabou de chegar com o Histórico à vista: um contorno roxo que se apaga em 2 s. Só cor. */
-.entry.is-arriving { animation: entryArrive 2s ease-out; }
-@keyframes entryArrive { from { box-shadow: inset 0 0 0 2px var(--accent); } to { box-shadow: inset 0 0 0 2px transparent; } }
 .entry .method { order: 1; align-self: center; font-size: 0.6875rem; min-width: 4.4em; padding: 3px 3px 2px; }
 .entry .path { order: 2; min-width: 0; font-family: var(--font-code); font-size: 0.75rem; font-weight: 600; overflow-wrap: anywhere; }
 .entry time { order: 3; margin-left: auto; color: var(--graphite); font-variant-numeric: tabular-nums; }
@@ -652,7 +648,6 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .flow-fill-running, .flow-spinner, .spin { animation: none; }
   .flow-fill-running { width: 100%; }
   .flow-caret { transition: none; }
-  .count-num.is-rolling, .entry.is-arriving { animation: none; }
 }
 
 /* Três zonas (a partir de 68,75 rem): a coluna da esquerda é um recipiente só (.side), grudado no topo,
