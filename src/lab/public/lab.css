@@ -182,6 +182,9 @@ a:hover { color: var(--accent-strong); }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip-link { position: absolute; left: 16px; top: -48px; background: var(--surface); color: var(--ink); padding: 8px 12px; z-index: 20; }
 .skip-link:focus { top: 8px; }
+/* O link de pular aparece sobre a barra preta: o anel branco, como o dos controles da barra (o roxo
+   fica abaixo de 3:1 contra o preto). */
+.skip-link:focus-visible { outline-color: var(--bar-fg); }
 .copy-buffer { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; }
 .grow { flex: 1; }
 .muted { color: var(--graphite); }
