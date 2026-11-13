@@ -11,6 +11,7 @@ const githubReleasePath = path.resolve(__dirname, '../../src/utils/github-releas
 const appCacheKey = require.resolve(appPath)
 const ambienteCacheKey = require.resolve(ambientePath)
 const githubReleaseCacheKey = require.resolve(githubReleasePath)
+const statusMonitorCacheKey = require.resolve('express-status-monitor')
 
 const { version } = require('../../package.json')
 
@@ -63,6 +64,15 @@ describe('app release info', () => {
       fetchLatestRelease: fetchStub
     }
 
+    // Como desenvolvimento local, o app monta o express-status-monitor, que não tem como ser desligado:
+    // o pidusage dele deixa um setInterval com ref e o mocha sem --exit nunca encerra. Estes testes não usam o monitor.
+    require.cache[statusMonitorCacheKey] = {
+      id: statusMonitorCacheKey,
+      filename: statusMonitorCacheKey,
+      loaded: true,
+      exports: () => (req, res, next) => next()
+    }
+
     const app = require(appCacheKey)
     process.env.NODE_ENV = originalNodeEnv
     if (typeof originalEnvironment === 'undefined') {
@@ -89,6 +99,7 @@ describe('app release info', () => {
     }
     delete require.cache[appCacheKey]
     delete require.cache[ambienteCacheKey]
+    delete require.cache[statusMonitorCacheKey]
     originalGithubExports = null
     originalAmbienteCache = undefined
   })

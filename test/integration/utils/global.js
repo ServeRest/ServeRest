@@ -3,6 +3,10 @@ const supertest = require('supertest')
 
 if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutation') {
   global.request = supertest(app)
+  // Só na integração: na mutação a espera da verificação se repetiria a cada mutante.
+  if (process.env.TEST_TYPE === 'integration') {
+    exports.mochaHooks = require('./timers-pendentes')
+  }
 } else { // E2E test
   let URL
 
