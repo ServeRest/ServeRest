@@ -711,7 +711,11 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .topbar .grow { display: none; }
   .docs-link { margin-left: auto; font-size: 0.8125rem; }
   .logo { height: 34px; }
-  .version-box { display: none; }
+  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo, e o link
+     da documentação continua ao lado. Sem aviso, a marca é só o logo. */
+  .brand { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .version-box { display: contents; }
+  .version { display: none; }
   .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
   .zone-head { padding: 6px 14px; }
   .zone-request { --req-x: 14px; }
