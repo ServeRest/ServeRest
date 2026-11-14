@@ -16,8 +16,8 @@
   const MAX_HISTORY = 50
   const RESPONSE_DELAY = 300
   // O Histórico guardado na sessão do navegador (sessionStorage: por aba, sobrevive a recarregar e à troca
-  // de idioma, some quando a aba fecha). Os envios numa chave; o envio mostrado, os não vistos e a aba da
-  // esquerda em outra, pequena, que muda mais vezes.
+  // de idioma, some quando a aba fecha). Os envios numa chave; o envio mostrado e os não vistos em outra,
+  // pequena, que muda mais vezes.
   const HISTORY_KEY = 'serverestLabHistory'
   const VIEW_KEY = 'serverestLabView'
   // Um corpo de resposta maior que isto é guardado cortado (a Resposta diz que ele foi cortado).
@@ -309,8 +309,8 @@
     bodyTab: 'json',
     // O comando que "Copiar comando" de Será enviado copiou; a mensagem da cópia some quando ele muda.
     copiedDraft: null,
-    // Coluna da esquerda: a aba escolhida (lembrada na sessão, junto do Histórico) e a contagem do
-    // Histórico que vai junto do próximo anúncio quando a aba Histórico está fechada.
+    // Coluna da esquerda: a aba escolhida (toda carga da página abre em Rotas) e a contagem do Histórico
+    // que vai junto do próximo anúncio quando a aba Histórico está fechada.
     sideTab: 'rotas',
     countNote: '',
     // Quantos envios chegaram com a aba Histórico fechada (a contagem fica roxa enquanto houver algum).
@@ -948,8 +948,8 @@
     saveView()
   }
 
-  // Abas com o teclado: setas, Home e End, com ativação automática. A aba escolhida fica lembrada na
-  // sessão, junto do Histórico (restoreSession, antes daqui); sem nada guardado, a página abre em Rotas.
+  // Abas com o teclado: setas, Home e End, com ativação automática. A aba escolhida não é guardada: toda
+  // carga da página abre em Rotas, mesmo depois de recarregar ou trocar de idioma.
   function setupSide () {
     const ids = Object.keys(SIDE_PANELS)
     ids.forEach((id, index) => {
@@ -2161,10 +2161,10 @@
   /* ---------- Histórico na sessão do navegador ---------- */
 
   // sessionStorage é por aba: sobrevive a recarregar e à troca de idioma (que recarrega a página) e é
-  // apagado quando a aba fecha. Fica o que a página já guarda de cada envio, o envio mostrado, os não vistos
-  // e a aba da esquerda. Nunca o envio pendente (ele volta já com o veredito), um envio que ainda espera o
-  // servidor, a cópia de Desfazer, os rascunhos e o token da página. Toda leitura e gravação fica num
-  // try/catch: sem armazenamento, o Histórico vive só na memória da página.
+  // apagado quando a aba fecha. Fica o que a página já guarda de cada envio, o envio mostrado e os não
+  // vistos. Nunca a aba da esquerda (a página sempre abre em Rotas), o envio pendente (ele volta já com o
+  // veredito), um envio que ainda espera o servidor, a cópia de Desfazer, os rascunhos e o token da página.
+  // Toda leitura e gravação fica num try/catch: sem armazenamento, o Histórico vive só na memória da página.
 
   function isQuotaError (error) {
     return !!error && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error.code === 22 || error.code === 1014)
@@ -2185,13 +2185,13 @@
     }
   }
 
-  // O envio mostrado, os não vistos e a aba da esquerda mudam mais vezes que a lista: ficam numa chave pequena.
+  // O envio mostrado e os não vistos mudam mais vezes que a lista: ficam numa chave pequena.
   // Enquanto as rotas não chegam, o envio mostrado continua sendo o que veio da sessão (uma recarga nesse
   // meio tempo não o perde).
   function saveView () {
     const shownId = state.shownId !== null ? state.shownId : state.restoreShownId
     try {
-      window.sessionStorage.setItem(VIEW_KEY, JSON.stringify({ v: 1, shownId, unseen: state.unseen, sideTab: state.sideTab }))
+      window.sessionStorage.setItem(VIEW_KEY, JSON.stringify({ v: 1, shownId, unseen: state.unseen }))
     } catch (error) {}
   }
 
@@ -2234,7 +2234,6 @@
     }
     if (state.history.some(item => item.id === view.shownId)) state.restoreShownId = view.shownId
     if (Number.isInteger(view.unseen) && view.unseen > 0) state.unseen = Math.min(view.unseen, state.history.length)
-    if (view.sideTab === 'rotas' || view.sideTab === 'historico') state.sideTab = view.sideTab
   }
 
   // Depois de carregar as rotas: o envio que estava à vista volta ao Resultado, se é da rota escolhida (a do
@@ -3685,8 +3684,8 @@
     try {
       document.fonts.load('700 1em "Titillium Web"')
     } catch (e) {}
-    // O Histórico da sessão volta antes de qualquer pintura: as marcas das Rotas, o Histórico, a aba da
-    // esquerda e a contagem leem dele.
+    // O Histórico da sessão volta antes de qualquer pintura: as marcas das Rotas, o Histórico e a contagem
+    // leem dele.
     restoreSession()
     setupTopbar()
     paintNotice()

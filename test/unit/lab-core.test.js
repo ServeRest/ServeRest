@@ -1106,6 +1106,18 @@ describe('Página do lab: funções puras', () => {
       expect(chave(fonteDoBoot, 'TEXT_KEY')).to.equal('serverestTextSize')
     })
 
+    // A aba da esquerda não é guardada: toda carga da página abre em Rotas. A chave da vista
+    // (serverestLabView) continua, com o envio mostrado e os não vistos do Histórico.
+    it('a sessão não guarda a aba da esquerda: a página sempre abre em Rotas', () => {
+      const gravacao = /sessionStorage\.setItem\(VIEW_KEY, JSON\.stringify\((\{[^}]*\})\)\)/.exec(fonteDoApp)
+      expect(gravacao).to.not.equal(null)
+      expect(gravacao[1]).to.equal('{ v: 1, shownId, unseen: state.unseen }')
+      expect(fonteDoApp).to.not.include('view.sideTab')
+      expect(/ sideTab: '([a-z]+)',/.exec(fonteDoApp)[1]).to.equal('rotas')
+      expect(fonteDoApp.match(/state\.sideTab = /g)).to.deep.equal(['state.sideTab = '])
+      expect(/function selectSideTab \(id, focus\) \{\s+state\.sideTab = id/.test(fonteDoApp)).to.equal(true)
+    })
+
     it('prefs-boot.js resolve o tema do sistema para claro ou escuro e aplica o tamanho guardado', () => {
       const theme = chave(fonteDoBoot, 'THEME_KEY')
       const text = chave(fonteDoBoot, 'TEXT_KEY')
