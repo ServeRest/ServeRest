@@ -2521,6 +2521,10 @@
     setupFlowControls()
     setupView()
     setupSide()
+    // O CSS precisa da altura do Resultado para grudá-lo pela base quando ele, vazio, é mais alto que a janela.
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => document.documentElement.style.setProperty('--res-h', $('result').offsetHeight + 'px')).observe($('result'))
+    }
     renderHistory()
     renderResultEmpty(null)
     $('filter').addEventListener('input', renderRoutes)

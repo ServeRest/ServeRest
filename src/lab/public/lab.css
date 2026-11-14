@@ -1,7 +1,9 @@
 /* Página inicial: a identidade do Swagger (barra preta, faixa roxa, cores de método) em três zonas,
    Rotas, Requisição e Resultado, com o Histórico como aba da coluna da esquerda ou como quarta coluna
    em janelas muito largas. O layout vem da largura da página (consultas de recipiente em rem), nunca
-   de uma escolha. Tamanhos de texto em rem: o tamanho do texto escolhido muda só a fonte da raiz. */
+   de uma escolha. Tamanhos de texto em rem: o tamanho do texto escolhido muda só a fonte da raiz. A barra
+   do topo é a exceção: em px, ela fica igual em todo tamanho de texto. Código que se lê ou copia fica no
+   bloco escuro; o editor do corpo, no fundo cinza. */
 
 /* Fontes locais, sem pedido a outro domínio: o subconjunto latino dos pacotes Fontsource, sem
    alteração, com a licença (OFL.txt) de cada família ao lado. Os símbolos de status (✓ ✗ → ○ ▶ ↗ ♥)
@@ -81,8 +83,6 @@
   --focus: #7900e2;
   /* Texto sobre o roxo cheio (a contagem com envios novos). */
   --on-accent: #ffffff;
-  /* Abas da coluna da esquerda: fundo da aba ao passar o mouse (o da aba de fora é --well). */
-  --tab-hover: #e4e7eb;
   /* Aba de pasta não escolhida: cinza já em repouso, um degrau mais escura ao passar o mouse. A escolhida
      tem o fundo do painel e, nos dois cantos de baixo, uma curva côncava de --flare px (cabe no vão de 4 px
      entre as abas). */
@@ -95,6 +95,8 @@
   --editor-bg: #f6f7f9;
   /* Faixa de título de seção: um degrau abaixo da zona, entre duas linhas. */
   --band: #f2f3f5;
+  /* A barra de rolagem fina da lista de Rotas, num cinza discreto. */
+  --scroll-thumb: #b9bdc5;
   /* Largura da quarta coluna (Histórico): a maior largura da coluna da esquerda. */
   --hist-w: 23rem;
   /* Superfícies: a página fica um degrau abaixo das zonas. */
@@ -149,11 +151,11 @@
   --accent-tint: #2e2245;
   --focus: #c39bff;
   --on-accent: #111215;
-  --tab-hover: #30343c;
   --tab-idle: #30343c;
   --tab-idle-hover: #3b4049;
   --editor-bg: #30343c;
   --band: #24272d;
+  --scroll-thumb: #4b505a;
   --canvas: #111215;
   --surface: #1b1d22;
   --input-bg: #131418;
@@ -208,8 +210,9 @@ a:hover { color: var(--accent-strong); }
 .small { font-size: 0.8125rem; }
 .nowrap { white-space: nowrap; font-size: 0.92em; }
 
-/* O conteúdo fica num recipiente centrado, como o do Swagger UI: até 1800 px, 20 px de cada lado (a
-   quarta coluna aumenta esse limite, mais abaixo). A barra preta e a faixa roxa ocupam a janela inteira. */
+/* O conteúdo fica num recipiente centrado, como o do Swagger UI: até 1800 px, 20 px de cada lado (a partir
+   de 2184 px de janela o limite passa a 2184 px, mais abaixo). A barra preta e a faixa roxa ocupam a janela
+   inteira; o conteúdo dela usa o mesmo recipiente. */
 .wrap { width: 100%; max-width: 1800px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
 
 /* Barra superior: a mesma do Swagger, nos dois esquemas */
@@ -286,8 +289,11 @@ a:hover { color: var(--accent-strong); }
 .btn-primary { background: var(--purple); border-color: var(--purple); color: var(--on-purple); font-weight: 700; padding: 6px 22px; }
 .btn-primary:hover { background: var(--purple-deep); border-color: var(--purple-deep); }
 .btn-primary[disabled] { background: var(--purple-deep); border-color: var(--purple-deep); color: var(--on-purple); }
-.btn-quiet { border-color: transparent; background: none; color: var(--graphite); padding: 2px 6px; min-height: 1.75rem; font-size: 0.8125rem; }
-.btn-quiet:hover { color: var(--ink); border-color: transparent; text-decoration: underline; }
+/* Botão discreto: letra grafite, sem fundo, e uma borda de 1 px já em repouso, na cor da borda dos
+   controles (3:1 contra a zona; a borda das zonas, mais clara, não chega a 3:1); mais escura ao passar o
+   mouse e com o foco. */
+.btn-quiet { border-color: var(--control); background: none; color: var(--graphite); padding: 2px 8px; min-height: 1.75rem; font-size: 0.8125rem; }
+.btn-quiet:hover, .btn-quiet:focus-visible { color: var(--ink); border-color: var(--ink); }
 .spin { box-sizing: border-box; display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3px; padding: 0 4px; background: var(--surface); }
@@ -319,7 +325,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 :root:not([data-layout]) .app { visibility: hidden; }
 .zone { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
 .zone-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 2.875rem; padding: 6px 16px; border-bottom: 1px solid var(--border); }
-.zone-title { font-size: 1.1875rem; font-weight: 600; }
+.zone-title { font-size: 1.375rem; font-weight: 600; }
 .zone-routes { position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden; }
 .zone-routes .zone-head { padding: 6px 12px; }
 .routes-toggle { display: none; }
@@ -328,11 +334,6 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    com uma aba só não seria aba). Abas de pasta sobre um fundo cinza, na letra da interface (não na dos
    títulos das zonas). A escolhida tem borda dos três lados, faixa roxa em cima e o fundo do painel, e
    cobre a linha de baixo: aba e painel viram uma peça só. A largura não muda ao escolher. */
-.side-tabs { display: none; flex: none; align-items: flex-end; gap: 4px; min-height: 2.875rem; padding: 6px 8px 0; border-bottom: 1px solid var(--border); background: var(--well); }
-.side-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: -1px; padding: 6px 14px 8px; border: 1px solid transparent; border-top-width: 3px; border-bottom: 0; border-radius: 4px 4px 0 0; background: none; font-family: var(--font-ui); font-size: 0.875rem; font-weight: 600; line-height: 1.2; color: var(--graphite); white-space: nowrap; }
-.side-tab:hover { color: var(--ink); background: var(--tab-hover); }
-.side-tab[aria-selected="true"] { padding-bottom: 9px; color: var(--ink); background: var(--surface); border-color: var(--border); border-top-color: var(--accent); }
-.side-tab:focus-visible { outline-offset: -2px; }
 /* Abas de pasta: a faixa cinza com a linha embaixo e as abas que se apoiam nela. A não escolhida fica
    visível em repouso (fundo cinza, letra tinta); a escolhida tem borda dos três lados, faixa roxa em cima e o
    fundo do painel, cobre a linha de baixo e encontra essa linha numa curva côncava, como a aba de uma pasta
@@ -348,6 +349,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .folder-tab[aria-selected="true"]::before, .folder-tab[aria-selected="true"]::after { content: ""; position: absolute; bottom: 0; width: var(--flare); height: var(--flare); pointer-events: none; }
 .folder-tab[aria-selected="true"]::before { left: calc(-1 * var(--flare)); background: radial-gradient(circle at 0 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
 .folder-tab[aria-selected="true"]::after { right: calc(-1 * var(--flare)); background: radial-gradient(circle at 100% 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
+/* Rotas e Histórico usam as abas de pasta só no layout com abas (mais abaixo). */
+.side-tabs { display: none; }
 /* Contagem: o número numa caixa de raio 3 px, como os selos de método, e não solto ao lado do nome. Com
    envios que chegaram com a aba fechada, a caixa fica roxa cheia até a aba ser aberta: muda o fundo
    inteiro, não só o tom. O número novo sobe de baixo para o lugar, uma vez por envio, assim que o envio
@@ -364,7 +367,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .filter { position: relative; display: block; padding: 8px 12px; border-bottom: 1px solid var(--border); }
 .filter .input { padding-left: 28px; font-size: 0.8125rem; }
 .filter svg { position: absolute; left: 21px; top: 50%; transform: translateY(-50%); color: var(--graphite); }
-.route-list { flex: 1; min-height: 0; overflow: auto; }
+.route-list { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .group h3 { position: sticky; top: 0; z-index: 1; display: flex; gap: 6px; align-items: baseline; font-size: 0.9375rem; padding: 5px 12px 3px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .group h3 span { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
 /* A descrição do grupo (tags[].description) sob o nome, como no Swagger: uma linha discreta que rola com
@@ -393,8 +396,10 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .route .path { grid-column: 2 / 5; grid-row: 1; font-family: var(--font-code); font-size: 0.78125rem; font-weight: 500; line-height: 1.3; overflow-wrap: break-word; min-width: 0; }
 .route .sum { grid-column: 2; grid-row: 2; min-width: 0; font-size: 0.8125rem; line-height: 1.3; color: var(--graphite); }
 /* Marca do último envio desta rota: símbolo e código, nunca só cor. */
-.route .last { grid-column: 3; grid-row: 2; font-size: 0.75rem; line-height: 1.3; }
-.route .last:empty { display: none; }
+/* A marca fica embaixo do selo do método, no espaço que a coluna dele já tem vazio na segunda linha ("✓ 200"
+   cabe no selo). Assim ela não guarda largura na linha do resumo e, quando aparece, nenhuma linha muda de
+   altura. Pode quebrar ("✗ / falhou"), para nunca alargar a coluna do selo. */
+.route .last { grid-column: 1; grid-row: 2; justify-self: center; text-align: center; white-space: normal; font-family: var(--font-code); font-weight: 700; font-size: 0.75rem; line-height: 1.3; }
 .route .lock { grid-column: 4; grid-row: 2; color: var(--ink); display: inline-flex; }
 .empty { color: var(--graphite); font-size: 0.8125rem; padding: 10px 12px; }
 .error-box { margin: 10px 12px; background: var(--fail-tint); padding: 10px 12px; font-size: 0.8125rem; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; overflow-wrap: anywhere; }
@@ -768,26 +773,36 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 /* Três zonas (a partir de 68,75 rem): a coluna da esquerda é um recipiente só (.side), grudado no topo,
    com a altura da janela. Com abas, o script põe o Histórico dentro dele, logo depois das Rotas, para o
    teclado seguir a tela; a aba escolhida tem a altura toda e só uma lista rola. Requisição e Resultado
-   esticam até a altura da linha, que é no mínimo a da coluna: as zonas terminam na mesma linha embaixo. */
+   terminam no próprio conteúdo, sem branco embaixo. */
 @container page (min-width: 68.75rem) {
   .app { --layout: abas; --rail: calc(100vh - 32px); }
   .side { grid-column: 1; grid-row: 1; align-self: start; position: sticky; top: 16px; height: var(--rail); min-height: 0; display: flex; flex-direction: column; }
-  .zone-request { grid-column: 2; grid-row: 1; align-self: stretch; }
-  .zone-result { grid-column: 3; grid-row: 1; align-self: stretch; }
+  .zone-request { grid-column: 2; grid-row: 1; align-self: start; }
+  .zone-result { grid-column: 3; grid-row: 1; align-self: start; }
   .side .zone-routes { position: static; flex: 1 1 0; max-height: none; min-height: 0; }
   .side .zone-history { min-height: 0; }
+  /* O Resultado acompanha a rolagem só enquanto está vazio, grudado no topo; quando ele é mais alto que a
+     janela, gruda pela base (--res-h, a altura dele, vem do script). Depois de um envio ele termina no
+     próprio conteúdo e rola com a página, sem rolagem própria. */
+  .zone-result:has(> #result-empty:not([hidden])) { position: sticky; top: min(16px, calc(100vh - var(--res-h, 0px) - 16px)); }
 }
-/* Quarta coluna: só quando a janela cabe as três zonas na largura máxima de sempre (1800 px) e mais a
-   coluna do Histórico. A página cresce pela coluna nova e nenhuma das três zonas perde largura: elas
-   ficam como numa janela de 1800 px. Em 136,5 rem (2184 px com o texto normal) a conta fecha: 1800 +
-   16 de vão + 23 rem de coluna. */
+/* A largura máxima do recipiente depende só da janela, em px, para a barra do topo e o conteúdo e em todo
+   tamanho de texto: 1800 px abaixo de 2184 px de janela, 2184 px a partir dela. Assim a barra e o conteúdo
+   têm sempre as mesmas bordas, e A− e A+ não saem de baixo do ponteiro. */
+@container page (min-width: 2184px) {
+  .wrap { max-width: 2184px; }
+}
+/* Quarta coluna: a partir de 136,5 rem (2184 px com o texto normal) o Histórico é a quarta coluna, à direita
+   do Resultado. A conta fecha em 2184 px: 1800 das três zonas + 16 de vão + 23 rem de coluna; com o texto
+   normal as três zonas ficam como numa janela de 1800 px. Com texto maior a coluna só entra quando cabe (o
+   limite é em rem), e as três zonas cedem a largura dela. */
 @container page (min-width: 136.5rem) {
-  .wrap { max-width: calc(1800px + 16px + var(--hist-w)); }
   .app { --layout: quatro; grid-template-columns: clamp(19.5rem, 19vw, 23rem) minmax(0, 5fr) minmax(0, 6fr) var(--hist-w); }
 }
-/* Quatro zonas: o Histórico é uma zona como as outras, com título, à direita do Resultado, grudado no topo
-   com a altura da janela (a lista rola dentro dele). As Rotas voltam a ter o próprio título. */
-:root[data-layout="quatro"] .zone-history { grid-column: 4; grid-row: 1; align-self: start; position: sticky; top: 16px; height: var(--rail); }
+/* Quatro zonas: o Histórico é uma zona como as outras, com título, à direita do Resultado, grudado no topo;
+   ele termina na própria lista, até a altura da janela (aí a lista rola dentro dele). As Rotas voltam a ter
+   o próprio título. */
+:root[data-layout="quatro"] .zone-history { grid-column: 4; grid-row: 1; align-self: start; position: sticky; top: 16px; height: auto; max-height: var(--rail); }
 
 /* Abas: um painel só, com as abas no topo; os títulos das zonas ficam só para o leitor de tela. Do
    cabeçalho do Histórico sobra uma linha baixa com a contagem e Limpar, e só quando há envios. */
@@ -800,6 +815,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 :root[data-layout="abas"] .side .zone-history .zone-title,
 :root[data-layout="abas"] .side .zone-history .zone-head:not(:has(.hist-clear:not([hidden]))) { position: absolute; width: 1px; height: 1px; min-height: 0; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 :root[data-layout="abas"] .side .zone-history .zone-head { min-height: 2.25rem; padding: 2px 8px 2px 16px; }
+/* Com a aba Histórico escolhida, o painel termina na própria lista (até a altura da janela, e aí a lista rola
+   dentro dele), em vez de guardar a altura das Rotas com branco embaixo. As abas não se movem. */
+:root[data-layout="abas"] .side:has(> .zone-routes.side-off) { height: auto; max-height: var(--rail); }
+:root[data-layout="abas"] .side:has(> .zone-routes.side-off) > .zone-history { flex: 0 1 auto; }
 
 /* Abaixo de 1100 px (em rem: com texto maior, a troca vem antes) as zonas viram uma coluna: Rotas no
    topo, e o Histórico logo depois de Resultado (o script o devolve para lá), sem abas. A consulta usa
