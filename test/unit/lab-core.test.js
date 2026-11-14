@@ -128,6 +128,52 @@ describe('Página do lab: funções puras', () => {
       expect(core.resourcePhases(entrada({ requestStart: 0, responseStart: 0 }))).to.equal(null)
       expect(core.resourcePhases(entrada({ responseEnd: undefined }))).to.equal(null)
     })
+
+    it('timeBar divide a rede (TTFB menos servidor) em ida e volta, e as cinco partes somam o total', () => {
+      const fases = core.resourcePhases(entrada())
+      const barra = core.timeBar(171, fases, 2.43)
+      expect(barra.net).to.be.closeTo(164.37, 1e-9)
+      expect(barra.half).to.be.closeTo(82.185, 1e-9)
+      expect(barra.conn + barra.half + barra.server + barra.half + barra.down).to.be.closeTo(171, 1e-9)
+      expect(barra).to.include({ total: 171, server: 2.43, connNew: false })
+    })
+
+    it('timeBar deixa a rede em zero se o servidor passar do TTFB', () => {
+      const barra = core.timeBar(1, { conn: 0.2, ttfb: 0.7, down: 0.1, connNew: false }, 0.9)
+      expect(barra.net).to.equal(0)
+      expect(barra.half).to.equal(0)
+    })
+
+    it('timeFallback faz do total o servidor mais a rede', () => {
+      expect(core.timeFallback(171, 2.43)).to.deep.equal({ total: 171, server: 2.43, net: 171 - 2.43 })
+      expect(core.timeFallback(1, 2).net).to.equal(0)
+    })
+
+    it('formatMs: inteiro a partir de 100 ms, uma casa abaixo, com vírgula fora do inglês', () => {
+      expect(core.formatMs(170.6, 'pt-BR')).to.equal('171 ms')
+      expect(core.formatMs(100, 'en')).to.equal('100 ms')
+      expect(core.formatMs(99.94, 'pt-BR')).to.equal('99,9 ms')
+      expect(core.formatMs(3.5, 'en')).to.equal('3.5 ms')
+      expect(core.formatMs(3.5, 'es')).to.equal('3,5 ms')
+    })
+
+    it('timeLabels: o total como formatMs, o servidor com duas casas e o resto com uma', () => {
+      const barra = core.timeBar(171, core.resourcePhases(entrada()), 2.43)
+      expect(core.timeLabels(barra, 'pt-BR')).to.deep.equal({
+        total: '171 ms', conn: '0,6 ms', ttfb: '166,8 ms', down: '3,6 ms', server: '2,43 ms', net: '164,4 ms', half: '82,2 ms'
+      })
+      expect(core.timeLabels(core.timeFallback(171, 2.43), 'en')).to.deep.equal({ total: '171 ms', server: '2.43 ms', net: '168.6 ms' })
+    })
+
+    it('timeLink: o Server-Timing em pt-BR tem tradução; as outras páginas são em inglês, e english só avisa fora do inglês', () => {
+      expect(core.timeLink('server', 'pt-BR')).to.deep.equal({ url: 'https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Reference/Headers/Server-Timing', english: false })
+      expect(core.timeLink('server', 'es')).to.deep.equal({ url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Server-Timing', english: true })
+      expect(core.timeLink('server', 'en').english).to.equal(false)
+      expect(core.timeLink('ttfb', 'pt-BR')).to.deep.equal({ url: 'https://developer.mozilla.org/en-US/docs/Glossary/Time_to_first_byte', english: true })
+      expect(core.timeLink('ttfb', 'en').english).to.equal(false)
+      ;['conn', 'outbound', 'inbound', 'total'].forEach(part => expect(core.safeHref(core.timeLink(part, 'es').url), part).to.be.a('string'))
+      expect(core.timeLink('down', 'pt-BR')).to.equal(null)
+    })
   })
 
   describe('OpenAPI', () => {

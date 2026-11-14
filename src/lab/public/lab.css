@@ -830,8 +830,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .skel-block > .w55 { width: 55%; }
 .skel-block > .w15 { width: 15%; }
 /* Durante a espera real, o Fluxo guarda a altura da cascata que vai chegar: a do último desenho da mesma
-   rota na mesma largura, ou esta, a de uma cascata de cinco etapas. */
-.flow-reserve { min-height: 21.4375rem; }
+   rota na mesma largura, ou esta, a de uma cascata de cinco etapas com a barra de tempo embaixo. */
+.flow-reserve { min-height: 35.8125rem; }
 .j-key { color: var(--json-key); }
 .j-str { color: var(--json-str); }
 .j-num { color: var(--json-num); }
@@ -851,15 +851,17 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .flow-controls { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
 #replay .ico { color: currentColor; }
 .flow-context { display: none; }
-.flow-times { margin-top: 10px; font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 2px 18px; }
-.flow-times b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
-/* A linha do resumo tem desde o começo a altura da linha do veredito. */
-.flow-summary { min-height: calc(1.1875rem * 1.6); margin: 0 0 10px; font-family: var(--font-head); font-size: 1.1875rem; font-weight: 700; line-height: 1.2; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+/* A linha que fica no lugar da barra de tempo quando o envio não tem as fases da Resource Timing. */
+.flow-times { margin-top: 10px; font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.flow-times b { font-family: var(--font-code); font-weight: 400; color: var(--ink); white-space: nowrap; }
+.flow-times b.total { font-weight: 600; }
+/* A linha do resumo tem desde o começo a altura da linha do veredito. A dica das etapas vem logo abaixo. */
+.flow-summary { min-height: calc(1.1875rem * 1.6); margin: 0; font-family: var(--font-head); font-size: 1.1875rem; font-weight: 700; line-height: 1.2; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .flow-summary.stopped .flow-summary-stage { color: var(--fail); }
 .flow-summary.completed { color: var(--ok); }
 .flow-summary.outside { color: var(--warn); }
 .flow-summary.waiting { color: var(--graphite); font-family: var(--font-ui); font-weight: 400; font-size: 0.84375rem; }
-.flow-outside { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; border-left: 3px solid var(--warn); padding-left: 10px; }
+.flow-outside { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; border-left: 3px solid var(--warn); padding-left: 10px; }
 
 .wf { position: relative; }
 .wf-scale { display: grid; grid-template-columns: var(--wf); column-gap: 8px; padding: 0 4px; }
@@ -936,8 +938,79 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-hint { display: grid; }
 .flow-hint > .flow-hint-text, .flow-hint::after { grid-area: 1 / 1; }
 .flow-hint::after { content: attr(data-reserve) / ""; visibility: hidden; pointer-events: none; user-select: none; }
+.flow-hint.stages-hint { margin: 0 0 10px; }
 .flow-note { color: var(--graphite); }
 .flow-note.strong { margin-top: 10px; color: var(--ink); border-left: 3px solid var(--warn); padding-left: 10px; }
+
+/* Tempo da requisição: a barra em escala sob o fluxo, com as partes da aba Timing do DevTools. Os rótulos
+   acima e as cotas abaixo são posicionados pelo script (layoutTime), a partir das partes de verdade. */
+.flow .band-body { position: relative; }
+.tl { margin: 16px 0 0; }
+.tl .num { font-family: var(--font-code); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.flow-hint.tl-hint { margin: 0 0 2px; }
+.tl-draw { position: relative; }
+.tl-calls { position: relative; height: var(--calls-h, 26px); }
+.tl-tick { position: absolute; bottom: 0; width: 1px; background: var(--control); }
+.tl-bar { position: relative; display: flex; gap: 2px; height: 20px; }
+/* Cada parte da barra é um botão com o visual de segmento. */
+.tl-seg { position: relative; flex: var(--g) 1 0; min-width: 3px; display: grid; place-items: center; overflow: hidden; margin: 0; padding: 0; border: 0; border-radius: 0; font-size: 0.75rem; line-height: 1; white-space: nowrap; cursor: pointer; }
+.tl-seg.net { background: var(--seg-idle); color: var(--ink); }
+.tl-seg.conn { background: var(--graphite); }
+.tl-seg.server { background: var(--ok); min-width: 5px; }
+.tl-seg.down { background: var(--seg-response); }
+/* As partes finas ganham uma área de toque maior e invisível (3 a 5 px não é um alvo). */
+.tl-seg.conn, .tl-seg.server, .tl-seg.down { overflow: visible; z-index: 1; }
+.tl-seg.conn::after, .tl-seg.server::after, .tl-seg.down::after { content: ""; position: absolute; inset: -6px -7px; }
+.tl-seg:hover { outline: 2px solid var(--control); outline-offset: 2px; }
+.tl-seg[aria-expanded="true"], .tl-seg[aria-expanded="true"]:hover { outline: 2px solid var(--focus); outline-offset: 2px; z-index: 2; }
+/* O que abre uma explicação tem sublinhado pontilhado, contínuo ao passar o mouse e enquanto está aberto. */
+.tl-term { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tl-seg.net .tl-term { text-decoration-color: var(--graphite); }
+.tl-call { position: absolute; bottom: 0; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 6px 0 7px; cursor: pointer; }
+.tl-call b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
+.tl-call.server { color: var(--ok); font-weight: 600; }
+.tl-call.server b { color: var(--ok); }
+.tl-call:hover .tl-term, .tl-call.is-open .tl-term, .tl-dim-label:hover .tl-term, .tl-dim-label[aria-expanded="true"] .tl-term, .tl-seg:hover .tl-term, .tl-seg[aria-expanded="true"] .tl-term { text-decoration-style: solid; text-decoration-color: currentColor; }
+.tl-call.is-open { color: var(--accent); }
+.tl-call.is-open.server, .tl-call.is-open.server b { color: var(--ok); }
+.tl-dims { position: relative; height: 70px; }
+.tl-dim { position: absolute; height: 7px; border: 1px solid var(--control); border-top: 0; }
+.tl-dim-label { position: absolute; transform: translateX(-50%); min-height: 24px; margin: 0; border: 0; border-radius: 3px; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
+.tl-dim-label b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
+.tl-dim-label.total { font-size: 0.8125rem; }
+.tl-dim-label.total b { font-weight: 600; }
+.tl-dim-label[aria-expanded="true"] { color: var(--accent); outline: 2px solid var(--focus); outline-offset: 0; }
+.tl-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 0.8125rem; color: var(--graphite); }
+.tl-key li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; align-items: baseline; border-radius: 3px; }
+.tl-key b { color: var(--ink); font-weight: 600; }
+.tl-key .key { display: inline-block; width: 10px; height: 10px; }
+.tl-key .key.server { background: var(--ok); }
+.tl-key .key.net { background: var(--seg-idle); outline: 1px solid var(--control); outline-offset: -1px; }
+.tl-cap { margin-top: 6px; font-size: 0.8125rem; color: var(--graphite); max-width: 64ch; }
+/* O balão de cada parte: o visual do painel do aviso de versão (.rel-pop), com uma ponta para a parte. */
+.tl-pop { position: absolute; z-index: 20; width: min(24rem, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; font-weight: 400; white-space: normal; text-align: left; }
+.tl-pop[hidden] { display: none; }
+.tl-pop::before { content: ""; position: absolute; top: -6px; left: var(--notch, 24px); width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--control); border-top: 1px solid var(--control); transform: translateX(-50%) rotate(45deg); }
+.tl-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.tl-pop .rel-title .val { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); }
+.tl-pop .rel-title .val .num { color: var(--ink); }
+.tl-pop .note { color: var(--graphite); border-left: 3px solid var(--seg-idle); padding-left: 8px; }
+.tl-pop .tip b { font-weight: 700; }
+.tl-pop .pop-link { color: var(--graphite); }
+.tl-pop a { color: var(--accent); }
+.tl-pop code { font-family: var(--font-code); font-size: 0.92em; white-space: nowrap; }
+/* Encaixe (câmera lenta): uma cópia de "Todas as etapas" encolhe até a fatia do servidor. */
+.fit-ghost { position: absolute; z-index: 6; pointer-events: none; transform-origin: 0 0; }
+.fit-piece { position: absolute; top: 0; bottom: 0; background: var(--ok); }
+.fit-piece.fail { background: var(--fail); }
+.fit-piece.skip { background-color: var(--well); background-image: repeating-linear-gradient(135deg, var(--control) 0 1.5px, transparent 1.5px 5px); }
+.wf-summary.fit-src .wf-cell-stage .flow-seg { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); }
+/* O destaque do fim do encaixe (lightServer em app.js): a fatia, o rótulo e a linha da legenda acendem por
+   1,8 s e apagam em 0,5 s. Só esta classe e os quadros dela o desenham. */
+.fit-hit { animation: fitHit 2.3s ease both; }
+.tl-seg.fit-hit { z-index: 2; animation-name: fitHitRing; }
+@keyframes fitHit { 0%, 78% { background-color: var(--accent-tint); } to { background-color: transparent; } }
+@keyframes fitHitRing { 0%, 78% { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); } to { box-shadow: 0 0 0 2px transparent, 0 0 0 4px transparent; } }
 
 /* Sobre o ServeRest: a introdução da documentação, numa faixa discreta no fim da página. */
 /* O rodapé, sempre à vista: a marca com a apresentação e três grupos de links com título. */
@@ -1100,8 +1173,8 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .flow-name { justify-self: start; padding-right: 6px; }
   .flow-end { justify-self: end; padding-left: 6px; }
   .flow-details { padding: 2px 10px 14px 10px; }
-  /* A cascata de cinco etapas numa zona estreita (a dica guarda duas linhas). */
-  .flow-reserve { min-height: 30.6875rem; }
+  /* A cascata de cinco etapas e a barra de tempo numa zona estreita (a dica guarda duas linhas). */
+  .flow-reserve { min-height: 48.625rem; }
 }
 
 /* Resultado muito estreito (320 px com o texto maior): os headers da resposta empilham o nome sobre o

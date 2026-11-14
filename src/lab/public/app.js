@@ -177,9 +177,7 @@
   }
 
   function formatMs (ms) {
-    if (ms >= 100) return String(Math.round(ms)) + ' ms'
-    const value = ms.toFixed(1)
-    return (language === 'en' ? value : value.replace('.', ',')) + ' ms'
+    return core.formatMs(ms, language)
   }
 
   function statusLine (record) {
@@ -528,7 +526,10 @@
     state.mode = mode
     saveSlowMotion(mode === 'lenta')
     paintRunMode()
-    if (mode === 'normal') finishFlowNow()
+    if (mode === 'normal') {
+      finishFlowNow()
+      stopFit()
+    }
   }
 
   // Termina na hora a animação que estiver rodando (modo normal escolhido, menos movimento ligado).
@@ -2604,6 +2605,7 @@
     $('result-tabs').hidden = !hasRecord
     paintResultTabs()
     if (!hasRecord) {
+      unmountTime()
       $('shown-fill').hidden = true
       $('shown-fill').removeAttribute('data-state')
       $('response').setAttribute('aria-busy', 'false')
@@ -2753,6 +2755,7 @@
     paintOrigin(record, true)
     paintFill()
     setReplayReady(false)
+    unmountTime()
     $('flow-body').textContent = ''
     reserveFlow(record)
     $('flow-body').append(el('p', { class: 'flow-note', text: t('lab.wait.flow') }))
@@ -3368,9 +3371,7 @@
       originTag(record, flow.live))
     if (!model) return [context]
     const serverTotal = model.stages.reduce((total, stage) => total + (stage.dur || 0), 0)
-    return [context, el('div', { class: 'flow-times' },
-      el('span', null, parts('lab.flow.server_time', { time: el('b', { text: core.formatDuration(serverTotal, language) + ' ms' }) })),
-      el('span', null, parts('lab.time.browser', { time: el('b', { text: formatMs(record.ms) }) })))]
+    return [context, record.timing ? timeFigure(core.timeBar(record.ms, record.timing, serverTotal)) : timeLine(record.ms, serverTotal)]
   }
 
   function flowNote (record, content) {
@@ -3407,6 +3408,7 @@
     // e o anuncia, mesmo numa exibição quieta.
     flow.quiet = !!quiet && state.pendingId !== record.id
     flow.model = null
+    unmountTime()
     $('flow-body').textContent = ''
     releaseFlowReserve()
     setReplayReady(false)
@@ -3437,7 +3439,7 @@
     flow.end = stages.length + 1
     flow.active = animate ? nextActive(stages, 0) : flow.end
 
-    // O veredito vem primeiro; os tempos viram legenda, abaixo da cascata.
+    // O veredito vem primeiro; a barra de tempo fica abaixo da cascata.
     const [context, times] = flowContext(record, model)
     body.append(context)
     const summary = el('p', { class: 'flow-summary waiting' })
@@ -3497,11 +3499,13 @@
     // Linhas das colunas: uma camada só, sobre o resumo e a lista inteira.
     const lines = el('div', { class: 'wf-lines', 'aria-hidden': 'true' }, cellsOf('wf-lines-cols'))
     lines.firstChild.querySelectorAll('.wf-cell').forEach(cell => { cell.className = '' })
+    // A dica vem antes do desenho de que fala: logo abaixo do veredito, antes das etapas.
     const hint = flowHint()
-    body.append(summary, outside, el('div', { class: 'wf' }, scale, list, lines), times, hint)
+    body.append(summary, outside, hint, el('div', { class: 'wf' }, scale, list, lines), times)
     flow.hintEl = hint
     flow.summaryEl = summary
     flow.outsideEl = outside
+    if (times.classList.contains('tl')) mountTime(times)
     paintFlow()
     // A altura da cascata antes do veredito, para a próxima espera real desta rota.
     const drawn = body.offsetHeight
@@ -3520,7 +3524,7 @@
       if (run !== flow.run) return
       flow.active = nextActive(stages, flow.active + 1)
       paintFlow()
-      if (flow.active >= flow.end) finishFlow()
+      if (flow.active >= flow.end) finishFlow(true)
       else tick(run)
     }, delayAt(stages, flow.active))
   }
@@ -3610,7 +3614,7 @@
   function flowHint () {
     const labels = Object.keys(texts).filter(key => key.indexOf('ui.flow.stage_label.') === 0).map(t)
     const longest = labels.reduce((a, b) => b.length > a.length ? b : a, '')
-    return el('p', { class: 'flow-hint', 'data-reserve': fillText('lab.flow.hint_stopped', { stage: longest }) },
+    return el('p', { class: 'flow-hint stages-hint', 'data-reserve': fillText('lab.flow.hint_stopped', { stage: longest }) },
       el('span', { class: 'flow-hint-text', text: t('lab.flow.hint') }))
   }
 
@@ -3664,7 +3668,8 @@
     how.append(el('button', { type: 'button', class: 'link-btn flow-schema-go', id: 'flow-schema-go', text: t('lab.schema.go'), onclick: () => goToSchema(record) }))
   }
 
-  function finishFlow () {
+  // animated: o fluxo chegou ao veredito andando em câmera lenta (não por um atalho para o fim).
+  function finishFlow (animated) {
     const model = flow.model
     const summary = flow.summaryEl
     const record = flow.record
@@ -3691,6 +3696,7 @@
     }
     setReplayReady(true)
     flowAnnounce(spoken)
+    if (animated && time.fig) fitLater(playFit, FIT_AFTER_VERDICT)
   }
 
   // "Ver em câmera lenta" é o único controle da faixa do Fluxo: fica disponível a partir do veredito de todo
@@ -3706,7 +3712,10 @@
         state.reduced = event.matches
         $('flow-controls').hidden = state.reduced
         paintRunMode()
-        if (state.reduced) finishFlowNow()
+        if (state.reduced) {
+          finishFlowNow()
+          stopFit()
+        }
       })
     } catch (e) {}
     $('replay').addEventListener('click', () => {
@@ -3720,6 +3729,390 @@
   function setReplayReady (ready) {
     if (ready) $('replay').removeAttribute('aria-disabled')
     else $('replay').setAttribute('aria-disabled', 'true')
+  }
+
+  /* ---------- Tempo da requisição ---------- */
+
+  // A barra sob o fluxo, em escala, com as partes da aba Timing do DevTools: conexão, ida até o servidor,
+  // servidor (a soma das etapas, no verde de "Todas as etapas"), volta ao navegador e download, com o TTFB e
+  // o total marcados embaixo. Cada parte e cada marca abre um balão que diz o que ela mede.
+
+  const time = { fig: null, pop: null, current: null, observer: null }
+  const fit = { timers: [], anim: null, ghost: null, summary: null }
+  // O encaixe começa depois do veredito, para o veredito ser lido antes.
+  const FIT_AFTER_VERDICT = 250
+
+  const TIME_NAMES = {
+    outbound: 'lab.time.part.outbound',
+    server: 'lab.time.part.server',
+    inbound: 'lab.time.part.inbound',
+    down: 'lab.time.part.down',
+    ttfb: 'lab.time.part.ttfb',
+    total: 'lab.time.part.total'
+  }
+
+  // O que cada balão diz: o que a parte é, o que a faz crescer, a nota da ida e da volta (o navegador só
+  // mede a soma das duas), o que fazer com ela num teste e o link de referência.
+  const TIME_POPS = {
+    conn: { tip: 'lab.time.conn.tip', link: 'lab.time.conn.link' },
+    outbound: { body: ['lab.time.outbound.body'], note: 'lab.time.outbound.note', tip: 'lab.time.outbound.tip', link: 'lab.time.link_mdn', linkName: 'Round Trip Time (RTT)' },
+    server: { body: ['lab.time.server.body', 'lab.time.server.grows'], tip: 'lab.time.server.tip', link: 'lab.time.server.link' },
+    inbound: { body: ['lab.time.inbound.body'], note: 'lab.time.inbound.note', tip: 'lab.time.inbound.tip', link: 'lab.time.inbound.link' },
+    down: { body: ['lab.time.down.body', 'lab.time.down.grows'], tip: 'lab.time.down.tip' },
+    ttfb: { body: ['lab.time.ttfb.body'], note: 'lab.time.ttfb.note', tip: 'lab.time.ttfb.tip', link: 'lab.time.link_mdn', linkName: 'Time to First Byte (TTFB)' },
+    total: { body: ['lab.time.total.body'], tip: 'lab.time.total.tip', link: 'lab.time.link_mdn', linkName: 'Resource Timing' }
+  }
+
+  function capitalized (text) {
+    return text.charAt(0).toUpperCase() + text.slice(1)
+  }
+
+  function num (text) {
+    return el('span', { class: 'num', text })
+  }
+
+  // O nome de cada parte como aparece sobre e sob a barra; o balão usa o mesmo, com maiúscula.
+  function timeName (part, bar) {
+    if (part === 'conn') return t(bar.connNew ? 'lab.time.part.conn_new' : 'lab.time.part.conn')
+    return t(TIME_NAMES[part])
+  }
+
+  // A ida e a volta são metades estimadas da rede: o número delas vem com "cerca de".
+  function timeValue (part, labels) {
+    const value = { conn: labels.conn, outbound: labels.half, server: labels.server, inbound: labels.half, down: labels.down, ttfb: labels.ttfb, total: labels.total }[part]
+    return part === 'outbound' || part === 'inbound' ? fillText('lab.time.about', { time: value }) : value
+  }
+
+  // Sem as fases da Resource Timing, uma linha no lugar da barra: o total é o servidor mais a rede.
+  function timeLine (total, server) {
+    const labels = core.timeLabels(core.timeFallback(total, server), language)
+    return el('p', { class: 'flow-times' }, parts('lab.time.fallback', {
+      total: el('b', { class: 'total', text: labels.total }),
+      server: el('b', { text: labels.server }),
+      net: el('b', { text: labels.net })
+    }))
+  }
+
+  function timeFigure (bar) {
+    const labels = core.timeLabels(bar, language)
+    const trigger = { 'aria-expanded': 'false', 'aria-controls': 'tl-pop' }
+    const segs = [['conn', 'conn', bar.conn], ['outbound', 'net', bar.half], ['server', 'server', bar.server], ['inbound', 'net', bar.half], ['down', 'down', bar.down]].map(([part, kind, ms]) => {
+      const button = el('button', { type: 'button', class: 'tl-seg ' + kind, 'data-part': part, 'aria-label': capitalized(timeName(part, bar)) + ', ' + timeValue(part, labels), ...trigger })
+      button.style.setProperty('--g', ms.toFixed(3))
+      return button
+    })
+    segs[1].setAttribute('data-long', t('lab.time.part.outbound'))
+    segs[1].setAttribute('data-short', t('lab.time.part.outbound_short'))
+    segs[3].setAttribute('data-long', t('lab.time.part.inbound'))
+    segs[3].setAttribute('data-short', t('lab.time.part.inbound_short'))
+    const label = part => [el('span', { class: 'tl-term', text: timeName(part, bar) }), ' ', el('b', { text: timeValue(part, labels) })]
+    const call = (index, part, extra) => [
+      el('span', { class: 'tl-tick', 'data-for': String(index) }),
+      el('span', { class: 'tl-call' + extra, 'data-for': String(index), 'data-part': part }, label(part))
+    ]
+    const dim = (part, from, to, top, extra) => [
+      el('span', { class: 'tl-dim', 'data-from': from, 'data-to': to, 'data-top': top, 'aria-hidden': 'true' }),
+      el('button', { type: 'button', class: 'tl-dim-label' + extra, 'data-part': part, 'data-from': from, 'data-to': to, 'data-top': top, ...trigger }, label(part))
+    ]
+    const summary = fillText('lab.time.sr', {
+      total: labels.total,
+      conn: fillText(bar.connNew ? 'lab.time.sr_conn_new' : 'lab.time.sr_conn', { time: labels.conn }),
+      net: labels.net,
+      server: labels.server,
+      down: labels.down,
+      ttfb: labels.ttfb
+    })
+    const fig = el('figure', { class: 'tl' },
+      el('p', { class: 'flow-hint tl-hint', text: t('lab.time.hint') }),
+      el('p', { class: 'sr-only', text: summary }),
+      el('div', { class: 'tl-draw' },
+        el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), call(2, 'server', ' server'), call(4, 'down', '')),
+        el('div', { class: 'tl-bar' }, segs),
+        el('div', { class: 'tl-dims' }, dim('ttfb', '1', '3', '0', ''), dim('total', '0', '4', '1', ' total'))),
+      el('figcaption', null,
+        el('ul', { class: 'tl-key' },
+          el('li', { 'data-key': 'server' }, el('span', { class: 'key server', 'aria-hidden': 'true' }),
+            el('span', null, parts('lab.time.key_server', { name: el('b', { text: t('lab.time.part.server') }) }))),
+          el('li', null, el('span', { class: 'key net', 'aria-hidden': 'true' }),
+            el('span', null, parts('lab.time.key_net', { name: el('b', { text: t('lab.time.part.net') }), time: num(labels.net) })))),
+        el('p', { class: 'tl-cap' }, parts('lab.time.caption', { queueing: el('i', { lang: 'en', text: 'Queueing' }) }))),
+      el('div', { class: 'tl-pop', id: 'tl-pop', role: 'region', 'aria-labelledby': 'tl-pop-title', hidden: true }))
+
+    const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels))
+    fig.querySelectorAll('button[data-part]').forEach(button => button.addEventListener('click', () => toggle(button)))
+    // Os rótulos acima da barra são alvos maiores para as partes finas: agem como o botão da parte.
+    fig.querySelectorAll('.tl-call').forEach(call => call.addEventListener('click', () => {
+      const button = fig.querySelector('button[data-part="' + call.getAttribute('data-part') + '"]')
+      button.focus({ preventScroll: true })
+      toggle(button)
+    }))
+    // O balão não prende o foco: o foco saindo da parte e do balão o fecha (o clique fora fica em setupTime).
+    fig.addEventListener('focusout', event => {
+      const next = event.relatedTarget
+      if (time.current && next && !time.pop.contains(next) && next !== time.current) closeTimePop(false)
+    })
+    return fig
+  }
+
+  // Um texto do balão com os marcadores trocados por elementos; cada uso ganha uma cópia do elemento.
+  function popText (key, values) {
+    return parts(key, values).map(piece => typeof piece === 'string' ? piece : piece.cloneNode(true))
+  }
+
+  function timePopContent (part, bar, labels) {
+    const pop = TIME_POPS[part]
+    const values = {
+      time: num(labels.net),
+      command: el('code', { text: 'npx serverest' }),
+      header: el('code', { text: 'X-ServeRest-Stages' }),
+      route: el('code', { text: 'GET /produtos' }),
+      stage: t('ui.flow.stage_label.read'),
+      preset: el('i', { lang: 'en', text: '3G' }),
+      content_download: el('i', { lang: 'en', text: 'Content Download' }),
+      waiting: el('i', { lang: 'en', text: 'Waiting for server response' }),
+      expansion: el('i', { lang: 'en', text: 'Time To First Byte' })
+    }
+    const body = part === 'conn' ? ['lab.time.conn.body', bar.connNew ? 'lab.time.conn.new' : 'lab.time.conn.reused'] : pop.body
+    const value = part === 'outbound' || part === 'inbound' ? parts('lab.time.about', { time: num(labels.half) }) : num(timeValue(part, labels))
+    const link = pop.link ? core.timeLink(part, language) : null
+    return [
+      el('p', { class: 'rel-title', id: 'tl-pop-title' }, el('span', { text: capitalized(timeName(part, bar)) }), ' ', el('span', { class: 'val' }, value)),
+      body.map(key => el('p', null, popText(key, values))),
+      pop.note ? el('p', { class: 'note' }, popText(pop.note, values)) : null,
+      el('p', { class: 'tip' }, el('b', { text: t('lab.time.tip_label') }), ' ', popText(pop.tip, values)),
+      link
+        ? el('p', { class: 'pop-link' },
+          externalLink(link.url, popText(pop.link, { name: el('span', { lang: 'en', text: pop.linkName || '' }) }), link.english ? { hreflang: 'en' } : null),
+          link.english ? ' ' + t('lab.time.in_english') : null)
+        : null,
+      el('div', { class: 'rel-actions' }, el('button', { type: 'button', class: 'btn', text: t('lab.time.close'), onclick: () => closeTimePop(true) }))
+    ]
+  }
+
+  // Um balão só, levado para logo depois da parte que o abriu: o Tab vai da parte para o balão e depois
+  // para a próxima parte.
+  function openTimePop (button, content) {
+    closeTimePop(false)
+    const pop = time.pop
+    pop.textContent = ''
+    append(pop, content)
+    button.after(pop)
+    pop.hidden = false
+    button.setAttribute('aria-expanded', 'true')
+    const call = time.fig.querySelector('.tl-call[data-part="' + button.getAttribute('data-part') + '"]')
+    if (call) call.classList.add('is-open')
+    time.current = button
+    placeTimePop()
+    // Um balão que abre abaixo da dobra pareceria um clique sem efeito.
+    const over = pop.getBoundingClientRect().bottom + 12 - window.innerHeight
+    if (over > 0) window.scrollBy({ top: over, behavior: state.reduced ? 'auto' : 'smooth' })
+  }
+
+  function closeTimePop (refocus) {
+    const button = time.current
+    if (!button) return
+    time.current = null
+    time.pop.hidden = true
+    button.setAttribute('aria-expanded', 'false')
+    time.fig.querySelectorAll('.tl-call.is-open').forEach(call => call.classList.remove('is-open'))
+    if (refocus) button.focus()
+  }
+
+  // O balão fica sob a parte, com a ponta apontando para ela, sem passar das bordas da barra.
+  function placeTimePop () {
+    const button = time.current
+    if (!button) return
+    const pop = time.pop
+    const figBox = time.fig.getBoundingClientRect()
+    const anchor = button.getBoundingClientRect()
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const width = Math.min(24 * rem, figBox.width)
+    pop.style.width = width + 'px'
+    const center = anchor.left + anchor.width / 2
+    const left = Math.max(figBox.left, Math.min(figBox.right - width, center - width / 2))
+    const origin = pop.offsetParent.getBoundingClientRect()
+    pop.style.left = (left - origin.left) + 'px'
+    pop.style.top = (anchor.bottom + 10 - origin.top) + 'px'
+    pop.style.setProperty('--notch', Math.max(14, Math.min(width - 14, center - left)) + 'px')
+  }
+
+  // Os rótulos e as cotas seguem a posição real das partes (cada parte tem uma largura mínima).
+  function layoutTime (fig) {
+    const bar = fig.querySelector('.tl-bar')
+    const width = bar.clientWidth
+    if (!width) return
+    const box = bar.getBoundingClientRect()
+    const segs = Array.from(bar.children).filter(node => node.classList.contains('tl-seg'))
+    const seg = index => {
+      const rect = segs[index].getBoundingClientRect()
+      return { left: rect.left - box.left, right: rect.right - box.left }
+    }
+    // O nome longo onde cabe ("ida até o servidor"), o curto onde não cabe, nada numa fatia fina. A ida e a
+    // volta usam o mesmo tamanho, para "ida" nunca ficar ao lado de "volta ao navegador".
+    const nets = segs.filter(node => node.classList.contains('net'))
+    const choices = node => [node.getAttribute('data-long'), node.getAttribute('data-short'), '']
+    const level = Math.max(...nets.map(node => {
+      const term = el('span', { class: 'tl-term' })
+      node.replaceChildren(term)
+      return choices(node).findIndex(text => {
+        term.textContent = text
+        return term.offsetWidth <= node.clientWidth - 8
+      })
+    }))
+    nets.forEach(node => { node.firstChild.textContent = choices(node)[level] })
+    // Os rótulos acima da barra sobem uma fileira quando encostariam no vizinho.
+    const rows = []
+    let maxRow = 0
+    fig.querySelectorAll('.tl-call').forEach(call => {
+      const index = call.getAttribute('data-for')
+      const s = seg(Number(index))
+      const center = (s.left + s.right) / 2
+      const w = call.offsetWidth
+      const left = Math.max(0, Math.min(width - w, center - w / 2))
+      let row = 0
+      while ((rows[row] || []).some(range => left < range[1] + 8 && left + w > range[0] - 8)) row++
+      rows[row] = (rows[row] || []).concat([[left, left + w]])
+      maxRow = Math.max(maxRow, row)
+      call.style.left = left + 'px'
+      call.style.bottom = (row * 20) + 'px'
+      const tick = fig.querySelector('.tl-tick[data-for="' + index + '"]')
+      tick.style.left = Math.round(center) + 'px'
+      tick.style.height = (6 + row * 20) + 'px'
+    })
+    fig.querySelector('.tl-calls').style.setProperty('--calls-h', (26 + maxRow * 20) + 'px')
+    fig.querySelectorAll('.tl-dim, .tl-dim-label').forEach(node => {
+      const from = seg(Number(node.getAttribute('data-from'))).left
+      const to = seg(Number(node.getAttribute('data-to'))).right
+      const top = Number(node.getAttribute('data-top')) * 34
+      if (node.classList.contains('tl-dim')) {
+        node.style.left = from + 'px'
+        node.style.width = (to - from) + 'px'
+        node.style.top = (top + 3) + 'px'
+      } else {
+        const w = node.offsetWidth
+        node.style.left = Math.max(w / 2, Math.min(width - w / 2, (from + to) / 2)) + 'px'
+        node.style.top = (top + 4) + 'px'
+      }
+    })
+  }
+
+  // Depois de a barra entrar na página: o desenho segue a largura da barra e o tamanho do texto (a cota do
+  // total muda de tamanho com ele). Nenhum dos dois muda com o próprio desenho.
+  function mountTime (fig) {
+    time.fig = fig
+    time.pop = fig.querySelector('.tl-pop')
+    layoutTime(fig)
+    if (time.observer) {
+      time.observer.observe(fig.querySelector('.tl-bar'))
+      time.observer.observe(fig.querySelector('.tl-dim-label.total'))
+    }
+    try {
+      document.fonts.ready.then(() => { if (time.fig === fig) layoutTime(fig) })
+    } catch (e) {}
+  }
+
+  function unmountTime () {
+    stopFit()
+    closeTimePop(false)
+    if (time.observer) time.observer.disconnect()
+    time.fig = null
+    time.pop = null
+  }
+
+  // Um clique fora fecha o balão; Esc fecha e devolve o foco à parte.
+  function setupTime () {
+    document.addEventListener('pointerdown', event => {
+      const button = time.current
+      if (!button) return
+      const call = time.fig.querySelector('.tl-call[data-part="' + button.getAttribute('data-part') + '"]')
+      if (time.pop.contains(event.target) || button.contains(event.target) || (call && call.contains(event.target))) return
+      closeTimePop(false)
+    })
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && time.current) {
+        event.preventDefault()
+        closeTimePop(true)
+      }
+    })
+    if (window.ResizeObserver) {
+      time.observer = new ResizeObserver(() => {
+        if (!time.fig) return
+        layoutTime(time.fig)
+        placeTimePop()
+      })
+    }
+  }
+
+  /* Encaixe: só em câmera lenta, uma vez por envio, depois do veredito. Uma cópia de "Todas as etapas"
+     encolhe até caber na fatia verde do servidor: todas as etapas de cima são aquela fatia. */
+
+  function fitLater (fn, delay) {
+    fit.timers.push(setTimeout(fn, delay))
+  }
+
+  function stopFit () {
+    fit.timers.forEach(clearTimeout)
+    fit.timers = []
+    if (fit.anim) fit.anim.cancel()
+    if (fit.ghost) fit.ghost.remove()
+    if (fit.summary) fit.summary.classList.remove('fit-src')
+    document.querySelectorAll('.fit-hit').forEach(node => node.classList.remove('fit-hit'))
+    fit.anim = null
+    fit.ghost = null
+    fit.summary = null
+  }
+
+  function playFit () {
+    const fig = time.fig
+    const body = $('flow-body')
+    const summary = body.querySelector('.wf-summary')
+    const target = fig && fig.querySelector('.tl-seg.server')
+    if (!target || !summary || typeof target.animate !== 'function') return
+    const to = target.getBoundingClientRect()
+    // Fora da tela, ele não ensina nada.
+    if (to.bottom < 0 || to.top > window.innerHeight) return
+    const segs = Array.from(summary.querySelectorAll('.wf-cell-stage .flow-seg'))
+    if (!segs.length) return
+    const rects = segs.map(seg => seg.getBoundingClientRect())
+    const left = Math.min(...rects.map(rect => rect.left))
+    const right = Math.max(...rects.map(rect => rect.right))
+    const top = rects[0].top
+    const height = rects[0].height
+    const origin = body.getBoundingClientRect()
+    // A cópia leva o estado de cada etapa: verde, vermelha na que parou, hachurada na que não rodou.
+    const ghost = el('div', { class: 'fit-ghost', 'aria-hidden': 'true' }, segs.map((seg, index) => {
+      const look = seg.classList.contains('flow-seg-skip') ? ' skip' : seg.classList.contains('flow-seg-fail') ? ' fail' : ''
+      const piece = el('span', { class: 'fit-piece' + look })
+      piece.style.left = (rects[index].left - left) + 'px'
+      piece.style.width = rects[index].width + 'px'
+      return piece
+    }))
+    Object.assign(ghost.style, { left: (left - origin.left) + 'px', top: (top - origin.top) + 'px', width: (right - left) + 'px', height: height + 'px' })
+    body.append(ghost)
+    summary.classList.add('fit-src')
+    fit.ghost = ghost
+    fit.summary = summary
+    const end = 'translate(' + (to.left - left) + 'px, ' + (to.top - top) + 'px) scale(' + (to.width / (right - left)) + ', ' + (to.height / height) + ')'
+    fit.anim = ghost.animate([
+      { transform: 'none', opacity: 1 },
+      { transform: end, opacity: 1, offset: 0.92 },
+      { transform: end, opacity: 0 }
+    ], { duration: 1000, delay: 350, easing: 'cubic-bezier(.5, 0, .25, 1)', fill: 'both' })
+    fitLater(() => summary.classList.remove('fit-src'), 500)
+    fitLater(() => {
+      ghost.remove()
+      fit.ghost = null
+      lightServer(fig)
+    }, 1350)
+  }
+
+  // O destaque do fim do encaixe: a fatia do servidor, o rótulo dela e a linha da legenda acendem por um
+  // instante. Ele mora só aqui e na regra .fit-hit do CSS, para ser ajustado sem mexer no resto.
+  function lightServer (fig) {
+    [fig.querySelector('.tl-seg.server'), fig.querySelector('.tl-call.server'), fig.querySelector('.tl-key li[data-key="server"]')].forEach(node => {
+      node.classList.add('fit-hit')
+      node.addEventListener('animationend', () => node.classList.remove('fit-hit'), { once: true })
+    })
   }
 
   /* ---------- Início ---------- */
@@ -3738,6 +4131,7 @@
     paintFeedbackPill()
     renderAbout(null)
     setupFlowControls()
+    setupTime()
     setupResultTabs()
     setupView()
     setupSide()
