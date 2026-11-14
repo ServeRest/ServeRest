@@ -234,7 +234,7 @@ module.exports = {
   'lab.copy.command': 'Copy command',
   'lab.copy.command_draft': 'Copy command of what will be sent',
   'lab.copy.done_label': 'Copied',
-  'lab.copy.command_done': 'Command copied (bash format). On Windows, paste it into Git Bash or into Postman\'s Import.',
+  'lab.copy.command_done': 'Command copied. Paste it into your terminal or into Postman\'s Import.',
   'lab.copy.command_failed': 'Could not copy. The command is selected: copy it with {ctrl} + C.',
   'lab.responses.col_code': 'Status code',
   'lab.responses.col_desc': 'Description',
