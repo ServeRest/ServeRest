@@ -663,7 +663,6 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
   .entry { align-items: center; min-height: 2.375rem; padding: 6px 16px 6px 16px; font-size: 0.8125rem; }
   .entry::before { display: none; }
   .zone-history .entry > * { order: 0; margin-left: 0; }
-  .entry .pending-note { grid-column: 5 / 7; }
   .entry .method { justify-self: start; }
   .entry .path, .entry .chip { font-size: 0.8125rem; }
   /* A coluna já se chama Authorization: na célula fica com ou sem, e o nome continua para o leitor de tela. */
