@@ -575,11 +575,15 @@
     $('about-thanks').replaceChildren(...parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) }))
   }
 
-  // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px).
+  // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px). O
+  // brilho dele toca uma vez por carga da página: terminado ou interrompido, não volta (lab.css).
   function paintFeedbackPill () {
     const form = feedbackUrl()
     const pill = $('feedback-pill')
     if (!form) return
+    const stopShine = () => pill.classList.add('shine-done')
+    pill.addEventListener('animationend', stopShine, { once: true })
+    pill.addEventListener('animationcancel', stopShine, { once: true })
     pill.href = form
     pill.hidden = false
   }

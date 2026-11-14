@@ -269,6 +269,19 @@ describe('/ GET (marcação da página inicial)', () => {
     }
   })
 
+  it('o selo de opinião pede feedback sobre a repaginação, nos três idiomas', async () => {
+    const selos = {
+      'pt-BR': 'Dê feedback sobre a repaginação',
+      en: 'Give feedback on the redesign',
+      es: 'Opine sobre el rediseño'
+    }
+    for (const [lang, esperado] of Object.entries(selos)) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const selo = /<a class="pill-hdr"[^>]*>([^<]*)</.exec(text)
+      expect(selo[1], lang).to.equal(escaparHtml(esperado))
+    }
+  })
+
   it('mostra sempre o rodapé Sobre, com a apresentação e os títulos dos grupos vindos do servidor, nos três idiomas', async () => {
     for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
       const { text } = await request.get('/').query({ lang }).expect(200)

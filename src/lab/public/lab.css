@@ -256,8 +256,23 @@ button.version-notice[aria-expanded="true"] { color: var(--bar-fg); }
 .rel-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
 .topbar .rel-pop :focus-visible { outline-color: var(--focus); }
 /* O selo de opinião, depois da versão: só com espaço na barra (regra de 1024 px abaixo). */
-.pill-hdr { display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
+.pill-hdr { position: relative; isolation: isolate; overflow: hidden; display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
 .pill-hdr:hover { color: var(--bar-fg); border-color: var(--bar-fg); }
+/* Para o selo ser notado, uma faixa de luz o atravessa da esquerda para a direita duas vezes e para de vez.
+   Movimento que começa sozinho e passa de 5 s precisaria de um botão de pausa (WCAG 2.2.2): tudo termina
+   5 s depois de o selo aparecer (1 s de espera, 1,6 s por passada, 0,8 s entre elas). A faixa fica atrás do
+   texto, e no pico clareia o fundo só até manter 7:1 de contraste; parada, ela fica fora do selo. Uma
+   animação de CSS recomeçaria quando o selo volta a aparecer depois de um display: none (janela estreitada
+   abaixo de 1024 px e alargada de novo): app.js põe .shine-done quando ela termina ou é interrompida. */
+.pill-hdr::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.2) 50%, transparent 75%); transform: translateX(-100%); animation: pillShine 4s ease-in-out 1s; }
+.pill-hdr.shine-done::after { animation: none; display: none; }
+@keyframes pillShine {
+  0% { transform: translateX(-100%); }
+  40% { transform: translateX(100%); animation-timing-function: steps(1, end); }
+  60% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) { .pill-hdr::after { animation: none; display: none; } }
 .docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
 .docs-link:hover { color: var(--bar-fg); }
 
