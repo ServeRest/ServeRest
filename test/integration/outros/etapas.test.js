@@ -376,3 +376,15 @@ describe('Etapas da requisição', () => {
     })
   })
 })
+
+describe('Etapas da requisição na documentação Swagger', () => {
+  ['pt-BR', 'en', 'es'].forEach(lang => {
+    it(`Header explicado uma única vez na descrição geral, em ${lang} - @skipE2E`, async () => {
+      const { body } = await request.get('/swagger.json').query({ lang }).expect(200)
+
+      chai.assert.include(body.info.description, 'X-ServeRest-Stages')
+      chai.assert.lengthOf(JSON.stringify(body).split('X-ServeRest-Stages'), 2, 'nenhuma resposta documenta o header')
+      chai.assert.notProperty(body.components, 'headers')
+    })
+  })
+})

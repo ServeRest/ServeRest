@@ -52,11 +52,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.login.post.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -67,11 +62,6 @@
                     },
                     "401": {
                         "description": "paths.login.post.responses.401.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -109,11 +99,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.usuarios.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -136,11 +121,6 @@
                 "responses": {
                     "201": {
                         "description": "paths.usuarios.post.responses.201.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -176,11 +156,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.usuariosById.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -191,11 +166,6 @@
                     },
                     "400": {
                         "description": "paths.usuariosById.get.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -233,11 +203,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.usuariosById.delete.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -254,11 +219,6 @@
                     },
                     "400": {
                         "description": "paths.usuariosById.delete.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -293,11 +253,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.usuariosById.put.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -308,11 +263,6 @@
                     },
                     "201": {
                         "description": "paths.usuariosById.put.responses.201.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -353,11 +303,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.produtos.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -385,11 +330,6 @@
                 "responses": {
                     "201": {
                         "description": "paths.produtos.post.responses.201.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -431,11 +371,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.produtosById.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -446,11 +381,6 @@
                     },
                     "400": {
                         "description": "paths.produtosById.get.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -493,11 +423,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.produtosById.delete.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -514,11 +439,6 @@
                     },
                     "400": {
                         "description": "paths.produtosById.delete.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -564,11 +484,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.produtosById.put.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -579,11 +494,6 @@
                     },
                     "201": {
                         "description": "paths.produtosById.put.responses.201.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -628,11 +538,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.carrinhos.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -660,11 +565,6 @@
                 "responses": {
                     "201": {
                         "description": "paths.carrinhos.post.responses.201.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -675,11 +575,6 @@
                     },
                     "400": {
                         "description": "paths.carrinhos.post.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -721,11 +616,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.carrinhosById.get.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -736,11 +626,6 @@
                     },
                     "400": {
                         "description": "paths.carrinhosById.get.responses.400.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -773,11 +658,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.carrinhosConcluirCompra.delete.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -813,11 +693,6 @@
                 "responses": {
                     "200": {
                         "description": "paths.carrinhosCancelarCompra.delete.responses.200.description",
-                        "headers": {
-                            "X-ServeRest-Stages": {
-                                "$ref": "#/components/headers/XServeRestStages"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1019,11 +894,6 @@
         "responses": {
             "EmailJaUtilizado": {
                 "description": "components.responses.EmailJaUtilizado.description",
-                "headers": {
-                    "X-ServeRest-Stages": {
-                        "$ref": "#/components/headers/XServeRestStages"
-                    }
-                },
                 "content": {
                     "application/json": {
                         "schema": {
@@ -1034,11 +904,6 @@
             },
             "ProdutoNomeDuplicado": {
                 "description": "components.responses.ProdutoNomeDuplicado.description",
-                "headers": {
-                    "X-ServeRest-Stages": {
-                        "$ref": "#/components/headers/XServeRestStages"
-                    }
-                },
                 "content": {
                     "application/json": {
                         "schema": {
@@ -1049,11 +914,6 @@
             },
             "TokenInvalido": {
                 "description": "components.responses.TokenInvalido.description",
-                "headers": {
-                    "X-ServeRest-Stages": {
-                        "$ref": "#/components/headers/XServeRestStages"
-                    }
-                },
                 "content": {
                     "application/json": {
                         "schema": {
@@ -1064,26 +924,12 @@
             },
             "RotaParaAdministradores": {
                 "description": "components.responses.RotaParaAdministradores.description",
-                "headers": {
-                    "X-ServeRest-Stages": {
-                        "$ref": "#/components/headers/XServeRestStages"
-                    }
-                },
                 "content": {
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/rotaParaAdministradores"
                         }
                     }
-                }
-            }
-        },
-        "headers": {
-            "XServeRestStages": {
-                "description": "components.headers.XServeRestStages.description",
-                "schema": {
-                    "type": "string",
-                    "example": "body;st=ok;dur=0.21, rate_limit;st=skipped, auth;st=failed;dur=0.05;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run"
                 }
             }
         },
