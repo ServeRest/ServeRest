@@ -1097,7 +1097,10 @@ describe('Página do lab: funções puras', () => {
       serverestLangGlow: 'GLOW_KEY',
       serverestFlowSlowMotion: 'SLOW_MOTION_KEY',
       serverestLabHistory: 'HISTORY_KEY',
-      serverestLabView: 'VIEW_KEY'
+      serverestLabView: 'VIEW_KEY',
+      serverestReleaseSeen: 'RELEASE_SEEN_KEY',
+      serverestFeedbackInvite: 'FEEDBACK_KEY',
+      serverestFeedbackInviteSession: 'FEEDBACK_SESSION_KEY'
     }
 
     it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {

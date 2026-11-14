@@ -239,6 +239,50 @@ describe('/ GET (marcação da página inicial)', () => {
     expect(aviso).to.include('hidden')
   })
 
+  it('traz o botão do aviso com número e o painel dele escondidos, logo depois do link, sem texto de versão', async () => {
+    const { text } = await request.get('/').expect(200)
+    const caixa = /<div class="version-box">([\s\S]*?)<\/div>\s*<a class="pill-hdr"/.exec(text)[1]
+    const botao = /<button [^>]*id="release-btn"[^>]*>/.exec(caixa)[0]
+    expect(botao).to.include('aria-expanded="false"')
+    expect(botao).to.include('aria-controls="release-panel"')
+    expect(botao).to.include('hidden')
+    const painel = /<div [^>]*id="release-panel"[^>]*>/.exec(caixa)[0]
+    expect(painel).to.include('role="region"')
+    expect(painel).to.include('hidden')
+    expect(caixa.indexOf('id="release-btn"')).to.be.lessThan(caixa.indexOf('id="release-panel"'))
+  })
+
+  it('deixa o selo de opinião escondido e sem href: só app.js o mostra, com o endereço do formulário', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const selo = /<a class="pill-hdr"[^>]*>([\s\S]*?)<\/a>/.exec(text)
+      expect(selo[0], lang).to.not.include('href=')
+      expect(selo[0], lang).to.include('hidden')
+      expect(selo[1], lang).to.include(escaparHtml(textos['lab.feedback.pill']))
+    }
+  })
+
+  it('mostra sempre o rodapé Sobre, com a apresentação e os títulos dos grupos vindos do servidor, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const rodape = /<footer [^>]*>([\s\S]*?)<\/footer>/.exec(text)
+      expect(rodape[0], lang).to.match(/<footer class="about wrap" id="about" aria-labelledby="about-title">/)
+      expect(rodape[1], lang).to.include(`<h2 class="sr-only" id="about-title">${escaparHtml(textos['lab.about.title'])}</h2>`)
+      expect(rodape[1], lang).to.include(`<p>${escaparHtml(textos['lab.about.intro'])}</p>`)
+      ;['lab.about.group_beyond', 'lab.about.group_help', 'lab.about.group_support'].forEach(chave => {
+        expect(rodape[1], `${lang} ${chave}`).to.match(new RegExp(`<h3 class="foot-h" id="[a-z-]+">${escaparHtml(textos[chave])}</h3>`))
+      })
+      // As listas vêm vazias: os links (e os endereços) são de app.js.
+      expect(rodape[1].match(/<ul class="foot-list" id="[a-z-]+" aria-labelledby="[a-z-]+"><\/ul>/g), lang).to.have.length(3)
+      expect(rodape[1], lang).to.not.include('<a ')
+    }
+  })
+
+  it('usa o ícone da página servido em /lab/assets/img, sem endereço de fora', async () => {
+    const { text } = await request.get('/').expect(200)
+    expect(text).to.include('<link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">')
+  })
+
   it('sem release mais nova, os atributos do aviso de versão ficam vazios - @skipE2E', async () => {
     const { text } = await request.get('/').expect(200)
     const raiz = /<html [^>]*>/.exec(text)[0]
@@ -287,6 +331,33 @@ describe('/lab/assets/fonts GET', () => {
       expect(res.headers['content-type'], arquivo).to.match(/^text\/plain/)
       expect(res.text, arquivo).to.include('SIL Open Font License')
     }
+  })
+})
+
+// SHA-256 de cada imagem da marca: a logo copiada de assets/logos/serverest-2-cor-cortado.png dos
+// protótipos e as setas e o ícone decodificados dos data URIs de v-refino2.html, sem redesenhar.
+const imagens = {
+  'serverest-logo.png': ['image/png', 'cb73c927827cd70d0a0b7a4f56dab6269e796bbb4f0fc952337b26afd1b8977d'],
+  'setas-p.png': ['image/png', '4ed319f7b4fadaff3d71ab526986866670bfb6a82f4ec12cbfb41ed53575219b'],
+  'setas-d.png': ['image/png', '89239d9c3c444b36644688f31fa196a32efd0638cbccd98e951b5799ebd7191c'],
+  'favicon.svg': ['image/svg+xml', '70bee0e1dee1c8d10043405785d5be22771944bf43f8d44688b397e6569267d5']
+}
+
+describe('/lab/assets/img GET', () => {
+  it('serve cada imagem da marca com o tipo certo e os bytes da fonte original', async () => {
+    for (const [arquivo, [tipo, sha256]] of Object.entries(imagens)) {
+      const res = await request.get(`/lab/assets/img/${arquivo}`).buffer(true).parse(corpoBinario).expect(200)
+      expect(res.headers['content-type'], arquivo).to.match(new RegExp(`^${tipo.replace('+', '\\+')}`))
+      expect(createHash('sha256').update(res.body).digest('hex'), arquivo).to.equal(sha256)
+    }
+  })
+
+  it('o CSS usa as imagens por endereço relativo, e a página não usa mais o SVG da logo do Swagger', async () => {
+    const { body } = await request.get('/version').expect(200)
+    const { text: css } = await request.get(`/lab/assets/lab.css?v=${body.version}`).expect(200)
+    const { text: html } = await request.get('/').expect(200)
+    ;['img/serverest-logo.png', 'img/setas-p.png', 'img/setas-d.png'].forEach(caminho => expect(css, caminho).to.include(`url("${caminho}")`))
+    expect(css + html).to.not.include('serverest_logo.svg')
   })
 })
 

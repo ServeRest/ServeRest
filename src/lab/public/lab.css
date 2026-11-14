@@ -140,6 +140,10 @@
   --json-str: #a2fca2;
   --json-num: #fcc28c;
   --json-lit: #d3b5ff;
+  /* As cores da marca nas logos do rodapé e nas setas do Resultado vazio. */
+  --logo-ink: #282828;
+  --logo-accent: #7900e2;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
   --font-head: "Titillium Web", sans-serif;
   --font-ui: "Open Sans", sans-serif;
   --font-code: "Source Code Pro", ui-monospace, monospace;
@@ -149,6 +153,9 @@
    acima; roxo, verde, vermelho e âmbar clareiam para passar de 4,5:1; o bloco de código fica abaixo
    da zona. */
 :root[data-theme="dark"] {
+  --logo-ink: #e4e6eb;
+  --logo-accent: #c39bff;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
   --accent: #c39bff;
   --accent-strong: #d8bdff;
   --accent-tint: #2e2245;
@@ -224,16 +231,9 @@ a:hover { color: var(--accent-strong); }
 .topbar { background: var(--bar-bg); color: var(--bar-fg); border-bottom: 20px solid var(--purple); }
 .topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
 .topbar :focus-visible { outline-color: var(--bar-fg); }
-.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
-.logo {
-  display: block; height: 44px; aspect-ratio: 3864 / 1530; background-color: var(--bar-fg);
-  -webkit-mask-image: linear-gradient(#fff, #fff), url("/images/serverest_logo.svg");
-  -webkit-mask-composite: destination-out;
-  mask-image: linear-gradient(#fff, #fff), url("/images/serverest_logo.svg");
-  mask-composite: exclude;
-  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-}
+.brand { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
+/* A logo completa (a arte da marca, recortada) como máscara: branca na barra. */
+.logo { display: block; flex: none; height: 44px; aspect-ratio: 4005 / 1536; background-color: var(--bar-fg); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
 /* Os textos da barra em px, como os botões: a barra fica igual nos três tamanhos de texto, e A− e A+ não
    saem de baixo do ponteiro em nenhuma largura. */
 .version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
@@ -241,6 +241,21 @@ a:hover { color: var(--accent-strong); }
 /* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
 .version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
 .version-notice:hover { color: var(--bar-fg); }
+/* Com o número da versão, o aviso é um botão sublinhado, com um ponto enquanto o painel dessa versão não
+   foi aberto; o painel abre logo abaixo, nas cores da página (segue o tema mesmo sobre a barra preta). */
+button.version-notice { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-family: inherit; line-height: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+button.version-notice[aria-expanded="true"] { color: var(--bar-fg); }
+.version-notice .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 20; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; }
+.rel-pop[hidden] { display: none; }
+.rel-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+.rel-pop .code-page { padding: 6px 10px; }
+.rel-pop a { color: var(--accent); }
+.rel-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.topbar .rel-pop :focus-visible { outline-color: var(--focus); }
+/* O selo de opinião, depois da versão: só com espaço na barra (regra de 1024 px abaixo). */
+.pill-hdr { display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
+.pill-hdr:hover { color: var(--bar-fg); border-color: var(--bar-fg); }
 .docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
 .docs-link:hover { color: var(--bar-fg); }
 
@@ -487,8 +502,14 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .run-menu .run-item-sub { grid-column: 2; font-size: 0.8125rem; color: var(--graphite); }
 /* O atalho fica sozinho numa linha sob a barra, à direita, perto de Executar. */
 .kbd-hint { font-size: 0.8125rem; color: var(--graphite); }
-.req-hint { margin-top: var(--space-xs); text-align: right; }
+/* A linha sob a barra de endereço: o link do método à esquerda e o atalho à direita (em tela de toque o
+   atalho some e a linha fica só com o link). */
+.req-hint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-top: var(--space-xs); }
+.req-hint .kbd-hint { margin-left: auto; }
 @media (pointer: coarse) { .kbd-hint { display: none; } }
+.method-link { font-size: 0.8125rem; color: var(--graphite); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.method-link:hover, .method-link:focus-visible { color: var(--ink); text-decoration-thickness: 2px; }
+.method-link .m-name { font-family: var(--font-code); font-weight: 600; }
 .copy-msg { font-size: 0.8125rem; color: var(--ok); }
 .copy-msg:empty { display: none; }
 .copy-msg.fail { color: var(--fail); }
@@ -585,7 +606,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .schema-items tr:not(.schema-group) > th { padding-left: 1rem; }
 .schema-table .schema-group > th { padding: var(--space-s) 0 2px; color: var(--graphite); border-bottom: 0; font-weight: 400; }
 .schema-table .schema-group code { font-size: 0.78125rem; font-weight: 600; }
-.opt-mark { font-size: 0.71875rem; color: var(--graphite); }
+.opt-mark { font-size: 0.71875rem; font-style: italic; font-weight: 400; color: var(--graphite); }
 .schema-table th[tabindex]:focus, .schema-unknown:focus { outline: none; }
 .schema-table th[tabindex]:focus-visible, .schema-unknown:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .schema-table tr.schema-hit > * { background: var(--accent-tint); }
@@ -722,8 +743,25 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .sent-differs { margin-bottom: var(--space-s); font-size: 0.875rem; font-weight: 600; color: var(--ink); }
 .sent-differs ul { margin: 2px 0 0; padding-left: 1.25rem; }
 .caption { font-size: 0.8125rem; color: var(--graphite); }
-.result-empty { padding: var(--space-xl) 16px; display: flex; flex-direction: column; gap: var(--space-m); max-width: 64ch; }
-.result-lead { font-family: var(--font-head); font-size: 1.1875rem; font-weight: 600; line-height: 1.3; }
+.result-empty-lines { padding: var(--space-xl) 16px; display: flex; flex-direction: column; gap: var(--space-m); max-width: 64ch; }
+.result-empty-head { display: flex; align-items: center; gap: 12px; }
+/* As setas da marca abrem o Resultado vazio (decorativas): a seta de cima no roxo, a de baixo na tinta. */
+.setas { position: relative; display: block; flex: none; height: 32px; width: calc(32px * 135 / 96); }
+.setas > span { position: absolute; inset: 0; -webkit-mask: url("img/setas-p.png") 0 0 / 100% 100% no-repeat; mask: url("img/setas-p.png") 0 0 / 100% 100% no-repeat; background: var(--logo-accent); }
+.setas > .setas-d { -webkit-mask-image: url("img/setas-d.png"); mask-image: url("img/setas-d.png"); background: var(--logo-ink); }
+/* Sobre o ServeRest no Resultado vazio, só na primeira visita desta aba. */
+.about-body { display: flex; flex-direction: column; gap: var(--space-s); }
+.about-body > p, .go-list { max-width: 64ch; }
+.about-body strong { font-weight: 600; }
+.about-go { font-weight: 600; margin-top: var(--space-xs); }
+.go-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+.go-list li::marker { color: var(--graphite); }
+/* O convite para dar opinião, no Resultado vazio depois do 3º envio. */
+.invite { margin: 0 16px var(--space-xl); padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 4px 4px 0; background: var(--surface); display: grid; gap: 8px; max-width: 64ch; }
+.invite-title { font-weight: 600; }
+.invite-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.link-btn { display: inline-flex; align-items: center; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
+.link-btn:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .result-route { font-weight: 600; }
 .result-route code { font-size: 0.875rem; }
 
@@ -884,12 +922,22 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-note.strong { margin-top: 10px; color: var(--ink); border-left: 3px solid var(--warn); padding-left: 10px; }
 
 /* Sobre o ServeRest: a introdução da documentação, numa faixa discreta no fim da página. */
+/* O rodapé, sempre à vista: a marca com a apresentação e três grupos de links com título. */
 .about { padding-top: 20px; padding-bottom: 36px; }
-.about-inner { border-top: 1px solid var(--border); padding-top: 18px; display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 8px 24px; }
-.about h2 { font-size: 1.0625rem; }
-.about-text { columns: 2 26rem; column-gap: 32px; font-size: 0.8125rem; color: var(--graphite); }
-.about-text p { margin: 0 0 10px; break-inside: avoid; }
-.about-text strong { color: var(--ink); font-weight: 600; }
+:root:not([data-layout]) .about { visibility: hidden; }
+.about-inner { border-top: 1px solid var(--border); padding-top: 18px; display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr)); gap: 20px 28px; font-size: 0.8125rem; }
+.foot-brand { display: flex; flex-direction: column; gap: 10px; }
+.foot-brand p { max-width: 36ch; }
+.foot-h { font-family: var(--font-head); font-size: 1rem; font-weight: 600; line-height: 1.25; margin-bottom: 8px; }
+.foot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.foot-sub { display: block; color: var(--graphite); font-size: 0.75rem; }
+.foot-note { margin-top: 10px; color: var(--graphite); max-width: 40ch; }
+/* A logo completa em duas cores: as letras na cor do texto e o S e o T (com as setas) no roxo da marca. As
+   divisas do degradê foram medidas nesta arte e só valem com a máscara em 100% 100%. */
+.about-logo { --about-logo-h: 32px; display: block; flex: none; height: var(--about-logo-h); width: calc(var(--about-logo-h) * 4005 / 1536); background: linear-gradient(90deg, var(--logo-accent) 14.53%, var(--logo-ink) 14.53% 82.40%, var(--logo-accent) 82.40%); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
+@media (forced-colors: active) { .logo, .about-logo, .setas > span { forced-color-adjust: none; background: CanvasText; } }
+/* Itálico só para anotar um valor: aqui, a nota no lugar de um corpo de resposta vazio, fora do bloco escuro. */
+.empty-body { font-style: italic; font-weight: 400; color: var(--graphite); font-size: 0.8125rem; padding: 10px 12px; border: 1px dashed var(--control); border-radius: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
   .flow-fill-running, .flow-spinner, .spin, .wait-ring { animation: none; }
@@ -965,7 +1013,7 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-request { --req-x: 16px; }
   .zone-routes .zone-head, .filter, .group h3, .group-desc, .group ul { padding-left: 16px; padding-right: 16px; }
   .filter svg { left: 25px; }
-  .about-inner { grid-template-columns: minmax(0, 1fr); }
+  .about-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Abaixo de 1024 px a barra fica justa numa linha só: em 768 px, com o link da documentação e a versão em
@@ -973,6 +1021,11 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
    a 12 px, o mesmo da regra de 760 px. */
 @container page (max-width: 1023px) {
   .bar-end { column-gap: 12px; }
+}
+/* O selo de opinião só cabe na barra a partir de 1024 px (em px, para não depender do tamanho do texto);
+   abaixo disso fica fora da tela e da ordem do Tab. */
+@container page (min-width: 1024px) {
+  .pill-hdr:not([hidden]) { display: inline-flex; }
 }
 /* A barra do topo e o respiro lateral do recipiente mudam numa largura em px (760 px, os 47,5 rem do texto
    normal), nunca com o tamanho do texto: a barra é a mesma nos três tamanhos em toda largura, e as bordas
@@ -985,9 +1038,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .logo { height: 34px; }
   /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo. Sem aviso,
      a marca é só o logo. */
-  .brand { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .brand { position: static; flex-direction: column; align-items: flex-start; gap: 2px; }
   .version-box { display: contents; }
   .version { display: none; }
+  .rel-pop { left: 12px; }
 }
 @container page (max-width: 47.5rem) {
   .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
@@ -995,13 +1049,16 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-request { --req-x: 14px; }
   .params .field { grid-template-columns: minmax(0, 1fr); }
   .params .param-help, .auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 1; }
-  .shown, .shown-fill, .zone-result .band, .zone-result .band-body, .result-empty, .hist-empty, .hist-cleared { padding-left: 14px; padding-right: 14px; }
+  .shown, .shown-fill, .zone-result .band, .zone-result .band-body, .result-empty-lines, .hist-empty, .hist-cleared { padding-left: 14px; padding-right: 14px; }
+  .invite { margin-left: 14px; margin-right: 14px; }
+  .about-inner { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
    a regra entraria também em 390 px, e os botões encolheriam debaixo do dedo. */
 @container page (max-width: 384px) {
   .wrap { padding-left: 10px; padding-right: 10px; }
+  .rel-pop { left: 10px; }
   .bar-end { gap: 8px; }
   .view { gap: 6px; }
   .seg-btn { width: 32px; }

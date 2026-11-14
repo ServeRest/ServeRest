@@ -6,7 +6,7 @@
 <script src="/lab/assets/legacy-links.js?v={{version}}"></script>
 <script src="/lab/assets/prefs-boot.js?v={{version}}"></script>
 <title>{{lab.page.title}}</title>
-<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">
 <link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
 <script src="/lab/assets/core.js?v={{version}}" defer></script>
 <script src="/lab/assets/app.js?v={{version}}" defer></script>
@@ -34,10 +34,16 @@
     </nav>
     <div class="brand">
       <span class="logo" role="img" aria-label="{{lab.topbar.logo}}"></span>
-      <span class="version-box">
+      <!-- O aviso de versão nova: com o número da versão, um botão que abre o painel logo depois dele (o próximo
+           Tab entra no painel); sem número (aviso forçado), o link para as releases. O selo de opinião só
+           aparece com o endereço do formulário e só com espaço na barra (1024 px ou mais). -->
+      <div class="version-box">
         <span class="version" id="version"></span>
         <a class="version-notice" id="version-notice" target="_blank" rel="noopener" hidden></a>
-      </span>
+        <button class="version-notice" type="button" id="release-btn" aria-expanded="false" aria-controls="release-panel" hidden><span class="dot" id="release-dot" aria-hidden="true"></span><span id="release-line"></span></button>
+        <div class="rel-pop" id="release-panel" role="region" hidden></div>
+      </div>
+      <a class="pill-hdr" id="feedback-pill" target="_blank" rel="noopener" hidden>{{lab.feedback.pill}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
     </div>
     <div class="bar-end">
       <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
@@ -136,10 +142,28 @@
   </section>
 </main>
 
-<footer class="about wrap" id="about" aria-labelledby="about-title" hidden>
+<!-- Sobre o ServeRest, sempre à vista: a marca e a apresentação, depois três grupos com título. Os links de
+     cada lista vêm de app.js (os endereços não ficam na marcação). -->
+<footer class="about wrap" id="about" aria-labelledby="about-title">
+  <h2 class="sr-only" id="about-title">{{lab.about.title}}</h2>
   <div class="about-inner">
-    <h2 id="about-title">{{lab.about.title}}</h2>
-    <div class="about-text" id="about-text"></div>
+    <div class="foot-brand">
+      <span class="about-logo" aria-hidden="true"></span>
+      <p>{{lab.about.intro}}</p>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-beyond-title">{{lab.about.group_beyond}}</h3>
+      <ul class="foot-list" id="about-beyond" aria-labelledby="about-beyond-title"></ul>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-help-title">{{lab.about.group_help}}</h3>
+      <ul class="foot-list" id="about-help" aria-labelledby="about-help-title"></ul>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-support-title">{{lab.about.group_support}}</h3>
+      <ul class="foot-list" id="about-support" aria-labelledby="about-support-title"></ul>
+      <p class="foot-note" id="about-thanks"></p>
+    </div>
   </div>
 </footer>
 <p class="sr-only" id="announcer" aria-live="polite"></p>
