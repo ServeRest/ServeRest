@@ -688,6 +688,15 @@
     }
   }
 
+  // O link pré-preenchido do formulário de opinião traz VERSAO no lugar da versão: a página troca pela
+  // versão que está rodando, para cada resposta dizer de qual versão veio. Sem link, ou depois da data
+  // em que o formulário deixa de aceitar respostas, não há formulário: um link morto só frustra.
+  function feedbackFormUrl (template, version, now, until) {
+    if (!template) return null
+    if (until && now > Date.parse(until)) return null
+    return safeHref(String(template).replace('VERSAO', encodeURIComponent(version || '')))
+  }
+
   // Markdown mínimo da introdução do documento: **negrito** e [texto](url), com link dentro de
   // negrito. Devolve pedaços de texto para quem desenha criar os nós; nada vira HTML. Link que não é
   // http(s) vira só o texto dele. Um ** sem par some, e o que vem depois dele fica sem negrito.
@@ -815,6 +824,7 @@
     storedRecord,
     readStoredHistory,
     safeHref,
+    feedbackFormUrl,
     parseInlineMarkdown,
     highlightJson
   }
