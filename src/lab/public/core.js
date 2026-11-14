@@ -262,6 +262,19 @@
     }
   }
 
+  // As linhas de uma conexão nova no balão. O trecho da conexão vai do pedido da página até o navegador
+  // começar a enviar: além de DNS, TCP e TLS, ele inclui a espera na fila do navegador (Queueing e Stalled
+  // no DevTools). A espera é o que sobra, calculada com os valores arredondados a uma casa, como o topo do
+  // balão (timeLabels) e as linhas os mostram, para a soma das linhas bater com o tempo do topo.
+  function connParts (conn, details) {
+    const shown = ms => Number.isFinite(ms) && ms > 0 ? Math.round(ms * 10) / 10 : 0
+    const dns = shown(details.dns)
+    const tcp = shown(details.tcp)
+    const tls = shown(details.tls)
+    const wait = Math.max(0, Math.round((shown(conn) - dns - tcp - tls) * 10) / 10)
+    return { wait, dns, tcp, tls }
+  }
+
   const PROTOCOLS = { 'http/1.0': 'HTTP/1.0', 'http/1.1': 'HTTP/1.1', h2: 'HTTP/2', h2c: 'HTTP/2', h3: 'HTTP/3' }
 
   // O nome do protocolo como as pessoas o escrevem ("h2" vira "HTTP/2"); null para o que não é conhecido.
@@ -1023,6 +1036,8 @@
     timeBar,
     timeFallback,
     formatMs,
+    formatMsFixed,
+    connParts,
     timeLabels,
     timeLink,
     headerLink,
