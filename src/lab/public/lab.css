@@ -97,6 +97,9 @@
   --band: #f2f3f5;
   /* A barra de rolagem fina da lista de Rotas, num cinza discreto. */
   --scroll-thumb: #b9bdc5;
+  /* O esqueleto da resposta e o brilho que passa por ele. */
+  --skel: var(--seg-idle);
+  --skel-shine: #ffffff;
   /* Largura da quarta coluna (Histórico): a maior largura da coluna da esquerda. */
   --hist-w: 23rem;
   /* Superfícies: a página fica um degrau abaixo das zonas. */
@@ -156,6 +159,7 @@
   --editor-bg: #30343c;
   --band: #24272d;
   --scroll-thumb: #4b505a;
+  --skel-shine: #575d69;
   --canvas: #111215;
   --surface: #1b1d22;
   --input-bg: #131418;
@@ -205,6 +209,7 @@ a:hover { color: var(--accent-strong); }
    fica abaixo de 3:1 contra o preto). */
 .skip-link:focus-visible { outline-color: var(--bar-fg); }
 .copy-buffer { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 .grow { flex: 1; }
 .muted { color: var(--graphite); }
 .small { font-size: 0.8125rem; }
@@ -289,6 +294,11 @@ a:hover { color: var(--accent-strong); }
 .btn-primary { background: var(--purple); border-color: var(--purple); color: var(--on-purple); font-weight: 700; padding: 6px 22px; }
 .btn-primary:hover { background: var(--purple-deep); border-color: var(--purple-deep); }
 .btn-primary[disabled] { background: var(--purple-deep); border-color: var(--purple-deep); color: var(--on-purple); }
+/* Durante o envio Executar não fica disabled (o foco cairia no body): fica com aria-disabled e o desenho
+   indisponível de "Ver em câmera lenta"; o clique e Ctrl + Enter não enviam de novo. */
+.btn[aria-disabled="true"] { color: var(--graphite); border-color: var(--border); cursor: not-allowed; }
+.btn[aria-disabled="true"]:hover { border-color: var(--border); }
+.btn-primary[aria-disabled="true"], .btn-primary[aria-disabled="true"]:hover { background: var(--surface); border-color: var(--border); color: var(--graphite); }
 /* Botão discreto: letra grafite, sem fundo, e uma borda de 1 px já em repouso, na cor da borda dos
    controles (3:1 contra a zona; a borda das zonas, mais clara, não chega a 3:1); mais escura ao passar o
    mouse e com o foco. */
@@ -309,7 +319,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .chip.fail { color: var(--fail); }
 .chip.warn { color: var(--warn); }
 .tag { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
-.tag.history-tag { color: var(--accent); font-weight: 700; }
+.tag.origin-older { color: var(--ink); font-weight: 600; }
 
 /* Três zonas sobre o fundo da página: Rotas (o que existe), Requisição (o que envio) e Resultado
    (o que aconteceu). Superfícies chapadas, uma borda, 4 px de raio, um vão entre elas. */
@@ -358,6 +368,18 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .tab-count { display: inline-block; min-width: 1.75em; padding: 2px 6px; overflow: hidden; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; line-height: 1.25; text-align: center; color: var(--graphite); font-variant-numeric: tabular-nums; }
 .tab-count:empty { display: none; }
 .tab-count.is-new { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* As abas Resposta e Foi enviado ficam entre duas linhas, como uma faixa. Em telas estreitas o nome da aba
+   pode quebrar, para "Foi enviado" e a caixa "≠ Será enviado" caberem em 320 px. */
+.result-tabs { border-top: 1px solid var(--border); }
+.result-tabs .folder-tab { white-space: normal; text-align: left; flex-wrap: wrap; row-gap: 2px; }
+/* A caixa da contagem nunca encolhe (ela cortaria o texto); sem lugar, ela desce para baixo do nome. */
+.result-tabs .tab-count { flex: none; }
+/* A caixa "≠ Será enviado": o desenho da contagem, com borda grafite; nunca roxa (roxo é "novo" no
+   Histórico). Quando a aba é mais estreita que a caixa, ela quebra entre as palavras. */
+.tab-count.tab-diff { border-color: var(--graphite); }
+.result-tabs .tab-diff { flex: 0 1 auto; overflow: visible; white-space: normal; }
+#result .result-panel:focus { outline: none; }
+#result .result-panel:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 /* O movimento é uma animação de script (playOnce, em app.js): ela não recomeça quando a lista de abas volta. */
 .count-num { display: inline-block; }
 .zone-request { container: req / inline-size; }
@@ -441,6 +463,28 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-base { flex: none; color: var(--graphite); font-weight: 400; }
 .req-route { order: -1; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
 .req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
+/* Executar dividido: a parte principal envia no modo em uso; o segmento da direita mostra, em branco, o
+   ícone do modo (as setas do ServeRest: normal; o caracol: câmera lenta) e a seta pequena de menu, sempre
+   os dois, e abre o menu do modo. Durante o envio os dois ficam com o desenho indisponível. */
+.ico { display: block; flex: none; width: 16px; height: 16px; }
+.run-split { position: relative; display: inline-flex; flex: none; align-self: center; }
+.run-split .btn-primary { border-radius: 4px 0 0 4px; }
+.run-split:has(> .run-mode[hidden]) .btn-primary { border-radius: 4px; }
+.run-mode { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 2.25rem; min-height: 2.125rem; padding: 0 8px; border: 1px solid var(--purple); border-left-color: rgba(255, 255, 255, 0.45); border-radius: 0 4px 4px 0; background: var(--purple); color: var(--on-purple); }
+.run-mode:hover { background: var(--purple-deep); border-color: var(--purple-deep); border-left-color: rgba(255, 255, 255, 0.45); }
+.run-mode .ico-chev { width: 12px; height: 12px; }
+.run-split .btn-primary:focus-visible, .run-mode:focus-visible { position: relative; z-index: 1; }
+.run-mode[aria-disabled="true"], .run-mode[aria-disabled="true"]:hover { background: var(--surface); border-color: var(--border); color: var(--graphite); cursor: not-allowed; }
+/* O menu do modo: dois itens de rádio, o marcado com o visto roxo; abre sob o botão, alinhado à direita. */
+.run-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 19.5rem; max-width: calc(100vw - 32px); margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1px solid var(--control); border-radius: 4px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
+:root[data-theme="dark"] .run-menu { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55); }
+.run-menu button { width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 8px; align-items: start; padding: 8px 10px; border: 0; border-radius: 3px; background: transparent; color: var(--ink); text-align: left; font-size: 0.875rem; line-height: 1.4; }
+.run-menu button:hover, .run-menu button:focus-visible { background: var(--well); outline-offset: -2px; }
+.run-menu .ico-check { width: 16px; height: 16px; margin-top: 2px; color: var(--accent); visibility: hidden; }
+.run-menu button[aria-checked="true"] .ico-check { visibility: visible; }
+.run-menu .run-item-label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.run-menu .run-item-label .ico { color: var(--graphite); }
+.run-menu .run-item-sub { grid-column: 2; font-size: 0.8125rem; color: var(--graphite); }
 /* O atalho fica sozinho numa linha sob a barra, à direita, perto de Executar. */
 .kbd-hint { font-size: 0.8125rem; color: var(--graphite); }
 .req-hint { margin-top: var(--space-xs); text-align: right; }
@@ -579,6 +623,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .zone-history { container: hist / inline-size; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .zone-history .zone-head { flex: none; }
 .hist-clear { margin-left: auto; }
+/* Depois de Limpar (P3): "Histórico limpo." e Desfazer, até o próximo envio. */
+.hist-cleared { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: var(--space-m) 16px 0; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
 .hist-empty { padding: var(--space-m) 16px var(--space-l); font-size: 0.8125rem; color: var(--graphite); max-width: 62ch; }
 .hist-empty:focus { outline: none; }
 .hist-empty:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
@@ -624,67 +670,136 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
   .entry .auth-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
-.shown { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: var(--space-m) 16px; border-bottom: 1px solid var(--border); }
+.shown { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: var(--space-m) 16px; }
+.shown:focus { outline: none; }
+.shown:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+#result { scroll-margin-top: 16px; }
+/* A origem do resultado mostrado fica no fim da linha do título "Resultado", como "Ver no Swagger" no título
+   da Requisição: a linha do envio (método, path, status) cabe numa linha só, e a altura do cabeçalho não
+   muda com o tamanho do texto da origem. */
+.result-origin { margin-left: auto; text-align: right; }
+/* Numa coluna só, um link no cabeçalho do Resultado volta para a barra de endereço. */
+.result-edit { font-size: 0.8125rem; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.result-edit:hover { color: var(--accent-strong); }
+:root:not([data-layout="pilha"]) .result-edit { display: none; }
+.req-path:focus { outline: none; }
+.req-path:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .shown-path { font-family: var(--font-code); font-size: 0.9375rem; font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
 .shown .chip { font-size: 0.9375rem; }
-.shown .tag { margin-left: auto; }
+/* "Status code" escrito antes do status, no cabeçalho do Resultado (texto, sem link) e na linha da Resposta
+   (link para a página do status na MDN). Até o veredito, o rótulo e o status ficam juntos no lugar guardado
+   e invisível (D29). */
+.shown-status { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.status-label { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.status-link { display: inline-flex; align-items: baseline; gap: 8px; color: inherit; text-decoration: none; }
+.status-link:hover { color: inherit; }
+.status-link .status-text { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.status-link:hover .status-text { text-decoration-thickness: 2px; }
+.status-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
 .shown .method { align-self: center; }
-/* Envio cujo fluxo ainda não chegou ao veredito: no lugar do status, uma frase discreta na Resposta e na
-   entrada do Histórico (no cabeçalho do Resultado, nada). Nada mostra o resultado antes do fluxo. */
+/* Envio cujo fluxo ainda não chegou ao veredito: no lugar do status, uma frase discreta na entrada do
+   Histórico; no cabeçalho do Resultado, nada. Nada mostra o resultado antes do fluxo. */
 .pending-note { font-size: 0.8125rem; color: var(--graphite); }
 /* Na entrada, a frase ocupa o lugar de "parou em", e a entrada tem o mesmo número de linhas antes e
-   depois do veredito. No cabeçalho do Resultado, o lugar do status fica guardado, invisível. */
+   depois do veredito. No cabeçalho do Resultado e na entrada, o lugar do status fica guardado, invisível. */
 .entry .pending-note { order: 8; font-size: 0.75rem; }
+.entry .chip-slot { order: 5; }
 .chip-slot { visibility: hidden; }
-/* Envio mostrado diferente do que está na requisição: a ação para trazê-lo de volta, logo abaixo. */
-.shown:has(+ .shown-fill:not([hidden])) { border-bottom: 0; padding-bottom: var(--space-xs); }
-.shown-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 0 16px var(--space-m); border-bottom: 1px solid var(--border); font-size: 0.8125rem; }
+/* Envio mostrado diferente do que está na requisição: a frase e o link para Foi enviado, logo abaixo. A
+   faixa do Fluxo vem sempre depois: a linha de cima dela separa. */
+.shown:has(+ .shown-fill:not([hidden])) { padding-bottom: var(--space-xs); }
+.shown-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 0 16px var(--space-m); font-size: 0.8125rem; }
 .fill-note { color: var(--graphite); }
 .fill-done { color: var(--ok); font-weight: 600; }
 .fill-done:focus { outline: none; }
 .fill-done:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* D31: o que o botão faz e o que ele não faz. */
+.fill-hint { flex-basis: 100%; color: var(--graphite); }
+.sent-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: var(--space-xs); font-size: 0.8125rem; }
+.fill-see { font-weight: 600; white-space: nowrap; }
+/* Foi enviado: a primeira linha do painel tem só o Copiar comando, à direita (a hora já está no cabeçalho
+   do Resultado); depois, o que difere do rascunho, numa frase e numa lista. */
+.sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 12px; margin-bottom: var(--space-s); }
+.sent-differs { margin-bottom: var(--space-s); font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.sent-differs ul { margin: 2px 0 0; padding-left: 1.25rem; }
+.caption { font-size: 0.8125rem; color: var(--graphite); }
 .result-empty { padding: var(--space-xl) 16px; display: flex; flex-direction: column; gap: var(--space-m); max-width: 64ch; }
 .result-lead { font-family: var(--font-head); font-size: 1.1875rem; font-weight: 600; line-height: 1.3; }
 .result-route { font-weight: 600; }
 .result-route code { font-size: 0.875rem; }
 
-/* Cabeçalhos de seção e blocos do Resultado na mesma escala da Requisição; a grade do fluxo não muda. */
-.section-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-height: 2.5rem; padding: var(--space-s) 16px 0; }
-.section-title { font-size: 1.0625rem; font-weight: 600; }
-#flow-body, #res-body-area { padding: var(--space-xs) 16px var(--space-xl); }
-.response { border-top: 1px solid var(--border); }
-
 /* Resposta */
 .res-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
 .res-line .chip { font-size: 1rem; }
-.res-meta { font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
-.res-meta strong { color: var(--ink); font-family: var(--font-code); font-weight: 400; }
-.res-url { margin: var(--space-xs) 0 var(--space-m); font-family: var(--font-code); font-size: 0.78125rem; color: var(--graphite); overflow-wrap: anywhere; }
+.res-doc { font-size: 0.8125rem; color: var(--graphite); overflow-wrap: break-word; }
+.res-doc code { font-size: 0.78125rem; }
+.sub-label { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 600; color: var(--ink); margin: var(--space-l) 0 var(--space-xs); }
+/* "Copiar corpo" fica na linha do subtítulo Corpo, ao lado do que copia. */
+.sub-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: var(--space-l) 0 var(--space-xs); }
+.sub-row > .sub-label { margin: 0; }
+#copy-body { min-width: 7.5rem; }
 .res-body pre { max-height: 30rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.res-headers .caption { margin-top: 2px; font-family: var(--font-ui); }
+/* Uma caixa tracejada no lugar da resposta: a câmera lenta (o servidor já respondeu) e a espera real. */
+.wait-box { min-height: 6.75rem; padding: 12px 16px; border: 1px dashed var(--control); border-radius: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-s); }
+.wait-line { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.wait-ring { flex: none; box-sizing: border-box; width: 12px; height: 12px; border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+/* Na espera real os círculos (o da Resposta e o do Executar) param aos 5 s (WCAG 2.2.2); o contador e a
+   frase do servidor iniciando seguem dizendo que a espera continua. */
+.wait-ring.is-still, .spin.is-still { animation: none; }
+.wait-cold { font-size: 0.8125rem; color: var(--graphite); }
+/* A frase do servidor iniciando tem o lugar guardado desde o começo da espera, invisível. */
+.wait-cold.is-off { visibility: hidden; }
+/* O esqueleto de uma resposta (status, corpo e headers), igual em todo envio, com um brilho que passa da
+   esquerda para a direita. Aparece na câmera lenta (com a frase de que o servidor já respondeu acima dele)
+   e na espera real; aos 5 s dela o brilho para (.is-still). Todo esqueleto passa o brilho na fase do relógio
+   do documento (--skel-delay), e uma onda só atravessa o esqueleto inteiro: o brilho de cada barra tem a
+   largura do esqueleto (100cqw: o .skel é o recipiente) e começa na borda esquerda dele. */
+.skel { container-type: inline-size; align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.skel-bar, .skel-row, .skel-block > span { position: relative; overflow: hidden; display: block; height: 0.75rem; background: var(--skel); }
+.skel-bar::after, .skel-row::after, .skel-block > span::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 100cqw; background: linear-gradient(90deg, transparent 0%, var(--skel-shine) 50%, transparent 100%); transform: translateX(-100%); animation: skelShine 1.5s ease-in-out infinite; animation-delay: var(--skel-delay, 0ms); }
+/* As barras do bloco começam 13 px para dentro (12 px de respiro e 1 px de borda do bloco). */
+.skel-block > span::after { left: -13px; }
+@keyframes skelShine { to { transform: translateX(100%); } }
+.skel.is-still .skel-bar::after, .skel.is-still .skel-row::after, .skel.is-still .skel-block > span::after { animation: none; display: none; }
+.skel-row { align-self: stretch; }
+/* A primeira linha tem a forma da linha da Resposta: "Status code" escrito e, no lugar do status, a barra.
+   O brilho dela começa na borda esquerda do esqueleto (--skel-x, medido pelo script). */
+.skel-status { display: flex; align-items: center; gap: 8px; }
+.skel-bar-status { width: 8rem; }
+.skel-status .skel-bar::after { left: var(--skel-x, 0px); }
+.skel-label { margin-top: var(--space-xs); font-size: 0.8125rem; color: var(--graphite); }
+.skel-block { align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; background: var(--well); border: 1px solid var(--border); border-radius: 4px; }
+.skel-block > .w20 { width: 20%; }
+.skel-block > .w70 { width: 70%; }
+.skel-block > .w55 { width: 55%; }
+.skel-block > .w15 { width: 15%; }
+/* Durante a espera real, o Fluxo guarda a altura da cascata que vai chegar: a do último desenho da mesma
+   rota na mesma largura, ou esta, a de uma cascata de cinco etapas. */
+.flow-reserve { min-height: 21.4375rem; }
 .j-key { color: var(--json-key); }
 .j-str { color: var(--json-str); }
 .j-num { color: var(--json-num); }
 .j-lit { color: var(--json-lit); }
-.token-offer { margin-top: var(--space-m); }
+/* A oferta do token (K3): logo abaixo da linha do status, acima do corpo. */
+.token-offer { margin-top: var(--space-s); }
 .btn-token { border-color: var(--accent); color: var(--accent); }
 .btn-token:hover { border-color: var(--accent-strong); color: var(--accent-strong); background: var(--accent-tint); }
 .token-done { color: var(--ok); font-weight: 600; }
 .token-done:focus { outline: none; }
 .token-done:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-details.headers { margin-top: var(--space-m); }
-details.headers > summary { cursor: pointer; font-size: 0.8125rem; font-weight: 600; width: max-content; max-width: 100%; }
-details.headers .sent { margin-top: 8px; }
 .net-error { border-left: 3px solid var(--fail); padding: 4px 0 4px 12px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
 
-/* Fluxo: cascata de tempos, como a aba Timing do navegador */
-.flow { --wf: 1rem 7.5rem minmax(0, 1fr) 6.5rem; }
+/* Fluxo: cascata de tempos, como a aba Timing do navegador. A faixa tem só "Ver em câmera lenta" (com o
+   caracol); o modo de execução está no Executar. */
+.flow { --wf: 1rem 9.125rem minmax(0, 1fr) 6.5rem; }
 .flow-controls { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
-.slow { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--graphite); cursor: pointer; }
-.slow input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+#replay .ico { color: currentColor; }
 .flow-context { display: none; }
 .flow-times { margin-top: 10px; font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 2px 18px; }
 .flow-times b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
-.flow-summary { min-height: 1.6em; margin: 0 0 10px; font-family: var(--font-head); font-size: 1.3125rem; font-weight: 700; line-height: 1.2; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+/* A linha do resumo tem desde o começo a altura da linha do veredito. */
+.flow-summary { min-height: calc(1.1875rem * 1.6); margin: 0 0 10px; font-family: var(--font-head); font-size: 1.1875rem; font-weight: 700; line-height: 1.2; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .flow-summary.stopped .flow-summary-stage { color: var(--fail); }
 .flow-summary.completed { color: var(--ok); }
 .flow-summary.outside { color: var(--warn); }
@@ -718,7 +833,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-seg-fail .flow-fill { background: var(--fail); }
 .flow-seg-response .flow-fill { background: var(--seg-response); }
 .flow-fill-full { width: 100%; }
-.flow-fill-running { animation: flowFill linear forwards; }
+/* A etapa que está rodando enche em roxo; só fica verde ou vermelha quando a linha dela mostra ✓ ou ✗
+   (flow-seg-fail entra só no estado fail). */
+.flow-fill-running { background: var(--accent); animation: flowFill linear forwards; }
 @keyframes flowFill { from { width: 0; } to { width: 100%; } }
 .flow-mark { font-weight: 700; text-align: center; color: var(--graphite); }
 .flow-row > .flow-mark { grid-column: 1; }
@@ -728,6 +845,13 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-done > .flow-row .flow-mark { color: var(--ink); }
 .flow-spinner { box-sizing: border-box; width: 12px; height: 12px; margin: 0 auto; border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
 .flow-name { grid-column: 2; font-weight: 600; }
+/* O nome da etapa guarda o lugar da versão em negrito: uma cópia invisível, fora da árvore de
+   acessibilidade, na mesma célula do texto. A coluna do nome (9,125 rem, a largura de "Limite de
+   requisições" em negrito) é fixa: todo nome cabe numa linha, e as linhas têm a mesma altura desde o começo. */
+.flow-name { display: inline-grid; }
+.flow-name > .flow-name-text, .flow-name::after { grid-area: 1 / 1; }
+.flow-name > .flow-name-text { align-self: center; }
+.flow-name::after { content: attr(data-text) / ""; font-weight: 600; visibility: hidden; pointer-events: none; user-select: none; }
 .flow-pending > .flow-row .flow-name, .flow-skip > .flow-row .flow-name, .flow-not_run > .flow-row .flow-name { color: var(--graphite); font-weight: 400; }
 .flow-end { grid-column: 4; display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
 .flow-right { color: var(--graphite); font-size: 0.8125rem; text-align: right; line-height: 1.3; }
@@ -753,6 +877,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-why .flow-block-title { color: var(--fail); }
 .flow-how .flow-block-title { color: var(--ok); }
 .flow-hint { margin-top: 6px; font-size: 0.8125rem; color: var(--graphite); }
+/* A dica e a cópia invisível da frase mais longa dividem a mesma célula (flowHint). */
+.flow-hint { display: grid; }
+.flow-hint > .flow-hint-text, .flow-hint::after { grid-area: 1 / 1; }
+.flow-hint::after { content: attr(data-reserve) / ""; visibility: hidden; pointer-events: none; user-select: none; }
 .flow-note { color: var(--graphite); }
 .flow-note.strong { margin-top: 10px; color: var(--ink); border-left: 3px solid var(--warn); padding-left: 10px; }
 
@@ -765,7 +893,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .about-text strong { color: var(--ink); font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
-  .flow-fill-running, .flow-spinner, .spin { animation: none; }
+  .flow-fill-running, .flow-spinner, .spin, .wait-ring { animation: none; }
+  /* Com menos movimento o esqueleto fica parado, sem brilho. */
+  .skel-bar::after, .skel-row::after, .skel-block > span::after { animation: none; display: none; }
   .flow-fill-running { width: 100%; }
   .flow-caret { transition: none; }
 }
@@ -866,8 +996,7 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-request { --req-x: 14px; }
   .params .field { grid-template-columns: minmax(0, 1fr); }
   .params .param-help, .auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 1; }
-  .flow-controls { margin-left: 0; width: 100%; justify-content: space-between; }
-  .shown, .shown-fill, .section-head, #flow-body, #res-body-area, .result-empty, .hist-empty { padding-left: 14px; padding-right: 14px; }
+  .shown, .shown-fill, .zone-result .band, .zone-result .band-body, .result-empty, .hist-empty, .hist-cleared { padding-left: 14px; padding-right: 14px; }
 }
 
 /* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
@@ -894,4 +1023,14 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .flow-name { justify-self: start; padding-right: 6px; }
   .flow-end { justify-self: end; padding-left: 6px; }
   .flow-details { padding: 2px 10px 14px 10px; }
+  /* A cascata de cinco etapas numa zona estreita (a dica guarda duas linhas). */
+  .flow-reserve { min-height: 30.6875rem; }
+}
+
+/* Resultado muito estreito (320 px com o texto maior): os headers da resposta empilham o nome sobre o
+   valor; lado a lado, o nome mais longo deixava o valor sem largura. */
+@container result (max-width: 20rem) {
+  .res-headers { grid-template-columns: minmax(0, 1fr); }
+  .res-headers dt { padding-bottom: 0; border-bottom: 0; overflow-wrap: anywhere; }
+  .res-headers dd { padding-top: 0; }
 }
