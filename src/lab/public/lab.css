@@ -197,7 +197,7 @@ a:hover { color: var(--accent-strong); }
 
 /* Barra superior: a mesma do Swagger, nos dois esquemas */
 .topbar { background: var(--bar-bg); color: var(--bar-fg); border-bottom: 20px solid var(--purple); }
-.topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
+.topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
 .topbar :focus-visible { outline-color: var(--bar-fg); }
 .brand { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
 .logo {
@@ -209,36 +209,53 @@ a:hover { color: var(--accent-strong); }
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }
+/* Os textos da barra em px, como os botões: a barra fica igual nos três tamanhos de texto, e A− e A+ não
+   saem de baixo do ponteiro em nenhuma largura. */
 .version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
-.version { font-size: 0.78125rem; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
+.version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
 /* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
-.version-notice { font-size: 0.78125rem; color: var(--bar-notice); font-weight: 600; }
+.version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
 .version-notice:hover { color: var(--bar-fg); }
-.docs-link { color: var(--bar-fg); font-weight: 600; padding: 6px 2px; }
+.docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
 .docs-link:hover { color: var(--bar-fg); }
-.prefs-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 10px; border: 1px solid var(--bar-muted); border-radius: 4px; background: none; color: var(--bar-fg); font-size: 0.875rem; font-weight: 600; }
-.prefs-btn:hover, .prefs-btn[aria-expanded="true"] { border-color: var(--bar-fg); }
-.prefs-btn svg { flex: none; }
-.flags { display: flex; align-items: center; gap: 2px; }
-.flag { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; border-bottom: 2px solid transparent; opacity: 0.7; }
-.flag:hover { opacity: 1; }
-.flag[aria-current="true"] { opacity: 1; border-bottom-color: var(--bar-fg); }
-.flag img { display: block; width: 20px; height: 14px; object-fit: cover; }
 
-/* Preferências: um painel ancorado ao botão, sem sombra; a borda separa do que fica por baixo. */
-.prefs-panel { position: absolute; z-index: 30; width: min(23.5rem, calc(100vw - 24px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 14px; }
-.prefs-head { display: flex; align-items: center; gap: 8px; }
-.prefs-head h2 { font-size: 1.0625rem; }
-.prefs-panel fieldset { margin: 0; }
-.prefs-panel legend { font-size: 0.875rem; margin-bottom: 6px; }
-.choices { display: flex; flex-wrap: wrap; gap: 4px 6px; }
-.choice { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 10px 3px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.875rem; cursor: pointer; }
-.choice:hover { border-color: var(--control); }
-.choice input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
-.choice:has(input:checked) { border-color: var(--accent); font-weight: 600; }
-.choice:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
-.choice input:focus-visible { outline: none; }
-.prefs-note { font-size: 0.8125rem; color: var(--graphite); }
+/* O seletor de idioma do Swagger (src/swagger/styles/language-switcher.css), sem position fixed: a cápsula
+   branca com as três bandeiras, no começo da barra. A bandeira do idioma da página fica maior; depois de
+   trocar de idioma, a cápsula brilha na cor da bandeira escolhida por 1 s. */
+.lang-switcher { display: flex; flex: none; gap: 6px; background: rgba(255, 255, 255, 0.92); border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 8px; box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5); transition: box-shadow 1.5s ease-out; }
+.lang-switcher.lang-switcher--glow { transition: box-shadow 0.15s ease-out; }
+.lang-switcher__button { border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; opacity: 0.6; display: inline-flex; align-items: center; justify-content: center; color: #000; text-decoration: none; }
+.lang-switcher__flag { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+.lang-switcher__button:hover { opacity: 1; transform: translateY(-2px); }
+.lang-switcher__button.is-active { opacity: 1; transform: scale(1.3); }
+.lang-switcher[data-glow-lang='pt-BR'].lang-switcher--glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
+.lang-switcher[data-glow-lang='en'].lang-switcher--glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
+.lang-switcher[data-glow-lang='es'].lang-switcher--glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
+/* O anel branco da barra some na cápsula branca: dentro dela, anel preto. */
+.topbar .lang-switcher__button:focus-visible { opacity: 1; outline: 2px solid #000000; outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .lang-switcher, .lang-switcher.lang-switcher--glow { transition: none; } }
+
+/* No fim da barra, o link da documentação e os dois pares de botões: tamanho do texto (A− e A+) e tema
+   (claro e escuro). Sem caixa: cada botão é só o texto ou o ícone, com um fundo escuro ao passar o mouse;
+   os pares ficam a 10 px um do outro. O tema em uso fica branco e sublinhado (uma barra de 2 px, forma além
+   da cor); o outro, cinza claro (11,4:1 no preto). O anel de foco é o branco da barra (21:1), rente ao
+   botão. Tudo em px, para a barra não crescer com o texto. */
+.bar-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 20px; margin-left: auto; }
+.view { display: flex; align-items: center; gap: 10px; flex: none; }
+.seg { display: inline-flex; }
+.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 4px; background: none; color: #ffffff; font: 600 14px/1 "Open Sans", sans-serif; cursor: pointer; }
+.seg-btn:hover { background: #2f3238; }
+.topbar .seg-btn:focus-visible { z-index: 1; outline-offset: 0; }
+.seg-btn[data-theme-choice] { color: var(--bar-muted); }
+.seg-btn[data-theme-choice]:hover { color: #ffffff; }
+/* O estado vem da raiz (gravada antes da primeira pintura): o botão já nasce marcado, sem piscar. */
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"], :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"] { color: #ffffff; }
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 2px; border-radius: 1px; background: currentColor; }
+:root[data-text="normal"] #text-down, :root[data-text="maior"] #text-up { color: #80848c; background: none; cursor: not-allowed; }
+@media (forced-colors: active) { :root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { background: CanvasText; } }
+.seg-btn .a-s { font-size: 12px; }
+.seg-btn .a-l { font-size: 17px; }
+.seg-btn svg { display: block; }
 
 /* Controles */
 .input { width: 100%; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 4px 8px; min-height: 2rem; font-size: 0.875rem; }
@@ -705,25 +722,38 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .about-inner { grid-template-columns: minmax(0, 1fr); }
 }
 
-@container page (max-width: 47.5rem) {
+/* A barra do topo e o respiro lateral do recipiente mudam numa largura em px (760 px, os 47,5 rem do texto
+   normal), nunca com o tamanho do texto: a barra é a mesma nos três tamanhos em toda largura, e as bordas
+   dela seguem as do conteúdo. O resto da página continua mudando em rem (abaixo). */
+@container page (max-width: 760px) {
   .wrap { padding-left: 12px; padding-right: 12px; }
   .topbar-inner { gap: 6px 10px; }
-  .topbar .grow { display: none; }
-  .docs-link { margin-left: auto; font-size: 0.8125rem; }
+  .docs-link { font-size: 13px; }
+  .bar-end { gap: 8px 12px; }
   .logo { height: 34px; }
-  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo, e o link
-     da documentação continua ao lado. Sem aviso, a marca é só o logo. */
+  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo. Sem aviso,
+     a marca é só o logo. */
   .brand { flex-direction: column; align-items: flex-start; gap: 2px; }
   .version-box { display: contents; }
   .version { display: none; }
+}
+@container page (max-width: 47.5rem) {
   .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
   .zone-head { padding: 6px 14px; }
   .zone-request { --req-x: 14px; }
   .params .field { grid-template-columns: minmax(0, 1fr); }
   .params .param-help { grid-column: 1; }
-  .flag { min-width: 32px; }
   .flow-controls { margin-left: 0; width: 100%; justify-content: space-between; }
   .shown, .shown-fill, .section-head, #flow-body, #res-body-area, .result-empty, .hist-empty { padding-left: 14px; padding-right: 14px; }
+}
+
+/* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
+   a regra entraria também em 390 px, e os botões encolheriam debaixo do dedo. */
+@container page (max-width: 384px) {
+  .wrap { padding-left: 10px; padding-right: 10px; }
+  .bar-end { gap: 8px; }
+  .view { gap: 6px; }
+  .seg-btn { width: 32px; }
 }
 
 /* Zona Resultado estreita (telefone, ou texto maior em três colunas): a trilha desce para baixo do

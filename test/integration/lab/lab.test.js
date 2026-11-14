@@ -159,6 +159,51 @@ describe('/ GET (marcação da página inicial)', () => {
     expect(css).to.include('url("fonts/open-sans-latin-wght-normal.woff2")')
   })
 
+  it('não tem mais o painel Preferências nem chave lab.prefs.*, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      expect(text, lang).to.not.match(/prefs-(btn|panel)|name="pref-/)
+      expect(Object.keys(textos).filter(chave => chave.startsWith('lab.prefs.')), lang).to.deep.equal([])
+      expect(JSON.parse(blocoDeTextos(text)), lang).to.not.have.any.keys('lab.prefs.title')
+    }
+  })
+
+  it('abre a barra com o seletor de idioma: três links, e só o do idioma da página marcado, nos três idiomas', async () => {
+    const nomes = { 'pt-BR': 'lab.lang.pt_br', en: 'lab.lang.en', es: 'lab.lang.es' }
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const barra = /<header class="topbar">([\s\S]*?)<\/header>/.exec(text)[1]
+      expect(barra.indexOf('class="lang-switcher"'), lang).to.be.lessThan(barra.indexOf('class="brand"'))
+      const links = [...barra.matchAll(/<a class="lang-switcher__button[^"]*"[^>]*>/g)].map(match => match[0])
+      expect(links, lang).to.have.length(3)
+      links.forEach(link => {
+        const codigo = /data-lang="([^"]+)"/.exec(link)[1]
+        expect(link, `${lang} ${codigo}`).to.include(`aria-label="${escaparHtml(textos[nomes[codigo]])}"`)
+        if (codigo === lang) {
+          expect(link, codigo).to.include('aria-current="true"')
+          expect(link, codigo).to.include('lang-switcher__button is-active"')
+        } else {
+          expect(link, codigo).to.not.include('aria-current')
+          expect(link, codigo).to.not.include('is-active')
+        }
+      })
+      expect(barra.match(/<img class="lang-switcher__flag" src="\/flags\/[a-z_]+\.svg" alt=""/g), lang).to.have.length(3)
+    }
+  })
+
+  it('tem os botões de tamanho do texto e de tema com os nomes traduzidos, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const nome = id => new RegExp(`<button [^>]*${id}[^>]*>`).exec(text)[0]
+      expect(nome('id="text-down"'), lang).to.include(`aria-label="A− ${escaparHtml(textos['lab.topbar.text_smaller'])}"`)
+      expect(nome('id="text-up"'), lang).to.include(`aria-label="A+ ${escaparHtml(textos['lab.topbar.text_larger'])}"`)
+      expect(nome('data-theme-choice="light"'), lang).to.include(`aria-label="${escaparHtml(textos['lab.topbar.theme_light'])}"`)
+      expect(nome('data-theme-choice="dark"'), lang).to.include(`aria-label="${escaparHtml(textos['lab.topbar.theme_dark'])}"`)
+      expect(text, lang).to.include(`role="group" aria-label="${escaparHtml(textos['lab.topbar.text_size'])}"`)
+      expect(text, lang).to.include(`role="group" aria-label="${escaparHtml(textos['lab.topbar.theme'])}"`)
+    }
+  })
+
   it('deixa o link do aviso de versão sem href: o script o preenche com data-notice-url', async () => {
     const { text } = await request.get('/').expect(200)
     const aviso = /<a [^>]*id="version-notice"[^>]*>/.exec(text)[0]

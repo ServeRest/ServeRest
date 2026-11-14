@@ -18,6 +18,10 @@
   const RESPONSE_DELAY = 300
   const THEME_KEY = 'serverestTheme'
   const TEXT_KEY = 'serverestTextSize'
+  // Pedido da página anterior para a página nova brilhar na cor do idioma escolhido (só nesta aba).
+  const GLOW_KEY = 'serverestLangGlow'
+  const TEXT_SIZES = ['normal', 'grande', 'maior']
+  const TEXT_SIZE_NAMES = { normal: 'lab.topbar.size_normal', grande: 'lab.topbar.size_grande', maior: 'lab.topbar.size_maior' }
   // Só GET recebe o valor documentado no parâmetro de caminho; em DELETE e PUT ele é apenas exemplo.
   const PREFILL_METHODS = ['get']
   // Os textos "Como seguir" do fluxo são do painel do Swagger, que tem outro jeito de obter o token.
@@ -295,13 +299,11 @@
     return '#' + route.method + route.path
   }
 
-  // Cada bandeira é um link comum para a mesma página no outro idioma, mantendo a rota escolhida.
+  // Cada bandeira é um link comum para a mesma página no outro idioma, mantendo a rota escolhida. A do
+  // idioma da página já vem marcada do servidor (is-active e aria-current).
   function updateLanguageLinks () {
-    document.querySelectorAll('.flag').forEach(link => {
-      const code = link.getAttribute('data-lang')
-      link.setAttribute('href', '?lang=' + encodeURIComponent(code) + window.location.hash)
-      if (code === language) link.setAttribute('aria-current', 'true')
-      else link.removeAttribute('aria-current')
+    document.querySelectorAll('.lang-switcher__button').forEach(link => {
+      link.setAttribute('href', '?lang=' + encodeURIComponent(link.getAttribute('data-lang')) + window.location.hash)
     })
   }
 
@@ -319,7 +321,7 @@
     notice.hidden = false
   }
 
-  /* ---------- Preferências ---------- */
+  /* ---------- Tema e tamanho do texto (na barra do topo) ---------- */
 
   function readPref (key, allowed, fallback) {
     try {
@@ -338,7 +340,7 @@
 
   const prefs = {
     theme: readPref(THEME_KEY, ['system', 'light', 'dark'], 'system'),
-    text: readPref(TEXT_KEY, ['normal', 'grande', 'maior'], 'normal')
+    text: readPref(TEXT_KEY, TEXT_SIZES, 'normal')
   }
 
   function systemDark () {
@@ -349,29 +351,60 @@
     }
   }
 
+  // O botão do esquema em uso fica pressionado (aria-pressed). O desenho vem da raiz (data-theme, escrita
+  // por prefs-boot.js antes da primeira pintura), então o botão certo já aparece marcado.
   function applyTheme () {
     const dark = prefs.theme === 'dark' || (prefs.theme === 'system' && systemDark())
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+    document.querySelectorAll('[data-theme-choice]').forEach(button => {
+      button.setAttribute('aria-pressed', String((button.getAttribute('data-theme-choice') === 'dark') === dark))
+    })
   }
 
+  // Nas pontas (Normal e Maior) o botão fica com aria-disabled e continua focável: com disabled o foco
+  // cairia no body.
   function applyText () {
     document.documentElement.setAttribute('data-text', prefs.text)
+    $('text-down').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[0]))
+    $('text-up').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[TEXT_SIZES.length - 1]))
   }
 
-  function setRadio (name, value) {
-    document.querySelectorAll('input[name="' + name + '"]').forEach(input => { input.checked = input.value === value })
+  function stepText (delta) {
+    const index = TEXT_SIZES.indexOf(prefs.text) + delta
+    if (index < 0 || index >= TEXT_SIZES.length) return
+    prefs.text = TEXT_SIZES[index]
+    savePref(TEXT_KEY, prefs.text)
+    applyText()
+    announce(fillText('lab.topbar.text_announce', { size: t(TEXT_SIZE_NAMES[prefs.text]) }))
   }
 
-  function paintSlowChoice () {
-    setRadio('pref-slow', state.slow ? 'on' : 'off')
-    $('slow').checked = state.slow
+  // Guarda o botão pressionado (claro ou escuro), mesmo quando ele é o esquema do sistema: se o sistema
+  // mudar depois, vale a escolha da pessoa. "system" é só o padrão, até o primeiro clique.
+  function chooseTheme (dark) {
+    prefs.theme = dark ? 'dark' : 'light'
+    savePref(THEME_KEY, prefs.theme)
+    applyTheme()
   }
 
-  // Câmera lenta: a caixa no fluxo e a escolha no painel são o mesmo ajuste.
+  function setupView () {
+    applyTheme()
+    applyText()
+    // Na ponta, o clique não faz nada e o foco fica no botão.
+    $('text-down').addEventListener('click', () => stepText(-1))
+    $('text-up').addEventListener('click', () => stepText(1))
+    document.querySelectorAll('[data-theme-choice]').forEach(button => {
+      button.addEventListener('click', () => chooseTheme(button.getAttribute('data-theme-choice') === 'dark'))
+    })
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
+    } catch (e) {}
+  }
+
+  // Câmera lenta: a caixa da faixa do Fluxo é o único controle do ajuste.
   function setSlow (enabled) {
     state.slow = enabled
     saveSlowMotion(enabled)
-    paintSlowChoice()
+    $('slow').checked = state.slow
     // Desligar no meio da animação leva direto ao estado final, como no painel do Swagger.
     if (!state.slow && flow.model && flow.active < flow.end) {
       clearTimeout(flow.timer)
@@ -380,83 +413,6 @@
       paintFlow()
       finishFlow()
     }
-  }
-
-  function placePrefs () {
-    const panel = $('prefs-panel')
-    const button = $('prefs-btn').getBoundingClientRect()
-    const width = panel.offsetWidth
-    const left = Math.max(12, Math.min(button.right - width, document.documentElement.clientWidth - 12 - width))
-    panel.style.left = Math.round(left + window.scrollX) + 'px'
-    panel.style.top = Math.round(button.bottom + window.scrollY + 8) + 'px'
-  }
-
-  function openPrefs () {
-    const panel = $('prefs-panel')
-    panel.hidden = false
-    $('prefs-btn').setAttribute('aria-expanded', 'true')
-    placePrefs()
-    const first = panel.querySelector('input:checked') || panel.querySelector('input')
-    first.focus()
-  }
-
-  function closePrefs (returnFocus) {
-    const panel = $('prefs-panel')
-    if (panel.hidden) return
-    panel.hidden = true
-    $('prefs-btn').setAttribute('aria-expanded', 'false')
-    if (returnFocus) $('prefs-btn').focus()
-  }
-
-  function setupPrefs () {
-    const panel = $('prefs-panel')
-    const button = $('prefs-btn')
-    setRadio('pref-theme', prefs.theme)
-    setRadio('pref-text', prefs.text)
-    paintSlowChoice()
-    applyTheme()
-    applyText()
-    if (state.reduced) {
-      $('prefs-slow-choices').hidden = true
-      $('prefs-slow-reduced').hidden = false
-    }
-    button.addEventListener('click', () => {
-      if (panel.hidden) openPrefs()
-      else closePrefs(false)
-    })
-    $('prefs-close').addEventListener('click', () => closePrefs(true))
-    panel.addEventListener('change', event => {
-      const input = event.target
-      if (input.name === 'pref-theme') {
-        prefs.theme = input.value
-        savePref(THEME_KEY, prefs.theme)
-        applyTheme()
-      } else if (input.name === 'pref-text') {
-        prefs.text = input.value
-        savePref(TEXT_KEY, prefs.text)
-        applyText()
-        placePrefs()
-      } else if (input.name === 'pref-slow') {
-        setSlow(input.value === 'on')
-      }
-    })
-    panel.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closePrefs(true)
-      }
-    })
-    // Clicar fora ou levar o foco para fora fecha o painel; ele não prende o foco.
-    document.addEventListener('pointerdown', event => {
-      if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) closePrefs(false)
-    })
-    panel.addEventListener('focusout', event => {
-      if (event.relatedTarget && !panel.contains(event.relatedTarget) && event.relatedTarget !== button) closePrefs(false)
-    })
-    window.addEventListener('resize', () => { if (!panel.hidden) placePrefs() })
-    try {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
-    } catch (e) {}
   }
 
   /* ---------- Sobre o ServeRest ---------- */
@@ -483,16 +439,42 @@
     return first ? plainMarkdown(first) : ''
   }
 
+  // O seletor de idioma do Swagger. A bandeira do idioma da página não recarrega; as outras guardam o
+  // idioma escolhido e pedem à página nova que brilhe 1 s na cor da bandeira (sem brilho com menos
+  // movimento pedido pelo sistema).
   function setupTopbar () {
     $('version').textContent = version ? fillText('lab.topbar.version', { version }) : ''
     updateLanguageLinks()
-    document.querySelectorAll('.flag').forEach(link => {
-      link.addEventListener('click', () => {
+    document.querySelectorAll('.lang-switcher__button').forEach(link => {
+      link.addEventListener('click', event => {
+        const code = link.getAttribute('data-lang')
+        if (code === language) {
+          event.preventDefault()
+          return
+        }
         try {
-          window.localStorage.setItem(LANGUAGE_KEY, link.getAttribute('data-lang'))
+          window.localStorage.setItem(LANGUAGE_KEY, code)
+        } catch (e) {}
+        try {
+          window.sessionStorage.setItem(GLOW_KEY, code)
         } catch (e) {}
       })
     })
+    let glow = null
+    try {
+      glow = window.sessionStorage.getItem(GLOW_KEY)
+      if (glow === language) window.sessionStorage.removeItem(GLOW_KEY)
+    } catch (e) {}
+    if (glow !== language || prefersReducedMotion()) return
+    const pill = $('lang-switcher')
+    // O estilo de repouso é calculado antes, para o brilho entrar com a transição de 0,15 s.
+    pill.getBoundingClientRect()
+    pill.setAttribute('data-glow-lang', language)
+    pill.classList.add('lang-switcher--glow')
+    setTimeout(() => {
+      pill.classList.remove('lang-switcher--glow')
+      pill.removeAttribute('data-glow-lang')
+    }, 1000)
   }
 
   /* ---------- Documento OpenAPI ---------- */
@@ -2157,7 +2139,7 @@
     setupTopbar()
     paintNotice()
     setupFlowControls()
-    setupPrefs()
+    setupView()
     setupSide()
     renderHistory()
     renderResultEmpty(null)

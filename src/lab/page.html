@@ -14,8 +14,16 @@
 <body>
 <a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
 
+<!-- Barra do topo, na ordem: o seletor de idioma do Swagger, a marca (logo, versão e aviso de versão nova),
+     a documentação e os controles de tamanho do texto e de tema. O idioma da página já vem marcado do
+     servidor (is-active e aria-current); o estado dos controles vem da raiz, escrita por prefs-boot.js. -->
 <header class="topbar">
   <div class="topbar-inner wrap">
+    <nav class="lang-switcher" id="lang-switcher" aria-label="{{lab.topbar.languages}}">
+      <a class="lang-switcher__button{{flag.pt-BR.active}}" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" aria-label="{{lab.lang.pt_br}}" title="{{lab.lang.pt_br}}"{{flag.pt-BR.current}}><img class="lang-switcher__flag" src="/flags/flag_brazil.svg" alt="" width="20" height="14"></a>
+      <a class="lang-switcher__button{{flag.es.active}}" href="?lang=es" hreflang="es" lang="es" data-lang="es" aria-label="{{lab.lang.es}}" title="{{lab.lang.es}}"{{flag.es.current}}><img class="lang-switcher__flag" src="/flags/flag_peru.svg" alt="" width="20" height="14"></a>
+      <a class="lang-switcher__button{{flag.en.active}}" href="?lang=en" hreflang="en" lang="en" data-lang="en" aria-label="{{lab.lang.en}}" title="{{lab.lang.en}}"{{flag.en.current}}><img class="lang-switcher__flag" src="/flags/flag_uk.svg" alt="" width="20" height="14"></a>
+    </nav>
     <div class="brand">
       <span class="logo" role="img" aria-label="{{lab.topbar.logo}}"></span>
       <span class="version-box">
@@ -23,52 +31,21 @@
         <a class="version-notice" id="version-notice" target="_blank" rel="noopener" hidden></a>
       </span>
     </div>
-    <span class="grow"></span>
-    <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
-    <button class="prefs-btn" type="button" id="prefs-btn" aria-expanded="false" aria-controls="prefs-panel">
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h7M13 4h1M2 8h2M8 8h6M2 12h8M14 12h0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="11" cy="4" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="8" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-      <span>{{lab.prefs.title}}</span>
-    </button>
-    <nav class="flags" aria-label="{{lab.topbar.languages}}">
-      <a class="flag" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" title="{{lab.lang.pt_br}}"><img src="/flags/flag_brazil.svg" alt="{{lab.lang.pt_br}}" width="20" height="14"></a>
-      <a class="flag" href="?lang=es" hreflang="es" lang="es" data-lang="es" title="{{lab.lang.es}}"><img src="/flags/flag_peru.svg" alt="{{lab.lang.es}}" width="20" height="14"></a>
-      <a class="flag" href="?lang=en" hreflang="en" lang="en" data-lang="en" title="{{lab.lang.en}}"><img src="/flags/flag_uk.svg" alt="{{lab.lang.en}}" width="20" height="14"></a>
-    </nav>
+    <div class="bar-end">
+      <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
+      <div class="view">
+        <div class="seg" role="group" aria-label="{{lab.topbar.text_size}}" id="seg-text">
+          <button class="seg-btn" type="button" id="text-down" aria-label="A− {{lab.topbar.text_smaller}}" title="{{lab.topbar.text_smaller}}"><span aria-hidden="true"><span class="a-s">A</span>−</span></button>
+          <button class="seg-btn" type="button" id="text-up" aria-label="A+ {{lab.topbar.text_larger}}" title="{{lab.topbar.text_larger}}"><span aria-hidden="true"><span class="a-l">A</span>+</span></button>
+        </div>
+        <div class="seg" role="group" aria-label="{{lab.topbar.theme}}" id="seg-theme">
+          <button class="seg-btn" type="button" data-theme-choice="light" aria-pressed="false" aria-label="{{lab.topbar.theme_light}}" title="{{lab.topbar.theme_light}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          <button class="seg-btn" type="button" data-theme-choice="dark" aria-pressed="false" aria-label="{{lab.topbar.theme_dark}}" title="{{lab.topbar.theme_dark}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A5.9 5.9 0 0 1 5.9 2.4a5.9 5.9 0 1 0 7.7 7.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
-
-<div class="prefs-panel" id="prefs-panel" role="dialog" aria-modal="false" aria-labelledby="prefs-title" hidden>
-  <div class="prefs-head">
-    <h2 id="prefs-title">{{lab.prefs.title}}</h2>
-    <span class="grow"></span>
-    <button class="btn btn-quiet" type="button" id="prefs-close">{{lab.prefs.close}}</button>
-  </div>
-  <fieldset>
-    <legend>{{lab.prefs.theme}}</legend>
-    <div class="choices">
-      <label class="choice"><input type="radio" name="pref-theme" value="system"> {{lab.prefs.theme_system}}</label>
-      <label class="choice"><input type="radio" name="pref-theme" value="light"> {{lab.prefs.theme_light}}</label>
-      <label class="choice"><input type="radio" name="pref-theme" value="dark"> {{lab.prefs.theme_dark}}</label>
-    </div>
-  </fieldset>
-  <fieldset>
-    <legend>{{lab.prefs.text}}</legend>
-    <div class="choices">
-      <label class="choice"><input type="radio" name="pref-text" value="normal"> {{lab.prefs.text_normal}}</label>
-      <label class="choice"><input type="radio" name="pref-text" value="grande"> {{lab.prefs.text_large}}</label>
-      <label class="choice"><input type="radio" name="pref-text" value="maior"> {{lab.prefs.text_larger}}</label>
-    </div>
-  </fieldset>
-  <fieldset id="prefs-slow">
-    <legend>{{lab.prefs.slow}}</legend>
-    <div class="choices" id="prefs-slow-choices">
-      <label class="choice"><input type="radio" name="pref-slow" value="on"> {{lab.prefs.slow_on}}</label>
-      <label class="choice"><input type="radio" name="pref-slow" value="off"> {{lab.prefs.slow_off}}</label>
-    </div>
-    <p class="prefs-note" id="prefs-slow-reduced" hidden>{{lab.prefs.slow_reduced}}</p>
-  </fieldset>
-  <p class="prefs-note">{{lab.prefs.note}}</p>
-</div>
 
 <!-- As quatro zonas. A coluna da esquerda (.side) tem as abas Rotas e Histórico só no layout com três
      zonas (data-layout="abas"): nesse layout o script põe o Histórico aqui, depois das Rotas; com quatro
