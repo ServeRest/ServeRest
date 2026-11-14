@@ -37,11 +37,21 @@ function textsJson (translations) {
   return JSON.stringify(texts).replace(/</g, '\\u003c')
 }
 
+// A bandeira do idioma da página sai marcada do servidor, como no seletor do Swagger: maior (is-active)
+// e com aria-current. Os valores são fixos, nunca vêm de fora.
+function flagValues (language) {
+  return ['pt-BR', 'en', 'es'].reduce((output, code) => ({
+    ...output,
+    [`flag.${code}.active`]: code === language ? ' is-active' : '',
+    [`flag.${code}.current`]: code === language ? ' aria-current="true"' : ''
+  }), {})
+}
+
 function pageValues (language, translations) {
   const values = Object.keys(translations)
     .filter(key => key.startsWith('lab.'))
     .reduce((output, key) => ({ ...output, [key]: escapeHtml(translations[key]) }), {})
-  return { ...values, lang: language, texts: textsJson(translations) }
+  return { ...values, ...flagValues(language), lang: language, texts: textsJson(translations) }
 }
 
 const valuesByLanguage = {

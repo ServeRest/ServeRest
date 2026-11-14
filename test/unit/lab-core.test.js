@@ -825,6 +825,25 @@ describe('Página do lab: funções puras', () => {
       })
     })
 
+    // Cada chave de armazenamento aparece uma vez em app.js, numa constante, e as que prefs-boot.js também
+    // lê têm o mesmo texto nos dois arquivos. A lista cresce com as chaves que a página passa a usar.
+    const chavesDeArmazenamento = {
+      serverestTheme: 'THEME_KEY',
+      serverestTextSize: 'TEXT_KEY',
+      swaggerLanguage: 'LANGUAGE_KEY',
+      serverestLangGlow: 'GLOW_KEY'
+    }
+
+    it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {
+      Object.entries(chavesDeArmazenamento).forEach(([valor, nome]) => {
+        expect(fonteDoApp.split(`'${valor}'`).length - 1, valor).to.equal(1)
+        expect(chave(fonteDoApp, nome), valor).to.equal(valor)
+        if (fonteDoBoot.includes(`'${valor}'`)) expect(chave(fonteDoBoot, nome), valor).to.equal(valor)
+      })
+      expect(chave(fonteDoBoot, 'THEME_KEY')).to.equal('serverestTheme')
+      expect(chave(fonteDoBoot, 'TEXT_KEY')).to.equal('serverestTextSize')
+    })
+
     it('prefs-boot.js resolve o tema do sistema para claro ou escuro e aplica o tamanho guardado', () => {
       const theme = chave(fonteDoBoot, 'THEME_KEY')
       const text = chave(fonteDoBoot, 'TEXT_KEY')

@@ -1,7 +1,8 @@
 /* eslint-env browser */
 // Tema e tamanho do texto antes da primeira pintura, para a página não piscar no esquema errado.
-// Carregado sem defer, antes do CSS. As chaves são as mesmas de app.js, que grava as escolhas do painel
-// Preferências (um teste de unidade confere que as duas cópias são iguais).
+// Carregado sem defer, antes do CSS. As chaves são as mesmas de app.js, que grava as escolhas dos botões
+// da barra do topo (um teste de unidade confere que as duas cópias são iguais). O tema guardado é claro ou
+// escuro depois do primeiro clique no sol ou na lua; antes disso vale o do sistema.
 (function () {
   'use strict'
 
