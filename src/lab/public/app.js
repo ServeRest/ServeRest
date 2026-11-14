@@ -1034,6 +1034,10 @@
         } else if (event.key === 'Escape') {
           event.preventDefault()
           closeRunMenu(true)
+        } else if (event.key === 'Tab') {
+          // Tab e Shift + Tab fecham o menu e seguem a ordem do Tab a partir do segmento: o próximo controle
+          // depois dele, ou Executar antes dele.
+          closeRunMenu(true)
         }
       })
     })
