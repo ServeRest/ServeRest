@@ -29,8 +29,6 @@ module.exports = {
   'ui.flow.stopped_at': 'Se detuvo en',
   'ui.flow.completed': 'Pasó por todas las etapas',
   'ui.flow.outside': 'La respuesta vino de fuera de las etapas',
-  'ui.flow.slow_motion': 'Cámara lenta',
-  'ui.flow.replay': 'Repetir',
   'ui.flow.pending': 'esperando',
   'ui.flow.running': 'ejecutando',
   'ui.flow.why_title': 'Por qué se detuvo aquí',

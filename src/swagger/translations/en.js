@@ -29,8 +29,6 @@ module.exports = {
   'ui.flow.stopped_at': 'Stopped at',
   'ui.flow.completed': 'Went through all stages',
   'ui.flow.outside': 'The response came from outside the stages',
-  'ui.flow.slow_motion': 'Slow motion',
-  'ui.flow.replay': 'Replay',
   'ui.flow.pending': 'waiting',
   'ui.flow.running': 'running',
   'ui.flow.why_title': 'Why it stopped here',

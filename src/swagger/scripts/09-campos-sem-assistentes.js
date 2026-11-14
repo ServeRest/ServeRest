@@ -2,7 +2,8 @@
 // Mesmo motivo de FIELD_ASSISTS_OFF em src/lab/public/core.js, com a mesma lista: o Swagger mostra /login e
 // os parâmetros email e password, e os gerenciadores de senha ofereciam salvar e preencher credenciais. Os
 // campos nascem a cada "Try it out", por isso o observador marca cada um que entra na página. O ponto e
-// vírgula inicial é obrigatório pelo mesmo motivo de 08-flow-panel.js: os scripts são concatenados.
+// vírgula inicial é obrigatório: os scripts desta pasta são concatenados e, sem ele, o navegador
+// interpreta este bloco como uma chamada do resultado do script anterior.
 ;(function () {
   const FIELD_ASSISTS_OFF = {
     autocomplete: 'off',

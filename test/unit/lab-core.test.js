@@ -14,14 +14,7 @@ const textosDoFluxo = Object.keys(ptBr)
   .filter(key => key.startsWith('ui.flow.') || key === 'ui.response')
   .reduce((acc, key) => ({ ...acc, [key]: ptBr[key] }), {})
 
-function carregarPainelDoSwagger () {
-  const source = readFileSync(join(__dirname, '../../src/swagger/scripts/08-flow-panel.js'), 'utf8')
-  const window = {}
-  vm.runInNewContext(source, { window, __FLOW_PANEL_TEXTS__: textosDoFluxo })
-  return window.serverestFlowPanelPlugin
-}
-
-// Cópia dos headers de test/unit/flow-panel.test.js, para comparar os dois painéis com as mesmas entradas.
+// Cópia dos headers de test/unit/flow-panel.test.js, que cobre o modelo do fluxo.
 const headers = {
   criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, write;st=ok;dur=1.02',
   semToken: 'body;st=ok;dur=0.21, rate_limit;st=ok;dur=0.09, auth;st=failed;dur=0.05;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run',
@@ -30,31 +23,6 @@ const headers = {
   rotaInexistente: 'body;st=ok;dur=0.11, rate_limit;st=ok;dur=0.02',
   loginInvalido: 'body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, schema;st=ok;dur=0.31, rules;st=failed;dur=0.90'
 }
-const regras = ['single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock']
-const motivosDeAuth = ['token_missing', 'bad_format', 'token_expired', 'token_invalid', 'user_not_found', 'not_admin', 'token_revoked']
-
-function headerComRegraFalhando (regra) {
-  const entradas = regras.map(nome => nome === regra ? `rules.${nome};st=failed;item=2` : `rules.${nome};st=ok`)
-  return `body;st=ok;dur=0.2, auth;st=ok;dur=1.1, rules;st=failed;dur=1.5, ${entradas.join(', ')}, write;st=not_run`
-}
-
-const casosDeParidade = [
-  ...Object.values(headers).flatMap(header => [[header, 201], [header, 400], [header, 401], [header, 405]]),
-  ...motivosDeAuth.map(motivo => [`body;st=ok;dur=0.1, auth;st=failed;dur=0.05;reason=${motivo}, rules;st=not_run`, 401]),
-  ['body;st=ok;dur=0.1, auth;st=failed;dur=0.05', 401],
-  ...regras.flatMap(regra => [[headerComRegraFalhando(regra), 400], [headerComRegraFalhando(regra), 500]]),
-  ['body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, auth;st=failed;dur=5001.20, schema;st=not_run, rules;st=not_run', 408],
-  ['body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, auth;st=failed;dur=5001.20;reason=token_missing, schema;st=not_run, rules;st=not_run', 408],
-  ['body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, schema;st=ok;dur=0.10, read;st=failed;dur=0.40', 500],
-  ['body;st=ok;dur=0.1;trace=abc, cache;st=ok;dur=0.4, auth;st=waiting, rules;st=failed;dur=1, rules.limit_per_day;st=failed;window=24h, extra.orphan;st=ok', 400],
-  ['cache;st=failed;dur=0.2', 400],
-  ['', 200],
-  ['   ', 200],
-  [' , ,, ', 200],
-  [undefined, 200],
-  [null, 200],
-  ['body;st=ok;dur=', 'abc']
-]
 
 function rascunho (params = {}, body) {
   return { params, body }
@@ -62,16 +30,6 @@ function rascunho (params = {}, body) {
 
 describe('Página do lab: funções puras', () => {
   describe('Fluxo', () => {
-    it('gera o mesmo modelo que o painel do Swagger para todos os headers dos testes do painel', () => {
-      const painel = carregarPainelDoSwagger()
-      casosDeParidade.forEach(([header, status]) => {
-        const esperado = painel.buildFlowModel(painel.parseStages(header), status)
-        const obtido = core.buildFlowModel(core.parseStages(header), status, textosDoFluxo)
-        expect(JSON.parse(JSON.stringify(core.parseStages(header))), header).to.deep.equal(JSON.parse(JSON.stringify(painel.parseStages(header))))
-        expect(obtido, `${header} ${status}`).to.deep.equal(esperado)
-      })
-    })
-
     it('chave de texto desconhecida continua null quando os textos não a têm', () => {
       const model = core.buildFlowModel(core.parseStages('auth;st=failed;reason=token_missing'), 401, {})
       expect(model.stages[0].labelKey).to.equal(null)

@@ -143,17 +143,7 @@ const uiOptions = {
   customSiteTitle: 'ServeRest',
   customfavIcon: '/favicon.ico',
   customCss,
-  customJsStr: buildCustomJsStr(version),
-  swaggerOptions: {
-    // O swagger-ui-express serializa estas funções pelo código-fonte e elas só executam no navegador.
-    // A guarda evita página em branco quando o service worker serve um init mais novo que a página.
-    plugins: [
-      /* istanbul ignore next */
-      function () { return window.SwaggerUIBundle.plugins.DownloadUrl.apply(this, arguments) },
-      /* istanbul ignore next */
-      function () { return window.serverestFlowPanelPlugin ? window.serverestFlowPanelPlugin.apply(this, arguments) : {} }
-    ]
-  }
+  customJsStr: buildCustomJsStr(version)
 }
 
 function setupDoSwagger (idioma) {

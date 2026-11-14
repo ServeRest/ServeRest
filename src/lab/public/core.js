@@ -65,8 +65,8 @@
     }
   }
 
-  /* Fluxo: cópia de src/swagger/scripts/08-flow-panel.js, com os textos recebidos como argumento.
-     Um teste de unidade compara os dois modelos para que as cópias não divirjam. */
+  /* Fluxo: modelo do painel a partir do header X-ServeRest-Stages, com os textos recebidos como argumento.
+     Os casos estão em test/unit/flow-panel.test.js. */
 
   function segmentGrow (stage) {
     return Math.sqrt(typeof stage.dur === 'number' && stage.dur > 0 ? stage.dur : 0.2)
