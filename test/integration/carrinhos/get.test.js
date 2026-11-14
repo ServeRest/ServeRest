@@ -1,4 +1,5 @@
 const chai = require('chai')
+const { faker } = require('@faker-js/faker')
 
 const rotaCarrinhos = '/carrinhos'
 const utils = require('../utils')
@@ -40,6 +41,18 @@ describe(rotaCarrinhos + ' GET', () => {
         _id: idCarrinho
       }]
     })
+  })
+
+  // A query chega como texto, mas o express-query-int a converte antes do schema e da busca no banco.
+  it('Query string - quantidadeTotal chega como número e encontra o carrinho cadastrado', async () => {
+    const { authorization } = usuarioAdministrador
+    const quantidade = faker.number.int({ min: 1000, max: 100000 })
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
+    const { _id: idCarrinho } = await utils.cadastrarCarrinho({ idProduto, quantidade, authorization })
+
+    const { body } = await request.get(rotaCarrinhos).query({ quantidadeTotal: quantidade }).expect(200)
+
+    chai.assert.include(body.carrinhos.map(carrinho => carrinho._id), idCarrinho)
   })
 
   it('Query string - Nenhum produto encontrado', async () => {

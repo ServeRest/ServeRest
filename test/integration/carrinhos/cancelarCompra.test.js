@@ -30,6 +30,24 @@ describe(rotaCancelarCompra + ' DELETE', () => {
     chai.assert.deepEqual(bodyCarrinho, { message: 'Carrinho não encontrado' })
   })
 
+  it('Estoque e quantidadeTotal continuam números do cadastro do carrinho até o cancelamento', async () => {
+    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+    const { authorization } = await utils.login(email, password)
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    const { _id: idCarrinho } = await utils.cadastrarCarrinho({ idProduto, quantidade: 2, authorization })
+
+    const { body: bodyCarrinho } = await request.get(`${rotaCarrinhos}/${idCarrinho}`).expect(200)
+    const { body: bodyProdutoNoCarrinho } = await request.get(`/produtos/${idProduto}`).expect(200)
+
+    chai.assert.strictEqual(bodyCarrinho.quantidadeTotal, 2)
+    chai.assert.strictEqual(bodyProdutoNoCarrinho.quantidade, 8)
+
+    await request.del(rotaCancelarCompra).set('authorization', authorization).expect(200)
+    const { body: bodyProdutoReabastecido } = await request.get(`/produtos/${idProduto}`).expect(200)
+
+    chai.assert.strictEqual(bodyProdutoReabastecido.quantidade, 10)
+  })
+
   it('Não foi encontrado carrinho para esse usuário', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'false' })
     const { authorization } = await utils.login(email, password)
