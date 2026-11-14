@@ -17,8 +17,9 @@ function shouldCache (url) {
     const u = new URL(url)
     if (u.origin !== self.location.origin) return false
     if (u.pathname === '/' || u.pathname === '') return false
-    // Os arquivos da página inicial ficam fora: este worker é do Swagger, e o escopo dele cobre o site
-    // inteiro. Guardados aqui, um app.js e um lab.css de rodadas diferentes da mesma versão se misturavam.
+    // Os arquivos da página inicial ficam fora: este worker é do Swagger, e um navegador pode ainda ter o
+    // registro antigo, com o escopo do site inteiro. Guardados aqui, um app.js e um lab.css de rodadas
+    // diferentes da mesma versão se misturavam.
     if (u.pathname.startsWith('/lab/')) return false
     return CACHEABLE_PATH_CHECKS.some((check) => check(u.pathname))
   } catch (_) {

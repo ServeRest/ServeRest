@@ -1,17 +1,21 @@
 const { expect } = require('chai')
 const { createHash } = require('crypto')
+const { readFileSync } = require('fs')
+const { join } = require('path')
 
 const ptBr = require('../../../src/swagger/translations/pt-BR')
 const en = require('../../../src/swagger/translations/en')
 const es = require('../../../src/swagger/translations/es')
 
 const tiposDosArquivos = {
-  'legacy-links.js': /javascript/,
-  'prefs-boot.js': /javascript/,
   'core.js': /javascript/,
   'app.js': /javascript/,
   'lab.css': /text\/css/
 }
+
+// Os dois scripts de antes da primeira pintura vão dentro da página, iguais aos arquivos de public/.
+const scriptsEmbutidos = ['legacy-links.js', 'prefs-boot.js']
+  .map(arquivo => readFileSync(join(__dirname, '../../../src/lab/public', arquivo), 'utf8'))
 
 function blocoDeTextos (html) {
   const match = /<script type="application\/json" id="lab-texts">([\s\S]*?)<\/script>/.exec(html)
@@ -74,12 +78,12 @@ describe('/ GET (página inicial)', () => {
     }
   })
 
-  it('carrega o encaminhamento dos links antigos do Swagger antes do CSS e sem defer', async () => {
+  it('traz dentro da página, antes do CSS, o encaminhamento dos links antigos do Swagger', async () => {
     const { text } = await request.get('/').expect(200)
-    const tag = /<script src="\/lab\/assets\/legacy-links\.js\?v=[^"]+"[^>]*>/.exec(text)
-    expect(tag).to.not.equal(null)
-    expect(tag[0]).to.not.include('defer')
-    expect(tag.index).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
+    const posicao = text.indexOf(`<script>${scriptsEmbutidos[0]}</script>`)
+    expect(posicao).to.be.greaterThan(-1)
+    expect(posicao).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
+    expect(text).to.not.include('/lab/assets/legacy-links.js')
   })
 
   it('aponta o link da documentação para /swagger no idioma da página, numa aba nova', async () => {
@@ -102,13 +106,12 @@ describe('/ GET (página inicial)', () => {
     expect(text).to.match(/<body data-1p-ignore>/)
   })
 
-  it('carrega o tema e o tamanho do texto guardados sem defer, depois dos links antigos e antes do CSS', async () => {
+  it('traz dentro da página o tema e o tamanho do texto guardados, depois dos links antigos e antes do CSS', async () => {
     const { text } = await request.get('/').expect(200)
-    const tag = /<script src="\/lab\/assets\/prefs-boot\.js\?v=[^"]+"[^>]*>/.exec(text)
-    expect(tag).to.not.equal(null)
-    expect(tag[0]).to.not.match(/defer|async/)
-    expect(tag.index).to.be.greaterThan(text.indexOf('/lab/assets/legacy-links.js'))
-    expect(tag.index).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
+    const posicao = text.indexOf(`<script>${scriptsEmbutidos[1]}</script>`)
+    expect(posicao).to.be.greaterThan(text.indexOf(`<script>${scriptsEmbutidos[0]}</script>`))
+    expect(posicao).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
+    expect(text).to.not.include('/lab/assets/prefs-boot.js')
   })
 
   it('não deixa marcador de template sem substituir', async () => {
@@ -139,12 +142,12 @@ describe('/ GET (marcação da página inicial)', () => {
     }
   })
 
-  it('não tem script inline nem handler de evento na marcação', async () => {
+  it('só tem como script inline os dois de antes da primeira pintura, e nenhum handler de evento na marcação', async () => {
     const { text } = await request.get('/').expect(200)
     const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
-    expect(scripts.length).to.be.greaterThan(0)
+    expect(scripts.filter(([, atributos]) => atributos === '').map(([, , conteudo]) => conteudo)).to.deep.equal(scriptsEmbutidos)
     scripts.forEach(([, atributos, conteudo]) => {
-      if (atributos === ' type="application/json" id="lab-texts"') return
+      if (atributos === '' || atributos === ' type="application/json" id="lab-texts"') return
       expect(atributos).to.match(/ src="\/lab\/assets\/[a-z-]+\.js\?v=[^"]+"/)
       expect(conteudo).to.equal('')
     })
@@ -356,13 +359,18 @@ describe('/lab/assets/fonts GET', () => {
   })
 })
 
-// SHA-256 de cada imagem da marca: a logo copiada de assets/logos/serverest-2-cor-cortado.png dos
-// protótipos e as setas e o ícone decodificados dos data URIs de v-refino2.html, sem redesenhar.
+// SHA-256 de cada imagem da marca: a logo de assets/logos/serverest-2-cor-cortado.png dos protótipos,
+// de 4005 x 1536, reduzida por média de área para 229 x 88 (o dobro dos 44 px da barra), e o ícone
+// decodificado do data URI de v-refino2.html, sem redesenhar.
 const imagens = {
-  'serverest-logo.png': ['image/png', 'cb73c927827cd70d0a0b7a4f56dab6269e796bbb4f0fc952337b26afd1b8977d'],
-  'setas-p.png': ['image/png', '4ed319f7b4fadaff3d71ab526986866670bfb6a82f4ec12cbfb41ed53575219b'],
-  'setas-d.png': ['image/png', '89239d9c3c444b36644688f31fa196a32efd0638cbccd98e951b5799ebd7191c'],
+  'serverest-logo.png': ['image/png', 'd555e4fc45f830cf977d1a32d7a4b98263476c8ab51671a3f40e68f20e5f4a75'],
   'favicon.svg': ['image/svg+xml', '70bee0e1dee1c8d10043405785d5be22771944bf43f8d44688b397e6569267d5']
+}
+// As setas do Resultado vazio, decodificadas dos data URIs de v-refino2.html sem redesenhar, voltam a ser
+// data URI dentro do CSS, com os mesmos bytes.
+const setas = {
+  '--setas-p': '4ed319f7b4fadaff3d71ab526986866670bfb6a82f4ec12cbfb41ed53575219b',
+  '--setas-d': '89239d9c3c444b36644688f31fa196a32efd0638cbccd98e951b5799ebd7191c'
 }
 
 describe('/lab/assets/img GET', () => {
@@ -378,8 +386,20 @@ describe('/lab/assets/img GET', () => {
     const { body } = await request.get('/version').expect(200)
     const { text: css } = await request.get(`/lab/assets/lab.css?v=${body.version}`).expect(200)
     const { text: html } = await request.get('/').expect(200)
-    ;['img/serverest-logo.png', 'img/setas-p.png', 'img/setas-d.png'].forEach(caminho => expect(css, caminho).to.include(`url("${caminho}")`))
+    expect(css).to.include('url("img/serverest-logo.png")')
+    expect(css).to.not.include('img/setas-')
     expect(css + html).to.not.include('serverest_logo.svg')
+  })
+
+  it('o CSS traz as setas do Resultado como data URI, com os bytes da arte original', async () => {
+    const { body } = await request.get('/version').expect(200)
+    const { text: css } = await request.get(`/lab/assets/lab.css?v=${body.version}`).expect(200)
+    for (const [propriedade, sha256] of Object.entries(setas)) {
+      const uri = new RegExp(`${propriedade}: url\\("data:image/png;base64,([A-Za-z0-9+/=]+)"\\)`).exec(css)
+      expect(uri, propriedade).to.not.equal(null)
+      expect(createHash('sha256').update(Buffer.from(uri[1], 'base64')).digest('hex'), propriedade).to.equal(sha256)
+      expect(css, propriedade).to.include(`var(${propriedade})`)
+    }
   })
 })
 

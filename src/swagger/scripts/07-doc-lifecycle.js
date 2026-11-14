@@ -61,9 +61,16 @@
     observe()
   }
 
+  // O worker fica só em /swagger. Com o escopo padrão, a raiz, ele controlava também a página inicial e
+  // entrava no meio de cada chamada dela à API. O registro antigo, da raiz, sai antes do novo.
   function registerServiceWorker () {
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/swagger-sw.js').catch(() => {})
+      const rootScope = window.location.origin + '/'
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => Promise.all(regs.filter(r => r.scope === rootScope).map(r => r.unregister())))
+        .catch(() => {})
+        .then(() => navigator.serviceWorker.register('/swagger-sw.js', { scope: '/swagger' }))
+        .catch(() => {})
     }
   }
 

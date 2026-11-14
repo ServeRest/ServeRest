@@ -30,7 +30,15 @@ const { iniciar, etapa } = require('./utils/etapas')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
-const { renderLabPage, LAB_ASSETS_DIR } = require('./lab')
+const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
+const {
+  cacheForaDoLocalhost,
+  cacheNoStatic,
+  enviarResposta,
+  prepararResposta,
+  servirTextos,
+  textosDaPasta
+} = require('./lab/entrega')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'
 const supportedLanguages = new Set(['pt-BR', 'en', 'es'])
@@ -104,6 +112,12 @@ swaggerDocument.servers = currentUrl === serverestUrl
 
 swaggerDocument.info.version = version
 
+// O documento como a página inicial o pede, com v: montado e comprimido uma vez por idioma.
+const swaggerJsonDaPagina = new Map([...supportedLanguages].map(idioma => [
+  idioma,
+  prepararResposta(JSON.stringify(localizeSwaggerDocument(swaggerDocument, idioma), null, app.get('json spaces')), 'json')
+]))
+
 let latestReleaseInfo = null
 let latestReleasePromise = null
 
@@ -167,15 +181,22 @@ app.get('/swagger', (req, res, next) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
   return setupDoSwagger(idiomaDaRequisicao(req))(req, res, next)
 })
-app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
-app.use('/flags', express.static(join(__dirname, '../docs/flags')))
+app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png'), { setHeaders: cacheNoStatic }))
+app.use('/flags', express.static(join(__dirname, '../docs/flags'), { setHeaders: cacheNoStatic }))
 app.use('/images', express.static(join(__dirname, '../docs/images')))
-app.use('/lab/assets', express.static(LAB_ASSETS_DIR))
+app.use('/lab/assets', servirTextos(textosDaPasta(LAB_ASSETS_DIR)), express.static(LAB_ASSETS_DIR, { setHeaders: cacheNoStatic }))
+// A página volta sempre ao servidor (no-cache), mas quem já a tem recebe um 304 sem corpo.
 app.get('/', (req, res) => {
   res.set('Cache-Control', 'no-cache, max-age=0')
-  res.type('html').send(renderLabPage(idiomaDaRequisicao(req), version, avisoDeVersao(latestReleaseInfo)))
+  enviarResposta(req, res, paginaPronta(idiomaDaRequisicao(req), avisoDeVersao(latestReleaseInfo)))
 })
 app.get('/swagger.json', (req, res) => {
+  // Só a página inicial pede com v. O Swagger e quem importa no Postman pedem sem v e recebem como antes.
+  if (req.query.v !== undefined) {
+    const cache = cacheForaDoLocalhost(req)
+    if (cache) res.set('Cache-Control', cache)
+    return enviarResposta(req, res, swaggerJsonDaPagina.get(idiomaDaRequisicao(req)))
+  }
   res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })

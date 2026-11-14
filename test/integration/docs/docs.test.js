@@ -17,6 +17,13 @@ describe('/swagger GET', () => {
     expect(text).to.not.include('release-toast')
     expect(text).to.not.include('api.github.com')
   })
+  // Com o escopo da raiz, o worker controlava também a página inicial e entrava nas chamadas dela à API.
+  it('registra o service worker só em /swagger, depois de tirar o registro antigo da raiz', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.include("navigator.serviceWorker.register('/swagger-sw.js', { scope: '/swagger' })")
+    expect(text).to.include('regs.filter(r => r.scope === rootScope).map(r => r.unregister())')
+    expect(text.match(/serviceWorker\.register\(/g)).to.have.length(1)
+  })
   it('inclui o script que tira gerenciador de senha e corretor dos campos', async () => {
     const { text } = await request.get('/swagger').expect(200)
     expect(text).to.include("'data-bwignore': ''")
