@@ -2006,11 +2006,19 @@
       sent: null,
       headers: [],
       stagesHeader: null,
+      // As fases da Resource Timing (core.resourcePhases); null sem a entrada do navegador.
+      timing: null,
       bodyText: '',
       error: null
     }
     const headers = {}
     request.headers.forEach(header => { headers[header[0]] = header[1] })
+    const url = absoluteUrl(request.url)
+    // O tempo total é o da Resource Timing, a mesma fonte do DevTools: o relógio da página, de antes do fetch
+    // até depois de res.text(), somava o trabalho da própria página e dava alguns ms a mais. Limpar antes
+    // deixa só a entrada deste envio e não deixa o buffer do navegador encher. O relógio fica para quando
+    // não há entrada.
+    clearResourceTimings()
     const start = performance.now()
     // O registro sai antes da resposta, para a espera real mostrar o envio e Foi enviado.
     const done = fetch(request.url, { method: request.method, headers, body: request.body, cache: 'no-store' }).then(res => {
@@ -2020,7 +2028,10 @@
       record.stagesHeader = res.headers.get(STAGES_HEADER)
       return res.text()
     }).then(body => {
-      record.ms = performance.now() - start
+      const clock = performance.now() - start
+      const entry = core.resourceEntry(resourceEntries(url), start)
+      record.ms = entry ? entry.duration : clock
+      record.timing = core.resourcePhases(entry)
       record.bodyText = body
       return record
     }).catch(error => {
@@ -2029,6 +2040,29 @@
       return record
     })
     return { record, done }
+  }
+
+  // A URL como o navegador a registra na Resource Timing (o nome da entrada).
+  function absoluteUrl (url) {
+    try {
+      return new URL(url, window.location.href).href
+    } catch (e) {
+      return url
+    }
+  }
+
+  function clearResourceTimings () {
+    try {
+      performance.clearResourceTimings()
+    } catch (e) {}
+  }
+
+  function resourceEntries (url) {
+    try {
+      return performance.getEntriesByName(url, 'resource')
+    } catch (e) {
+      return []
+    }
   }
 
   function execute () {
