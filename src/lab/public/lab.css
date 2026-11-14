@@ -760,7 +760,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .invite { margin: 0 16px var(--space-xl); padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 0 4px 4px 0; background: var(--surface); display: grid; gap: 8px; max-width: 64ch; }
 .invite-title { font-weight: 600; }
 .invite-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.link-btn { display: inline-flex; align-items: center; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
+.link-btn { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
 .link-btn:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .result-route { font-weight: 600; }
 .result-route code { font-size: 0.875rem; }
