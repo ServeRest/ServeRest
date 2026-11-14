@@ -224,6 +224,39 @@
       .join(' ')
   }
 
+  /* Tempo da requisição: a entrada da Resource Timing do envio, a mesma fonte da aba Timing do DevTools. */
+
+  // A entrada do envio entre as que o navegador registrou para a URL: a mais nova que começou em start
+  // (performance.now() logo antes do fetch) ou depois. null quando não há nenhuma.
+  function resourceEntry (entries, start) {
+    return Array.from(entries || [])
+      .filter(entry => !!entry && typeof entry.startTime === 'number' && entry.startTime >= start && Number.isFinite(entry.duration) && entry.duration >= 0)
+      .reduce((newest, entry) => !newest || entry.startTime >= newest.startTime ? entry : newest, null)
+  }
+
+  // As fases da entrada, em ms, como a aba Timing as agrupa: a conexão (fila, DNS, TCP e TLS) até o envio
+  // da requisição, a espera pelo primeiro byte (TTFB) e o download do corpo; as três somam a duração.
+  // connNew diz se o envio abriu uma conexão. null quando a entrada não traz as fases: uma requisição para
+  // outra origem sem Timing-Allow-Origin chega com elas zeradas.
+  function resourcePhases (entry) {
+    if (!entry) return null
+    const { startTime, requestStart, responseStart, responseEnd } = entry
+    if (![startTime, requestStart, responseStart, responseEnd].every(Number.isFinite)) return null
+    if (!(requestStart >= startTime && responseStart >= requestStart && responseEnd >= responseStart)) return null
+    return {
+      conn: requestStart - startTime,
+      ttfb: responseStart - requestStart,
+      down: responseEnd - responseStart,
+      connNew: entry.connectEnd > entry.connectStart || entry.domainLookupEnd > entry.domainLookupStart
+    }
+  }
+
+  const isPhase = value => Number.isFinite(value) && value >= 0
+
+  function validTiming (timing) {
+    return !!timing && typeof timing === 'object' && isPhase(timing.conn) && isPhase(timing.ttfb) && isPhase(timing.down) && typeof timing.connNew === 'boolean'
+  }
+
   /* OpenAPI */
 
   function refLookup (spec, ref) {
@@ -651,6 +684,8 @@
       (item.stagesHeader === null || isText(item.stagesHeader)) &&
       (item.bodySent === undefined || isText(item.bodySent)) &&
       (item.bodyCut === undefined || Number.isInteger(item.bodyCut)) &&
+      // Sem timing: um envio guardado antes da Resource Timing, ou sem entrada dela.
+      (item.timing === undefined || item.timing === null || validTiming(item.timing)) &&
       typeof item.ms === 'number' && typeof item.authSent === 'boolean' && typeof item.protected === 'boolean' &&
       isPairs(item.requestHeaders) && isPairs(item.headers) &&
       (sent === null || (!!sent && typeof sent === 'object' && !!sent.params && typeof sent.params === 'object' && isText(sent.body) && isText(sent.auth)))
@@ -822,6 +857,8 @@
     buildFlowModel,
     stepDelay,
     flowColumns,
+    resourceEntry,
+    resourcePhases,
     resolve,
     deref,
     schemaRows,

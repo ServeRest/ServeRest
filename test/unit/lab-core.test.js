@@ -78,6 +78,58 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('Tempo da requisição (Resource Timing)', () => {
+    // Uma entrada como a do Chrome para um envio com conexão reaproveitada (DNS e TCP no fetchStart).
+    const entrada = (extra = {}) => ({
+      startTime: 1000,
+      fetchStart: 1000,
+      domainLookupStart: 1000,
+      domainLookupEnd: 1000,
+      connectStart: 1000,
+      connectEnd: 1000,
+      requestStart: 1000.6,
+      responseStart: 1167.4,
+      responseEnd: 1171,
+      duration: 171,
+      ...extra
+    })
+
+    it('resourceEntry escolhe a entrada mais nova que começou no início do envio ou depois', () => {
+      const antiga = entrada({ startTime: 900 })
+      const doEnvio = entrada({ startTime: 1000 })
+      const maisNova = entrada({ startTime: 1005, duration: 50 })
+      expect(core.resourceEntry([antiga, doEnvio], 1000)).to.equal(doEnvio)
+      expect(core.resourceEntry([maisNova, doEnvio, antiga], 1000)).to.equal(maisNova)
+      expect(core.resourceEntry([antiga], 1000)).to.equal(null)
+    })
+
+    it('resourceEntry devolve null sem entradas ou com uma duração que não é número', () => {
+      expect(core.resourceEntry([], 0)).to.equal(null)
+      expect(core.resourceEntry(undefined, 0)).to.equal(null)
+      expect(core.resourceEntry([null, entrada({ duration: NaN })], 0)).to.equal(null)
+    })
+
+    it('resourcePhases separa conexão, TTFB e download, que somam a duração', () => {
+      const fases = core.resourcePhases(entrada())
+      expect(fases.conn).to.be.closeTo(0.6, 1e-9)
+      expect(fases.ttfb).to.be.closeTo(166.8, 1e-9)
+      expect(fases.down).to.be.closeTo(3.6, 1e-9)
+      expect(fases.conn + fases.ttfb + fases.down).to.be.closeTo(entrada().duration, 1e-9)
+      expect(fases.connNew).to.equal(false)
+    })
+
+    it('resourcePhases marca a conexão nova quando houve DNS ou TCP', () => {
+      expect(core.resourcePhases(entrada({ connectStart: 1001, connectEnd: 1040, requestStart: 1058.3 })).connNew).to.equal(true)
+      expect(core.resourcePhases(entrada({ domainLookupStart: 1000, domainLookupEnd: 1002 })).connNew).to.equal(true)
+    })
+
+    it('resourcePhases devolve null sem entrada ou sem as fases (outra origem sem Timing-Allow-Origin)', () => {
+      expect(core.resourcePhases(null)).to.equal(null)
+      expect(core.resourcePhases(entrada({ requestStart: 0, responseStart: 0 }))).to.equal(null)
+      expect(core.resourcePhases(entrada({ responseEnd: undefined }))).to.equal(null)
+    })
+  })
+
   describe('OpenAPI', () => {
     const metodosHttp = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace']
     const operacoes = Object.keys(swaggerDocument.paths).flatMap(path =>
@@ -878,6 +930,19 @@ describe('Página do lab: funções puras', () => {
       expect(core.readStoredHistory(JSON.stringify({ v: 1, history: [{ ...core.storedRecord(registro(1), 100), at: 'ontem' }] }), 50)).to.equal(null)
       expect(core.readStoredHistory(guardado([registro(1, { headers: [['a']] })]), 50)).to.equal(null)
       expect(core.readStoredHistory(guardado([registro(1, { protected: 'não' })]), 50)).to.equal(null)
+    })
+
+    it('guarda e devolve as fases da Resource Timing; um envio sem elas (antigo ou sem entrada) também volta', () => {
+      const timing = { conn: 0.6, ttfb: 166.8, down: 3.6, connNew: false }
+      const lido = core.readStoredHistory(guardado([registro(3, { timing }), registro(2, { timing: null }), registro(1)]), 50)
+      expect(lido[0].timing).to.deep.equal(timing)
+      expect(lido[1].timing).to.equal(null)
+      expect(lido[2]).to.not.have.property('timing')
+    })
+
+    it('descarta o valor inteiro quando as fases guardadas não têm a forma certa', () => {
+      const ruins = [{}, { conn: 1, ttfb: 2, down: 3 }, { conn: -1, ttfb: 2, down: 3, connNew: false }, { conn: '1', ttfb: 2, down: 3, connNew: false }, { conn: 1, ttfb: null, down: 3, connNew: true }, 'rápido']
+      ruins.forEach(timing => expect(core.readStoredHistory(guardado([registro(1, { timing })]), 50), JSON.stringify(timing)).to.equal(null))
     })
 
     it('volta com no máximo o limite de envios, os mais recentes', () => {
