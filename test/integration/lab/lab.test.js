@@ -204,6 +204,34 @@ describe('/ GET (marcação da página inicial)', () => {
     }
   })
 
+  it('traz no começo do body o sprite dos ícones do Executar, com a origem e a licença', async () => {
+    const { text } = await request.get('/').expect(200)
+    const sprite = /<!--([\s\S]*?)-->\s*<svg class="sprite"[^>]*aria-hidden="true"[^>]*>([\s\S]*?)<\/svg>/.exec(text)
+    expect(sprite).to.not.equal(null)
+    expect(sprite[1]).to.include('Lucide')
+    expect(sprite[1]).to.include('ISC')
+    ;['i-snail', 'i-setas', 'i-chev', 'i-check'].forEach(id => expect(sprite[2]).to.include(`<symbol id="${id}"`))
+    expect(text.indexOf('class="sprite"')).to.be.lessThan(text.indexOf('class="skip-link"'))
+  })
+
+  it('não tem mais a caixa Câmera lenta: o modo fica no Executar dividido', async () => {
+    const { text } = await request.get('/').expect(200)
+    expect(text).to.not.include('type="checkbox"')
+    expect(text).to.not.include('id="slow"')
+  })
+
+  it('tem as abas Resposta e Foi enviado do Resultado com os nomes traduzidos, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      expect(text, lang).to.include(`id="result-tabs" role="tablist" aria-label="${escaparHtml(textos['lab.result_tabs.label'])}"`)
+      expect(/<button [^>]*id="res-tab-resposta"[^>]*>([\s\S]*?)<\/button>/.exec(text)[1], lang).to.include(escaparHtml(textos['lab.response.title']))
+      expect(/<button [^>]*id="res-tab-enviado"[^>]*>([\s\S]*?)<\/button>/.exec(text)[1], lang).to.include(escaparHtml(textos['lab.sent_out.title']))
+      expect(text, lang).to.include('id="response" role="tabpanel" aria-labelledby="res-tab-resposta"')
+      expect(text, lang).to.include('id="sent-out" role="tabpanel" aria-labelledby="res-tab-enviado"')
+      expect(text, lang).to.include(`>${escaparHtml(textos['lab.history.undo'])}</button>`)
+    }
+  })
+
   it('deixa o link do aviso de versão sem href: o script o preenche com data-notice-url', async () => {
     const { text } = await request.get('/').expect(200)
     const aviso = /<a [^>]*id="version-notice"[^>]*>/.exec(text)[0]

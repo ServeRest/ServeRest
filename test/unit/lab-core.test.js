@@ -960,7 +960,8 @@ describe('Página do lab: funções puras', () => {
         ['ui.flow.how.auth.token_expired', 'lab.auth.how_to_get'],
         ['ui.flow.how.auth.token_invalid', 'lab.auth.how_to_get'],
         ['ui.flow.how.stage.auth', 'lab.auth.how_to_get'],
-        ['ui.flow.how.auth.user_not_found', 'lab.flow.how.user_not_found']
+        ['ui.flow.how.auth.user_not_found', 'lab.flow.how.user_not_found'],
+        ['ui.flow.how.outside', 'lab.flow.how.outside']
       ])
       trocas.forEach(([origem]) => expect(ptBr, origem).to.have.property(origem))
       // A instrução nomeia o botão pelo rótulo inteiro nos três idiomas, não só em pt-BR.
@@ -1007,7 +1008,10 @@ describe('Página do lab: funções puras', () => {
       serverestTheme: 'THEME_KEY',
       serverestTextSize: 'TEXT_KEY',
       swaggerLanguage: 'LANGUAGE_KEY',
-      serverestLangGlow: 'GLOW_KEY'
+      serverestLangGlow: 'GLOW_KEY',
+      serverestFlowSlowMotion: 'SLOW_MOTION_KEY',
+      serverestLabHistory: 'HISTORY_KEY',
+      serverestLabView: 'VIEW_KEY'
     }
 
     it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {

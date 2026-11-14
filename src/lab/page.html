@@ -12,6 +12,14 @@
 <script src="/lab/assets/app.js?v={{version}}" defer></script>
 </head>
 <body>
+<!-- Ícones do Executar dividido e de "Ver em câmera lenta". O caracol, a seta e o visto são ícones do Lucide
+     (licença ISC); as duas setas são as do logo do ServeRest, redesenhadas como vetor. -->
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="i-snail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"/><circle cx="10" cy="13" r="8"/><path d="M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"/><path d="M18 3 19.1 5.2"/><path d="M22 3 20.9 5.2"/></symbol>
+  <symbol id="i-setas" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M1.5 8 9 2.5V6h9.5a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9v3.5z"/><path d="M22.5 16 15 10.5V14H5.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H15v3.5z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+</svg>
 <a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
 
 <!-- Barra do topo, na ordem: o seletor de idioma do Swagger, a marca (logo, versão e aviso de versão nova),
@@ -80,26 +88,36 @@
     <section class="request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
   </section>
 
+  <!-- Resultado: a origem do envio mostrado no fim da linha do título e, numa coluna só, o link de volta à
+       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. -->
   <section class="zone zone-result" id="result" aria-labelledby="result-title">
-    <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2></div>
+    <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2><span class="tag result-origin" id="result-origin" hidden></span><a class="result-edit" id="result-edit" href="#request-zone" hidden>{{lab.result.edit}}</a></div>
     <div class="result-empty" id="result-empty" tabindex="-1"></div>
-    <p class="shown" id="shown" hidden></p>
+    <p class="shown" id="shown" tabindex="-1" aria-describedby="result-origin" hidden></p>
     <div class="shown-fill" id="shown-fill" hidden></div>
     <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
-      <div class="section-head">
-        <h3 class="section-title" id="flow-title"></h3>
-        <div class="flow-controls" id="flow-controls">
-          <label class="slow"><input type="checkbox" id="slow"> <span id="slow-label"></span></label>
-          <button class="btn" type="button" id="replay" disabled></button>
+      <div class="band">
+        <h3 class="band-title" id="flow-title" tabindex="-1"></h3>
+        <div class="band-tools flow-controls" id="flow-controls">
+          <button class="btn" type="button" id="replay" aria-disabled="true"></button>
         </div>
       </div>
-      <div id="flow-body"></div>
+      <div class="band-body" id="flow-body"></div>
     </section>
-    <section class="response" id="response" aria-labelledby="res-title" hidden>
-      <div class="section-head">
-        <h3 class="section-title" id="res-title">{{lab.response.title}}</h3>
+    <div class="folder-tabs result-tabs" id="result-tabs" role="tablist" aria-label="{{lab.result_tabs.label}}" hidden>
+      <button class="folder-tab" type="button" role="tab" id="res-tab-resposta" aria-controls="response" aria-selected="true"><span class="tab-label">{{lab.response.title}}</span></button>
+      <button class="folder-tab" type="button" role="tab" id="res-tab-enviado" aria-controls="sent-out" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.sent_out.title}}</span> <span class="tab-count tab-diff" id="res-tab-diff" hidden>{{lab.sent_out.tab_diff}}</span></button>
+    </div>
+    <section class="response result-panel" id="response" role="tabpanel" aria-labelledby="res-tab-resposta" tabindex="0" aria-busy="false" hidden>
+      <h3 class="sr-only" id="res-title">{{lab.response.title}}</h3>
+      <div class="band-body" id="res-body-area"></div>
+    </section>
+    <section class="sent-out result-panel" id="sent-out" role="tabpanel" aria-labelledby="res-tab-enviado" tabindex="0" hidden>
+      <h3 class="sr-only" id="sent-out-title">{{lab.sent_out.title}}</h3>
+      <div class="band-body">
+        <div class="sent-head"><button class="btn btn-copy" type="button" id="sent-out-copy">{{lab.copy.command}}</button></div>
+        <div id="sent-out-area"></div>
       </div>
-      <div id="res-body-area"></div>
     </section>
   </section>
 
@@ -109,6 +127,7 @@
       <span class="muted small" id="hist-count"></span>
       <button class="btn btn-quiet hist-clear" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
     </div>
+    <p class="hist-cleared" id="hist-cleared" hidden><span>{{lab.history.clear_done}}</span> <button class="btn btn-quiet" type="button" id="hist-undo">{{lab.history.undo}}</button></p>
     <p class="hist-empty" id="hist-empty" tabindex="-1"></p>
     <div class="hist-scroll" id="hist-scroll" hidden>
       <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span>{{lab.history.col_auth}}</span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_where}}</span></div>
