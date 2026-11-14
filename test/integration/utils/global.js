@@ -30,6 +30,7 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
   global.request = {
     post: hook('post'),
     get: hook('get'),
+    head: hook('head'),
     put: hook('put'),
     del: hook('delete')
   }

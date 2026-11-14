@@ -709,9 +709,10 @@
     list.append(el('p', { class: 'empty' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading')))
     $('routes-count').textContent = ''
     renderRequest()
-    // A versão na URL impede que o service worker da documentação devolva a lista de outra versão.
+    // A versão na URL troca a lista a cada versão nova: fora do localhost o servidor a deixa no cache do
+    // navegador por um ano, e a visita seguinte não pede a lista de novo.
     const url = '/swagger.json?lang=' + encodeURIComponent(language) + '&v=' + encodeURIComponent(version)
-    fetch(url, { cache: 'no-store' }).then(res => {
+    fetch(url).then(res => {
       if (!res.ok) throw new Error(fillText('lab.routes.http_error', { status: res.status + ' ' + core.statusText(res.status) }))
       return res.json()
     }).then(spec => {
@@ -2150,8 +2151,8 @@
 
   /* ---------- Token da página ---------- */
 
-  // O único jeito de a página ter um token é a resposta real de POST /login: um botão logo abaixo da linha
-  // do status o passa para o campo Authorization de todas as rotas com cadeado que não foram editadas.
+  // O único jeito de a página ter um token é a resposta real de POST /login: um botão logo abaixo do corpo
+  // o passa para o campo Authorization de todas as rotas com cadeado que não foram editadas.
 
   function editedRoutes () {
     return state.routes.filter(route => route.needsToken && state.drafts[route.key] && typeof state.drafts[route.key].auth === 'string').length
@@ -4313,6 +4314,19 @@
       if (state.token) refreshPreview()
     }, 15000)
     loadSpec()
+    removeRootServiceWorker()
+  }
+
+  // O service worker do Swagger já foi registrado com o escopo da raiz e controlava esta página, entrando no
+  // meio de cada chamada à API. Agora ele fica em /swagger; quem não abrir mais o Swagger perde aqui o
+  // registro antigo. Esta carga ainda passa por ele, a próxima não. Sem suporte ou com erro, nada muda.
+  function removeRootServiceWorker () {
+    try {
+      const rootScope = window.location.origin + '/'
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => regs.filter(reg => reg.scope === rootScope).forEach(reg => reg.unregister()))
+        .catch(() => {})
+    } catch (e) {}
   }
 
   init()

@@ -4,12 +4,20 @@ const { readFileSync } = require('fs')
 const { join } = require('path')
 
 const { version } = require('../../package.json')
+const { prepararResposta } = require('./entrega')
 const ptBr = require('../swagger/translations/pt-BR')
 const en = require('../swagger/translations/en')
 const es = require('../swagger/translations/es')
 
 const LAB_ASSETS_DIR = join(__dirname, 'public')
 const template = readFileSync(join(__dirname, 'page.html'), 'utf8')
+
+// Os dois scripts que rodam antes da primeira pintura vão dentro da página: são pequenos, e cada um custava
+// um pedido a mais. Os arquivos continuam em public/, onde os testes de unidade os leem.
+const inlineScripts = {
+  'script.legacy-links': readFileSync(join(LAB_ASSETS_DIR, 'legacy-links.js'), 'utf8'),
+  'script.prefs-boot': readFileSync(join(LAB_ASSETS_DIR, 'prefs-boot.js'), 'utf8')
+}
 
 function escapeHtml (value) {
   return String(value)
@@ -51,7 +59,7 @@ function pageValues (language, translations) {
   const values = Object.keys(translations)
     .filter(key => key.startsWith('lab.'))
     .reduce((output, key) => ({ ...output, [key]: escapeHtml(translations[key]) }), {})
-  return { ...values, ...flagValues(language), lang: language, texts: textsJson(translations) }
+  return { ...values, ...flagValues(language), ...inlineScripts, lang: language, texts: textsJson(translations) }
 }
 
 const valuesByLanguage = {
@@ -75,8 +83,22 @@ function renderLabPage (language, pageVersion, notice) {
 // Renderiza os três idiomas ao carregar: um texto faltando derruba o servidor e os testes, não o aluno.
 Object.keys(valuesByLanguage).forEach(language => renderLabPage(language, version))
 
+const paginasProntas = new Map()
+
+// A página só muda com o idioma e com o aviso de versão nova; a versão é a do processo. Cada combinação é
+// montada na primeira visita que a pede e guardada, já com o ETag.
+function paginaPronta (language, notice) {
+  const aviso = notice || { version: '', url: '' }
+  const chave = JSON.stringify([language, aviso.version, aviso.url])
+  if (!paginasProntas.has(chave)) {
+    paginasProntas.set(chave, prepararResposta(renderLabPage(language, version, notice), 'html'))
+  }
+  return paginasProntas.get(chave)
+}
+
 module.exports = {
   LAB_ASSETS_DIR,
+  paginaPronta,
   renderLabPage,
   renderTemplate
 }
