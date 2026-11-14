@@ -18,10 +18,14 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
     URL = 'http://127.0.0.1:3000'
   }
 
+  // Só staging e produção passam pelo rate limiter; no localhost ele não roda.
+  const remoto = ['e2e-staging', 'e2e-production'].includes(process.env.TEST_TYPE)
+  const limitar = remoto ? require('./limite-de-requisicoes').criarLimitador() : test => test
+
   // Set 'monitor=true' header to all requests to avoid logging on moesif tool
   const hook = (method = 'post') => (args) =>
-    supertest(URL)[method](args)
-      .set('monitor', true)
+    limitar(supertest(URL)[method](args)
+      .set('monitor', true))
 
   global.request = {
     post: hook('post'),
