@@ -8,7 +8,7 @@ module.exports = error => {
       'any.only': `${propriedade} deve ser 'true' ou 'false'`,
       'any.required': `${propriedade} é obrigatório`,
       'array.base': `${propriedade} deve ser um array`,
-      'array.includesRequiredUnknowns': `${propriedade} não contém 1 valor obrigatório`,
+      'array.min': `${propriedade} deve ter pelo menos 1 item`,
       'number.base': `${propriedade} deve ser um número`,
       'number.integer': `${propriedade} deve ser um inteiro`,
       'number.min': `${propriedade} deve ser maior ou igual a 0`,

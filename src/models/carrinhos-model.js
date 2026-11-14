@@ -23,7 +23,7 @@ exports.schemaPost = {
       Joi.object({
         idProduto: Joi.string().required(),
         quantidade: Joi.number().strict().positive().integer().required()
-      }).required()
-    ).required()
+      })
+    ).min(1).required()
   })
 }
