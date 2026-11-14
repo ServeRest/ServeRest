@@ -590,7 +590,18 @@
           go('lab.about.go_postman', 'lab.about.go_postman_link', ABOUT_URLS.postman),
           go('lab.about.go_local', 'lab.about.go_local_link', ABOUT_URLS.repository),
           go('lab.about.go_load', 'lab.about.go_load_link', ABOUT_URLS.load)),
-        el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link') }) }))))
+        el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link'), onclick: goToAbout }) }))))
+  }
+
+  // O hash guarda a rota escolhida: seguir #about trocaria a rota pela primeira ao recarregar ou mudar
+  // de idioma. O clique rola até o rodapé e põe o foco nele sem mexer no endereço.
+  function goToAbout (event) {
+    event.preventDefault()
+    const about = $('about')
+    if (!about) return
+    if (!about.hasAttribute('tabindex')) about.setAttribute('tabindex', '-1')
+    about.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' })
+    about.focus({ preventScroll: true })
   }
 
   // O convite para dar opinião, no Resultado vazio depois do 3º envio (core.feedbackInvite decide). A
