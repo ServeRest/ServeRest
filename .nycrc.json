@@ -10,6 +10,8 @@
     "src/swagger/index.js",
     "src/middlewares/moesif-monitor-middleware.js",
     "src/middlewares/rate-limiter.js",
-    "src/utils/ambiente.js"
+    "src/utils/ambiente.js",
+    "src/server.js",
+    "src/utils/getRandomFinancialContributor.js"
   ]
 }
