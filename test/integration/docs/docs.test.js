@@ -36,9 +36,10 @@ describe('/swagger GET', () => {
 })
 
 describe('/swagger-ui-init.js GET', () => {
-  it('não registra o plugin do painel de fluxo, que fica só na página inicial', async () => {
+  it('mantém o plugin padrão DownloadUrl, que busca o documento, e não registra o painel de fluxo', async () => {
     await request.get('/swagger').expect(200)
     const { text } = await request.get('/swagger-ui-init.js').expect(200)
+    expect(text).to.include('SwaggerUIBundle.plugins.DownloadUrl')
     expect(text).to.not.include('serverestFlowPanelPlugin')
   })
   it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
