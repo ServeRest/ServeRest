@@ -83,6 +83,18 @@
   --on-accent: #ffffff;
   /* Abas da coluna da esquerda: fundo da aba ao passar o mouse (o da aba de fora é --well). */
   --tab-hover: #e4e7eb;
+  /* Aba de pasta não escolhida: cinza já em repouso, um degrau mais escura ao passar o mouse. A escolhida
+     tem o fundo do painel e, nos dois cantos de baixo, uma curva côncava de --flare px (cabe no vão de 4 px
+     entre as abas). */
+  --tab-idle: #e4e7eb;
+  --tab-idle-hover: #d8dce1;
+  --flare: 5px;
+  /* No bloco escuro, as opções do curl (-X, -H, -d). */
+  --code-flag: #d3b5ff;
+  /* O fundo do editor do corpo, o código que o aluno escreve (os outros campos continuam brancos). */
+  --editor-bg: #f6f7f9;
+  /* Faixa de título de seção: um degrau abaixo da zona, entre duas linhas. */
+  --band: #f2f3f5;
   /* Largura da quarta coluna (Histórico): a maior largura da coluna da esquerda. */
   --hist-w: 23rem;
   /* Superfícies: a página fica um degrau abaixo das zonas. */
@@ -95,7 +107,8 @@
   --graphite: #5d6270;
   /* Uma cor de borda só: zonas, regras e linhas das colunas. */
   --border: #d6d9de;
-  --control: #8d919b;
+  /* A borda dos controles passa de 3:1 também sobre o cinza das faixas (#f2f3f5). */
+  --control: #878b95;
   --ok: #156b2f;
   --ok-tint: #e8f5ec;
   --fail: #c4231c;
@@ -137,6 +150,10 @@
   --focus: #c39bff;
   --on-accent: #111215;
   --tab-hover: #30343c;
+  --tab-idle: #30343c;
+  --tab-idle-hover: #3b4049;
+  --editor-bg: #30343c;
+  --band: #24272d;
   --canvas: #111215;
   --surface: #1b1d22;
   --input-bg: #131418;
@@ -316,6 +333,21 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .side-tab:hover { color: var(--ink); background: var(--tab-hover); }
 .side-tab[aria-selected="true"] { padding-bottom: 9px; color: var(--ink); background: var(--surface); border-color: var(--border); border-top-color: var(--accent); }
 .side-tab:focus-visible { outline-offset: -2px; }
+/* Abas de pasta: a faixa cinza com a linha embaixo e as abas que se apoiam nela. A não escolhida fica
+   visível em repouso (fundo cinza, letra tinta); a escolhida tem borda dos três lados, faixa roxa em cima e o
+   fundo do painel, cobre a linha de baixo e encontra essa linha numa curva côncava, como a aba de uma pasta
+   de verdade. A altura mínima deixa todas as abas com a mesma altura, com ou sem a caixa da contagem. */
+.folder-tabs { display: flex; flex: none; align-items: flex-end; gap: 4px; min-height: 2.875rem; padding: 6px 8px 0; border-bottom: 1px solid var(--border); background: var(--well); }
+.folder-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 2.4375rem; margin-bottom: -1px; padding: 6px 14px 8px; border: 1px solid transparent; border-top-width: 3px; border-bottom: 0; border-radius: 4px 4px 0 0; background: var(--tab-idle); font-family: var(--font-ui); font-size: 0.875rem; font-weight: 600; line-height: 1.2; color: var(--ink); white-space: nowrap; cursor: pointer; }
+.folder-tab:hover { background: var(--tab-idle-hover); }
+.folder-tab[aria-selected="true"], .folder-tab[aria-selected="true"]:hover { position: relative; padding-bottom: 9px; color: var(--ink); background: var(--surface); border-color: var(--border); border-top-color: var(--accent); }
+.folder-tab:focus-visible { outline-offset: -2px; }
+/* A curva: nos dois cantos de baixo, por fora da aba, um quadrado de --flare px desenha um quarto de anel na
+   cor da borda (o centro no canto de cima do quadrado; o raio de fora toca a linha, o de dentro a borda da
+   aba), e entre a curva e a aba fica o fundo do painel. */
+.folder-tab[aria-selected="true"]::before, .folder-tab[aria-selected="true"]::after { content: ""; position: absolute; bottom: 0; width: var(--flare); height: var(--flare); pointer-events: none; }
+.folder-tab[aria-selected="true"]::before { left: calc(-1 * var(--flare)); background: radial-gradient(circle at 0 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
+.folder-tab[aria-selected="true"]::after { right: calc(-1 * var(--flare)); background: radial-gradient(circle at 100% 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
 /* Contagem: o número numa caixa de raio 3 px, como os selos de método, e não solto ao lado do nome. Com
    envios que chegaram com a aba fechada, a caixa fica roxa cheia até a aba ser aberta: muda o fundo
    inteiro, não só o tom. O número novo sobe de baixo para o lugar, uma vez por envio, assim que o envio
@@ -384,10 +416,12 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); text-decoration: underline; }
 /* Barra de endereço: sempre uma linha. Selo, URL e Executar na largura natural. Se a URL não cabe, a base
    sai primeiro (ela está inteira em Será enviado e no title); se nem o caminho cabe, ele perde o começo,
-   com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. */
+   com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. O invólucro dá
+   à barra o respiro de cima e de baixo. */
+.req-bar-wrap { margin: calc(var(--space-xl) - 8px) calc(-1 * var(--req-x)) 0; padding: 8px var(--req-x); background: var(--surface); }
 .req-bar {
   --m: var(--ink);
-  margin-top: var(--space-xl); display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 5px;
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 5px;
   border: 1px solid color-mix(in srgb, var(--m) 60%, var(--surface)); border-radius: 4px; background: color-mix(in srgb, var(--m) var(--bar-tint), var(--surface));
 }
 .req-bar:has(.m-get) { --m: var(--m-get); }
@@ -402,73 +436,137 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-base { flex: none; color: var(--graphite); font-weight: 400; }
 .req-route { order: -1; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
 .req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
-.actions { margin-top: var(--space-m); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+/* O atalho fica sozinho numa linha sob a barra, à direita, perto de Executar. */
 .kbd-hint { font-size: 0.8125rem; color: var(--graphite); }
+.req-hint { margin-top: var(--space-xs); text-align: right; }
 @media (pointer: coarse) { .kbd-hint { display: none; } }
 .copy-msg { font-size: 0.8125rem; color: var(--ok); }
+.copy-msg:empty { display: none; }
 .copy-msg.fail { color: var(--fail); }
 
-/* Será enviado: sempre à vista. O Authorization fica com o rótulo acima e o campo na largura toda,
-   para a linha de ajuda caber em duas linhas. */
-.sent-block { margin-top: var(--space-xl); }
-.sent-title { font-size: 0.9375rem; font-weight: 600; margin-bottom: var(--space-s); }
-/* Linhas mais altas que as das tabelas de headers da resposta: é a tabela que o aluno lê antes de enviar. */
-#sent { grid-template-columns: 8.5rem minmax(0, 1fr); }
-#sent > dt, #sent > dd { padding-top: var(--space-s); padding-bottom: var(--space-s); line-height: 1.6; }
-#sent .auth-group { display: contents; }
-#sent .auth-group > dt { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; padding: var(--space-l) 0 0; border-bottom: 0; color: var(--ink); }
-#sent .auth-group > dt label { font-weight: 600; }
-#sent .auth-dd { grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--space-s); padding: var(--space-s) 0 var(--space-l); line-height: 1.5; }
+/* Faixa de seção: um componente só para todo título de seção da Requisição. Ocupa a largura interna da zona
+   de ponta a ponta, com o texto alinhado ao respiro da zona; o título à esquerda e os controles da seção à
+   direita, que quebram dentro da faixa quando falta espaço. Sem raio, sombra nem estado de passar o mouse:
+   não é um botão. */
+.band { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-height: 2.75rem; padding: 6px 16px; background: var(--band); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.band-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.2; }
+.band-tools { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.band-body { padding: var(--space-m) 16px var(--space-xl); }
+/* Na Requisição a seção sai do respiro de #request para a faixa ir de borda a borda. */
+.req-section { margin: 0 calc(-1 * var(--req-x)); }
+.req-hint + .req-section, .req-bar-wrap + .req-section { margin-top: var(--space-xl); }
+.req-section > .band, .req-section > .band-body { padding-left: var(--req-x); padding-right: var(--req-x); }
+.req-section:last-child > .band-body { padding-bottom: 0; }
+.captions { margin-top: var(--space-s); display: flex; flex-direction: column; gap: var(--space-xs); }
+.captions:not(:has(> :not(:empty))) { display: none; }
+/* Botões de copiar: texto visível, nunca desabilitados nem só ao passar o mouse; a largura mínima é a do
+   rótulo de repouso, então "Copiado" não move nada. */
+.btn-copy { min-height: 2rem; min-width: 8.75rem; }
+.link-btn { display: inline; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-btn:hover { color: var(--accent-strong); }
+
+/* Código que o aluno lê ou copia (o comando curl de Será enviado e os exemplos de Respostas possíveis) fica
+   no bloco escuro; o editor do corpo, que o aluno escreve, é cinza. Sem rolagem própria e sem foco; as cores
+   do JSON são as do corpo da resposta. */
+.code-page { margin: 0; background: var(--code-bg); color: var(--code-fg); border: 0; border-radius: 4px; padding: 10px 12px; font-family: var(--font-code); font-size: 0.78125rem; font-weight: 500; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code ::selection, .code-page ::selection { background: #7a3fd1; color: #ffffff; }
+/* No escuro o bloco fica só 1,14:1 contra a zona; uma borda de 1 px (sombra interna, que não muda a altura)
+   marca a beirada. No claro o bloco já contrasta e fica sem borda. */
+:root[data-theme="dark"] .code-page, :root[data-theme="dark"] .code { box-shadow: inset 0 0 0 1px var(--border); }
+/* Cada parte do comando numa linha; o que quebra por falta de largura fica recuado (recuo pendente), e o
+   " \" do fim nunca vai sozinho para a linha de baixo: o último caractere vai junto, e a URL quebra só nos
+   <wbr>. */
+.curl-part { display: block; padding-left: 4ch; text-indent: -4ch; }
+.curl-cont { white-space: pre; }
+.curl-tail { white-space: nowrap; }
+.curl-flag { color: var(--accent); font-weight: 600; }
+.code-page .curl-flag { color: var(--code-flag); }
+.curl-method, .curl-hname { font-weight: 600; }
+
 .auth-caption { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--graphite); overflow-wrap: break-word; }
-.auth-absent { color: var(--fail); font-weight: 700; }
+.auth-absent { color: var(--warn); font-weight: 600; }
 .auth-expired { color: var(--warn); font-weight: 600; }
 .auth-error { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--fail); font-weight: 700; }
 .auth-error:empty { display: none; }
-.auth-actions { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-left: -6px; font-family: var(--font-ui); }
+.auth-actions { display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--font-ui); }
 .auth-actions:not(:has(button:not([hidden]))) { display: none; }
-.auth-public { margin-top: var(--space-l); display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--graphite); }
-.tabs { margin-top: var(--space-2xl); display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-.tab { flex-shrink: 0; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; padding: 8px 12px; color: var(--graphite); font-size: 0.8125rem; font-weight: 600; }
-.tab:hover { color: var(--ink); }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-.tab:focus-visible { outline-offset: -2px; }
-.tab-panel { padding-top: var(--space-l); }
-.tab-panel:focus-visible { outline-offset: 4px; }
+.auth-public { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--graphite); }
+.params + .auth-public, .params-none + .auth-public { margin-top: var(--space-m); }
+.params-none { font-size: 0.8125rem; color: var(--graphite); }
 
-fieldset { border: 0; margin: 0 0 var(--space-xl); padding: 0; min-width: 0; }
-fieldset:last-child { margin-bottom: 0; }
-legend { padding: 0; font-family: var(--font-head); font-size: 0.9375rem; font-weight: 600; margin-bottom: var(--space-s); }
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .params { border-top: 1px solid var(--border); }
 /* Linha de parâmetro: 3 rem com a borda (campo de 2 rem e meio rem de cada lado), rótulo centrado no campo. */
 .params .field { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-xs) 12px; align-items: center; padding: var(--space-s) 0; border-bottom: 1px solid var(--border); }
 .params .param-help { grid-column: 2; }
+/* A linha do header Authorization, na mesma grade: à esquerda o cadeado, o nome e o tipo; à direita o
+   campo, a legenda, o erro e as ações. */
+.auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 2; }
+.auth-row .param-label .lock { align-self: center; color: var(--ink); }
+.params .auth-row { padding-bottom: var(--space-m); }
 .param-label { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; font-size: 0.78125rem; }
 .param-label code { font-size: 0.78125rem; font-weight: 600; }
 .req-mark { font-size: 0.71875rem; color: var(--fail); }
 .param-help { font-size: 0.8125rem; color: var(--graphite); }
-.body-head { display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-s); }
-.editor { width: 100%; resize: vertical; min-height: 8rem; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 10px 12px; font-family: var(--font-code); font-size: 0.78125rem; line-height: 1.6; tab-size: 2; }
+/* Como no Swagger UI, o tipo e o lugar do parâmetro em duas linhas sob o nome: "string" na letra do código e
+   "(query)" em itálico, na letra da interface. */
+.param-type { font-family: var(--font-code); font-size: 0.75rem; color: var(--graphite); align-self: start; }
+.param-in { display: block; font-family: var(--font-ui); font-size: 0.75rem; font-style: italic; color: var(--graphite); }
+/* Abaixo do editor, como no campo Authorization: a legenda diz de onde vem o corpo, e "Restaurar exemplo"
+   só aparece quando há o que restaurar. */
+.body-state { margin-top: var(--space-s); font-size: 0.8125rem; color: var(--graphite); }
+.body-actions { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: var(--space-s); }
+.body-actions:not(:has(button:not([hidden]))) { display: none; }
+.editor { width: 100%; resize: vertical; min-height: 8rem; border: 1px solid var(--control); border-radius: 4px; background: var(--editor-bg); padding: 10px 12px; font-family: var(--font-code); font-size: 0.78125rem; line-height: 1.6; tab-size: 2; }
 .json-note { font-size: 0.8125rem; color: var(--warn); margin-top: var(--space-s); }
 .json-note:empty { display: none; }
+/* O schema do corpo (os campos, o tipo e a regra de cada um), lido do documento OpenAPI, nas abas JSON e
+   Schema, como no Swagger. É texto da interface, não código: nem o bloco escuro nem o cinza do editor. A
+   coluna da regra começa no mesmo x dos campos de Parâmetros. */
+.schema-intro, .schema-unknown { font-size: 0.8125rem; color: var(--graphite); }
+.schema-intro { margin: 0 0 var(--space-s); }
+.schema-unknown { margin: var(--space-s) 0 0; }
+.schema-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 0.8125rem; }
+.schema-table .schema-col-field { width: calc(11rem + 12px); }
+.schema-table thead th { padding: 0 12px 6px 0; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.schema-table tbody th, .schema-table tbody td { padding: var(--space-s) 12px var(--space-s) 0; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; font-weight: 400; }
+.schema-table tbody td { padding-right: 0; color: var(--ink); overflow-wrap: anywhere; }
+.schema-table tbody th .param-type { display: block; margin-top: 3px; }
+.schema-table td code { font-size: 0.78125rem; background: var(--well); padding: 1px 4px; border-radius: 2px; }
+.schema-items tr:not(.schema-group) > th { padding-left: 1rem; }
+.schema-table .schema-group > th { padding: var(--space-s) 0 2px; color: var(--graphite); border-bottom: 0; font-weight: 400; }
+.schema-table .schema-group code { font-size: 0.78125rem; font-weight: 600; }
+.opt-mark { font-size: 0.71875rem; color: var(--graphite); }
+.schema-table th[tabindex]:focus, .schema-unknown:focus { outline: none; }
+.schema-table th[tabindex]:focus-visible, .schema-unknown:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.schema-table tr.schema-hit > * { background: var(--accent-tint); }
+/* A faixa das abas JSON e Schema começa a primeira aba --flare px para dentro, para a curva da esquerda ter a
+   linha onde se apoiar. */
+.body-tabs { margin: 0 0 var(--space-m); padding-left: var(--flare); padding-right: 0; background: none; }
+.flow-schema-go { align-self: flex-start; margin-top: 4px; }
 .sent { display: grid; grid-template-columns: max-content minmax(0, 1fr); margin: 0; font-size: 0.78125rem; border-top: 1px solid var(--border); }
 .sent dt, .sent dd { padding: 5px 0; border-bottom: 1px solid var(--border); }
 .sent dt { color: var(--graphite); font-family: var(--font-code); padding-right: 18px; }
-#sent > dt:first-child { font-family: var(--font-ui); }
 .sent dd { margin: 0; font-family: var(--font-code); overflow-wrap: anywhere; min-width: 0; }
 .code { background: var(--code-bg); color: var(--code-fg); border-radius: 4px; overflow: auto; }
 .code pre { margin: 0; padding: 10px 12px; font-size: 0.78125rem; font-weight: 500; line-height: 1.6; white-space: pre; }
 
-/* Respostas possíveis: o que a documentação promete, para o aluno saber o que verificar. */
-.doc-responses { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
-.doc-responses > li { display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: var(--space-s) 12px; padding: var(--space-m) 0; border-bottom: 1px solid var(--border); }
-.doc-code { font-family: var(--font-code); font-weight: 700; font-size: 0.875rem; }
+/* Respostas possíveis: o que a documentação promete, para o aluno saber o que verificar. Como a tabela do
+   Swagger: cabeçalho Status code e Descrição, uma linha por resposta, o exemplo sob a descrição, duas colunas
+   em toda largura. A primeira coluna cabe "Status code" numa linha. */
+.doc-cols, .doc-responses > li { display: grid; grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 12px; }
+.doc-cols { padding-bottom: 6px; border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.doc-responses { list-style: none; margin: 0; padding: 0; }
+.doc-responses > li { row-gap: var(--space-s); padding: 12px 0; }
+.doc-responses > li + li { border-top: 1px solid var(--border); }
+.doc-code { font-family: var(--font-code); font-weight: 600; font-size: 0.875rem; }
 .doc-desc { align-self: center; }
 .doc-desc code { font-size: 0.78125rem; background: var(--well); padding: 1px 4px; border-radius: 2px; }
-.doc-example { grid-column: 2; }
-.doc-example pre { white-space: pre-wrap; overflow-wrap: anywhere; }
-.doc-none { grid-column: 2; font-size: 0.8125rem; color: var(--graphite); }
+.doc-example, .doc-none { grid-column: 2; }
+.doc-none { font-size: 0.8125rem; color: var(--graphite); }
 .doc-intro { font-size: 0.8125rem; color: var(--graphite); margin-bottom: var(--space-m); }
+.doc-example > summary { cursor: pointer; font-size: 0.8125rem; font-weight: 600; width: max-content; max-width: 100%; }
+.doc-example[open] > summary { margin-bottom: var(--space-s); }
 
 /* Histórico: a quarta zona. Uma lista vertical de envios, o mais recente primeiro, que rola só para
    baixo e só dentro do painel. A mesma marcação vira entrada de três linhas (painel estreito), de duas
@@ -742,7 +840,7 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-head { padding: 6px 14px; }
   .zone-request { --req-x: 14px; }
   .params .field { grid-template-columns: minmax(0, 1fr); }
-  .params .param-help { grid-column: 1; }
+  .params .param-help, .auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 1; }
   .flow-controls { margin-left: 0; width: 100%; justify-content: space-between; }
   .shown, .shown-fill, .section-head, #flow-body, #res-body-area, .result-empty, .hist-empty { padding-left: 14px; padding-right: 14px; }
 }
@@ -771,13 +869,4 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .flow-name { justify-self: start; padding-right: 6px; }
   .flow-end { justify-self: end; padding-left: 6px; }
   .flow-details { padding: 2px 10px 14px 10px; }
-}
-
-/* Zona Requisição estreita: em Será enviado o nome do header fica acima do valor. */
-@container req (max-width: 28rem) {
-  #sent { grid-template-columns: minmax(0, 1fr); }
-  #sent > dt { border-bottom: 0; padding-bottom: 0; }
-  #sent > dd { padding-top: var(--space-xs); }
-  .doc-responses > li { grid-template-columns: minmax(0, 1fr); }
-  .doc-example, .doc-none { grid-column: 1; }
 }

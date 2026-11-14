@@ -24,6 +24,9 @@
   const TEXT_SIZE_NAMES = { normal: 'lab.topbar.size_normal', grande: 'lab.topbar.size_grande', maior: 'lab.topbar.size_maior' }
   // Só GET recebe o valor documentado no parâmetro de caminho; em DELETE e PUT ele é apenas exemplo.
   const PREFILL_METHODS = ['get']
+  // Abaixo desta largura cada exemplo de Respostas possíveis fica fechado num details.
+  const NARROW_EXAMPLES = '(width < 37.5rem)'
+  const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || '') || /Mac|iPhone|iPad/.test(navigator.userAgent || '')
   // Os textos "Como seguir" do fluxo são do painel do Swagger, que tem outro jeito de obter o token.
   // Nesta página, os que dizem como conseguir um token viram a instrução única do campo Authorization,
   // a mesma palavra por palavra em todo lugar.
@@ -278,7 +281,10 @@
     seq: 0,
     loadSeq: 0,
     busy: false,
-    tab: null,
+    // A aba de Corpo (JSON), JSON ou Schema: vale para a página inteira e não é guardada.
+    bodyTab: 'json',
+    // O comando que "Copiar comando" de Será enviado copiou; a mensagem da cópia some quando ele muda.
+    copiedDraft: null,
     // Coluna da esquerda: a aba escolhida (a página sempre abre em Rotas, a escolha não é guardada) e a
     // contagem do Histórico que vai junto do próximo anúncio quando a aba Histórico está fechada.
     sideTab: 'rotas',
@@ -860,9 +866,14 @@
     link.replaceChildren(label, el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
+  // A Requisição sem abas: o título, a descrição, a barra de endereço com a URL já resolvida, a linha do
+  // atalho e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
+  // o documento traz o schema), Será enviado (o comando curl, refeito a cada edição) e Respostas possíveis,
+  // sempre à vista e por último.
   function renderRequest () {
     const box = $('request')
     box.textContent = ''
+    state.copiedDraft = null
     if (state.specError || !state.spec || !state.selected) {
       let message = t('lab.request.loading')
       if (state.specError) message = t('lab.request.no_spec')
@@ -875,122 +886,132 @@
     const draft = draftFor(route)
     paintDocLink(route)
 
-    // Bancada: título, barra de endereço com Executar, o que será enviado e as outras partes em abas.
     // O título da rota abre a zona; o grupo e a descrição dele ficam na lista de rotas.
     append(box, [
       el('h3', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
       route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
-      el('div', { class: 'req-bar' },
-        methodBadge(route.method),
-        // A base e o caminho: a base sai quando não cabe; o title guarda a URL inteira.
-        el('code', { class: 'req-path', title: baseUrl + route.path },
-          el('span', { class: 'req-base', text: baseUrl }),
-          el('span', { class: 'req-route' }, el('span', { dir: 'ltr', text: route.path }))),
-        el('button', { type: 'button', class: 'btn btn-primary', id: 'run', onclick: execute })),
-      el('div', { class: 'actions' },
-        el('button', { type: 'button', class: 'btn', id: 'copy-curl', onclick: copyCurl, text: t('lab.actions.copy_curl') }),
-        el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: 'Ctrl' }), enter: el('kbd', { text: 'Enter' }) })),
-        el('span', { class: 'copy-msg', id: 'copy-msg' })),
-      // Será enviado fica sempre à vista, fora das abas. Nas rotas com cadeado a linha do header é o campo.
-      el('section', { class: 'sent-block', 'aria-labelledby': 'sent-title' },
-        el('h4', { class: 'sent-title', id: 'sent-title', text: t('lab.sent.title') }),
-        el('dl', { class: 'sent', id: 'sent' }, route.needsToken ? authGroup(route, draft) : null),
-        route.needsToken ? null : el('p', { class: 'auth-public' }, lockIcon(14), el('span', null, t('lab.auth.public_title') + ' ' + t('lab.auth.public'))))
+      el('div', { class: 'req-bar-wrap' },
+        el('div', { class: 'req-bar' },
+          methodBadge(route.method),
+          // A base e o caminho: a base sai quando não cabe; o title guarda a URL inteira. O caminho já vem com
+          // os parâmetros preenchidos (paintResolvedUrl, a cada edição).
+          el('code', { class: 'req-path', id: 'req-path', title: baseUrl + route.path },
+            el('span', { class: 'req-base', text: baseUrl }),
+            el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text', text: route.path }))),
+          el('button', { type: 'button', class: 'btn btn-primary', id: 'run', onclick: execute }))),
+      el('p', { class: 'kbd-hint req-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) })),
+      reqSection('params', t('lab.section.params'), null, paramsContent(route, draft)),
+      route.body ? reqSection('body', t('lab.section.body'), null, bodyContent(route, draft)) : null,
+      reqSection('sent', t('lab.sent.title'), draftCopyButton(), curlBlock()),
+      reqSection('responses', t('lab.section.responses'), null, null)
     ])
-
-    const tabs = []
-    if (route.params.length) {
-      const content = []
-      const groups = [
-        { legend: t('lab.params.path'), items: route.params.filter(param => param.in === 'path') },
-        { legend: t('lab.params.query'), items: route.params.filter(param => param.in === 'query') }
-      ]
-      groups.forEach(group => {
-        if (!group.items.length) return
-        const grid = el('div', { class: 'params' })
-        group.items.forEach(param => grid.append(paramField(route, param, draft)))
-        content.push(el('fieldset', null, el('legend', { text: group.legend }), grid))
-      })
-      tabs.push({ id: 'params', label: t('lab.tabs.params'), content, focusable: true })
-    }
-    if (route.body) tabs.push({ id: 'body', label: t('lab.tabs.body'), content: bodyEditor(route, draft), focusable: true })
-    tabs.push({ id: 'curl', label: t('lab.tabs.curl'), content: el('div', { class: 'code', id: 'curl-details' }, el('pre', { id: 'curl-pre' })) })
-    tabs.push({ id: 'responses', label: t('lab.tabs.responses'), content: docResponses(route) })
-    append(box, tabWidget(tabs))
-    selectTab(tabs.some(tab => tab.id === state.tab) ? state.tab : tabs[0].id)
+    paintDocResponses()
     refreshPreview()
     setBusy(state.busy)
   }
 
-  // Respostas documentadas da rota (responses do documento): status, descrição e exemplo de corpo,
-  // para o aluno saber o que verificar.
+  // Uma seção da Requisição: a faixa (título h4 e, à direita, os controles da seção) e o conteúdo.
+  function reqSection (id, title, tools, content) {
+    const titleId = 'sec-' + id + '-title'
+    return el('section', { class: 'req-section', id: 'sec-' + id, 'aria-labelledby': titleId },
+      el('div', { class: 'band' },
+        el('h4', { class: 'band-title', id: titleId, text: title }),
+        tools ? el('div', { class: 'band-tools' }, tools) : null),
+      el('div', { class: 'band-body', id: 'sec-' + id + '-body' }, content))
+  }
+
+  function publicLine () {
+    return el('p', { class: 'auth-public' }, lockIcon(14), el('span', null, t('lab.auth.public_title') + ' ' + t('lab.auth.public')))
+  }
+
+  // Parâmetros: path, query e, nas rotas com cadeado, a linha do header Authorization, na mesma grade. Cada
+  // linha já diz onde o parâmetro vai, então não há legenda de grupo.
+  function paramsContent (route, draft) {
+    const rows = route.params.filter(param => param.in === 'path')
+      .concat(route.params.filter(param => param.in === 'query'))
+      .map(param => paramField(route, param, draft))
+    if (route.needsToken) rows.push(authField(route, draft))
+    return [
+      rows.length ? el('div', { class: 'params' }, rows) : el('p', { class: 'params-none', text: t('lab.params.none') }),
+      route.needsToken ? null : publicLine()
+    ]
+  }
+
+  // Será enviado: o comando curl do rascunho, sempre com o corpo inteiro, e sob ele a mensagem da cópia.
+  function curlBlock () {
+    return [
+      el('pre', { class: 'code-page curl-pre', id: 'curl-pre' }),
+      el('div', { class: 'captions' }, el('p', { class: 'copy-msg', id: 'copy-msg' }))
+    ]
+  }
+
+  function draftCopyButton () {
+    return el('button', { type: 'button', class: 'btn btn-copy', id: 'copy-draft', 'aria-label': t('lab.copy.command_draft'), text: t('lab.copy.command'), onclick: copyDraft })
+  }
+
+  /* ---------- Respostas possíveis ---------- */
+
+  const examplesQuery = (() => {
+    try {
+      return window.matchMedia(NARROW_EXAMPLES)
+    } catch (e) {
+      return null
+    }
+  })()
+
+  function narrowExamples () {
+    return !!(examplesQuery && examplesQuery.matches)
+  }
+
+  // Refeita quando a largura cruza 37,5 rem: abaixo disso cada exemplo fica num details fechado.
+  function paintDocResponses () {
+    const box = $('sec-responses-body')
+    if (!box || !state.selected) return
+    box.replaceChildren()
+    append(box, docResponses(state.selected))
+  }
+
+  // Respostas documentadas da rota (responses do documento): o status code, a descrição e o exemplo de
+  // corpo, para o aluno saber o que verificar. Como a tabela do Swagger, com as duas colunas em toda largura.
+  // O status recebido nunca é marcado aqui.
   function docResponses (route) {
     if (!route.responses.length) return el('p', { class: 'muted small', text: t('lab.responses.none') })
+    const narrow = narrowExamples()
     return [
       el('p', { class: 'doc-intro', text: t('lab.responses.intro') }),
-      el('ul', { class: 'doc-responses' }, route.responses.map(response => el('li', null,
+      el('div', { class: 'doc-cols', 'aria-hidden': 'true' }, el('span', { text: t('lab.responses.col_code') }), el('span', { text: t('lab.responses.col_desc') })),
+      el('ul', { class: 'doc-responses' }, route.responses.map(response => el('li', { id: 'doc-response-' + response.status },
         el('span', { class: 'doc-code', text: response.status }),
         el('span', { class: 'doc-desc' }, richInline(response.description)),
         response.example !== undefined
-          ? el('div', { class: 'code doc-example' }, docExample(response.example))
+          ? docExample(response.example, narrow)
           : el('p', { class: 'doc-none', text: t('lab.responses.no_example') }))))
     ]
   }
 
-  function docExample (example) {
-    const pre = el('pre')
+  function docExample (example, narrow) {
+    const text = JSON.stringify(example, null, 2)
+    const pre = el('pre', { class: 'code-page' })
     // highlightJson escapa cada pedaço antes de envolvê-lo (a mesma marcação da resposta).
-    pre.innerHTML = core.highlightJson(JSON.stringify(example, null, 2))
-    return pre
+    pre.innerHTML = core.highlightJson(text)
+    if (!narrow) {
+      pre.classList.add('doc-example')
+      return pre
+    }
+    const lines = text.split('\n').length
+    return el('details', { class: 'doc-example' },
+      el('summary', { text: lines === 1 ? t('lab.responses.show_example_one') : fillText('lab.responses.show_example', { count: lines }) }),
+      pre)
   }
 
   function richInline (source) {
     return String(source || '').split('`').map((piece, index) => index % 2 ? el('code', { text: piece }) : piece)
   }
 
-  // Abas com o teclado: setas esquerda e direita, Home e End; a aba escolhida vale para as outras rotas.
-  function tabWidget (tabs) {
-    const list = el('div', { class: 'tabs', role: 'tablist', 'aria-label': t('lab.request.title') })
-    const buttons = tabs.map(tab => el('button', { type: 'button', role: 'tab', class: 'tab', id: 'tab-' + tab.id, 'aria-controls': 'panel-' + tab.id, text: tab.label }))
-    buttons.forEach((button, index) => {
-      button.addEventListener('click', () => selectTab(tabs[index].id))
-      button.addEventListener('keydown', event => {
-        let next = null
-        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length
-        else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length
-        else if (event.key === 'Home') next = 0
-        else if (event.key === 'End') next = tabs.length - 1
-        if (next === null) return
-        event.preventDefault()
-        selectTab(tabs[next].id)
-        buttons[next].focus()
-      })
-      list.append(button)
-    })
-    const panels = tabs.map(tab => el('div', {
-      class: 'tab-panel',
-      role: 'tabpanel',
-      id: 'panel-' + tab.id,
-      'aria-labelledby': 'tab-' + tab.id,
-      tabindex: tab.focusable ? null : '0'
-    }, tab.content))
-    return [list, panels]
-  }
-
-  function selectTab (id) {
-    if (!$('panel-' + id)) return
-    state.tab = id
-    document.querySelectorAll('#request [role="tab"]').forEach(button => {
-      const on = button.id === 'tab-' + id
-      button.setAttribute('aria-selected', on ? 'true' : 'false')
-      button.tabIndex = on ? 0 : -1
-    })
-    document.querySelectorAll('#request [role="tabpanel"]').forEach(panel => { panel.hidden = panel.id !== 'panel-' + id })
-  }
-
   // O campo é montado uma vez por rota: refreshPreview roda a cada tecla e só ajusta textos e
-  // visibilidade, para que digitar não tire o foco nem mova o cursor.
-  function authGroup (route, draft) {
+  // visibilidade, para que digitar não tire o foco nem mova o cursor. Ele é uma linha da grade de
+  // parâmetros, com o tipo "string (header)" sob o nome.
+  function authField (route, draft) {
     const input = el('input', {
       class: 'input mono',
       id: 'auth-input',
@@ -998,7 +1019,7 @@
       autocomplete: 'off',
       spellcheck: 'false',
       autocapitalize: 'off',
-      'aria-describedby': 'auth-caption auth-error'
+      'aria-describedby': 'auth-type auth-caption auth-error'
     })
     input.value = authValue(route)
     const error = el('p', { class: 'auth-error', id: 'auth-error' })
@@ -1029,13 +1050,14 @@
     const discard = el('button', { type: 'button', class: 'btn btn-quiet', id: 'auth-discard', text: t('lab.token.discard'), onclick: discardToken })
     const lock = lockIcon(13)
     lock.append(el('span', { class: 'sr-only', text: t('lab.routes.needs_token') }))
-    return el('div', { class: 'auth-group', id: 'auth-group' },
-      el('dt', null, lock, el('label', { for: 'auth-input', text: state.authHeader })),
-      el('dd', { class: 'auth-dd' },
-        input,
-        el('p', { class: 'auth-caption', id: 'auth-caption' }),
-        error,
-        el('div', { class: 'auth-actions' }, undo, discard)))
+    // Sem marca de obrigatório: a página deixa enviar sem o header, e o fluxo mostra a recusa.
+    return el('div', { class: 'field auth-row', id: 'auth-group' },
+      el('div', { class: 'param-label' }, lock, el('label', { for: 'auth-input' }, el('code', { text: state.authHeader }))),
+      input,
+      paramType('auth-type', 'string', t('lab.params.in_header')),
+      el('p', { class: 'auth-caption', id: 'auth-caption' }),
+      error,
+      el('div', { class: 'auth-actions' }, undo, discard))
   }
 
   function paramField (route, param, draft) {
@@ -1070,21 +1092,36 @@
       param.description ? el('span', { class: 'param-help', id: id + '-help', text: param.description }) : null,
       unfilled ? el('span', { class: 'param-help', id: id + '-empty', text: t('lab.params.no_prefill') }) : null
     ].filter(Boolean)
-    if (helps.length) input.setAttribute('aria-describedby', helps.map(help => help.id).join(' '))
+    // Como na tabela do Swagger: sob o nome, o tipo e o lugar do parâmetro, sem tradução ("string" e, na
+    // linha de baixo, "(path)" ou "(query)"). Na grade, a célula fica abaixo do nome; a ajuda, abaixo do campo.
+    const type = paramType(id + '-type', param.type, t(param.in === 'path' ? 'lab.params.in_path' : 'lab.params.in_query'))
+    input.setAttribute('aria-describedby', [type].concat(helps).map(help => help.id).join(' '))
     return el('div', { class: 'field' },
       el('label', { class: 'param-label', for: id },
         el('code', { text: param.name }),
         param.required ? el('span', { class: 'req-mark', text: t('lab.params.required') }) : null),
       input,
+      type,
       helps)
+  }
+
+  // O tipo numa linha e o lugar na de baixo, como no Swagger UI. O espaço entre os dois mantém
+  // "string (query)" na descrição que o leitor de tela lê.
+  function paramType (id, type, where) {
+    return el('span', { class: 'param-type', id },
+      type ? [el('span', { class: 'param-type-name', text: type }), ' '] : null,
+      el('span', { class: 'param-in', text: where }))
   }
 
   function exampleOfParam (param) {
     return param.example !== undefined ? param.example : param.def
   }
 
+  // O editor do corpo, na mesma ordem do campo Authorization: o campo, a legenda que diz de onde vem o
+  // corpo, o aviso de JSON e "Restaurar exemplo", que só aparece quando há o que restaurar. O que muda fica
+  // abaixo do editor, então ele nunca se move enquanto se digita.
   function bodyEditor (route, draft) {
-    const editor = el('textarea', { class: 'editor', id: 'body-editor', spellcheck: 'false', autocomplete: 'off', wrap: 'off', 'aria-describedby': 'json-note' })
+    const editor = el('textarea', { class: 'editor', id: 'body-editor', spellcheck: 'false', autocomplete: 'off', wrap: 'off', 'aria-describedby': 'body-state json-note' })
     editor.value = draft.body
     editor.rows = Math.min(18, Math.max(6, draft.body.split('\n').length + 1))
     const note = el('p', { class: 'json-note', id: 'json-note' })
@@ -1102,61 +1139,267 @@
       if (announceChange && invalid && !wasInvalid) announce(t('lab.body.invalid'))
       wasInvalid = invalid
     }
+    const example = JSON.stringify(route.body.example, null, 2)
+    const stateText = el('p', { class: 'body-state', id: 'body-state' })
+    const restore = el('button', { type: 'button', class: 'btn btn-quiet', id: 'body-restore', text: t('lab.body.restore') })
+    const paintBodyState = () => {
+      const same = draft.body === example
+      stateText.textContent = same ? t('lab.body.state_example') : draft.bodyFrom ? fillText('lab.body.state_filled', { time: clock(draft.bodyFrom) }) : t('lab.body.state_edited')
+      restore.hidden = same
+    }
+    restore.addEventListener('click', () => {
+      draft.body = example
+      delete draft.bodyFrom
+      editor.value = draft.body
+      checkJson(false)
+      refreshPreview()
+      paintBodyState()
+      // O botão some quando o corpo volta ao exemplo: o foco vai para o editor, como no "Desfazer a edição".
+      editor.focus()
+      announce(t('lab.body.restored'))
+    })
     editor.addEventListener('input', () => {
       draft.body = editor.value
+      delete draft.bodyFrom
       checkJson(true)
       refreshPreview()
+      paintBodyState()
     })
     checkJson(false)
+    paintBodyState()
+    // A faixa já diz Corpo (JSON); o rótulo completo fica para o leitor de tela.
     return el('div', { class: 'field' },
-      el('div', { class: 'body-head' },
-        // A aba já diz Corpo (JSON); o rótulo completo fica para o leitor de tela.
-        el('label', { for: 'body-editor', class: 'sr-only', text: t('lab.body.label') }),
-        el('span', { class: 'grow' }),
-        el('button', {
-          type: 'button',
-          class: 'btn btn-quiet',
-          text: t('lab.body.restore'),
-          onclick: () => {
-            draft.body = JSON.stringify(route.body.example, null, 2)
-            editor.value = draft.body
-            checkJson(false)
-            refreshPreview()
-          }
-        })),
+      el('label', { for: 'body-editor', class: 'sr-only', text: t('lab.body.label') }),
       editor,
-      note)
+      stateText,
+      note,
+      el('div', { class: 'body-actions' }, restore))
   }
 
+  /* ---------- Schema do corpo ---------- */
+
+  // O schema do corpo da rota, só quando o documento diz quais campos existem e quais são obrigatórios. Sem
+  // isso não há tabela: uma lista sem "obrigatório" ensinaria errado.
+  function bodySchema (route) {
+    const schema = route && route.body ? route.body.schema : null
+    return schema && schema.properties && Array.isArray(schema.required) ? schema : null
+  }
+
+  // Corpo (JSON): as abas JSON (o editor) e Schema (a tabela), como no Swagger; sem schema, só o editor.
+  function bodyContent (route, draft) {
+    const field = bodyEditor(route, draft)
+    const schema = bodySchema(route)
+    return schema ? bodyTabs(field, schemaParts(schema)) : field
+  }
+
+  // A aba escolhida vale para a página inteira e não fica guardada. Teclado como nas outras abas: setas com
+  // volta, Home e End, com ativação automática.
+  const BODY_TABS = ['json', 'schema']
+  const BODY_TAB_NAMES = { json: 'lab.body_tabs.json', schema: 'lab.body_tabs.schema' }
+
+  function bodyTabs (field, schemaNodes) {
+    const buttons = BODY_TABS.map(id => el('button', { class: 'folder-tab', type: 'button', role: 'tab', id: 'body-tab-' + id, 'aria-controls': 'body-panel-' + id, text: t(BODY_TAB_NAMES[id]) }))
+    const strip = el('div', { class: 'folder-tabs body-tabs', role: 'tablist', 'aria-label': t('lab.body_tabs.label') }, buttons)
+    const panels = [
+      el('div', { class: 'body-panel', id: 'body-panel-json', role: 'tabpanel', 'aria-labelledby': 'body-tab-json' }, field),
+      el('div', { class: 'body-panel', id: 'body-panel-schema', role: 'tabpanel', 'aria-labelledby': 'body-tab-schema', tabindex: '0' }, schemaNodes)
+    ]
+    BODY_TABS.forEach((id, index) => {
+      buttons[index].addEventListener('click', () => selectBodyTab(id, false))
+      buttons[index].addEventListener('keydown', event => {
+        let next = null
+        if (event.key === 'ArrowRight') next = (index + 1) % BODY_TABS.length
+        else if (event.key === 'ArrowLeft') next = (index - 1 + BODY_TABS.length) % BODY_TABS.length
+        else if (event.key === 'Home') next = 0
+        else if (event.key === 'End') next = BODY_TABS.length - 1
+        if (next === null) return
+        event.preventDefault()
+        selectBodyTab(BODY_TABS[next], true)
+      })
+    })
+    paintBodyTabs(buttons, panels)
+    return [strip].concat(panels)
+  }
+
+  function paintBodyTabs (buttons, panels) {
+    BODY_TABS.forEach((id, index) => {
+      const on = state.bodyTab === id
+      buttons[index].setAttribute('aria-selected', on ? 'true' : 'false')
+      buttons[index].tabIndex = on ? 0 : -1
+      panels[index].hidden = !on
+    })
+  }
+
+  function selectBodyTab (id, focus) {
+    state.bodyTab = id
+    const buttons = BODY_TABS.map(item => $('body-tab-' + item))
+    if (buttons.some(button => !button)) return
+    paintBodyTabs(buttons, BODY_TABS.map(item => $('body-panel-' + item)))
+    if (focus) $('body-tab-' + id).focus()
+  }
+
+  // Cada regra tem a frase do campo obrigatório e a do campo opcional ("Se for enviado, …"), as duas
+  // inteiras, para cada idioma ter a sua ordem de palavras.
+  const SCHEMA_RULES = {
+    not_blank: ['lab.schema.rule.not_blank', 'lab.schema.rule_if_sent.not_blank'],
+    any: ['lab.schema.rule.any', 'lab.schema.rule_if_sent.any'],
+    email: ['lab.schema.rule.email', 'lab.schema.rule_if_sent.email'],
+    enum: ['lab.schema.rule.enum', 'lab.schema.rule_if_sent.enum'],
+    enum_quoted: ['lab.schema.rule.enum_quoted', 'lab.schema.rule_if_sent.enum_quoted'],
+    enum_one: ['lab.schema.rule.enum_one', 'lab.schema.rule_if_sent.enum_one'],
+    integer: ['lab.schema.rule.integer', 'lab.schema.rule_if_sent.integer'],
+    integer_min: ['lab.schema.rule.integer_min', 'lab.schema.rule_if_sent.integer_min'],
+    number: ['lab.schema.rule.number', 'lab.schema.rule_if_sent.number'],
+    number_min: ['lab.schema.rule.number_min', 'lab.schema.rule_if_sent.number_min'],
+    boolean: ['lab.schema.rule.boolean', 'lab.schema.rule_if_sent.boolean'],
+    array: ['lab.schema.rule.array', 'lab.schema.rule_if_sent.array'],
+    array_min_one: ['lab.schema.rule.array_min_one', 'lab.schema.rule_if_sent.array_min_one'],
+    array_min: ['lab.schema.rule.array_min', 'lab.schema.rule_if_sent.array_min'],
+    object: ['lab.schema.rule.object', 'lab.schema.rule_if_sent.object']
+  }
+
+  // A regra de um campo: o nome da frase e os valores dela. Um enum de string mostra os valores com aspas, e
+  // a frase avisa das aspas quando um valor parece outro tipo ("true" e "false").
+  function schemaRule (prop) {
+    if (Array.isArray(prop.enum) && prop.enum.length) {
+      const shown = prop.enum.map(value => prop.type === 'string' ? JSON.stringify(String(value)) : String(value))
+      if (shown.length === 1) return { rule: 'enum_one', values: { value: el('code', { text: shown[0] }) } }
+      const quoted = prop.type === 'string' && prop.enum.some(value => {
+        try {
+          return typeof JSON.parse(value) !== 'string'
+        } catch (e) {
+          return false
+        }
+      })
+      // Os valores separados por vírgula, sem conjunção (a frase termina na lista).
+      const list = el('span', null, shown.map((value, index) => [index ? ', ' : null, el('code', { text: value })]))
+      return { rule: quoted ? 'enum_quoted' : 'enum', values: { values: list } }
+    }
+    if (prop.type === 'string') return { rule: prop.format === 'email' ? 'email' : prop.minLength >= 1 ? 'not_blank' : 'any', values: {} }
+    if (prop.type === 'integer' || prop.type === 'number') {
+      if (prop.minimum === undefined) return { rule: prop.type, values: {} }
+      return { rule: prop.type === 'integer' ? 'integer_min' : 'number_min', values: { min: prop.minimum } }
+    }
+    if (prop.type === 'boolean') return { rule: 'boolean', values: {} }
+    if (prop.type === 'array') {
+      const rule = prop.minItems === 1 ? 'array_min_one' : prop.minItems > 1 ? 'array_min' : 'array'
+      return { rule, values: { min: prop.minItems }, itemsBelow: !!(prop.items && prop.items.properties) }
+    }
+    if (prop.type === 'object') return { rule: 'object', values: {} }
+    return null
+  }
+
+  function ruleCell (row) {
+    const rule = schemaRule(row.prop)
+    if (!rule) return el('td')
+    const sentence = parts(SCHEMA_RULES[rule.rule][row.required ? 0 : 1], rule.values)
+    // Um array de objetos avisa que os campos de cada item vêm logo abaixo, numa frase própria.
+    return el('td', null, sentence, rule.itemsBelow ? ' ' + t('lab.schema.rule.items_below') : null)
+  }
+
+  // A introdução, a tabela Campo e Regra (um campo por linha; um array de objetos ganha a linha de grupo e,
+  // abaixo, os campos de cada item) e, quando o documento proíbe campos a mais, a frase do fim.
+  function schemaParts (schema) {
+    const table = el('table', { class: 'schema-table' },
+      el('colgroup', null, el('col', { class: 'schema-col-field' }), el('col')),
+      el('thead', null, el('tr', null, el('th', { scope: 'col', text: t('lab.schema.col_field') }), el('th', { scope: 'col', text: t('lab.schema.col_rule') }))))
+    let body = null
+    core.schemaRows(schema).forEach(row => {
+      if (row.groupLabel) {
+        body = el('tbody', { class: 'schema-items' }, el('tr', { class: 'schema-group' }, el('th', { scope: 'rowgroup', colspan: '2' }, parts('lab.schema.group', { name: el('code', { text: row.groupLabel }) }))))
+        table.append(body)
+        return
+      }
+      if (!body || (!row.group && body.classList.contains('schema-items'))) {
+        body = el('tbody')
+        table.append(body)
+      }
+      // Um campo de grupo tem um nome só para o leitor de tela ("quantidade, em cada item de produtos"); o
+      // nome visível fica fora da árvore de acessibilidade, para não ser lido duas vezes.
+      const name = row.group
+        ? [el('span', { class: 'sr-only', text: fillText('lab.schema.field_in_group', { field: row.name, group: row.group }) }), el('code', { 'aria-hidden': 'true', text: row.name })]
+        : el('code', { text: row.name })
+      body.append(el('tr', { 'data-field': row.path },
+        el('th', { scope: 'row', tabindex: '-1' },
+          el('span', { class: 'param-label' },
+            name,
+            ' ',
+            row.required ? el('span', { class: 'req-mark', text: t('lab.params.required') }) : el('span', { class: 'opt-mark', text: t('lab.schema.optional') })),
+          el('span', { class: 'param-type', text: row.type })),
+        ruleCell(row)))
+    })
+    return [
+      el('p', { class: 'schema-intro', text: fillText('lab.schema.intro', { stage: t('ui.flow.stage_label.schema') }) }),
+      table,
+      schema.additionalProperties === false ? el('p', { class: 'schema-unknown', id: 'schema-unknown', tabindex: '-1', text: t('lab.schema.unknown') }) : null
+    ]
+  }
+
+  // O alvo do link do fluxo: o campo que o corpo da resposta aponta primeiro (produtos[0].quantidade vira
+  // produtos.quantidade), ou a frase do fim quando a mensagem diz que o campo não é permitido. As mensagens
+  // da API são sempre em português.
+  function schemaTarget (record) {
+    if (!record || record.error) return null
+    let body = null
+    try {
+      body = JSON.parse(record.bodyText)
+    } catch (e) {
+      return null
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+    const key = Object.keys(body)[0]
+    if (!key) return null
+    const match = /^([^.[\]]+)(?:\[\d+\])?(?:\.([^.[\]]+))?/.exec(key)
+    if (!match) return null
+    const path = match[1] + (match[2] ? '.' + match[2] : '')
+    const row = Array.from(document.querySelectorAll('#sec-body-body tr[data-field]')).find(item => item.getAttribute('data-field') === path)
+    if (row) return row
+    if (typeof body[key] === 'string' && /não é permitido$/.test(body[key].trim())) return $('schema-unknown')
+    return null
+  }
+
+  // Do fluxo para o schema: escolhe a aba Schema, leva o campo à vista e o foco para ele, e pinta a linha por
+  // 2 s (com menos movimento, a rolagem é na hora; a cor fica, porque não é movimento).
+  function goToSchema (record) {
+    const target = schemaTarget(record)
+    if (!target) return
+    selectBodyTab('schema', false)
+    target.scrollIntoView({ block: 'center', behavior: state.reduced ? 'auto' : 'smooth' })
+    const focusNode = target.tagName === 'TR' ? target.querySelector('th') : target
+    focusNode.focus({ preventScroll: true })
+    if (target.tagName !== 'TR') return
+    target.classList.add('schema-hit')
+    clearTimeout(target.hitTimer)
+    target.hitTimer = setTimeout(() => target.classList.remove('schema-hit'), 2000)
+  }
+
+  // A cada mudança no rascunho: a URL da barra, o comando de Será enviado, o campo Authorization e a caixa
+  // de Preencher.
   function refreshPreview () {
     const route = state.selected
-    if (!route || !$('sent')) return
+    if (!route || !$('curl-pre')) return
     const request = currentRequest(route)
-    // As linhas antes do campo são refeitas; o grupo do campo nunca sai do lugar, então o foco fica.
-    const list = $('sent')
-    const group = $('auth-group')
-    while (list.firstChild && list.firstChild !== group) list.firstChild.remove()
-    const rows = [el('dt', { text: t('lab.sent.url') }), el('dd', null, sentUrl(request))]
-    request.headers.forEach(header => {
-      if (route.needsToken && header[0] === state.authHeader) return
-      rows.push(el('dt', { text: header[0] }), el('dd', { text: header[1] }))
-    })
-    rows.forEach(row => list.insertBefore(row, group))
+    paintResolvedUrl(request)
+    renderCurl($('curl-pre'), request)
+    // A mensagem da cópia vale para o comando copiado: some quando o comando muda.
+    if (state.copiedDraft !== null && state.copiedDraft !== core.curlOf(request)) {
+      state.copiedDraft = null
+      $('copy-msg').className = 'copy-msg'
+      $('copy-msg').replaceChildren()
+    }
     if (route.needsToken) paintAuth(route)
-    $('curl-pre').textContent = core.curlOf(request)
     // Cada mudança no rascunho decide de novo se o envio mostrado em Resultado é diferente dele.
     paintFill()
   }
 
-  // A linha da URL em Será enviado: o método fica na linha da URL (um espaço que não quebra) e uma URL
-  // longa quebra entre os pedaços dela: depois de "//" e antes de cada / do caminho e de cada ? ou &. Um
-  // pedaço só quebra no meio quando sozinho não cabe na linha (overflow-wrap do CSS).
-  function sentUrl (request) {
-    const match = /^([a-z][a-z0-9+.-]*:\/\/)([^/?#]*)([\s\S]*)$/i.exec(request.url)
-    const pieces = (match ? match[3] : request.url).split(/(?=[/?&])/).filter(Boolean)
-    if (match && match[2]) pieces.unshift(match[2])
-    const head = request.method + ' ' + (match ? match[1] : pieces.shift() || '')
-    return [head, pieces.map(piece => [el('wbr'), piece])]
+  // A barra mostra a URL já resolvida: os parâmetros de path preenchidos e a query no fim. Um parâmetro de
+  // path vazio fica {nome}, como no comando.
+  function paintResolvedUrl (request) {
+    const text = $('req-route-text')
+    const path = $('req-path')
+    if (!text || !path) return
+    text.textContent = request.url.slice(baseUrl.length)
+    path.title = request.url
   }
 
   function tokenValues () {
@@ -1196,22 +1439,116 @@
     else run.append(t('lab.actions.execute'))
   }
 
-  function copyCurl () {
-    const command = core.curlOf(currentRequest(state.selected))
-    const done = ok => {
-      const message = $('copy-msg')
-      const text = ok ? t('lab.actions.copied') : t('lab.actions.copy_failed')
-      message.textContent = text
-      message.className = 'copy-msg' + (ok ? '' : ' fail')
-      announce(text)
-      if (!ok) selectTab('curl')
-      setTimeout(() => {
-        if ($('copy-msg') === message) message.textContent = ''
-      }, 2500)
+  /* ---------- Comando curl e cópia ---------- */
+
+  // Uma linha por parte do comando (span em bloco): todas menos a primeira começam com dois espaços, todas
+  // menos a última terminam em " \". O innerText do bloco é exatamente core.curlOf, também numa seleção
+  // feita à mão; o botão copia sempre a string de core.curlOf, nunca o texto da tela.
+  function renderCurl (pre, request) {
+    const list = core.curlParts(request)
+    pre.replaceChildren(...list.map((part, index) => {
+      const line = el('span', { class: 'curl-part', 'data-kind': part.kind })
+      if (index > 0) line.append('  ')
+      curlPartContent(line, part)
+      if (index < list.length - 1) keepTailTogether(line)
+      return line
+    }))
+  }
+
+  // O último caractere da parte e o " \" do fim ficam numa peça que não quebra, então a barra nunca vai
+  // sozinha para a linha de baixo, nem quando a parte não cabe e quebra em qualquer ponto.
+  function keepTailTogether (line) {
+    const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT)
+    let last = null
+    while (walker.nextNode()) if (walker.currentNode.data) last = walker.currentNode
+    const cont = el('span', { class: 'curl-cont', text: ' \\' })
+    if (!last) {
+      line.append(cont)
+      return
     }
+    const end = last.data.length > 1 ? last.splitText(last.data.length - 1) : last
+    const tail = el('span', { class: 'curl-tail' })
+    end.replaceWith(tail)
+    tail.append(end, cont)
+  }
+
+  // A URL quebra nas divisas do caminho: depois de cada / (fora do // do esquema), de ? e de &. O <wbr> não
+  // entra no innerText nem no texto copiado. Um pedaço que sozinho não cabe na linha ainda quebra em qualquer
+  // ponto (overflow-wrap do bloco), em vez de sair pela borda.
+  function urlWithBreaks (quoted) {
+    const span = el('span', { class: 'curl-url' })
+    const scheme = quoted.indexOf('://')
+    let start = 0
+    for (let index = scheme === -1 ? 0 : scheme + 3; index < quoted.length - 1; index++) {
+      if ('/?&'.indexOf(quoted.charAt(index)) === -1) continue
+      span.append(quoted.slice(start, index + 1), el('wbr'))
+      start = index + 1
+    }
+    span.append(quoted.slice(start))
+    return span
+  }
+
+  function curlPartContent (line, part) {
+    const flag = text => el('span', { class: 'curl-flag', text })
+    if (part.kind === 'start') {
+      line.append('curl ', flag('-X'), ' ', el('span', { class: 'curl-method', text: part.method }), ' ', urlWithBreaks(core.shellQuote(part.url)))
+      return
+    }
+    if (part.kind === 'header') {
+      const quoted = core.shellQuote(part.name + ': ' + part.value)
+      line.append(flag('-H'), ' ')
+      if (quoted.slice(1, 1 + part.name.length) === part.name) line.append("'", el('span', { class: 'curl-hname', text: part.name }), quoted.slice(1 + part.name.length))
+      else line.append(quoted)
+      return
+    }
+    line.append(flag(part.flag), ' ')
+    // O corpo ganha as cores do JSON só quando é JSON e não tem aspas simples (que o shell escaparia).
+    let json = false
+    if (part.body.indexOf("'") === -1) {
+      try {
+        JSON.parse(part.body)
+        json = true
+      } catch (e) {}
+    }
+    if (!json) {
+      line.append(core.shellQuote(part.body))
+      return
+    }
+    // highlightJson escapa cada pedaço antes de envolvê-lo.
+    const holder = el('span')
+    holder.innerHTML = core.highlightJson(part.body)
+    line.append("'", ...holder.childNodes, "'")
+  }
+
+  // A tecla de comando do sistema da pessoa, no atalho e nas mensagens de cópia.
+  function ctrlName () {
+    return IS_MAC ? 'Cmd' : 'Ctrl'
+  }
+
+  function selectContents (node) {
+    try {
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      const selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(range)
+    } catch (e) {}
+  }
+
+  // O rótulo vira "Copiado" por 2 s; o nome acessível (aria-label) não muda.
+  function flashCopied (button) {
+    const label = button.getAttribute('data-label') || button.textContent
+    button.setAttribute('data-label', label)
+    button.textContent = t('lab.copy.done_label')
+    clearTimeout(button.copyTimer)
+    button.copyTimer = setTimeout(() => { button.textContent = label }, 2000)
+  }
+
+  function copyText (text, done) {
     const fallback = () => {
+      const active = document.activeElement
       const area = el('textarea', { class: 'copy-buffer', 'aria-hidden': 'true', tabindex: '-1' })
-      area.value = command
+      area.value = text
       document.body.append(area)
       area.select()
       let ok = false
@@ -1219,10 +1556,36 @@
         ok = document.execCommand('copy')
       } catch (e) {}
       area.remove()
+      if (active && active !== document.body && active.focus) active.focus({ preventScroll: true })
       done(ok)
     }
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(command).then(() => done(true), fallback)
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => done(true), fallback)
     else fallback()
+  }
+
+  // Copia um comando curl. Sem área de transferência, o comando inteiro fica selecionado no bloco e a
+  // mensagem diz como copiar com o teclado.
+  function copyCommand (button, command, pre, message, onShown) {
+    copyText(command, ok => {
+      if (ok) {
+        const done = t('lab.copy.command_done')
+        flashCopied(button)
+        message.className = 'copy-msg'
+        message.replaceChildren(done)
+        announce(done)
+      } else {
+        selectContents(pre)
+        message.className = 'copy-msg fail'
+        message.replaceChildren(...parts('lab.copy.command_failed', { ctrl: el('kbd', { text: ctrlName() }) }))
+        announce(fillText('lab.copy.command_failed', { ctrl: ctrlName() }))
+      }
+      if (onShown) onShown()
+    })
+  }
+
+  function copyDraft () {
+    const command = core.curlOf(currentRequest(state.selected))
+    copyCommand($('copy-draft'), command, $('curl-pre'), $('copy-msg'), () => { state.copiedDraft = command })
   }
 
   /* ---------- Envio ---------- */
@@ -1279,7 +1642,6 @@
     if (missing) {
       const input = $('param-path-' + missing.name)
       input.setAttribute('aria-invalid', 'true')
-      selectTab('params')
       input.focus()
       announce(fillText('lab.params.missing', { name: missing.name }))
       return
@@ -1666,6 +2028,8 @@
     const draft = draftFor(route)
     draft.params = Object.assign({}, record.sent.params)
     draft.body = record.sent.body
+    // A legenda do corpo passa a dizer de qual envio ele veio, até a próxima edição.
+    if (route.body) draft.bodyFrom = record.at
     const authChanged = route.needsToken && authValue(route) !== record.sent.auth
     if (authChanged) {
       draft.auth = record.sent.auth
@@ -2094,6 +2458,21 @@
     row.row.setAttribute('aria-expanded', open ? 'true' : 'false')
   }
 
+  // Na etapa Validação dos dados que parou, quando o corpo da resposta aponta um campo do schema da rota
+  // mostrada, "Como seguir" manda comparar com o schema e ganha o botão que leva até a linha do campo. O
+  // texto do painel do Swagger (ui.*) não muda: a troca é só aqui, no lugar do parágrafo.
+  function paintSchemaLink (index) {
+    const row = flow.rows[index]
+    const record = flow.record
+    if (!row || !row.details || row.stage.name !== 'schema') return
+    if (!record || !state.selected || core.recordKey(record) !== state.selected.key || !bodySchema(state.selected)) return
+    if (!schemaTarget(record)) return
+    const how = row.details.querySelector('.flow-how')
+    if (!how) return
+    how.querySelector('p').textContent = t('lab.flow.how.schema')
+    how.append(el('button', { type: 'button', class: 'link-btn flow-schema-go', id: 'flow-schema-go', text: t('lab.schema.go'), onclick: () => goToSchema(record) }))
+  }
+
   function finishFlow () {
     const model = flow.model
     const summary = flow.summaryEl
@@ -2106,6 +2485,7 @@
       const stage = model.stages[index]
       summary.append(el('span', { text: t('ui.flow.stopped_at') }), codeOrLabel(stage.labelKey, stage.name, 'flow-summary-stage'))
       spoken = fillText('lab.announce.stopped', { status: statusLine(record), stage: stageName(stage) })
+      paintSchemaLink(index)
       setExpanded(index, true)
     } else if (model.summary === 'outside') {
       summary.append(el('span', { text: t('ui.flow.outside') }))
@@ -2146,6 +2526,11 @@
     $('filter').addEventListener('input', renderRoutes)
     $('routes-toggle').addEventListener('click', () => setRoutesCollapsed(!$('routes').classList.contains('collapsed')))
     $('hist-clear').addEventListener('click', clearHistory)
+    if (examplesQuery) {
+      try {
+        examplesQuery.addEventListener('change', paintDocResponses)
+      } catch (e) {}
+    }
     document.addEventListener('keydown', event => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && $('request').contains(document.activeElement)) {
         event.preventDefault()
