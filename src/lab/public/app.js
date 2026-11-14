@@ -1375,9 +1375,7 @@
       class: 'input mono',
       id: 'auth-input',
       type: 'text',
-      autocomplete: 'off',
-      spellcheck: 'false',
-      autocapitalize: 'off',
+      ...core.FIELD_ASSISTS_OFF,
       'aria-describedby': 'auth-type auth-caption auth-error'
     })
     input.value = authValue(route)
@@ -1432,8 +1430,7 @@
         class: 'input mono',
         id,
         type: 'text',
-        autocomplete: 'off',
-        spellcheck: 'false',
+        ...core.FIELD_ASSISTS_OFF,
         placeholder: exampleOfParam(param) !== undefined ? fillText('lab.params.example', { example: exampleOfParam(param) }) : null
       })
     }
@@ -1480,7 +1477,7 @@
   // corpo, o aviso de JSON e "Restaurar exemplo", que só aparece quando há o que restaurar. O que muda fica
   // abaixo do editor, então ele nunca se move enquanto se digita.
   function bodyEditor (route, draft) {
-    const editor = el('textarea', { class: 'editor', id: 'body-editor', spellcheck: 'false', autocomplete: 'off', wrap: 'off', 'aria-describedby': 'body-state json-note' })
+    const editor = el('textarea', { class: 'editor', id: 'body-editor', ...core.FIELD_ASSISTS_OFF, wrap: 'off', 'aria-describedby': 'body-state json-note' })
     editor.value = draft.body
     editor.rows = Math.min(18, Math.max(6, draft.body.split('\n').length + 1))
     const note = el('p', { class: 'json-note', id: 'json-note' })
@@ -3653,7 +3650,9 @@
     }
     renderHistory()
     renderResultEmpty(null)
-    $('filter').addEventListener('input', renderRoutes)
+    const filter = $('filter')
+    Object.keys(core.FIELD_ASSISTS_OFF).forEach(name => filter.setAttribute(name, core.FIELD_ASSISTS_OFF[name]))
+    filter.addEventListener('input', renderRoutes)
     $('routes-toggle').addEventListener('click', () => setRoutesCollapsed(!$('routes').classList.contains('collapsed')))
     $('hist-clear').addEventListener('click', clearHistory)
     $('hist-undo').addEventListener('click', undoClear)

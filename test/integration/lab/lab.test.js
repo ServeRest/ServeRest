@@ -95,6 +95,13 @@ describe('/ GET (página inicial)', () => {
     expect(text).to.not.match(/autocomplete="(current-password|new-password|username)"/i)
   })
 
+  // Os campos montados por app.js recebem a lista inteira de core.FIELD_ASSISTS_OFF; no HTML fica o body,
+  // com que o 1Password ignora a página inteira, inclusive um campo novo que esqueça a lista.
+  it('marca o body para o 1Password ignorar a página inteira', async () => {
+    const { text } = await request.get('/').expect(200)
+    expect(text).to.match(/<body data-1p-ignore>/)
+  })
+
   it('carrega o tema e o tamanho do texto guardados sem defer, depois dos links antigos e antes do CSS', async () => {
     const { text } = await request.get('/').expect(200)
     const tag = /<script src="\/lab\/assets\/prefs-boot\.js\?v=[^"]+"[^>]*>/.exec(text)

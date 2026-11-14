@@ -790,7 +790,27 @@
     return { show: false, write: false }
   }
 
+  // O ServeRest não tem login de verdade: /login, email e password são dados de exemplo. Estes atributos
+  // pedem aos gerenciadores de senha que não ofereçam salvar nem preencher nada (1Password, LastPass,
+  // Bitwarden e Dashlane, nessa ordem) e aos corretores que não sublinhem JSON, ids e tokens (navegador,
+  // teclado do celular e Grammarly). src/swagger/scripts/09-campos-sem-assistentes.js repete a lista, e um
+  // teste confere que as duas são iguais.
+  const FIELD_ASSISTS_OFF = Object.freeze({
+    autocomplete: 'off',
+    'data-1p-ignore': '',
+    'data-lpignore': 'true',
+    'data-bwignore': '',
+    'data-form-type': 'other',
+    spellcheck: 'false',
+    autocorrect: 'off',
+    autocapitalize: 'off',
+    'data-gramm': 'false',
+    'data-gramm_editor': 'false',
+    'data-enable-grammarly': 'false'
+  })
+
   const core = {
+    FIELD_ASSISTS_OFF,
     statusText,
     mdnStatusUrl,
     mdnMethodUrl,
