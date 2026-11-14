@@ -51,6 +51,20 @@
     }
   }
 
+  // A página do método na MDN, com a mesma regra de idioma do status code. Os cinco métodos foram conferidos
+  // nas três línguas; outro método cai na página em inglês.
+  const MDN_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+
+  function mdnMethodUrl (method, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const name = String(method || '').toUpperCase()
+    const locale = MDN_METHODS.includes(name) ? MDN_LOCALES[prefix] || 'en-US' : 'en-US'
+    return {
+      url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Methods/' + encodeURIComponent(name),
+      english: locale === 'en-US' && prefix !== 'en'
+    }
+  }
+
   /* Fluxo: cópia de src/swagger/scripts/08-flow-panel.js, com os textos recebidos como argumento.
      Um teste de unidade compara os dois modelos para que as cópias não divirjam. */
 
@@ -730,9 +744,42 @@
     return html + escapeHtml(json.slice(last))
   }
 
+  // O aviso de versão nova da barra. Quem decide se existe aviso é o servidor (isNewerVersion), que escreve
+  // a versão e a URL da release na raiz da página: aqui nada compara versões. Sem URL, nenhum aviso; com URL
+  // e sem versão, o aviso forçado sem número (a linha simples); com as duas, a linha que abre o painel. Um
+  // servidor que roda uma versão de pré-lançamento (3.3.0-beta.8) só ouve falar de uma estável nova.
+  function releaseNotice (notice) {
+    const { running, version, url } = notice || {}
+    if (!safeHref(url)) return null
+    if (!version) return { kind: 'plain' }
+    const prerelease = String(running || '').includes('-')
+    return {
+      kind: 'panel',
+      line: prerelease ? 'lab.version.notice_stable' : 'lab.version.notice',
+      title: prerelease ? 'lab.release.title_stable' : 'lab.release.title',
+      runningKey: prerelease ? 'lab.release.running_beta' : 'lab.release.running'
+    }
+  }
+
+  // O convite para dar opinião, no Resultado vazio: só a partir da 3ª requisição no Histórico, numa sessão
+  // só por navegador. local é o valor guardado no localStorage (ausente, "shown", "closed" ou "answered") e
+  // session diz se esta aba já mostrou o convite. write pede para guardar "shown" e a marca da sessão.
+  const FEEDBACK_MIN_COUNT = 3
+
+  function feedbackInvite (input) {
+    const { count, local, session } = input || {}
+    if (!(count >= FEEDBACK_MIN_COUNT)) return { show: false, write: false }
+    if (local === null || local === undefined) return { show: true, write: true }
+    if (local === 'shown' && session) return { show: true, write: false }
+    return { show: false, write: false }
+  }
+
   const core = {
     statusText,
     mdnStatusUrl,
+    mdnMethodUrl,
+    releaseNotice,
+    feedbackInvite,
     segmentGrow,
     formatDuration,
     parseStages,

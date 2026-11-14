@@ -717,6 +717,92 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('mdnMethodUrl', () => {
+    const base = 'https://developer.mozilla.org/'
+    const locais = { 'pt-BR': 'pt-BR', es: 'es', en: 'en-US' }
+
+    it('usa o idioma da página para os quatro métodos do ServeRest e para PATCH', () => {
+      Object.entries(locais).forEach(([idioma, local]) => {
+        ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].forEach(metodo => {
+          expect(core.mdnMethodUrl(metodo, idioma), `${idioma} ${metodo}`).to.deep.equal({ url: `${base}${local}/docs/Web/HTTP/Reference/Methods/${metodo}`, english: false })
+        })
+      })
+    })
+
+    it('aceita o método em minúsculas, como vem das rotas', () => {
+      expect(core.mdnMethodUrl('post', 'pt-BR').url).to.equal(base + 'pt-BR/docs/Web/HTTP/Reference/Methods/POST')
+    })
+
+    it('cai para en-US com um método desconhecido, com english só fora de uma página em inglês', () => {
+      expect(core.mdnMethodUrl('TRACE', 'pt-BR')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Methods/TRACE', english: true })
+      expect(core.mdnMethodUrl('TRACE', 'es')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Methods/TRACE', english: true })
+      expect(core.mdnMethodUrl('TRACE', 'en')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Methods/TRACE', english: false })
+    })
+
+    it('com um idioma desconhecido usa en-US e avisa que está em inglês', () => {
+      expect(core.mdnMethodUrl('GET', 'fr')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Methods/GET', english: true })
+      expect(core.mdnMethodUrl(undefined, undefined)).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Methods/', english: true })
+    })
+  })
+
+  describe('releaseNotice', () => {
+    const url = 'https://github.com/ServeRest/ServeRest/releases/tag/v3.3.0'
+
+    it('uma estável nova num servidor estável: a linha comum e o painel com a versão do servidor', () => {
+      expect(core.releaseNotice({ running: '3.2.1', version: '3.2.2', url })).to.deep.equal({
+        kind: 'panel', line: 'lab.version.notice', title: 'lab.release.title', runningKey: 'lab.release.running'
+      })
+    })
+
+    it('um servidor que roda um pré-lançamento ouve falar da estável nova, e o painel diz beta', () => {
+      expect(core.releaseNotice({ running: '3.3.0-beta.8', version: '3.3.0', url })).to.deep.equal({
+        kind: 'panel', line: 'lab.version.notice_stable', title: 'lab.release.title_stable', runningKey: 'lab.release.running_beta'
+      })
+    })
+
+    it('o aviso forçado sem versão é a linha simples, sem painel', () => {
+      expect(core.releaseNotice({ running: '3.3.0-beta.8', version: '', url: 'https://github.com/ServeRest/ServeRest/releases' })).to.deep.equal({ kind: 'plain' })
+    })
+
+    it('sem URL, ou com uma URL que não é http ou https, não há aviso', () => {
+      expect(core.releaseNotice({ running: '3.2.1', version: '', url: '' })).to.equal(null)
+      expect(core.releaseNotice({ running: '3.2.1', version: '3.2.2', url: 'javascript:alert(1)' })).to.equal(null)
+      expect(core.releaseNotice(undefined)).to.equal(null)
+    })
+
+    it('nunca compara versões: mostra o que o servidor decidiu, mesmo com uma versão mais antiga', () => {
+      expect(core.releaseNotice({ running: '3.3.0-beta.8', version: '3.2.2', url }).kind).to.equal('panel')
+    })
+  })
+
+  describe('feedbackInvite', () => {
+    it('com menos de 3 envios no Histórico não aparece', () => {
+      expect(core.feedbackInvite({ count: 2, local: null, session: false })).to.deep.equal({ show: false, write: false })
+      expect(core.feedbackInvite({ count: 0, local: null, session: false })).to.deep.equal({ show: false, write: false })
+      expect(core.feedbackInvite(undefined)).to.deep.equal({ show: false, write: false })
+    })
+
+    it('na primeira vez aparece e pede para guardar "shown" e a marca da sessão', () => {
+      expect(core.feedbackInvite({ count: 3, local: null, session: false })).to.deep.equal({ show: true, write: true })
+      expect(core.feedbackInvite({ count: 7, local: undefined, session: false })).to.deep.equal({ show: true, write: true })
+    })
+
+    it('na mesma sessão continua aparecendo, sem escrever de novo', () => {
+      expect(core.feedbackInvite({ count: 4, local: 'shown', session: true })).to.deep.equal({ show: true, write: false })
+    })
+
+    it('numa sessão nova depois de "shown" não aparece mais', () => {
+      expect(core.feedbackInvite({ count: 4, local: 'shown', session: false })).to.deep.equal({ show: false, write: false })
+    })
+
+    it('depois de "closed" ou "answered" nunca aparece', () => {
+      ;['closed', 'answered'].forEach(local => {
+        expect(core.feedbackInvite({ count: 5, local, session: true }), local).to.deep.equal({ show: false, write: false })
+        expect(core.feedbackInvite({ count: 5, local, session: false }), local).to.deep.equal({ show: false, write: false })
+      })
+    })
+  })
+
   describe('prettyJson', () => {
     it('reindenta com dois espaços', () => {
       expect(core.prettyJson('{"a":1,"b":[1,2],"c":{"d":"x"}}')).to.equal('{\n  "a": 1,\n  "b": [\n    1,\n    2\n  ],\n  "c": {\n    "d": "x"\n  }\n}')
