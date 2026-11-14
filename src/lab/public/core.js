@@ -243,12 +243,38 @@
     const { startTime, requestStart, responseStart, responseEnd } = entry
     if (![startTime, requestStart, responseStart, responseEnd].every(Number.isFinite)) return null
     if (!(requestStart >= startTime && responseStart >= requestStart && responseEnd >= responseStart)) return null
+    const span = (from, to) => Number.isFinite(from) && Number.isFinite(to) && to > from ? to - from : 0
+    const tlsAt = entry.secureConnectionStart > 0 ? entry.secureConnectionStart : null
     return {
       conn: requestStart - startTime,
       ttfb: responseStart - requestStart,
       down: responseEnd - responseStart,
-      connNew: entry.connectEnd > entry.connectStart || entry.domainLookupEnd > entry.domainLookupStart
+      connNew: entry.connectEnd > entry.connectStart || entry.domainLookupEnd > entry.domainLookupStart,
+      // Os detalhes dos balões: o protocolo, as etapas de uma conexão nova (TLS só em https) e o tamanho do
+      // corpo como chegou (encoded) e depois de descomprimido (size).
+      protocol: typeof entry.nextHopProtocol === 'string' ? entry.nextHopProtocol : '',
+      dns: span(entry.domainLookupStart, entry.domainLookupEnd),
+      tcp: span(entry.connectStart, tlsAt || entry.connectEnd),
+      tls: tlsAt ? span(tlsAt, entry.connectEnd) : 0,
+      secure: !!tlsAt,
+      size: Number.isFinite(entry.decodedBodySize) ? entry.decodedBodySize : null,
+      encoded: Number.isFinite(entry.encodedBodySize) ? entry.encodedBodySize : null
     }
+  }
+
+  const PROTOCOLS = { 'http/1.0': 'HTTP/1.0', 'http/1.1': 'HTTP/1.1', h2: 'HTTP/2', h2c: 'HTTP/2', h3: 'HTTP/3' }
+
+  // O nome do protocolo como as pessoas o escrevem ("h2" vira "HTTP/2"); null para o que não é conhecido.
+  function protocolName (value) {
+    return PROTOCOLS[String(value || '').toLowerCase()] || null
+  }
+
+  // Um tamanho em bytes como o resto da página: bytes abaixo de 1 KB, KB com uma casa acima disso.
+  function formatBytes (bytes, language) {
+    if (!Number.isFinite(bytes) || bytes < 0) return null
+    if (bytes < 1024) return bytes + ' bytes'
+    const text = (bytes / 1024).toFixed(1)
+    return (language === 'en' ? text : text.replace('.', ',')) + ' KB'
   }
 
   // As partes da barra de tempo sob o fluxo, em ms. server é a soma das etapas do header; a rede é o TTFB
@@ -257,7 +283,35 @@
   // (relógios diferentes), a rede ficaria em zero.
   function timeBar (total, timing, server) {
     const net = Math.max(0, timing.ttfb - server)
-    return { total, conn: timing.conn, ttfb: timing.ttfb, down: timing.down, connNew: timing.connNew, server, net, half: net / 2 }
+    return { total, conn: timing.conn, ttfb: timing.ttfb, down: timing.down, connNew: timing.connNew, server, net, half: net / 2, details: timing }
+  }
+
+  // As larguras da barra. Em escala real quando toda parte com tempo tem pelo menos minShare da barra; senão
+  // cada tempo vira tempo^p, com o maior p (o ajuste mais suave) que leva a parte mais fina até minShare. Uma
+  // potência não troca a ordem: uma parte que levou mais tempo nunca fica mais estreita que outra. Em
+  // produção a rede passa de 95% e a conexão vira uma linha; no localhost tudo já aparece e nada muda.
+  // adjusted diz se a escala deixou de ser a real. Os números mostrados continuam os reais.
+  function timeWeights (bar, minShare) {
+    const times = [bar.conn, bar.half, bar.server, bar.half, bar.down].map(ms => ms > 0 ? ms : 0)
+    const thinnest = power => {
+      const sizes = times.map(ms => ms > 0 ? Math.pow(ms, power) : 0)
+      const sum = sizes.reduce((total, size) => total + size, 0)
+      const filled = sizes.filter(size => size > 0)
+      return sum > 0 && filled.length ? Math.min(...filled) / sum : 1
+    }
+    let power = 1
+    if (minShare > 0 && thinnest(1) < minShare) {
+      let low = 0.2
+      let high = 1
+      for (let step = 0; step < 30; step++) {
+        const middle = (low + high) / 2
+        if (thinnest(middle) >= minShare) low = middle
+        else high = middle
+      }
+      power = low
+    }
+    const scale = ms => ms > 0 ? Math.pow(ms, power) : 0
+    return { conn: scale(bar.conn), half: scale(bar.half), server: scale(bar.server), down: scale(bar.down), adjusted: power < 1 }
   }
 
   // Sem as fases (um envio guardado antes da Resource Timing, ou sem entrada dela): o total vira servidor
@@ -276,6 +330,15 @@
     return ms >= 100 ? String(Math.round(ms)) + ' ms' : formatMsFixed(ms, 1, language)
   }
 
+  // A fatia de um tempo no total, ao lado do valor no balão da barra: uma casa, vírgula fora do inglês, e
+  // "< 0,1%" quando a fatia existe mas não chega a isso. Sem total, não há fatia.
+  function formatShare (part, total, language) {
+    if (!(total > 0) || !Number.isFinite(part) || part < 0) return null
+    const percent = part / total * 100
+    const text = percent > 0 && percent < 0.05 ? '< 0.1' : percent.toFixed(1)
+    return (language === 'en' ? text : text.replace('.', ',')) + '%'
+  }
+
   // Os números da barra prontos para mostrar: o total como formatMs, o servidor com duas casas, como as
   // etapas, e o resto com uma.
   function timeLabels (values, language) {
@@ -286,25 +349,55 @@
     return labels
   }
 
-  // O link de referência de cada parte da barra. Das páginas usadas, só a do Server-Timing tem tradução, em
-  // pt-BR (conferido também em es); english diz que a página é em inglês, para o texto do link avisar, só
-  // quando a página do lab não é em inglês.
+  // O link de referência de cada parte da barra. As páginas do MDN com tradução usam o idioma da página quando
+  // ele existe (conferido: Server-Timing só em pt-BR; gerenciamento de conexão em pt-BR e es); english diz
+  // que a página é em inglês, para o texto do link avisar, só quando a página do lab não é em inglês.
   const TIME_LINKS = {
     conn: 'https://developer.chrome.com/docs/devtools/network/reference#timing-explanation',
     outbound: 'https://developer.mozilla.org/en-US/docs/Glossary/Round_Trip_Time',
     inbound: 'https://developer.chrome.com/docs/devtools/network#throttle',
     ttfb: 'https://developer.mozilla.org/en-US/docs/Glossary/Time_to_first_byte',
-    total: 'https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing#resource_loading_timestamps'
+    total: 'https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing#resource_loading_timestamps',
+    curl: 'https://everything.curl.dev/usingcurl/verbose/writeout.html'
   }
-  const SERVER_TIMING_LOCALES = { pt: 'pt-BR' }
+  const MDN_LOCALIZED = {
+    server: { path: '/docs/Web/HTTP/Reference/Headers/Server-Timing', locales: { pt: 'pt-BR' } },
+    connection: { path: '/docs/Web/HTTP/Guides/Connection_management_in_HTTP_1.x', locales: { pt: 'pt-BR', es: 'es' } },
+    overview: { path: '/docs/Web/HTTP/Guides/Overview', locales: { pt: 'pt-BR', es: 'es' } },
+    encoding: { path: '/docs/Web/HTTP/Reference/Headers/Content-Encoding', locales: { pt: 'pt-BR', es: 'es' } }
+  }
+  // O artigo do web.dev sobre TTFB tem tradução para pt-BR e es, escolhida pelo parâmetro hl.
+  const WEBDEV_LOCALES = { pt: 'pt-br', es: 'es' }
 
   function timeLink (part, language) {
     const prefix = String(language || '').slice(0, 2).toLowerCase()
-    if (part === 'server') {
-      const locale = SERVER_TIMING_LOCALES[prefix] || 'en-US'
-      return { url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Headers/Server-Timing', english: locale === 'en-US' && prefix !== 'en' }
+    if (part === 'webdev_ttfb') {
+      const hl = WEBDEV_LOCALES[prefix]
+      return { url: 'https://web.dev/articles/ttfb' + (hl ? '?hl=' + hl : ''), english: !hl && prefix !== 'en' }
+    }
+    const localized = MDN_LOCALIZED[part]
+    if (localized) {
+      const locale = localized.locales[prefix] || 'en-US'
+      return { url: 'https://developer.mozilla.org/' + locale + localized.path, english: locale === 'en-US' && prefix !== 'en' }
     }
     return TIME_LINKS[part] ? { url: TIME_LINKS[part], english: prefix !== 'en' } : null
+  }
+
+  // Os headers de resposta do ServeRest que têm página no MDN, com o nome como o MDN escreve e se há a página
+  // em espanhol (conferido; em pt-BR todos têm). Os outros, como X-ServeRest-Stages, ficam sem link.
+  const MDN_HEADERS = [
+    ['Access-Control-Allow-Origin', true], ['Access-Control-Expose-Headers', true], ['Connection', false],
+    ['Content-Length', true], ['Content-Type', true], ['Date', false], ['Keep-Alive', true], ['Server', true],
+    ['Strict-Transport-Security', true], ['X-Content-Type-Options', true], ['X-DNS-Prefetch-Control', false],
+    ['X-Frame-Options', true], ['X-XSS-Protection', true]
+  ].reduce((headers, [name, es]) => ({ ...headers, [name.toLowerCase()]: { name, es } }), {})
+
+  function headerLink (name, language) {
+    const header = MDN_HEADERS[String(name || '').toLowerCase()]
+    if (!header) return null
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const locale = prefix === 'pt' ? 'pt-BR' : prefix === 'es' && header.es ? 'es' : 'en-US'
+    return { url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Headers/' + header.name, english: locale === 'en-US' && prefix !== 'en' }
   }
 
   const isPhase = value => Number.isFinite(value) && value >= 0
@@ -566,6 +659,16 @@
 
   function curlOf (request) {
     return curlParts(request).map(part => part.text).join(' \\\n  ')
+  }
+
+  // O mesmo comando com a opção -w: depois da resposta, o curl escreve os próprios tempos, contados desde o
+  // início da requisição. Uma variável por linha dentro das aspas, para o comando e a saída ficarem legíveis
+  // (bash e zsh aceitam a quebra de linha dentro das aspas). Os nomes são os do curl, iguais em todo idioma.
+  const CURL_TIME_VARS = ['time_namelookup', 'time_connect', 'time_appconnect', 'time_starttransfer', 'time_total']
+  const CURL_TIMES = "-w '\n" + CURL_TIME_VARS.map(name => (name + ':').padEnd(20) + '%{' + name + '}s').join('\n') + "\n'"
+
+  function curlWithTimes (curl) {
+    return curl + ' \\\n  ' + CURL_TIMES
   }
 
   // O que difere entre o envio e o rascunho, parte a parte, na ordem do comando: a URL (a linha do início;
@@ -909,6 +1012,8 @@
     feedbackInvite,
     segmentGrow,
     formatDuration,
+    formatShare,
+    timeWeights,
     parseStages,
     buildFlowModel,
     stepDelay,
@@ -920,6 +1025,9 @@
     formatMs,
     timeLabels,
     timeLink,
+    headerLink,
+    protocolName,
+    formatBytes,
     resolve,
     deref,
     schemaRows,
@@ -936,6 +1044,9 @@
     shellQuote,
     curlParts,
     curlOf,
+    curlWithTimes,
+    CURL_TIMES,
+    CURL_TIME_VARS,
     sentDiffParts,
     prettyJson,
     decodeJwtExp,

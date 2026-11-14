@@ -123,6 +123,48 @@ describe('Página do lab: funções puras', () => {
       expect(core.resourcePhases(entrada({ domainLookupStart: 1000, domainLookupEnd: 1002 })).connNew).to.equal(true)
     })
 
+    it('resourcePhases guarda o protocolo, as etapas de uma conexão nova e o tamanho do corpo', () => {
+      const nova = core.resourcePhases(entrada({ nextHopProtocol: 'h2', domainLookupStart: 1000, domainLookupEnd: 1002, connectStart: 1002, secureConnectionStart: 1010, connectEnd: 1040, requestStart: 1058.3, encodedBodySize: 400, decodedBodySize: 1500 }))
+      expect(nova).to.include({ protocol: 'h2', dns: 2, tcp: 8, tls: 30, secure: true, size: 1500, encoded: 400 })
+      const http = core.resourcePhases(entrada({ connectStart: 1001, connectEnd: 1005, requestStart: 1058.3 }))
+      expect(http).to.include({ tcp: 4, tls: 0, secure: false })
+    })
+
+    it('protocolName e formatBytes escrevem como as pessoas leem', () => {
+      expect(core.protocolName('h2')).to.equal('HTTP/2')
+      expect(core.protocolName('http/1.1')).to.equal('HTTP/1.1')
+      expect(core.protocolName('h3')).to.equal('HTTP/3')
+      expect(core.protocolName('')).to.equal(null)
+      expect(core.formatBytes(435, 'pt-BR')).to.equal('435 bytes')
+      expect(core.formatBytes(1536, 'pt-BR')).to.equal('1,5 KB')
+      expect(core.formatBytes(1536, 'en')).to.equal('1.5 KB')
+      expect(core.formatBytes(null, 'pt-BR')).to.equal(null)
+    })
+
+    it('headerLink leva ao MDN no idioma da página quando a página existe, e ignora header sem página', () => {
+      expect(core.headerLink('content-type', 'pt-BR')).to.deep.equal({ url: 'https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Reference/Headers/Content-Type', english: false })
+      expect(core.headerLink('Content-Type', 'es').url).to.include('/es/docs/')
+      expect(core.headerLink('Date', 'es')).to.deep.equal({ url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Date', english: true })
+      expect(core.headerLink('X-ServeRest-Stages', 'pt-BR')).to.equal(null)
+      expect(core.headerLink('x-download-options', 'en')).to.equal(null)
+    })
+
+    it('curlWithTimes acrescenta a opção -w com uma variável do curl por linha, dentro das aspas', () => {
+      const comando = core.curlWithTimes("curl -X GET 'http://localhost:3000/usuarios'")
+      const linhas = comando.split('\n')
+      expect(linhas[0]).to.equal("curl -X GET 'http://localhost:3000/usuarios' \\")
+      expect(linhas[1]).to.equal("  -w '")
+      expect(linhas.slice(2, 7)).to.deep.equal(core.CURL_TIME_VARS.map(nome => (nome + ':').padEnd(20) + '%{' + nome + '}s'))
+      expect(linhas[7]).to.equal("'")
+    })
+
+    it('timeLink do web.dev escolhe a tradução pelo parâmetro hl', () => {
+      expect(core.timeLink('webdev_ttfb', 'pt-BR')).to.deep.equal({ url: 'https://web.dev/articles/ttfb?hl=pt-br', english: false })
+      expect(core.timeLink('webdev_ttfb', 'en')).to.deep.equal({ url: 'https://web.dev/articles/ttfb', english: false })
+      expect(core.timeLink('overview', 'es').url).to.equal('https://developer.mozilla.org/es/docs/Web/HTTP/Guides/Overview')
+      expect(core.timeLink('curl', 'pt-BR').english).to.equal(true)
+    })
+
     it('resourcePhases devolve null sem entrada ou sem as fases (outra origem sem Timing-Allow-Origin)', () => {
       expect(core.resourcePhases(null)).to.equal(null)
       expect(core.resourcePhases(entrada({ requestStart: 0, responseStart: 0 }))).to.equal(null)
@@ -142,6 +184,38 @@ describe('Página do lab: funções puras', () => {
       const barra = core.timeBar(1, { conn: 0.2, ttfb: 0.7, down: 0.1, connNew: false }, 0.9)
       expect(barra.net).to.equal(0)
       expect(barra.half).to.equal(0)
+    })
+
+    it('timeWeights fica na escala real quando toda parte já tem a fatia mínima, como no localhost', () => {
+      const local = { conn: 1.8, half: 0.3, server: 0.71, down: 0.4 }
+      expect(core.timeWeights(local, 0.03)).to.deep.equal({ ...local, adjusted: false })
+      expect(core.timeWeights(local, 0)).to.deep.equal({ ...local, adjusted: false })
+    })
+
+    it('timeWeights ajusta só o necessário em produção: a parte mais fina chega à fatia mínima, na mesma ordem', () => {
+      const pesos = core.timeWeights({ conn: 0.6, half: 82, server: 2.4, down: 3.6 }, 0.03)
+      const largura = pesos.conn + pesos.half * 2 + pesos.server + pesos.down
+      expect(pesos.adjusted).to.equal(true)
+      expect(pesos.conn / largura).to.be.within(0.03, 0.031)
+      // Mesma ordem dos tempos: conexão < servidor < download < ida = volta.
+      expect(pesos.conn).to.be.below(pesos.server)
+      expect(pesos.server).to.be.below(pesos.down)
+      expect(pesos.down).to.be.below(pesos.half)
+    })
+
+    it('timeWeights deixa em zero uma parte sem tempo e não a conta como a mais fina', () => {
+      expect(core.timeWeights({ conn: 0, half: 0, server: 0, down: 0 }, 0.03)).to.deep.equal({ conn: 0, half: 0, server: 0, down: 0, adjusted: false })
+      const pesos = core.timeWeights({ conn: 0, half: 40, server: 30, down: 30 }, 0.03)
+      expect(pesos).to.deep.equal({ conn: 0, half: 40, server: 30, down: 30, adjusted: false })
+    })
+
+    it('formatShare: uma casa, vírgula fora do inglês, "< 0,1%" para fatia mínima e nada sem total', () => {
+      expect(core.formatShare(2.43, 171, 'pt-BR')).to.equal('1,4%')
+      expect(core.formatShare(2.43, 171, 'en')).to.equal('1.4%')
+      expect(core.formatShare(0.05, 171, 'es')).to.equal('< 0,1%')
+      expect(core.formatShare(0, 171, 'pt-BR')).to.equal('0,0%')
+      expect(core.formatShare(1, 0, 'pt-BR')).to.equal(null)
+      expect(core.formatShare(undefined, 171, 'pt-BR')).to.equal(null)
     })
 
     it('timeFallback faz do total o servidor mais a rede', () => {
@@ -173,6 +247,9 @@ describe('Página do lab: funções puras', () => {
       expect(core.timeLink('ttfb', 'en').english).to.equal(false)
       ;['conn', 'outbound', 'inbound', 'total'].forEach(part => expect(core.safeHref(core.timeLink(part, 'es').url), part).to.be.a('string'))
       expect(core.timeLink('down', 'pt-BR')).to.equal(null)
+      expect(core.timeLink('connection', 'pt-BR')).to.deep.equal({ url: 'https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Guides/Connection_management_in_HTTP_1.x', english: false })
+      expect(core.timeLink('connection', 'es').url).to.include('/es/docs/')
+      expect(core.timeLink('connection', 'en')).to.deep.equal({ url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Connection_management_in_HTTP_1.x', english: false })
     })
   })
 
