@@ -33,6 +33,24 @@
     return STATUS_TEXT[status] || ''
   }
 
+  // A página do status code na MDN, no idioma da página quando a MDN tem a tradução: KNOWN são os códigos
+  // conferidos nas três línguas, MISSING os que faltam numa delas. Sem tradução, a página em inglês, e
+  // english diz isso (para o nome do link avisar), só quando a página não é em inglês.
+  const MDN_LOCALES = { pt: 'pt-BR', es: 'es', en: 'en-US' }
+  const MDN_STATUS_KNOWN = [200, 201, 400, 401, 403, 404, 405, 408, 413, 415, 429, 500]
+  const MDN_STATUS_MISSING = { es: [415, 429] }
+
+  function mdnStatusUrl (code, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const number = Number(code)
+    const translated = MDN_STATUS_KNOWN.includes(number) && !(MDN_STATUS_MISSING[prefix] || []).includes(number)
+    const locale = translated ? MDN_LOCALES[prefix] || 'en-US' : 'en-US'
+    return {
+      url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Status/' + encodeURIComponent(String(code)),
+      english: locale === 'en-US' && prefix !== 'en'
+    }
+  }
+
   /* Fluxo: cópia de src/swagger/scripts/08-flow-panel.js, com os textos recebidos como argumento.
      Um teste de unidade compara os dois modelos para que as cópias não divirjam. */
 
@@ -447,6 +465,83 @@
     return curlParts(request).map(part => part.text).join(' \\\n  ')
   }
 
+  // O que difere entre o envio e o rascunho, parte a parte, na ordem do comando: a URL (a linha do início;
+  // o método e a rota são os mesmos), cada header pelo nome (o que está num lado só também conta) e o corpo,
+  // dizendo se o rascunho tem corpo. As mesmas partes de curlParts.
+  function sentDiffParts (sent, draft) {
+    const a = curlParts(sent)
+    const b = curlParts(draft)
+    const of = (list, kind) => list.find(part => part.kind === kind)
+    const header = (list, name) => list.find(part => part.kind === 'header' && part.name.toLowerCase() === name)
+    const out = []
+    if (of(a, 'start').text !== of(b, 'start').text) out.push({ kind: 'url' })
+    const names = []
+    a.concat(b).forEach(part => {
+      if (part.kind === 'header' && !names.includes(part.name.toLowerCase())) names.push(part.name.toLowerCase())
+    })
+    names.forEach(name => {
+      const one = header(a, name)
+      const two = header(b, name)
+      if (!one || !two || one.text !== two.text) out.push({ kind: 'header', name: (one || two).name })
+    })
+    if ((of(a, 'body') || {}).text !== (of(b, 'body') || {}).text) out.push({ kind: 'body', inDraft: !!of(b, 'body') })
+    return out
+  }
+
+  // Reindenta um JSON com dois espaços sem converter nenhum valor: os caracteres originais ficam (1.0
+  // continua 1.0, um inteiro de 20 dígitos não perde precisão, chaves repetidas continuam as duas). null
+  // quando o texto não é JSON.
+  function prettyJson (text) {
+    try {
+      JSON.parse(text)
+    } catch (e) {
+      return null
+    }
+    const source = String(text)
+    const space = ch => ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r'
+    let out = ''
+    let depth = 0
+    let index = 0
+    const newline = () => '\n' + '  '.repeat(depth)
+    while (index < source.length) {
+      const ch = source.charAt(index)
+      if (ch === '"') {
+        let end = index + 1
+        while (end < source.length && source.charAt(end) !== '"') end += source.charAt(end) === '\\' ? 2 : 1
+        out += source.slice(index, end + 1)
+        index = end + 1
+      } else if (space(ch)) {
+        index++
+      } else if (ch === '{' || ch === '[') {
+        let next = index + 1
+        while (next < source.length && space(source.charAt(next))) next++
+        const close = ch === '{' ? '}' : ']'
+        if (source.charAt(next) === close) {
+          out += ch + close
+          index = next + 1
+        } else {
+          depth++
+          out += ch + newline()
+          index++
+        }
+      } else if (ch === '}' || ch === ']') {
+        depth--
+        out += newline() + ch
+        index++
+      } else if (ch === ',') {
+        out += ',' + newline()
+        index++
+      } else if (ch === ':') {
+        out += ': '
+        index++
+      } else {
+        out += ch
+        index++
+      }
+    }
+    return out
+  }
+
   function decodeJwtExp (token) {
     try {
       const part = String(token).replace(/^Bearer\s+/i, '').split('.')[1]
@@ -493,6 +588,79 @@
   // requisição montada agora a partir do rascunho.
   function recordDiffersFromDraft (record, request) {
     return curlOf(request) !== record.curl
+  }
+
+  // O token de uma resposta real de POST /login com status 200; null em qualquer outro envio.
+  function loginToken (record) {
+    if (record.error || record.status !== 200 || record.method !== 'POST' || record.path !== '/login') return null
+    try {
+      const body = JSON.parse(record.bodyText)
+      return body && typeof body.authorization === 'string' && body.authorization ? body.authorization : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // A oferta do token sob a linha do status (D30): o botão (use) ou a frase de que ele já é o token da
+  // página (in_use). Um token vencido recebe o mesmo botão, sem aviso nem bloqueio: a validade não conta.
+  function offerState ({ record, pageToken }) {
+    const token = loginToken(record)
+    if (!token) return 'none'
+    return pageToken === token ? 'in_use' : 'use'
+  }
+
+  /* Histórico guardado na sessão do navegador (sessionStorage) */
+
+  // O registro como fica guardado: a hora em texto ISO; um corpo maior que maxChars vai cortado, com o
+  // tamanho real em bodyCut (a Resposta diz que o corpo foi cortado).
+  function storedRecord (record, maxChars) {
+    const out = Object.assign({}, record, { at: new Date(record.at).toISOString() })
+    if (record.bodyText.length > maxChars) {
+      out.bodyText = record.bodyText.slice(0, maxChars)
+      out.bodyCut = record.bodyCut || record.bodyText.length
+    }
+    return out
+  }
+
+  const isText = value => typeof value === 'string'
+  const isPairs = value => Array.isArray(value) && value.every(pair => Array.isArray(pair) && pair.length === 2 && isText(pair[0]) && isText(pair[1]))
+
+  // Um registro guardado só volta se tem tudo o que a página lê dele, com o tipo certo.
+  function validStoredRecord (item) {
+    if (!item || typeof item !== 'object') return false
+    const sent = item.sent
+    return Number.isInteger(item.id) && item.id > 0 &&
+      isText(item.method) && isText(item.path) && isText(item.url) && isText(item.curl) && isText(item.bodyText) && isText(item.statusText) &&
+      isText(item.at) && !Number.isNaN(Date.parse(item.at)) &&
+      (item.status === null || Number.isInteger(item.status)) &&
+      (item.error === null || isText(item.error)) &&
+      (item.stagesHeader === null || isText(item.stagesHeader)) &&
+      (item.bodySent === undefined || isText(item.bodySent)) &&
+      (item.bodyCut === undefined || Number.isInteger(item.bodyCut)) &&
+      typeof item.ms === 'number' && typeof item.authSent === 'boolean' && typeof item.protected === 'boolean' &&
+      isPairs(item.requestHeaders) && isPairs(item.headers) &&
+      (sent === null || (!!sent && typeof sent === 'object' && !!sent.params && typeof sent.params === 'object' && isText(sent.body) && isText(sent.auth)))
+  }
+
+  // O valor guardado ({ v: 1, history }) de volta em registros, com a hora em Date e no máximo max envios.
+  // null quando o valor inteiro deve ser descartado: não é JSON, tem outra forma, um registro não tem o
+  // que a página lê, ou um id se repete.
+  function readStoredHistory (value, max) {
+    let saved = null
+    try {
+      saved = JSON.parse(value)
+    } catch (e) {
+      return null
+    }
+    if (!saved || saved.v !== 1 || !Array.isArray(saved.history)) return null
+    const list = saved.history.slice(0, max)
+    const ids = new Set()
+    const ok = list.every(item => {
+      if (!validStoredRecord(item) || ids.has(item.id)) return false
+      ids.add(item.id)
+      return true
+    })
+    return ok ? list.map(item => Object.assign({}, item, { at: new Date(item.at) })) : null
   }
 
   /* Texto */
@@ -564,6 +732,7 @@
 
   const core = {
     statusText,
+    mdnStatusUrl,
     segmentGrow,
     formatDuration,
     parseStages,
@@ -586,12 +755,18 @@
     shellQuote,
     curlParts,
     curlOf,
+    sentDiffParts,
+    prettyJson,
     decodeJwtExp,
     tokenCaptionState,
     recordKey,
     lastResultByRoute,
     isOlderThanLatest,
     recordDiffersFromDraft,
+    loginToken,
+    offerState,
+    storedRecord,
+    readStoredHistory,
     safeHref,
     parseInlineMarkdown,
     highlightJson
