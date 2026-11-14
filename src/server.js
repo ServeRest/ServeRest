@@ -103,11 +103,12 @@ module.exports = { argv }
 conf.tokenTimeout = argv.timeout
 conf.semHeaderDeSeguranca = argv.nosec
 conf.semBearer = argv.nobearer
-
-const app = require('./app')
-
 const port = normalizePort(argv.porta)
 conf.porta = port
+
+// O app lê a configuração ao ser carregado, como a porta que vai na URL do Swagger.
+const app = require('./app')
+
 app.set('port', port)
 
 const server = http.createServer(app)
