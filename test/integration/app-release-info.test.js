@@ -104,11 +104,14 @@ describe('app release info', () => {
     originalAmbienteCache = undefined
   })
 
-  it('deve aguardar a busca da release no GET /swagger quando há sucesso', async () => {
+  // A release chega ao servidor, como mostra o aviso da página inicial, mas o Swagger não tem mais aviso:
+  // nem release mais nova com o aviso forçado põe a versão ou o aviso antigo na página.
+  it('não leva a release ao GET /swagger, nem mais nova e com o aviso forçado', async () => {
+    process.env.FORCE_RELEASE_BANNER = 'true'
     const fetchStub = sinon.stub().resolves({
-      tag: 'v1.0.0',
-      version: '1.0.0',
-      url: 'https://github.com/ServeRest/ServeRest/releases/tag/v1.0.0'
+      tag: 'v999.0.0',
+      version: '999.0.0',
+      url: 'https://github.com/ServeRest/ServeRest/releases/tag/v999.0.0'
     })
     const ambienteStub = {
       aplicacaoExecutandoLocalmente: () => true,
@@ -118,9 +121,13 @@ describe('app release info', () => {
       ehAmbienteDeTestes: false
     }
     const app = loadAppWithReleaseStub(fetchStub, ambienteStub)
+    await aguardarBuscaDaRelease(fetchStub)
 
-    await supertest(app).get('/swagger').expect(200)
-
+    const paginaInicial = await supertest(app).get('/').expect(200)
+    chai.expect(atributosDoAviso(paginaInicial.text).version).to.equal('999.0.0')
+    const { text } = await supertest(app).get('/swagger').expect(200)
+    chai.expect(text).to.not.include('999.0.0')
+    chai.expect(text).to.not.include('release-toast')
     chai.expect(fetchStub.calledOnce).to.equal(true)
   })
 

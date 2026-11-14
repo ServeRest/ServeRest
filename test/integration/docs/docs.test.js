@@ -11,6 +11,11 @@ describe('/swagger GET', () => {
     const { text } = await request.get('/swagger').expect(200)
     expect(text).to.include('serverestFlowPanelPlugin')
   })
+  it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.not.include('release-toast')
+    expect(text).to.not.include('api.github.com')
+  })
   it('inclui o script que tira gerenciador de senha e corretor dos campos', async () => {
     const { text } = await request.get('/swagger').expect(200)
     expect(text).to.include("'data-bwignore': ''")
@@ -35,6 +40,12 @@ describe('/swagger-ui-init.js GET', () => {
     const { text } = await request.get('/swagger-ui-init.js').expect(200)
     expect(text).to.include('window.SwaggerUIBundle.plugins.DownloadUrl.apply')
     expect(text).to.include('serverestFlowPanelPlugin')
+  })
+  it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
+    await request.get('/swagger').expect(200)
+    const { text } = await request.get('/swagger-ui-init.js').expect(200)
+    expect(text).to.not.include('release-toast')
+    expect(text).to.not.include('api.github.com')
   })
 })
 

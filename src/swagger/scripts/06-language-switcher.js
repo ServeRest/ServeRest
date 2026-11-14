@@ -61,7 +61,6 @@ function renderLanguageSwitcher (parent) {
       updateSwaggerSpec(language.code, shouldRefresh)
       applyTranslations(language.code)
       setTimeout(() => applyTranslations(language.code), 100)
-      updateReleaseToastLanguage(language.code)
     })
     wrapper.appendChild(button)
   })
