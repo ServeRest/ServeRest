@@ -126,7 +126,6 @@
     }
     const shouldRefreshEndpointBlock = setRefreshFlagFromState(language)
     updateSwaggerSpec(language, shouldRefreshEndpointBlock)
-    runReleaseCheck()
   }
 
   // A logo leva à página inicial no idioma atual; o seletor de idioma também chama esta função.
@@ -159,7 +158,6 @@
     preloadFlags()
     preloadSwaggerJson()
     prefetchSwaggerSpecs()
-    if (document.body) renderReleaseToast()
     checkVersionThenObserve()
   }
 

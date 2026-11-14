@@ -7,7 +7,7 @@ const STYLES_DIR = join(__dirname, 'styles')
 const SCRIPTS_DIR = join(__dirname, 'scripts')
 const TRANSLATIONS_DIR = join(__dirname, 'translations')
 
-const STYLE_FILES = ['topbar.css', 'language-switcher.css', 'release-toast.css', 'flow-panel.css']
+const STYLE_FILES = ['topbar.css', 'language-switcher.css', 'flow-panel.css']
 
 function loadCustomCss () {
   return STYLE_FILES
@@ -51,11 +51,9 @@ function buildFlowPanelTexts () {
 const customCss = loadCustomCss()
 const customJsTemplate = loadCustomJsTemplate()
 
-function buildCustomJsStr (releaseInfo, currentVersion, forceBanner) {
+function buildCustomJsStr (currentVersion) {
   const replacements = {
-    __RELEASE_INFO__: JSON.stringify(releaseInfo),
     __CURRENT_VERSION__: JSON.stringify(currentVersion),
-    __FORCE_BANNER__: JSON.stringify(forceBanner),
     __UI_LABEL_TRANSLATIONS__: buildUiLabelTranslations(),
     __FLOW_PANEL_TEXTS__: buildFlowPanelTexts()
   }

@@ -230,7 +230,7 @@ describe('Painel de fluxo da requisição', () => {
 
   it('script da página compila e não contém mais __FLOW_PANEL_TEXTS__', () => {
     const { buildCustomJsStr } = require('../../src/swagger')
-    const script = buildCustomJsStr(null, 'x', false)
+    const script = buildCustomJsStr('x')
     expect(() => new vm.Script(script)).to.not.throw()
     expect(script).to.not.include('__FLOW_PANEL_TEXTS__')
     expect(script).to.include('serverestFlowPanelPlugin')

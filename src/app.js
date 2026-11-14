@@ -128,7 +128,7 @@ if (!ehAmbienteDeTestes) {
 const PAGINA_DE_RELEASES = 'https://github.com/ServeRest/ServeRest/releases'
 const PREFIXO_DAS_RELEASES = 'https://github.com/ServeRest/ServeRest/'
 
-// Aviso de versão nova da página inicial, calculado a cada requisição como o do Swagger. Forçado e
+// Aviso de versão nova da página inicial, calculado a cada requisição. Forçado e
 // sem dados da release, o aviso vai sem versão. O link que a API devolve só é usado se for do
 // repositório; qualquer outro vira a lista de releases.
 function avisoDeVersao (releaseInfo) {
@@ -139,10 +139,11 @@ function avisoDeVersao (releaseInfo) {
   return { version: releaseInfo.version, url: urlConfiavel ? releaseInfo.url : PAGINA_DE_RELEASES }
 }
 
-const uiOptionsBase = {
+const uiOptions = {
   customSiteTitle: 'ServeRest',
   customfavIcon: '/favicon.ico',
   customCss,
+  customJsStr: buildCustomJsStr(version),
   swaggerOptions: {
     // O swagger-ui-express serializa estas funções pelo código-fonte e elas só executam no navegador.
     // A guarda evita página em branco quando o service worker serve um init mais novo que a página.
@@ -155,19 +156,14 @@ const uiOptionsBase = {
   }
 }
 
-function setupDoSwagger (idioma, releaseInfo) {
-  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, idioma)
-  const uiOptions = {
-    ...uiOptionsBase,
-    customJsStr: buildCustomJsStr(releaseInfo, version, forceReleaseBanner)
-  }
-  return swaggerUi.setup(localizedSwagger, uiOptions)
+function setupDoSwagger (idioma) {
+  return swaggerUi.setup(localizeSwaggerDocument(swaggerDocument, idioma), uiOptions)
 }
 
 // O swagger-ui-express só preenche o /swagger-ui-init.js quando a página do Swagger é renderizada.
 // Sem esta renderização, quem abre só a página inicial faz o service worker guardar um init vazio
 // e o /swagger fica em branco para essa pessoa até a próxima versão.
-setupDoSwagger('pt-BR', null)
+setupDoSwagger('pt-BR')
 
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 app.use('/', swaggerUi.serve)
@@ -179,7 +175,7 @@ app.get('/swagger', (req, res, next) => {
     return res.redirect(302, '/swagger' + query)
   }
   res.set('Cache-Control', 'no-cache, max-age=0')
-  return setupDoSwagger(idiomaDaRequisicao(req), latestReleaseInfo)(req, res, next)
+  return setupDoSwagger(idiomaDaRequisicao(req))(req, res, next)
 })
 app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
 app.use('/flags', express.static(join(__dirname, '../docs/flags')))
