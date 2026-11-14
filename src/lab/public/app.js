@@ -38,12 +38,12 @@
   // O convite para dar opinião: "shown", "closed" ou "answered" neste navegador, e a marca desta aba.
   const FEEDBACK_KEY = 'serverestFeedbackInvite'
   const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
-  // O formulário de opinião de cada idioma. Vazio, nenhuma entrada de opinião aparece (rodapé, convite e
-  // selo da barra).
+  // O formulário de opinião de cada idioma; VERSAO vira a versão da página no campo pré-preenchido. Vazio,
+  // nenhuma entrada de opinião aparece (rodapé, convite e selo da barra).
   const FEEDBACK_FORM_URL = {
     'pt-BR': 'https://docs.google.com/forms/d/e/1FAIpQLScVAi6hLqT1rpsuN-Jtrxu2r8dcg20EjfTzsjci7wQHPtegPQ/viewform?usp=pp_url&entry.924035673=VERSAO',
-    en: '',
-    es: ''
+    en: 'https://docs.google.com/forms/d/e/1FAIpQLScHuNJNhQc5eDK-vGqD5H4GcJPwFUYwBHbQPjoH52zxkhAQ7Q/viewform?usp=pp_url&entry.924035673=VERSAO',
+    es: 'https://docs.google.com/forms/d/e/1FAIpQLSfHpCxjm3tKfEEANKKMrQyWz4_raAQ6Dpu-ow8k9CA90UwOHg/viewform?usp=pp_url&entry.924035673=VERSAO'
   }
   // O formulário deixa de aceitar respostas nesta data; depois dela as entradas de opinião somem sozinhas.
   // Precisa ser a mesma data configurada no Google Forms.
