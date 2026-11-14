@@ -2280,7 +2280,7 @@
     const closed = currentLayout() === 'abas' && state.sideTab !== 'historico'
     // Os novos nunca passam do total: a lista guarda só os últimos MAX_HISTORY envios.
     if (closed) state.unseen = Math.min(state.unseen + 1, state.history.length)
-    renderHistory()
+    insertEntry(record)
     paintRouteMarks()
     // Com a aba fechada, a contagem sobe na hora em que o envio entra na lista: ela só diz que houve um
     // envio, não como ele terminou, então não estraga o fluxo. Fica roxa até a aba ser aberta.
@@ -2319,10 +2319,19 @@
   // relógio mesmo escondida e, se já acabou, não toca de novo. Tocar outra vez cancela a anterior.
   const playing = new WeakMap()
   function playOnce (node, keyframes, options) {
-    if (!node.animate || prefersReducedMotion()) return
+    if (!node.animate || prefersReducedMotion()) return null
     const previous = playing.get(node)
     if (previous) previous.cancel()
-    playing.set(node, node.animate(keyframes, options))
+    const animation = node.animate(keyframes, options)
+    playing.set(node, animation)
+    return animation
+  }
+
+  // Os sinais na lista (o contorno do veredito, o espaço que abre para a entrada nova) só tocam com o
+  // Histórico à vista: na quarta coluna, ou na aba aberta.
+  function historyOnScreen () {
+    const layout = currentLayout()
+    return layout === 'quatro' || (layout === 'abas' && state.sideTab === 'historico')
   }
 
   // O fluxo do envio pendente chegou ao veredito (ou deu lugar a outro envio): o status aparece em todos os
@@ -2341,12 +2350,42 @@
       renderShown(record, state.shownLive)
       renderResponse(record, state.shownLive)
     }
-    const layout = currentLayout()
-    if (layout === 'quatro' || (layout === 'abas' && state.sideTab === 'historico')) flashEntry(entry)
+    if (historyOnScreen()) flashEntry(entry)
   }
 
   function flashEntry (entry) {
     if (entry) playOnce(entry, ENTRY_ARRIVE, { duration: 2000, easing: 'ease-out' })
+  }
+
+  // O lugar da entrada nova abre em altura e as de baixo descem junto; o conteúdo aparece no lugar, sem
+  // viajar. Enquanto o lugar abre, o conteúdo fica cortado nele.
+  function openEntry (item) {
+    const height = item.getBoundingClientRect().height
+    const grow = playOnce(item, [{ height: '0px', borderBottomColor: 'transparent' }, { height: height + 'px' }], { duration: 330, easing: 'cubic-bezier(0.2, 0, 0, 1)' })
+    if (!grow) return
+    item.style.overflow = 'hidden'
+    const done = () => { item.style.overflow = '' }
+    grow.onfinish = done
+    grow.oncancel = done
+    // Fora do playOnce: no modo normal o veredito chega na hora, e o contorno de flashEntry, tocado pelo
+    // playOnce no mesmo botão, cancelaria o aparecer.
+    item.firstChild.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 270, delay: 130, easing: 'ease-out', fill: 'backwards' })
+  }
+
+  // Um envio novo entra no topo sem refazer a lista: as entradas que já estavam ficam, com o foco e o
+  // contorno de revealPending, e a mais antiga sai quando a lista passa de MAX_HISTORY. Com a lista vazia
+  // (a frase de vazio à vista), ela é desenhada inteira.
+  function insertEntry (record) {
+    const list = $('history-body')
+    if (!list.children.length) {
+      renderHistory()
+      return
+    }
+    const item = entryItem(record)
+    list.prepend(item)
+    while (list.children.length > MAX_HISTORY) list.lastElementChild.remove()
+    paintHistoryFrame()
+    if (historyOnScreen()) openEntry(item)
   }
 
   // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
@@ -2359,8 +2398,14 @@
   // a das colunas da tabela; nas entradas estreitas o CSS só reposiciona a hora.
   function renderHistory () {
     const list = $('history-body')
-    const count = state.history.length
     list.textContent = ''
+    paintHistoryFrame()
+    state.history.forEach(record => list.append(entryItem(record)))
+  }
+
+  // O que acompanha a lista: a contagem no título e na aba, Limpar, a frase de vazio e a de Histórico limpo.
+  function paintHistoryFrame () {
+    const count = state.history.length
     $('hist-count').textContent = count ? fillText(count === 1 ? 'lab.history.count_one' : 'lab.history.count', { count }) : ''
     paintHistBadge(false)
     $('hist-clear').hidden = !count
@@ -2368,15 +2413,16 @@
     $('hist-empty').hidden = !!count
     $('hist-empty').textContent = t('lab.history.empty')
     $('hist-cleared').hidden = !(state.undo && !count)
-    state.history.forEach(record => {
-      list.append(el('li', null, el('button', {
-        type: 'button',
-        class: 'entry',
-        'data-id': String(record.id),
-        'aria-current': record.id === state.shownId ? 'true' : null,
-        onclick: () => pickHistory(record)
-      }, entryParts(record))))
-    })
+  }
+
+  function entryItem (record) {
+    return el('li', null, el('button', {
+      type: 'button',
+      class: 'entry',
+      'data-id': String(record.id),
+      'aria-current': record.id === state.shownId ? 'true' : null,
+      onclick: () => pickHistory(record)
+    }, entryParts(record)))
   }
 
   // Os filhos de uma entrada. Enquanto o fluxo do envio não chega ao veredito, status e onde parou dão
