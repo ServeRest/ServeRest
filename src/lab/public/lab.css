@@ -1075,6 +1075,12 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .tl-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }
 .tl-focus .tl-seg:not(.tl-front) { opacity: 0.35; }
 .tl-seg.tl-front { z-index: 3; margin: -4px 0 -1px; transform: scale(1.03); box-shadow: 0 10px 18px -4px rgb(0 0 0 / 0.55); }
+/* Ida e volta são largas: 3% para os lados viraria até 10 px por cima das partes finas vizinhas. Elas crescem 1%,
+   e as partes finas (conexão, servidor, download) ficam sempre por cima, na frente ou não: o TTFB em primeiro
+   plano não esconde o servidor entre a ida e a volta. */
+.tl-seg.net.tl-front { transform: scale(1.01); }
+.tl-seg.conn, .tl-seg.server, .tl-seg.down { z-index: 4; }
+.tl-seg.conn.tl-front, .tl-seg.server.tl-front, .tl-seg.down.tl-front { z-index: 5; }
 @media (prefers-reduced-motion: reduce) {
   .wf-summary .wf-cell-stage .flow-seg, .wf .flow-stages, .wf .wf-lines, .wf-summary .flow-seg-response, .tl-seg { transition: none; }
 }
