@@ -670,6 +670,182 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('offerState', () => {
+    const login = (body, extra = {}) => ({ error: null, status: 200, method: 'POST', path: '/login', bodyText: JSON.stringify(body), ...extra })
+    const token = 'Bearer ' + jwt.sign({ email: 'fulano@qa.com' }, 'segredo', { expiresIn: 600 })
+    const vencido = 'Bearer ' + jwt.sign({ email: 'fulano@qa.com', exp: Math.floor(Date.now() / 1000) - 60 }, 'segredo')
+
+    it('é none para um envio que não é um login com token', () => {
+      expect(core.offerState({ record: login({ authorization: token }, { status: 401 }), pageToken: null })).to.equal('none')
+      expect(core.offerState({ record: login({ authorization: token }, { path: '/usuarios' }), pageToken: null })).to.equal('none')
+      expect(core.offerState({ record: login({ message: 'Login realizado com sucesso' }), pageToken: null })).to.equal('none')
+      expect(core.offerState({ record: login({}, { bodyText: 'não é json' }), pageToken: null })).to.equal('none')
+      expect(core.offerState({ record: login({ authorization: token }, { error: 'Failed to fetch' }), pageToken: null })).to.equal('none')
+    })
+
+    it('é in_use quando o token do envio já é o da página e use quando é outro ou nenhum', () => {
+      const record = login({ authorization: token })
+      expect(core.offerState({ record, pageToken: token })).to.equal('in_use')
+      expect(core.offerState({ record, pageToken: null })).to.equal('use')
+      expect(core.offerState({ record, pageToken: vencido })).to.equal('use')
+    })
+
+    it('um token vencido recebe o mesmo botão (a validade não conta)', () => {
+      expect(core.offerState({ record: login({ authorization: vencido }), pageToken: null })).to.equal('use')
+    })
+  })
+
+  describe('mdnStatusUrl', () => {
+    const base = 'https://developer.mozilla.org/'
+
+    it('usa o idioma da página para os códigos conferidos', () => {
+      expect(core.mdnStatusUrl(401, 'pt-BR')).to.deep.equal({ url: base + 'pt-BR/docs/Web/HTTP/Reference/Status/401', english: false })
+      expect(core.mdnStatusUrl(404, 'es')).to.deep.equal({ url: base + 'es/docs/Web/HTTP/Reference/Status/404', english: false })
+      expect(core.mdnStatusUrl(200, 'en')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Status/200', english: false })
+    })
+
+    it('cai para en-US, com english, nos códigos que a MDN não traduziu', () => {
+      expect(core.mdnStatusUrl(415, 'es')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Status/415', english: true })
+      expect(core.mdnStatusUrl(429, 'es')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Status/429', english: true })
+      expect(core.mdnStatusUrl(415, 'pt-BR')).to.deep.equal({ url: base + 'pt-BR/docs/Web/HTTP/Reference/Status/415', english: false })
+      expect(core.mdnStatusUrl(418, 'pt-BR')).to.deep.equal({ url: base + 'en-US/docs/Web/HTTP/Reference/Status/418', english: true })
+    })
+
+    it('numa página em inglês english nunca é verdade', () => {
+      expect(core.mdnStatusUrl(418, 'en').english).to.equal(false)
+      expect(core.mdnStatusUrl(429, 'en').english).to.equal(false)
+    })
+  })
+
+  describe('prettyJson', () => {
+    it('reindenta com dois espaços', () => {
+      expect(core.prettyJson('{"a":1,"b":[1,2],"c":{"d":"x"}}')).to.equal('{\n  "a": 1,\n  "b": [\n    1,\n    2\n  ],\n  "c": {\n    "d": "x"\n  }\n}')
+    })
+
+    it('não converte nenhum valor', () => {
+      expect(core.prettyJson('{"preco":1.0}')).to.equal('{\n  "preco": 1.0\n}')
+      expect(core.prettyJson('{"a":1,"a":2}')).to.equal('{\n  "a": 1,\n  "a": 2\n}')
+      expect(core.prettyJson('{"n":12345678901234567890}')).to.equal('{\n  "n": 12345678901234567890\n}')
+      expect(core.prettyJson('{"t":"x,{y}: [z]"}')).to.equal('{\n  "t": "x,{y}: [z]"\n}')
+      expect(core.prettyJson('{"t":"a\\"b,c"}')).to.equal('{\n  "t": "a\\"b,c"\n}')
+    })
+
+    it('objeto e lista vazios ficam numa linha', () => {
+      expect(core.prettyJson('{}')).to.equal('{}')
+      expect(core.prettyJson('[ ]')).to.equal('[]')
+      expect(core.prettyJson('{"a":{},"b":[]}')).to.equal('{\n  "a": {},\n  "b": []\n}')
+      expect(core.prettyJson('{ "a" :\n\t1 }')).to.equal('{\n  "a": 1\n}')
+    })
+
+    it('devolve null quando o texto não é JSON', () => {
+      expect(core.prettyJson('não é json')).to.equal(null)
+      expect(core.prettyJson('{"a":')).to.equal(null)
+      expect(core.prettyJson('')).to.equal(null)
+    })
+  })
+
+  describe('sentDiffParts', () => {
+    const pedido = (extra = {}) => ({ method: 'POST', url: 'http://localhost:3000/carrinhos', headers: [['Content-Type', 'application/json'], ['Authorization', 'Bearer abc']], body: '{"a":1}', ...extra })
+
+    it('nada difere entre dois pedidos iguais', () => {
+      expect(core.sentDiffParts(pedido(), pedido())).to.deep.equal([])
+    })
+
+    it('a URL, um header que mudou e um que está num lado só, na ordem do comando', () => {
+      const enviado = pedido({ url: 'http://localhost:3000/carrinhos?x=1' })
+      const rascunho = pedido({ headers: [['Content-Type', 'text/plain'], ['X-Extra', '1']] })
+      expect(core.sentDiffParts(enviado, rascunho)).to.deep.equal([
+        { kind: 'url' },
+        { kind: 'header', name: 'Content-Type' },
+        { kind: 'header', name: 'Authorization' },
+        { kind: 'header', name: 'X-Extra' }
+      ])
+    })
+
+    it('o corpo, dizendo se o rascunho tem corpo', () => {
+      expect(core.sentDiffParts(pedido(), pedido({ body: '{"a":2}' }))).to.deep.equal([{ kind: 'body', inDraft: true }])
+      expect(core.sentDiffParts(pedido(), pedido({ body: undefined }))).to.deep.equal([{ kind: 'body', inDraft: false }])
+    })
+  })
+
+  describe('storedRecord e readStoredHistory', () => {
+    const registro = (id, extra = {}) => ({
+      id,
+      kind: 'route',
+      at: new Date('2026-11-14T01:00:00.000Z'),
+      method: 'GET',
+      path: '/usuarios',
+      protected: false,
+      url: 'http://localhost:3000/usuarios',
+      status: 200,
+      statusText: 'OK',
+      ms: 12.5,
+      requestHeaders: [],
+      authSent: false,
+      curl: "curl -X GET 'http://localhost:3000/usuarios'",
+      bodySent: undefined,
+      sent: { params: {}, body: '', auth: '' },
+      headers: [['content-type', 'application/json']],
+      stagesHeader: null,
+      bodyText: '{"quantidade":0}',
+      error: null,
+      ...extra
+    })
+    const guardado = lista => JSON.stringify({ v: 1, history: lista.map(item => core.storedRecord(item, 100)) })
+
+    it('ida e volta: a hora vira texto ISO e volta como Date', () => {
+      const original = [registro(2), registro(1, { status: null, statusText: '', error: 'Failed to fetch' })]
+      expect(core.storedRecord(original[0], 100).at).to.equal('2026-11-14T01:00:00.000Z')
+      const lido = core.readStoredHistory(guardado(original), 50)
+      expect(lido).to.have.length(2)
+      expect(lido[0].at).to.be.instanceOf(Date)
+      expect(lido[0].at.getTime()).to.equal(original[0].at.getTime())
+      expect(lido[1].error).to.equal('Failed to fetch')
+      expect(lido[0]).to.deep.include({ id: 2, curl: original[0].curl, bodyText: original[0].bodyText })
+    })
+
+    it('um corpo maior que o limite vai cortado, com o tamanho real em bodyCut, e volta assim', () => {
+      const grande = registro(1, { bodyText: 'x'.repeat(150) })
+      const cortado = core.storedRecord(grande, 100)
+      expect(cortado.bodyText).to.have.length(100)
+      expect(cortado.bodyCut).to.equal(150)
+      expect(grande.bodyText).to.have.length(150)
+      const lido = core.readStoredHistory(JSON.stringify({ v: 1, history: [cortado] }), 50)
+      expect(lido[0].bodyCut).to.equal(150)
+      // Guardado de novo, o registro já cortado mantém o tamanho real.
+      expect(core.storedRecord(lido[0], 100).bodyCut).to.equal(150)
+      expect(core.storedRecord(registro(1), 100)).to.not.have.property('bodyCut')
+    })
+
+    it('descarta o valor inteiro quando não é JSON ou tem outra forma', () => {
+      expect(core.readStoredHistory('{not json', 50)).to.equal(null)
+      expect(core.readStoredHistory('[1,2', 50)).to.equal(null)
+      expect(core.readStoredHistory(JSON.stringify({ v: 2, history: [] }), 50)).to.equal(null)
+      expect(core.readStoredHistory(JSON.stringify({ v: 1, history: {} }), 50)).to.equal(null)
+      expect(core.readStoredHistory(JSON.stringify([registro(1)]), 50)).to.equal(null)
+      expect(core.readStoredHistory(null, 50)).to.equal(null)
+    })
+
+    it('descarta o valor inteiro quando um registro não tem o que a página lê ou um id se repete', () => {
+      const semCurl = core.storedRecord(registro(2), 100)
+      delete semCurl.curl
+      expect(core.readStoredHistory(JSON.stringify({ v: 1, history: [semCurl, core.storedRecord(registro(1), 100)] }), 50)).to.equal(null)
+      expect(core.readStoredHistory(guardado([registro(1), registro(1)]), 50)).to.equal(null)
+      expect(core.readStoredHistory(JSON.stringify({ v: 1, history: [{ ...core.storedRecord(registro(1), 100), at: 'ontem' }] }), 50)).to.equal(null)
+      expect(core.readStoredHistory(guardado([registro(1, { headers: [['a']] })]), 50)).to.equal(null)
+      expect(core.readStoredHistory(guardado([registro(1, { protected: 'não' })]), 50)).to.equal(null)
+    })
+
+    it('volta com no máximo o limite de envios, os mais recentes', () => {
+      const lista = Array.from({ length: 60 }, (_, index) => registro(60 - index))
+      const lido = core.readStoredHistory(guardado(lista), 50)
+      expect(lido).to.have.length(50)
+      expect(lido[0].id).to.equal(60)
+      expect(lido[49].id).to.equal(11)
+      expect(core.readStoredHistory(JSON.stringify({ v: 1, history: [] }), 50)).to.deep.equal([])
+    })
+  })
+
   describe('safeHref', () => {
     it('aceita só URL absoluta http ou https e devolve a forma normalizada', () => {
       expect(core.safeHref('https://github.com/ServeRest/ServeRest/releases')).to.equal('https://github.com/ServeRest/ServeRest/releases')
