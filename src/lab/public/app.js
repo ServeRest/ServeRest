@@ -2501,7 +2501,7 @@
     return el('div', { class: 'wait-box' },
       el('p', { class: 'wait-line' }, syncSpin(el('span', { class: 'wait-ring', id: 'wait-ring', 'aria-hidden': 'true' })), el('span', { id: 'wait-count' })),
       el('p', { class: 'wait-cold is-off', id: 'wait-cold', text: t('lab.wait.cold') }),
-      state.reduced ? null : skeleton(busyStill()))
+      skeleton(busyStill()))
   }
 
   // Os segundos contam do clique, inteiros, a partir de 1; o texto só muda quando o número muda.
