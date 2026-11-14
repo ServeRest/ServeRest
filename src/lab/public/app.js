@@ -33,6 +33,26 @@
   const TEXT_KEY = 'serverestTextSize'
   // Pedido da página anterior para a página nova brilhar na cor do idioma escolhido (só nesta aba).
   const GLOW_KEY = 'serverestLangGlow'
+  // A versão nova cujo painel a pessoa já abriu (o ponto do aviso some para ela).
+  const RELEASE_SEEN_KEY = 'serverestReleaseSeen'
+  // O convite para dar opinião: "shown", "closed" ou "answered" neste navegador, e a marca desta aba.
+  const FEEDBACK_KEY = 'serverestFeedbackInvite'
+  const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
+  // O formulário de opinião de cada idioma. Vazio, nenhuma entrada de opinião aparece (rodapé, convite e
+  // selo da barra).
+  const FEEDBACK_FORM_URL = { 'pt-BR': '', en: '', es: '' }
+  // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
+  const ABOUT_URLS = {
+    postman: 'https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json',
+    repository: 'https://github.com/ServeRest/ServeRest',
+    load: 'https://github.com/ServeRest/ServeRest#teste-de-carga',
+    front: 'https://front.serverest.dev',
+    issues: 'https://github.com/ServeRest/ServeRest/issues',
+    author: 'https://github.com/PauloGoncalvesBH',
+    fund: 'https://opencollective.com/serverest',
+    contribute: 'https://github.com/ServeRest/ServeRest#contribuidores-',
+    ngo: 'https://todasasletras.org/'
+  }
   const TEXT_SIZES = ['normal', 'grande', 'maior']
   const TEXT_SIZE_NAMES = { normal: 'lab.topbar.size_normal', grande: 'lab.topbar.size_grande', maior: 'lab.topbar.size_maior' }
   // Só GET recebe o valor documentado no parâmetro de caminho; em DELETE e PUT ele é apenas exemplo.
@@ -237,38 +257,12 @@
     })
   }
 
-  // Link para fora da página: sempre em outra aba, e o leitor de tela fica sabendo.
-  function externalLink (href, label) {
-    return el('a', { href, target: '_blank', rel: 'noopener' }, label, el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
-  }
-
-  // Markdown da introdução do documento (core.parseInlineMarkdown): pedaços em negrito seguidos viram
-  // um <strong> só, e cada link um <a> de verdade. Tudo entra como texto; nada passa por innerHTML.
-  function markdownNodes (block) {
-    const out = []
-    let bold = null
-    core.parseInlineMarkdown(block).forEach(piece => {
-      const node = piece.href ? externalLink(piece.href, piece.text) : piece.text
-      if (!piece.bold) {
-        bold = null
-        out.push(node)
-        return
-      }
-      if (!bold) {
-        bold = el('strong')
-        out.push(bold)
-      }
-      append(bold, node)
-    })
-    return out
-  }
-
-  function markdownParagraphs (source) {
-    return String(source || '').split(/\n\s*\n/).map(block => block.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
-  }
-
-  function plainMarkdown (block) {
-    return core.parseInlineMarkdown(block).map(piece => piece.text).join('')
+  // Link para fora da página: sempre em outra aba, com ↗ à vista, e o leitor de tela fica sabendo. Um
+  // endereço que não é http ou https não vira link (fica só o texto).
+  function externalLink (href, label, props) {
+    const safe = core.safeHref(href)
+    if (!safe) return label
+    return el('a', { ...props, href: safe, target: '_blank', rel: 'noopener' }, label, el('span', { 'aria-hidden': 'true', text: ' ↗' }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
   }
 
   /* ---------- Estado ---------- */
@@ -347,17 +341,98 @@
   }
 
   // Aviso de versão nova: o servidor escreve a versão e a URL da release na raiz (vazias quando não há
-  // aviso; a versão vazia é o aviso sem número). O link só existe na marcação sem href: ele vem daqui.
+  // aviso; a versão vazia é o aviso sem número). Sem número, o link para as releases; com número, o botão
+  // que abre o painel, com um ponto enquanto o painel dessa versão não foi aberto neste navegador.
   function paintNotice () {
     const root = document.documentElement
-    const href = core.safeHref(root.getAttribute('data-notice-url') || '')
+    const url = root.getAttribute('data-notice-url') || ''
     const latest = root.getAttribute('data-notice-version') || ''
-    const notice = $('version-notice')
-    if (!href) return
-    notice.href = href
-    notice.textContent = latest ? fillText('lab.version.notice', { version: latest }) : t('lab.version.notice_plain')
-    notice.append(el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
-    notice.hidden = false
+    const notice = core.releaseNotice({ running: version, version: latest, url })
+    if (!notice) return
+    if (notice.kind === 'plain') {
+      const link = $('version-notice')
+      link.href = core.safeHref(url)
+      link.replaceChildren(t('lab.version.notice_plain'), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
+      link.hidden = false
+      return
+    }
+    $('release-line').textContent = fillText(notice.line, { version: latest })
+    $('release-dot').hidden = readLocal(RELEASE_SEEN_KEY) === latest
+    $('release-panel').replaceChildren(
+      el('p', { class: 'rel-title', id: 'release-title', text: fillText(notice.title, { version: latest }) }),
+      el('p', { text: fillText(notice.runningKey, { version }) }),
+      el('p', null, externalLink(url, fillText('lab.release.notes', { version: latest }))),
+      el('p', { text: t('lab.release.update') }),
+      el('pre', { class: 'code-page', text: 'npx serverest@latest' }),
+      el('pre', { class: 'code-page', text: 'docker pull paulogoncalvesbh/serverest:latest' }),
+      el('div', { class: 'rel-actions' }, el('button', { type: 'button', class: 'btn', id: 'release-close', text: t('lab.release.close'), onclick: () => closeRelease(true) })))
+    $('release-panel').setAttribute('aria-labelledby', 'release-title')
+    const button = $('release-btn')
+    button.hidden = false
+    button.addEventListener('click', () => {
+      if ($('release-panel').hidden) openRelease(latest)
+      else closeRelease(false)
+    })
+    // O painel não prende o foco: um clique fora, ou o foco saindo do botão e do painel (Tab depois de
+    // Fechar, Shift + Tab antes do botão), fecha, e o foco segue o caminho normal.
+    document.addEventListener('pointerdown', event => {
+      if (!$('release-panel').hidden && !$('release-panel').contains(event.target) && !button.contains(event.target)) closeRelease(false)
+    })
+    ;[button, $('release-panel')].forEach(node => node.addEventListener('focusout', event => {
+      const next = event.relatedTarget
+      if (next && !$('release-panel').contains(next) && next !== button) closeRelease(false)
+    }))
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !$('release-panel').hidden) {
+        event.preventDefault()
+        closeRelease(true)
+      }
+    })
+  }
+
+  // A primeira abertura guarda a versão: o ponto some e não volta para essa versão.
+  function openRelease (latest) {
+    $('release-panel').hidden = false
+    $('release-btn').setAttribute('aria-expanded', 'true')
+    $('release-dot').hidden = true
+    writeLocal(RELEASE_SEEN_KEY, latest)
+  }
+
+  function closeRelease (refocus) {
+    if ($('release-panel').hidden) return
+    $('release-panel').hidden = true
+    $('release-btn').setAttribute('aria-expanded', 'false')
+    if (refocus) $('release-btn').focus()
+  }
+
+  // Leitura e escrita no armazenamento do navegador que nunca quebram a página (armazenamento bloqueado,
+  // cheio ou numa janela privada).
+  function readLocal (key) {
+    try {
+      return window.localStorage.getItem(key)
+    } catch (e) {
+      return null
+    }
+  }
+
+  function writeLocal (key, value) {
+    try {
+      window.localStorage.setItem(key, value)
+    } catch (e) {}
+  }
+
+  function readSession (key) {
+    try {
+      return window.sessionStorage.getItem(key)
+    } catch (e) {
+      return null
+    }
+  }
+
+  function writeSession (key, value) {
+    try {
+      window.sessionStorage.setItem(key, value)
+    } catch (e) {}
   }
 
   /* ---------- Tema e tamanho do texto (na barra do topo) ---------- */
@@ -461,26 +536,96 @@
 
   /* ---------- Sobre o ServeRest ---------- */
 
-  function renderAbout (spec) {
-    const info = (spec && spec.info) || {}
-    const blocks = markdownParagraphs(info.description)
-    const box = $('about-text')
-    box.textContent = ''
-    if (!blocks.length) return
-    blocks.forEach((block, index) => {
-      const paragraph = el('p', null, markdownNodes(block))
-      // A introdução termina em "contate o mantenedor do projeto:"; o contato vem de info.contact.
-      const contactUrl = info.contact && core.safeHref(info.contact.url)
-      if (index === blocks.length - 1 && contactUrl && info.contact.name) paragraph.append(' ', externalLink(contactUrl, info.contact.name))
-      box.append(paragraph)
-    })
-    $('about').hidden = false
+  // O endereço do formulário de opinião no idioma da página; vazio, nenhuma entrada de opinião aparece.
+  function feedbackUrl () {
+    return core.safeHref(FEEDBACK_FORM_URL[language] || '')
   }
 
-  function introSentence () {
-    const info = (state.spec && state.spec.info) || {}
-    const first = markdownParagraphs(info.description)[0]
-    return first ? plainMarkdown(first) : ''
+  // As listas do rodapé, que a marcação traz vazias. A documentação Swagger abre nesta aba, como o link da
+  // barra; os outros abrem em outra aba. O contato do mantenedor vem de info.contact do documento e fica de
+  // fora sem URL (o resto do rodapé não depende do documento, por isso já aparece antes dele chegar).
+  function renderAbout (spec) {
+    const contact = (spec && spec.info && spec.info.contact) || {}
+    const contactUrl = core.safeHref(contact.url || '')
+    const form = feedbackUrl()
+    const item = (...children) => el('li', null, children)
+    $('about-beyond').replaceChildren(
+      item(el('a', { href: '/swagger?lang=' + encodeURIComponent(language), text: t('lab.topbar.docs') })),
+      item(externalLink(ABOUT_URLS.postman, t('lab.about.link_postman'))),
+      item(externalLink(ABOUT_URLS.repository, t('lab.about.link_local'))),
+      item(externalLink(ABOUT_URLS.load, t('lab.about.link_load'))),
+      item(externalLink(ABOUT_URLS.front, t('lab.about.link_front'))))
+    $('about-help').replaceChildren(...[
+      item(externalLink(ABOUT_URLS.issues, t('lab.about.link_issue'))),
+      contactUrl ? item(externalLink(contactUrl, fillText('lab.about.link_contact', { name: contact.name || '' }))) : null,
+      form ? item(externalLink(form, t('lab.feedback.footer')), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
+    ].filter(Boolean))
+    $('about-support').replaceChildren(
+      item(externalLink(ABOUT_URLS.author, t('lab.about.link_follow'))),
+      item(externalLink(ABOUT_URLS.repository, t('lab.about.link_star'))),
+      item(externalLink(ABOUT_URLS.fund, t('lab.about.link_fund'))),
+      item(externalLink(ABOUT_URLS.contribute, t('lab.about.link_contribute'))))
+    $('about-thanks').replaceChildren(...parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) }))
+  }
+
+  // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px).
+  function paintFeedbackPill () {
+    const form = feedbackUrl()
+    const pill = $('feedback-pill')
+    if (!form) return
+    pill.href = form
+    pill.hidden = false
+  }
+
+  // Sobre o ServeRest no Resultado vazio da primeira visita: a apresentação e os três links de quem vai
+  // testar fora desta página, e o caminho para o rodapé.
+  function aboutBand () {
+    const go = (key, linkKey, url) => el('li', null, parts(key, { link: externalLink(url, t(linkKey)) }))
+    return el('section', { class: 'result-about', 'aria-labelledby': 'result-about-title' },
+      el('div', { class: 'band' }, el('h3', { class: 'band-title', id: 'result-about-title', text: t('lab.about.title') })),
+      el('div', { class: 'band-body about-body' },
+        el('p', null, el('strong', { text: t('lab.about.intro') })),
+        el('p', { class: 'about-go', text: t('lab.about.go_title') }),
+        el('ul', { class: 'go-list' },
+          go('lab.about.go_postman', 'lab.about.go_postman_link', ABOUT_URLS.postman),
+          go('lab.about.go_local', 'lab.about.go_local_link', ABOUT_URLS.repository),
+          go('lab.about.go_load', 'lab.about.go_load_link', ABOUT_URLS.load)),
+        el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link') }) }))))
+  }
+
+  // O convite para dar opinião, no Resultado vazio depois do 3º envio (core.feedbackInvite decide). A
+  // primeira vez guarda "shown" e a marca desta aba; Fechar e o link encerram o convite de vez.
+  function feedbackInviteNode () {
+    const form = feedbackUrl()
+    if (!form) return null
+    const decision = core.feedbackInvite({ count: state.history.length, local: readLocal(FEEDBACK_KEY), session: !!readSession(FEEDBACK_SESSION_KEY) })
+    if (!decision.show) return null
+    if (decision.write) {
+      writeLocal(FEEDBACK_KEY, 'shown')
+      writeSession(FEEDBACK_SESSION_KEY, '1')
+    }
+    return el('section', { class: 'invite', id: 'invite', 'aria-labelledby': 'invite-title' },
+      el('p', { class: 'invite-title', id: 'invite-title', text: t('lab.feedback.invite_title') }),
+      el('p', { text: t('lab.feedback.invite_text') }),
+      el('div', { class: 'invite-actions' },
+        externalLink(form, t('lab.feedback.invite_go'), { class: 'link-btn', onclick: () => endInvite('answered', false) }),
+        el('button', { type: 'button', class: 'btn btn-quiet', id: 'invite-close', text: t('lab.feedback.invite_close'), onclick: () => endInvite('closed', true) })),
+      el('p', { class: 'small muted', text: t('lab.feedback.invite_where') }))
+  }
+
+  // Fechar e o link do formulário (que abre em outra aba) tiram o convite; o foco vai para a primeira linha
+  // do Resultado vazio, em vez de cair no body, e Fechar anuncia onde o link continua. O convite sai depois
+  // do clique, para o link abrir o formulário antes.
+  function endInvite (value, closed) {
+    writeLocal(FEEDBACK_KEY, value)
+    setTimeout(() => {
+      const invite = $('invite')
+      if (!invite) return
+      const first = $('result-empty-first')
+      if (first) first.focus()
+      invite.remove()
+      if (closed) announce(t('lab.feedback.closed'))
+    }, 0)
   }
 
   // O seletor de idioma do Swagger. A bandeira do idioma da página não recarrega; as outras guardam o
@@ -906,6 +1051,17 @@
     link.replaceChildren(label, el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
+  // "O que é POST? ↗": a página do método na MDN, numa aba nova, no idioma da página quando a MDN tem a
+  // tradução. O nome acessível é uma frase inteira em aria-label, que começa pelo texto visível e já diz que
+  // abre outra aba.
+  function methodLink (method) {
+    const name = method.toUpperCase()
+    const mdn = core.mdnMethodUrl(name, language)
+    return el('a', { class: 'method-link', href: mdn.url, target: '_blank', rel: 'noopener', 'aria-label': fillText(mdn.english ? 'lab.method.link_name_english' : 'lab.method.link_name', { method: name }) },
+      parts('lab.method.what', { method: el('span', { class: 'm-name', text: name }) }),
+      el('span', { 'aria-hidden': 'true', text: ' ↗' }))
+  }
+
   // A Requisição sem abas: o título, a descrição, a barra de endereço com a URL já resolvida, a linha do
   // atalho e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
   // o documento traz o schema), Será enviado (o comando curl, refeito a cada edição) e Respostas possíveis,
@@ -939,7 +1095,9 @@
             el('span', { class: 'req-base', text: baseUrl }),
             el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text', text: route.path }))),
           runControl())),
-      el('p', { class: 'kbd-hint req-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) })),
+      el('div', { class: 'req-hint' },
+        methodLink(route.method),
+        el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) }))),
       reqSection('params', t('lab.section.params'), null, paramsContent(route, draft)),
       route.body ? reqSection('body', t('lab.section.body'), null, bodyContent(route, draft)) : null,
       reqSection('sent', t('lab.sent.title'), draftCopyButton(), curlBlock()),
@@ -2657,13 +2815,23 @@
     state.offer = null
     const box = $('result-empty')
     box.textContent = ''
+    // Primeira visita: esta aba ainda não tem Histórico (um recarregamento com Histórico não é primeira visita).
     const first = !state.history.length
-    const intro = first ? introSentence() : ''
+    const routeLine = route ? el('p', { class: 'result-route' }, parts('lab.result.not_sent', { route: el('code', { text: route.method.toUpperCase() + ' ' + route.path }) })) : null
+    const how = el('p', { text: t('lab.result.not_sent_how') })
+    // A primeira linha recebe o foco quando o convite é fechado.
+    const firstLine = routeLine || how
+    firstLine.id = 'result-empty-first'
+    firstLine.setAttribute('tabindex', '-1')
     append(box, [
-      intro ? el('p', { class: 'result-lead', text: intro }) : null,
-      route ? el('p', { class: 'result-route' }, parts('lab.result.not_sent', { route: el('code', { text: route.method.toUpperCase() + ' ' + route.path }) })) : null,
-      el('p', { text: t('lab.result.not_sent_how') }),
-      el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })
+      el('div', { class: 'result-empty-lines' },
+        // As setas da marca abrem o Resultado vazio; a logo completa fica na barra e no rodapé.
+        el('div', { class: 'result-empty-head' },
+          el('span', { class: 'setas', 'aria-hidden': 'true' }, el('span', { class: 'setas-p' }), el('span', { class: 'setas-d' })),
+          routeLine),
+        how,
+        el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
+      first ? aboutBand() : feedbackInviteNode()
     ])
   }
 
@@ -2828,16 +2996,18 @@
     let shownText = pretty !== null ? pretty : body
     if (truncated) shownText = shownText.slice(0, MAX_BODY_CHARS)
     if (pretty !== null && !truncated) pre.innerHTML = core.highlightJson(shownText)
-    else pre.textContent = shownText || t('lab.response.empty_body')
-    const copy = el('button', { type: 'button', class: 'btn btn-copy', id: 'copy-body', 'aria-label': t('lab.copy.body_name'), text: t('lab.copy.body'), onclick: copyBody })
+    else pre.textContent = shownText
+    // Um corpo vazio não tem o que copiar: em vez do bloco escuro, a nota "(corpo vazio)" em itálico.
+    const empty = body === ''
+    const copy = empty ? null : el('button', { type: 'button', class: 'btn btn-copy', id: 'copy-body', 'aria-label': t('lab.copy.body_name'), text: t('lab.copy.body'), onclick: copyBody })
 
     append(area, [
       el('div', { class: 'res-line' }, statusLink(record), simpleDocLine(record, documentedResponse(record))),
       // K3: a oferta do token logo abaixo da linha do status, acima do corpo.
       tokenOffer(record),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }), copy),
-      el('div', { class: 'code res-body' }, pre),
-      el('p', { class: 'copy-msg', id: 'body-copy-msg' }),
+      empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : el('div', { class: 'code res-body' }, pre),
+      empty ? null : el('p', { class: 'copy-msg', id: 'body-copy-msg' }),
       truncated ? el('p', { class: 'muted small', text: fillText('lab.response.truncated', { count: fullLength }) }) : null,
       el('h4', { class: 'sub-label', text: fillText('lab.response.headers', { count: record.headers.length }) }),
       responseHeaders(record.headers)
@@ -3446,6 +3616,8 @@
     restoreSession()
     setupTopbar()
     paintNotice()
+    paintFeedbackPill()
+    renderAbout(null)
     setupFlowControls()
     setupResultTabs()
     setupView()
