@@ -149,6 +149,7 @@
                         "description": "paths.usuariosById.parameters._id.description",
                         "schema": {
                             "type": "string",
+                            "pattern": "^[a-zA-Z0-9]{16}$",
                             "default": "0uxuPY0cbmQhpEz1"
                         }
                     }
@@ -364,6 +365,7 @@
                         "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
+                            "pattern": "^[a-zA-Z0-9]{16}$",
                             "default": "BeeJh5lz3k6kSIzA"
                         }
                     }
@@ -416,6 +418,7 @@
                         "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
+                            "pattern": "^[a-zA-Z0-9]{16}$",
                             "default": "K6leHdftCeOJj8BJ"
                         }
                     }
@@ -474,6 +477,7 @@
                         "description": "paths.produtosById.parameters._id.description",
                         "schema": {
                             "type": "string",
+                            "pattern": "^[a-zA-Z0-9]{16}$",
                             "default": "K6leHdftCeOJj8BJ"
                         }
                     }
@@ -609,6 +613,7 @@
                         "description": "paths.carrinhosById.parameters._id.description",
                         "schema": {
                             "type": "string",
+                            "pattern": "^[a-zA-Z0-9]{16}$",
                             "default": "qbMqntef4iTOwWfg"
                         }
                     }
@@ -737,7 +742,8 @@
                 "name": "email",
                 "required": false,
                 "schema": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email"
                 }
             },
             "password": {
@@ -768,7 +774,8 @@
                 "example": 470,
                 "schema": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 9007199254740991
                 }
             },
             "descricao": {
@@ -787,7 +794,8 @@
                 "example": 0,
                 "schema": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 9007199254740991
                 }
             },
             "precoTotal": {
@@ -798,7 +806,8 @@
                 "example": 1300,
                 "schema": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 9007199254740991
                 }
             },
             "quantidadeTotal": {
@@ -809,7 +818,8 @@
                 "example": 2,
                 "schema": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 1,
+                    "maximum": 9007199254740991
                 }
             },
             "idUsuario": {
@@ -881,7 +891,7 @@
                                     "quantidade": 1
                                 },
                                 {
-                                    "idProduto": "YaeJ455lz3k6kSIzA",
+                                    "idProduto": "K6leHdftCeOJj8BJ",
                                     "quantidade": 3
                                 }
                             ]
@@ -944,18 +954,22 @@
         "schemas": {
             "nomeUsuario": {
                 "type": "string",
+                "minLength": 1,
                 "example": "Fulano da Silva"
             },
             "emailBeltrano": {
                 "type": "string",
+                "format": "email",
                 "example": "beltrano@qa.com.br"
             },
             "emailFulano": {
                 "type": "string",
+                "format": "email",
                 "example": "fulano@qa.com"
             },
             "password": {
                 "type": "string",
+                "minLength": 1,
                 "example": "teste"
             },
             "administrador": {
@@ -972,18 +986,24 @@
             },
             "nomeProduto1": {
                 "type": "string",
+                "minLength": 1,
                 "example": "Logitech MX Vertical"
             },
             "precoProduto1": {
                 "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991,
                 "example": 470
             },
             "descricaoProduto1": {
                 "type": "string",
+                "minLength": 1,
                 "example": "Mouse"
             },
             "quantidadeProduto1": {
                 "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
                 "example": 381
             },
             "_idProduto1": {
@@ -1012,6 +1032,13 @@
             },
             "requestBodyUsuarios": {
                 "type": "object",
+                "required": [
+                    "nome",
+                    "email",
+                    "password",
+                    "administrador"
+                ],
+                "additionalProperties": false,
                 "properties": {
                     "nome": {
                         "$ref": "#/components/schemas/nomeUsuario"
@@ -1029,6 +1056,11 @@
             },
             "requestBodyLogin": {
                 "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "additionalProperties": false,
                 "properties": {
                     "email": {
                         "$ref": "#/components/schemas/emailFulano"
@@ -1040,6 +1072,13 @@
             },
             "requestBodyProduto": {
                 "type": "object",
+                "required": [
+                    "nome",
+                    "preco",
+                    "descricao",
+                    "quantidade"
+                ],
+                "additionalProperties": false,
                 "properties": {
                     "nome": {
                         "$ref": "#/components/schemas/nomeProduto1"
@@ -1057,15 +1096,31 @@
             },
             "requestBodyCarrinho": {
                 "type": "object",
+                "required": [
+                    "produtos"
+                ],
+                "additionalProperties": false,
                 "properties": {
                     "produtos": {
-                        "type": "object",
-                        "properties": {
-                            "idProduto": {
-                                "type": "string"
-                            },
-                            "quantidade": {
-                                "type": "integer"
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "idProduto",
+                                "quantidade"
+                            ],
+                            "additionalProperties": false,
+                            "properties": {
+                                "idProduto": {
+                                    "type": "string",
+                                    "minLength": 1
+                                },
+                                "quantidade": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 9007199254740991
+                                }
                             }
                         },
                         "example": [
@@ -1074,7 +1129,7 @@
                                 "quantidade": 1
                             },
                             {
-                                "idProduto": "YaeJ455lz3k6kSIzA",
+                                "idProduto": "K6leHdftCeOJj8BJ",
                                 "quantidade": 3
                             }
                         ]

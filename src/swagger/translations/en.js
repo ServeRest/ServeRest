@@ -159,7 +159,7 @@ module.exports = {
   'components.parameters.preco.description': 'Filter by price. Provide an integer greater than or equal to 1.',
   'components.parameters.quantidade.description': 'Filter by quantity. Provide an integer greater than or equal to 0.',
   'components.parameters.precoTotal.description': 'Filter by total price. Provide an integer greater than or equal to 1.',
-  'components.parameters.quantidadeTotal.description': 'Filter by total quantity. Provide an integer greater than or equal to 0.',
+  'components.parameters.quantidadeTotal.description': 'Filter by total quantity. Provide an integer greater than or equal to 1.',
   'components.responses.EmailJaUtilizado.description': 'Email already registered',
   'components.responses.ProdutoNomeDuplicado.description': 'A product with this name already exists',
   'components.responses.TokenInvalido.description': 'Token missing, invalid or expired',
