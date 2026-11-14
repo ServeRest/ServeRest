@@ -2005,9 +2005,12 @@
   }
 
   // O envio mostrado, os não vistos e a aba da esquerda mudam mais vezes que a lista: ficam numa chave pequena.
+  // Enquanto as rotas não chegam, o envio mostrado continua sendo o que veio da sessão (uma recarga nesse
+  // meio tempo não o perde).
   function saveView () {
+    const shownId = state.shownId !== null ? state.shownId : state.restoreShownId
     try {
-      window.sessionStorage.setItem(VIEW_KEY, JSON.stringify({ v: 1, shownId: state.shownId, unseen: state.unseen, sideTab: state.sideTab }))
+      window.sessionStorage.setItem(VIEW_KEY, JSON.stringify({ v: 1, shownId, unseen: state.unseen, sideTab: state.sideTab }))
     } catch (error) {}
   }
 
@@ -3287,11 +3290,8 @@
       const next = expandable
         ? el('button', { type: 'button', class: 'flow-row', 'aria-expanded': 'false', 'aria-controls': row.details.id, onclick: () => setExpanded(index, row.details.hidden) })
         : el('div', { class: 'flow-row' })
-      // Trocar a linha tira o foco dela: ele vai para a linha nova, e não para o body.
-      const focused = row.row === document.activeElement
       row.row.replaceWith(next)
       row.row = next
-      if (focused && expandable) next.focus({ preventScroll: true })
     }
     const filled = finished ? 'final' : 'early'
     if (!row.details || row.filled === filled) return
