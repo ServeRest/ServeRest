@@ -40,7 +40,14 @@
   const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
   // O formulário de opinião de cada idioma. Vazio, nenhuma entrada de opinião aparece (rodapé, convite e
   // selo da barra).
-  const FEEDBACK_FORM_URL = { 'pt-BR': '', en: '', es: '' }
+  const FEEDBACK_FORM_URL = {
+    'pt-BR': 'https://docs.google.com/forms/d/e/1FAIpQLScVAi6hLqT1rpsuN-Jtrxu2r8dcg20EjfTzsjci7wQHPtegPQ/viewform?usp=pp_url&entry.924035673=VERSAO',
+    en: '',
+    es: ''
+  }
+  // O formulário deixa de aceitar respostas nesta data; depois dela as entradas de opinião somem sozinhas.
+  // Precisa ser a mesma data configurada no Google Forms.
+  const FEEDBACK_UNTIL = '2027-01-31T23:59:59-03:00'
   // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
   const ABOUT_URLS = {
     postman: 'https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json',
@@ -538,7 +545,7 @@
 
   // O endereço do formulário de opinião no idioma da página; vazio, nenhuma entrada de opinião aparece.
   function feedbackUrl () {
-    return core.safeHref(FEEDBACK_FORM_URL[language] || '')
+    return core.feedbackFormUrl(FEEDBACK_FORM_URL[language], version, Date.now(), FEEDBACK_UNTIL)
   }
 
   // As listas do rodapé, que a marcação traz vazias. A documentação Swagger abre nesta aba, como o link da

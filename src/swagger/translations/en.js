@@ -453,7 +453,7 @@ module.exports = {
   'lab.feedback.invite_where': 'The link is also at the end of the page, under Help.',
   'lab.feedback.closed': 'Invitation closed. The link stays at the end of the page, under Help.',
   'lab.feedback.footer': 'Give feedback on this page',
-  'lab.feedback.footer_note': '5 questions, no login, no name or email asked.',
+  'lab.feedback.footer_note': '6 questions, no login, no name or email asked.',
   'lab.feedback.pill': 'New page: give feedback',
   'lab.version.notice_stable': 'New stable version available: {version}',
   'lab.release.title': 'New ServeRest version: {version}',

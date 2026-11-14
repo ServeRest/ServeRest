@@ -453,7 +453,7 @@ module.exports = {
   'lab.feedback.invite_where': 'El enlace también está al final de la página, en Ayuda.',
   'lab.feedback.closed': 'Invitación cerrada. El enlace sigue al final de la página, en Ayuda.',
   'lab.feedback.footer': 'Opinar sobre esta página',
-  'lab.feedback.footer_note': '5 preguntas, sin inicio de sesión y sin pedir nombre ni email.',
+  'lab.feedback.footer_note': '6 preguntas, sin inicio de sesión y sin pedir nombre ni email.',
   'lab.feedback.pill': 'Página nueva: opinar',
   'lab.version.notice_stable': 'Nueva versión estable disponible: {version}',
   'lab.release.title': 'Nueva versión de ServeRest: {version}',
