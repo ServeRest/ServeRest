@@ -2356,8 +2356,19 @@
     if (historyOnScreen()) flashEntry(entry)
   }
 
+  // O contorno do veredito só toca na entrada do topo, e para na hora quando outra entra acima dela: com
+  // envios seguidos, ele não desce junto com a entrada nem se acumula em várias.
+  let flashing = null
   function flashEntry (entry) {
-    if (entry) playOnce(entry, ENTRY_ARRIVE, { duration: 2000, easing: 'ease-out' })
+    if (!entry || entry.parentNode !== $('history-body').firstElementChild) return
+    flashing = entry
+    playOnce(entry, ENTRY_ARRIVE, { duration: 2000, easing: 'ease-out' })
+  }
+
+  function stopFlash () {
+    const animation = flashing && playing.get(flashing)
+    if (animation) animation.cancel()
+    flashing = null
   }
 
   // O lugar da entrada nova abre em altura e as de baixo descem junto; o conteúdo aparece no lugar, sem
@@ -2375,10 +2386,11 @@
     item.firstChild.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 270, delay: 130, easing: 'ease-out', fill: 'backwards' })
   }
 
-  // Um envio novo entra no topo sem refazer a lista: as entradas que já estavam ficam, com o foco e o
-  // contorno de revealPending, e a mais antiga sai quando a lista passa de MAX_HISTORY. Com a lista vazia
+  // Um envio novo entra no topo sem refazer a lista: as entradas que já estavam ficam, com o foco, e a
+  // mais antiga sai quando a lista passa de MAX_HISTORY. Com a lista vazia
   // (a frase de vazio à vista), ela é desenhada inteira.
   function insertEntry (record) {
+    stopFlash()
     const list = $('history-body')
     if (!list.children.length) {
       renderHistory()
