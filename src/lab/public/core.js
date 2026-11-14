@@ -264,6 +264,38 @@
     return declared !== undefined ? declared : sampleOf(spec, content.schema, 0)
   }
 
+  // O schema com cada $ref resolvido nas propriedades e nos itens, até a profundidade 6, para a tabela do
+  // schema do corpo. O documento não muda: cada parte resolvida é uma cópia rasa.
+  function deref (spec, node, depth) {
+    const level = depth || 0
+    const schema = resolve(spec, node)
+    if (!schema || level > 6) return schema || null
+    const out = Object.assign({}, schema)
+    if (schema.properties) {
+      out.properties = {}
+      Object.keys(schema.properties).forEach(name => { out.properties[name] = deref(spec, schema.properties[name], level + 1) || {} })
+    }
+    if (schema.items) out.items = deref(spec, schema.items, level + 1)
+    return out
+  }
+
+  // As linhas da tabela do schema do corpo, na ordem do documento: um campo por linha; um array de objetos
+  // ganha uma linha de grupo e, logo abaixo, os campos de cada item. path junta o grupo e o nome
+  // (produtos.quantidade), como o campo aparece na mensagem de erro do servidor.
+  function schemaRows (schema, group) {
+    const required = (schema && Array.isArray(schema.required)) ? schema.required : []
+    const rows = []
+    Object.keys((schema && schema.properties) || {}).forEach(name => {
+      const prop = schema.properties[name] || {}
+      rows.push({ name, group: group || null, path: group ? group + '.' + name : name, type: typeof prop.type === 'string' ? prop.type : '', required: required.includes(name), prop })
+      if (prop.type === 'array' && prop.items && prop.items.properties) {
+        rows.push({ groupLabel: name })
+        rows.push(...schemaRows(prop.items, name))
+      }
+    })
+    return rows
+  }
+
   // Respostas documentadas da operação, na ordem do documento, para o aluno saber o que verificar.
   function responsesOf (spec, operation) {
     const responses = operation.responses || {}
@@ -301,7 +333,8 @@
           description: param.description || '',
           example: param.example !== undefined ? param.example : schema.example,
           def: schema.default,
-          enumValues: Array.isArray(schema.enum) ? schema.enum : null
+          enumValues: Array.isArray(schema.enum) ? schema.enum : null,
+          type: typeof schema.type === 'string' ? schema.type : ''
         }
       })
   }
@@ -327,7 +360,7 @@
           operationId: operation.operationId || '',
           responses: responsesOf(spec, operation),
           params: paramsOf(spec, item.parameters || [], operation.parameters || []),
-          body: content ? { example: example === undefined ? {} : example } : null,
+          body: content ? { example: example === undefined ? {} : example, schema: deref(spec, content.schema) } : null,
           needsToken: security.some(requirement => Object.keys(requirement).some(name => schemeIds.includes(name)))
         })
       })
@@ -398,11 +431,20 @@
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
   }
 
+  // As partes do comando curl, na ordem: o início (método e URL), um -H por header e o corpo. Um corpo que
+  // começa por @ vai com --data-raw, porque com -d o curl leria o arquivo local que tem aquele nome.
+  function curlParts (request) {
+    const list = [{ kind: 'start', method: request.method, url: request.url, text: 'curl -X ' + request.method + ' ' + shellQuote(request.url) }]
+    request.headers.forEach(header => list.push({ kind: 'header', name: header[0], value: header[1], text: '-H ' + shellQuote(header[0] + ': ' + header[1]) }))
+    if (request.body !== undefined) {
+      const flag = String(request.body).charAt(0) === '@' ? '--data-raw' : '-d'
+      list.push({ kind: 'body', flag, body: String(request.body), text: flag + ' ' + shellQuote(request.body) })
+    }
+    return list
+  }
+
   function curlOf (request) {
-    const parts = ['curl -X ' + request.method + ' ' + shellQuote(request.url)]
-    request.headers.forEach(header => parts.push('-H ' + shellQuote(header[0] + ': ' + header[1])))
-    if (request.body !== undefined) parts.push('-d ' + shellQuote(request.body))
-    return parts.join(' \\\n  ')
+    return curlParts(request).map(part => part.text).join(' \\\n  ')
   }
 
   function decodeJwtExp (token) {
@@ -529,6 +571,8 @@
     stepDelay,
     flowColumns,
     resolve,
+    deref,
+    schemaRows,
     exampleOf,
     responsesOf,
     authHeaderOf,
@@ -540,6 +584,7 @@
     trimHeaderValue,
     buildRequest,
     shellQuote,
+    curlParts,
     curlOf,
     decodeJwtExp,
     tokenCaptionState,

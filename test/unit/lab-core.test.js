@@ -164,6 +164,108 @@ describe('Página do lab: funções puras', () => {
       expect(lista.params.find(param => param.name === 'administrador').enumValues).to.deep.equal(['true', 'false'])
     })
 
+    it('buildRoutes guarda o tipo de cada parâmetro, e um parâmetro sem tipo fica com texto vazio', () => {
+      const porId = routes.find(route => route.key === 'get /usuarios/{_id}')
+      expect(porId.params[0].type).to.equal('string')
+      const lista = routes.find(route => route.key === 'get /produtos')
+      lista.params.forEach(param => expect(param.type, param.name).to.be.a('string').and.not.equal(''))
+      const semTipo = core.buildRoutes({ paths: { '/x': { get: { parameters: [{ name: 'a', in: 'query' }, { name: 'b', in: 'query', schema: { type: ['string', 'null'] } }] } } } })
+      expect(semTipo[0].params.map(param => param.type)).to.deep.equal(['', ''])
+    })
+
+    it('buildRoutes guarda o schema do corpo resolvido, e só o exemplo continua indo para o editor', () => {
+      const carrinho = routes.find(route => route.key === 'post /carrinhos')
+      expect(carrinho.body.schema).to.include({ type: 'object' })
+      expect(carrinho.body.schema.properties).to.have.property('produtos')
+      expect(carrinho.body.example).to.have.property('produtos')
+      routes.filter(route => route.body).forEach(route => expect(route.body.schema, route.key).to.not.have.property('$ref'))
+    })
+
+    describe('deref', () => {
+      const spec = {
+        components: {
+          schemas: {
+            nome: { type: 'string', minLength: 1 },
+            item: { type: 'object', properties: { id: { $ref: '#/components/schemas/nome' } } },
+            corpo: { type: 'object', properties: { nome: { $ref: '#/components/schemas/nome' }, itens: { type: 'array', items: { $ref: '#/components/schemas/item' } } } },
+            laco: { type: 'object', properties: { filho: { $ref: '#/components/schemas/laco' } } }
+          }
+        }
+      }
+
+      it('resolve $ref nas propriedades e nos itens, também aninhados', () => {
+        const schema = core.deref(spec, { $ref: '#/components/schemas/corpo' })
+        expect(schema.properties.nome).to.deep.equal({ type: 'string', minLength: 1 })
+        expect(schema.properties.itens.items.properties.id).to.deep.equal({ type: 'string', minLength: 1 })
+      })
+
+      it('não altera o documento: as partes resolvidas são cópias', () => {
+        const antes = JSON.stringify(spec)
+        const schema = core.deref(spec, { $ref: '#/components/schemas/corpo' })
+        schema.properties.nome.minLength = 9
+        expect(JSON.stringify(spec)).to.equal(antes)
+      })
+
+      it('para depois da profundidade 6 em schema recursivo e devolve null sem schema', () => {
+        // Da profundidade 0 à 6 vêm cópias resolvidas; na 7 volta o próprio schema do documento, sem resolver os filhos.
+        const original = spec.components.schemas.laco
+        let nivel = core.deref(spec, { $ref: '#/components/schemas/laco' })
+        let copias = 0
+        while (nivel !== original) {
+          copias++
+          nivel = nivel.properties.filho
+        }
+        expect(copias).to.equal(7)
+        expect(nivel.properties.filho).to.deep.equal({ $ref: '#/components/schemas/laco' })
+        expect(core.deref(spec, null)).to.equal(null)
+        expect(core.deref(spec, { $ref: '#/components/schemas/nao_existe' })).to.equal(null)
+      })
+    })
+
+    describe('schemaRows', () => {
+      // O requestBodyCarrinho como src/models/carrinho-model.js o valida: o documento corrigido que o trunk
+      // ainda vai receber.
+      const carrinhoCorrigido = {
+        type: 'object',
+        required: ['produtos'],
+        additionalProperties: false,
+        properties: {
+          produtos: {
+            type: 'array',
+            minItems: 1,
+            items: {
+              type: 'object',
+              required: ['idProduto', 'quantidade'],
+              additionalProperties: false,
+              properties: { idProduto: { type: 'string', minLength: 1 }, quantidade: { type: 'integer', minimum: 1 } }
+            }
+          }
+        }
+      }
+
+      it('dá ao array de objetos uma linha de grupo e, logo abaixo, os campos de cada item', () => {
+        const rows = core.schemaRows(carrinhoCorrigido)
+        expect(rows.map(row => row.groupLabel || row.path)).to.deep.equal(['produtos', 'produtos', 'produtos.idProduto', 'produtos.quantidade'])
+        expect(rows[0]).to.include({ name: 'produtos', group: null, type: 'array', required: true })
+        expect(rows[1]).to.deep.equal({ groupLabel: 'produtos' })
+        expect(rows[2]).to.include({ name: 'idProduto', group: 'produtos', type: 'string', required: true })
+        expect(rows[3].prop).to.deep.equal({ type: 'integer', minimum: 1 })
+      })
+
+      it('marca obrigatório só o que está em required', () => {
+        const produto = { type: 'object', required: ['nome'], properties: { nome: { type: 'string' }, imagem: { type: 'string' } } }
+        expect(core.schemaRows(produto).map(row => [row.name, row.required])).to.deep.equal([['nome', true], ['imagem', false]])
+        expect(core.schemaRows({ properties: { a: {} } })[0]).to.include({ required: false, type: '' })
+      })
+
+      it('additionalProperties não vira linha: a frase do fim fica com quem desenha a tabela', () => {
+        const aberto = { type: 'object', required: [], additionalProperties: { type: 'string' }, properties: { a: { type: 'string' } } }
+        expect(core.schemaRows(aberto).map(row => row.name)).to.deep.equal(['a'])
+        expect(core.schemaRows(carrinhoCorrigido).filter(row => row.name === 'additionalProperties')).to.deep.equal([])
+        expect(core.schemaRows(null)).to.deep.equal([])
+      })
+    })
+
     it('authHeaderOf devolve o header do esquema de segurança e Authorization como padrão', () => {
       expect(core.authHeaderOf(swaggerDocument)).to.equal('Authorization')
       expect(core.authHeaderOf({ components: { securitySchemes: { chave: { type: 'apiKey', in: 'header', name: 'X-Token' } } } })).to.equal('X-Token')
@@ -391,6 +493,39 @@ describe('Página do lab: funções puras', () => {
       const ecoado = execFileSync('sh', ['-c', 'printf %s ' + core.shellQuote(corpo)]).toString()
       expect(ecoado).to.equal(corpo)
       expect(comando).to.include('-d ' + core.shellQuote(corpo))
+    })
+
+    describe('curlParts', () => {
+      const requisicao = {
+        method: 'POST',
+        url: 'http://localhost:3000/carrinhos',
+        headers: [['Content-Type', 'application/json'], ['Authorization', 'Bearer a.b']],
+        body: '{"produtos": []}'
+      }
+
+      it('devolve o início, um header por linha e o corpo, cada parte com o texto que entra no comando', () => {
+        expect(core.curlParts(requisicao)).to.deep.equal([
+          { kind: 'start', method: 'POST', url: 'http://localhost:3000/carrinhos', text: "curl -X POST 'http://localhost:3000/carrinhos'" },
+          { kind: 'header', name: 'Content-Type', value: 'application/json', text: "-H 'Content-Type: application/json'" },
+          { kind: 'header', name: 'Authorization', value: 'Bearer a.b', text: "-H 'Authorization: Bearer a.b'" },
+          { kind: 'body', flag: '-d', body: '{"produtos": []}', text: "-d '{\"produtos\": []}'" }
+        ])
+      })
+
+      it('corpo que começa por @ vai com --data-raw, para o curl não ler um arquivo local', () => {
+        const parts = core.curlParts({ ...requisicao, headers: [], body: '@/etc/passwd' })
+        expect(parts[1]).to.include({ kind: 'body', flag: '--data-raw', text: "--data-raw '@/etc/passwd'" })
+      })
+
+      it('sem corpo, nenhuma parte de corpo', () => {
+        const parts = core.curlParts({ method: 'GET', url: 'http://x/usuarios', headers: [], body: undefined })
+        expect(parts.map(part => part.kind)).to.deep.equal(['start'])
+      })
+
+      it('curlOf é a junção das partes e continua igual ao formato de antes', () => {
+        expect(core.curlOf(requisicao)).to.equal("curl -X POST 'http://localhost:3000/carrinhos' \\\n  -H 'Content-Type: application/json' \\\n  -H 'Authorization: Bearer a.b' \\\n  -d '{\"produtos\": []}'")
+        expect(core.curlOf({ method: 'GET', url: 'http://x/a', headers: [], body: undefined })).to.equal("curl -X GET 'http://x/a'")
+      })
     })
 
     it('statusText vem da tabela fixa e é vazio para código desconhecido', () => {
