@@ -356,7 +356,7 @@ module.exports = {
   'lab.history.col_method': 'Method',
   'lab.history.col_path': 'Path',
   'lab.history.col_auth': 'Authorization',
-  'lab.history.col_status': 'Status',
+  'lab.history.col_status': 'Status code',
   'lab.history.col_where': 'Where it stopped',
   'lab.history.auth_with': 'with {header}',
   'lab.history.auth_without': 'without {header}',
