@@ -1018,9 +1018,12 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 
 /* Abaixo de 1024 px a barra fica justa numa linha só: em 768 px, com o link da documentação e a versão em
    inglês ou espanhol (um pouco mais longos), ela quebrava para duas linhas. O vão entre o link e A− passa
-   a 12 px, o mesmo da regra de 760 px. */
+   a 12 px, o mesmo da regra de 760 px; os vãos entre o seletor de idioma, a logo e a versão também, porque
+   a logo completa é 4 px mais larga que o SVG de antes. */
 @container page (max-width: 1023px) {
   .bar-end { column-gap: 12px; }
+  .topbar-inner { column-gap: 12px; }
+  .brand { column-gap: 12px; }
 }
 /* O selo de opinião só cabe na barra a partir de 1024 px (em px, para não depender do tamanho do texto);
    abaixo disso fica fora da tela e da ordem do Tab. */
