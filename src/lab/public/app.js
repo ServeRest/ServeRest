@@ -246,9 +246,10 @@
   // O anúncio do resultado de um envio termina com a contagem do Histórico quando o envio entrou com a
   // aba Histórico fechada. A contagem vai uma vez só, e nunca junto de outro anúncio.
   function announceResult (message) {
-    const note = state.countNote
+    const notes = [state.countNote, state.limitNote].filter(Boolean)
     state.countNote = ''
-    announce(note ? message + ' ' + note : message)
+    state.limitNote = ''
+    announce(notes.length ? message + ' ' + notes.join(' ') : message)
   }
 
   // Markdown mínimo das descrições do OpenAPI: um parágrafo por linha e `código`.
@@ -311,6 +312,8 @@
     // que vai junto do próximo anúncio quando a aba Histórico está fechada.
     sideTab: 'rotas',
     countNote: '',
+    // O aviso de que o Histórico chegou ao limite, que vai junto do próximo anúncio do resultado.
+    limitNote: '',
     // Quantos envios chegaram com a aba Histórico fechada (a contagem fica roxa enquanto houver algum).
     unseen: 0,
     // O envio que estava no Resultado antes de a página recarregar, até as rotas chegarem.
@@ -526,10 +529,7 @@
     state.mode = mode
     saveSlowMotion(mode === 'lenta')
     paintRunMode()
-    if (mode === 'normal') {
-      finishFlowNow()
-      stopFit()
-    }
+    if (mode === 'normal') finishFlowNow()
   }
 
   // Termina na hora a animação que estiver rodando (modo normal escolhido, menos movimento ligado).
@@ -659,7 +659,9 @@
     const box = $('version')
     const releaseHref = core.releaseUrl(version)
     box.textContent = ''
-    if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
+    // A seta de "abre outra aba" aparece só com o mouse ou o foco, por cima do espaço ao lado: a barra continua
+    // numa linha.
+    if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'hover-arrow', 'aria-hidden': 'true', text: '↗' }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
     updateLanguageLinks()
     document.querySelectorAll('.lang-switcher__button').forEach(link => {
       link.addEventListener('click', event => {
@@ -861,6 +863,7 @@
       const had = state.unseen
       state.unseen = 0
       state.countNote = ''
+      state.limitNote = ''
       if (had) saveView()
     }
     paintSideTabs()
@@ -942,6 +945,7 @@
     if (id === 'historico') {
       state.unseen = 0
       state.countNote = ''
+      state.limitNote = ''
     }
     paintHistBadge(false)
     if (id === 'historico') keepEntryInView()
@@ -1836,15 +1840,18 @@
   // Uma linha por parte do comando (span em bloco): todas menos a primeira começam com dois espaços, todas
   // menos a última terminam em " \". O innerText do bloco é exatamente core.curlOf, também numa seleção
   // feita à mão; o botão copia sempre a string de core.curlOf, nunca o texto da tela.
-  function renderCurl (pre, request) {
+  // withTimes acrescenta a linha da opção -w, a mesma que vai junto ao copiar com os tempos do curl.
+  function renderCurl (pre, request, withTimes) {
     const list = core.curlParts(request)
-    pre.replaceChildren(...list.map((part, index) => {
+    const lines = list.map((part, index) => {
       const line = el('span', { class: 'curl-part', 'data-kind': part.kind })
       if (index > 0) line.append('  ')
       curlPartContent(line, part)
-      if (index < list.length - 1) keepTailTogether(line)
+      if (index < list.length - 1 || withTimes) keepTailTogether(line)
       return line
-    }))
+    })
+    if (withTimes) lines.push(el('span', { class: 'curl-part', 'data-kind': 'times' }, '  ' + core.CURL_TIMES))
+    pre.replaceChildren(...lines)
   }
 
   // O último caractere da parte e o " \" do fim ficam numa peça que não quebra, então a barra nunca vai
@@ -1957,10 +1964,10 @@
 
   // Copia um comando curl. Sem área de transferência, o comando inteiro fica selecionado no bloco e a
   // mensagem diz como copiar com o teclado.
-  function copyCommand (button, command, pre, message, onShown) {
+  function copyCommand (button, command, pre, message, onShown, doneKey) {
     copyText(command, ok => {
       if (ok) {
-        const done = t('lab.copy.command_done')
+        const done = t(doneKey || 'lab.copy.command_done')
         flashCopied(button)
         message.className = 'copy-msg'
         message.replaceChildren(done)
@@ -2348,6 +2355,8 @@
   }
 
   // A contagem sobe de baixo, e a entrada nova ganha um contorno roxo que se apaga. Só cor e posição.
+  // A contagem no limite tenta subir e bate no teto: um tranco curto para os lados.
+  const COUNT_BUMP = [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }]
   const COUNT_ROLL = [{ transform: 'translateY(90%)', opacity: 0 }, { transform: 'none', opacity: 1 }]
   const ENTRY_ARRIVE = [{ boxShadow: 'inset 0 0 0 2px var(--accent)' }, { boxShadow: 'inset 0 0 0 2px transparent' }]
 
@@ -2431,11 +2440,15 @@
       renderHistory()
       return
     }
+    const wasFull = list.children.length >= MAX_HISTORY
     const item = entryItem(record)
     list.prepend(item)
     while (list.children.length > MAX_HISTORY) list.lastElementChild.remove()
     paintHistoryFrame()
     if (historyOnScreen()) openEntry(item)
+    // Ao chegar ao limite, o aviso é anunciado uma vez; no limite, cada envio novo faz a contagem bater no teto.
+    if (!wasFull && list.children.length >= MAX_HISTORY) state.limitNote = fillText('lab.history.limit_reached', { max: MAX_HISTORY })
+    if (list.children.length >= MAX_HISTORY && historyOnScreen()) playOnce($('hist-count'), COUNT_BUMP, { duration: 420, easing: 'ease-in-out' })
   }
 
   // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
@@ -2456,7 +2469,12 @@
   // O que acompanha a lista: a contagem no título e na aba, Limpar, a frase de vazio e a de Histórico limpo.
   function paintHistoryFrame () {
     const count = state.history.length
-    $('hist-count').textContent = count ? fillText(count === 1 ? 'lab.history.count_one' : 'lab.history.count', { count }) : ''
+    // No limite, a contagem diz que parou de crescer, e uma linha explica que o mais antigo sai.
+    const full = count >= MAX_HISTORY
+    $('hist-count').textContent = count ? fillText(full ? 'lab.history.count_full' : count === 1 ? 'lab.history.count_one' : 'lab.history.count', { count }) : ''
+    $('hist-count').classList.toggle('at-limit', full)
+    $('hist-limit').textContent = fillText('lab.history.limit_note', { max: MAX_HISTORY })
+    $('hist-limit').hidden = !full
     paintHistBadge(false)
     $('hist-clear').hidden = !count
     $('hist-scroll').hidden = !count
@@ -2547,6 +2565,7 @@
     state.shownId = null
     state.unseen = 0
     state.countNote = ''
+    state.limitNote = ''
     renderHistory()
     paintRouteMarks()
     showForSelected()
@@ -2635,6 +2654,7 @@
       })
     })
     $('sent-out-copy').addEventListener('click', copySent)
+    $('sent-out-times').addEventListener('change', () => { if (state.sentOutRecord) renderSentOut(state.sentOutRecord) })
     paintResultTabs()
   }
 
@@ -3019,12 +3039,15 @@
     button.removeAttribute('data-label')
     button.setAttribute('aria-label', fillText('lab.copy.command_sent', { time: clock(record.at) }))
     const pre = el('pre', { class: 'code-page curl-pre', id: 'sent-out-pre' })
-    renderCurl(pre, recordRequest(record))
+    const withTimes = $('sent-out-times').checked
+    renderCurl(pre, recordRequest(record), withTimes)
     append(area, [
       el('div', { class: 'sent-differs', id: 'sent-differs', hidden: true }),
       el('div', { class: 'sent-command', id: 'sent-command' },
         pre,
-        el('div', { class: 'captions' }, el('p', { class: 'caption', text: t('lab.sent_out.caption') }))),
+        el('div', { class: 'captions' },
+          el('p', { class: 'caption', text: t('lab.sent_out.caption') }),
+          withTimes ? curlTimesNote() : null)),
       el('div', { class: 'captions sent-out-notes' },
         el('div', { class: 'sent-fill', id: 'sent-fill', hidden: true }),
         el('p', { class: 'copy-msg', id: 'sent-out-msg' }))
@@ -3033,10 +3056,38 @@
     paintFill()
   }
 
+  // O que cada tempo do -w quer dizer, numa lista curta, e por que o total do curl costuma passar o da barra.
+  const CURL_TIME_TEXT = {
+    time_namelookup: 'lab.sent_out.times.dns',
+    time_connect: 'lab.sent_out.times.connect',
+    time_appconnect: 'lab.sent_out.times.tls',
+    time_starttransfer: 'lab.sent_out.times.first_byte',
+    time_total: 'lab.sent_out.times.total'
+  }
+
+  function curlTimesNote () {
+    return el('div', { class: 'curl-times' },
+      el('p', { class: 'caption', text: t('lab.sent_out.times_intro') }),
+      el('dl', { class: 'curl-times-list' }, core.CURL_TIME_VARS.map(name => [el('dt', { text: name }), el('dd', { text: t(CURL_TIME_TEXT[name]) })])),
+      el('p', { class: 'caption', text: t('lab.sent_out.times_caveat') }))
+  }
+
+  // Com "Incluir os tempos do curl" marcado, o comando vai com a opção -w: depois da resposta, o curl escreve
+  // os próprios tempos no terminal.
   function copySent () {
     const record = state.sentOutRecord
     if (!record || !$('sent-out-pre')) return
-    copyCommand($('sent-out-copy'), record.curl, $('sent-out-pre'), $('sent-out-msg'), null)
+    const withTimes = $('sent-out-times').checked
+    copyCommand($('sent-out-copy'), withTimes ? core.curlWithTimes(record.curl) : record.curl, $('sent-out-pre'), $('sent-out-msg'), null, withTimes ? 'lab.copy.command_timed_done' : null)
+  }
+
+  // Do balão do total para a caixa "Incluir os tempos do curl", na aba da requisição enviada.
+  function goToCurlTimes () {
+    closeTimePop(false)
+    selectResultTab('enviado', false)
+    const box = $('sent-out-times')
+    box.scrollIntoView({ block: 'nearest' })
+    box.focus({ preventScroll: true })
   }
 
   // O envio de Foi enviado é diferente do rascunho da mesma rota? A aba ganha a caixa "≠ Será enviado" e um
@@ -3240,7 +3291,9 @@
     const node = el('dl', { class: 'sent res-headers' })
     list.forEach(header => {
       const stages = header[0].toLowerCase() === STAGES_HEADER
-      node.append(el('dt', { text: header[0] }),
+      // O nome de um header que o MDN explica vira link para a página dele.
+      const link = core.headerLink(header[0], language)
+      node.append(el('dt', null, link ? externalLink(link.url, header[0], link.english ? { hreflang: 'en' } : null) : header[0]),
         el('dd', null, header[1], stages ? el('p', { class: 'caption', text: t('lab.response.stages_note') }) : null))
     })
     return node
@@ -3399,6 +3452,7 @@
     if (state.pendingId !== null && state.pendingId !== record.id) {
       revealPending()
       state.countNote = ''
+      state.limitNote = ''
     }
     clearTimeout(flow.timer)
     flow.run++
@@ -3620,7 +3674,7 @@
 
   // A seta ocupa sempre o mesmo lugar, para o texto da coluna final alinhar em todas as linhas.
   function endColumn (right, expandable) {
-    return el('span', { class: 'flow-end' }, right, el('span', { class: 'flow-caret', 'aria-hidden': 'true', text: expandable ? '▶' : '' }))
+    return el('span', { class: 'flow-end' }, right, expandable ? icon('i-seta', 'flow-caret') : el('span', { class: 'flow-caret', 'aria-hidden': 'true' }))
   }
 
   function fillBoth (row, stateName, delay) {
@@ -3696,7 +3750,6 @@
     }
     setReplayReady(true)
     flowAnnounce(spoken)
-    if (animated && time.fig) fitLater(playFit, FIT_AFTER_VERDICT)
   }
 
   // "Ver em câmera lenta" é o único controle da faixa do Fluxo: fica disponível a partir do veredito de todo
@@ -3712,10 +3765,7 @@
         state.reduced = event.matches
         $('flow-controls').hidden = state.reduced
         paintRunMode()
-        if (state.reduced) {
-          finishFlowNow()
-          stopFit()
-        }
+        if (state.reduced) finishFlowNow()
       })
     } catch (e) {}
     $('replay').addEventListener('click', () => {
@@ -3738,9 +3788,6 @@
   // o total marcados embaixo. Cada parte e cada marca abre um balão que diz o que ela mede.
 
   const time = { fig: null, pop: null, current: null, observer: null }
-  const fit = { timers: [], anim: null, ghost: null, summary: null }
-  // O encaixe começa depois do veredito, para o veredito ser lido antes.
-  const FIT_AFTER_VERDICT = 250
 
   const TIME_NAMES = {
     outbound: 'lab.time.part.outbound',
@@ -3753,14 +3800,16 @@
 
   // O que cada balão diz: o que a parte é, o que a faz crescer, a nota da ida e da volta (o navegador só
   // mede a soma das duas), o que fazer com ela num teste e o link de referência.
+  const TIME_MIN_PX = 12
+
   const TIME_POPS = {
-    conn: { tip: 'lab.time.conn.tip', link: 'lab.time.conn.link' },
+    conn: { note: 'lab.time.conn.how', tip: 'lab.time.conn.tip', links: [{ key: 'connection', text: 'lab.time.conn.link_mdn' }, { key: 'overview', text: 'lab.time.conn.link_http' }, { key: 'conn', text: 'lab.time.conn.link' }] },
     outbound: { body: ['lab.time.outbound.body'], note: 'lab.time.outbound.note', tip: 'lab.time.outbound.tip', link: 'lab.time.link_mdn', linkName: 'Round Trip Time (RTT)' },
     server: { body: ['lab.time.server.body', 'lab.time.server.grows'], tip: 'lab.time.server.tip', link: 'lab.time.server.link' },
-    inbound: { body: ['lab.time.inbound.body'], note: 'lab.time.inbound.note', tip: 'lab.time.inbound.tip', link: 'lab.time.inbound.link' },
-    down: { body: ['lab.time.down.body', 'lab.time.down.grows'], tip: 'lab.time.down.tip' },
-    ttfb: { body: ['lab.time.ttfb.body'], note: 'lab.time.ttfb.note', tip: 'lab.time.ttfb.tip', link: 'lab.time.link_mdn', linkName: 'Time to First Byte (TTFB)' },
-    total: { body: ['lab.time.total.body'], tip: 'lab.time.total.tip', link: 'lab.time.link_mdn', linkName: 'Resource Timing' }
+    inbound: { body: ['lab.time.inbound.body'], tip: 'lab.time.inbound.tip', link: 'lab.time.inbound.link' },
+    down: { body: ['lab.time.down.body', 'lab.time.down.grows'], tip: 'lab.time.down.tip', links: [{ key: 'encoding', text: 'lab.time.down.link' }] },
+    ttfb: { body: ['lab.time.ttfb.body', 'lab.time.ttfb.reference'], note: 'lab.time.ttfb.note', tip: 'lab.time.ttfb.tip', links: [{ key: 'ttfb', text: 'lab.time.link_mdn', name: 'Time to First Byte (TTFB)' }, { key: 'webdev_ttfb', text: 'lab.time.ttfb.link_webdev' }] },
+    total: { body: ['lab.time.total.body', 'lab.time.total.curl'], note: 'lab.time.caption', tip: 'lab.time.total.tip', links: [{ key: 'total', text: 'lab.time.link_mdn', name: 'Resource Timing' }, { key: 'curl', text: 'lab.time.total.curl_link' }] }
   }
 
   function capitalized (text) {
@@ -3775,6 +3824,23 @@
   function timeName (part, bar) {
     if (part === 'conn') return t(bar.connNew ? 'lab.time.part.conn_new' : 'lab.time.part.conn')
     return t(TIME_NAMES[part])
+  }
+
+  // A fatia de uma parte no tempo total, só no balão da parte: o número ("47,9% do tempo total") e uma
+  // barrinha na cor da parte, cheia até essa fatia. O total é a conta inteira e não leva fatia.
+  const TIME_AMOUNT = { conn: 'conn', outbound: 'half', server: 'server', inbound: 'half', down: 'down', ttfb: 'ttfb' }
+  const TIME_KIND = { conn: 'conn', outbound: 'net', server: 'server', inbound: 'net', down: 'down', ttfb: 'ttfb' }
+
+  function timeShareNodes (part, bar) {
+    const amount = bar[TIME_AMOUNT[part]]
+    const share = TIME_AMOUNT[part] ? core.formatShare(amount, bar.total, language) : null
+    if (!share) return []
+    const fill = el('span', { class: 'fill ' + TIME_KIND[part] })
+    fill.style.width = Math.min(100, amount / bar.total * 100).toFixed(2) + '%'
+    return [
+      el('span', { class: 'tl-pop-pct' }, parts('lab.time.share', { percent: el('b', { text: share }) })),
+      el('span', { class: 'tl-pop-meter', 'aria-hidden': 'true' }, fill)
+    ]
   }
 
   // A ida e a volta são metades estimadas da rede: o número delas vem com "cerca de".
@@ -3796,8 +3862,9 @@
   function timeFigure (bar) {
     const labels = core.timeLabels(bar, language)
     const trigger = { 'aria-expanded': 'false', 'aria-controls': 'tl-pop' }
+    // A largura começa na escala real; layoutTime a ajusta quando já sabe a largura da barra.
     const segs = [['conn', 'conn', bar.conn], ['outbound', 'net', bar.half], ['server', 'server', bar.server], ['inbound', 'net', bar.half], ['down', 'down', bar.down]].map(([part, kind, ms]) => {
-      const button = el('button', { type: 'button', class: 'tl-seg ' + kind, 'data-part': part, 'aria-label': capitalized(timeName(part, bar)) + ', ' + timeValue(part, labels), ...trigger })
+      const button = el('button', { type: 'button', class: 'tl-seg ' + kind, 'data-part': part, 'data-ms': String(ms), 'aria-label': capitalized(timeName(part, bar)) + ', ' + timeValue(part, labels), ...trigger })
       button.style.setProperty('--g', ms.toFixed(3))
       return button
     })
@@ -3829,16 +3896,9 @@
         el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), call(2, 'server', ' server'), call(4, 'down', '')),
         el('div', { class: 'tl-bar' }, segs),
         el('div', { class: 'tl-dims' }, dim('ttfb', '1', '3', '0', ''), dim('total', '0', '4', '1', ' total'))),
-      el('figcaption', null,
-        el('ul', { class: 'tl-key' },
-          el('li', { 'data-key': 'server' }, el('span', { class: 'key server', 'aria-hidden': 'true' }),
-            el('span', null, parts('lab.time.key_server', { name: el('b', { text: t('lab.time.part.server') }) }))),
-          el('li', null, el('span', { class: 'key net', 'aria-hidden': 'true' }),
-            el('span', null, parts('lab.time.key_net', { name: el('b', { text: t('lab.time.part.net') }), time: num(labels.net) })))),
-        el('p', { class: 'tl-cap' }, parts('lab.time.caption', { queueing: el('i', { lang: 'en', text: 'Queueing' }) }))),
       el('div', { class: 'tl-pop', id: 'tl-pop', role: 'region', 'aria-labelledby': 'tl-pop-title', hidden: true }))
 
-    const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels))
+    const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels, fig.classList.contains('tl-adjusted')))
     fig.querySelectorAll('button[data-part]').forEach(button => button.addEventListener('click', () => toggle(button)))
     // Os rótulos acima da barra são alvos maiores para as partes finas: agem como o botão da parte.
     fig.querySelectorAll('.tl-call').forEach(call => call.addEventListener('click', () => {
@@ -3859,34 +3919,69 @@
     return parts(key, values).map(piece => typeof piece === 'string' ? piece : piece.cloneNode(true))
   }
 
-  function timePopContent (part, bar, labels) {
+  function timePopContent (part, bar, labels, adjusted) {
     const pop = TIME_POPS[part]
     const values = {
       time: num(labels.net),
       command: el('code', { text: 'npx serverest' }),
-      header: el('code', { text: 'X-ServeRest-Stages' }),
       route: el('code', { text: 'GET /produtos' }),
       stage: t('ui.flow.stage_label.read'),
       preset: el('i', { lang: 'en', text: '3G' }),
       content_download: el('i', { lang: 'en', text: 'Content Download' }),
       waiting: el('i', { lang: 'en', text: 'Waiting for server response' }),
-      expansion: el('i', { lang: 'en', text: 'Time To First Byte' })
+      expansion: el('i', { lang: 'en', text: 'Time To First Byte' }),
+      queueing: el('i', { lang: 'en', text: 'Queueing' }),
+      option: el('b', { text: t('lab.sent_out.times') }),
+      tab: el('b', { text: t('lab.sent_out.title') }),
+      variable: el('code', { text: 'time_starttransfer' })
     }
     const body = part === 'conn' ? ['lab.time.conn.body', bar.connNew ? 'lab.time.conn.new' : 'lab.time.conn.reused'] : pop.body
     const value = part === 'outbound' || part === 'inbound' ? parts('lab.time.about', { time: num(labels.half) }) : num(timeValue(part, labels))
-    const link = pop.link ? core.timeLink(part, language) : null
+    const links = (pop.links || (pop.link ? [{ key: part, text: pop.link, name: pop.linkName }] : []))
+      .map(spec => ({ spec, link: core.timeLink(spec.key, language) }))
+      .filter(item => item.link)
     return [
-      el('p', { class: 'rel-title', id: 'tl-pop-title' }, el('span', { text: capitalized(timeName(part, bar)) }), ' ', el('span', { class: 'val' }, value)),
+      el('p', { class: 'rel-title', id: 'tl-pop-title', text: capitalized(timeName(part, bar)) }),
+      el('p', { class: 'tl-pop-stats' }, el('span', { class: 'tl-pop-ms' }, value), timeShareNodes(part, bar)),
+      timeFacts(part, bar),
       body.map(key => el('p', null, popText(key, values))),
+      part === 'conn' && core.protocolName(bar.details && bar.details.protocol) ? el('p', null, popText('lab.time.conn.protocol_note', values)) : null,
       pop.note ? el('p', { class: 'note' }, popText(pop.note, values)) : null,
+      part === 'total' ? el('p', null, el('button', { type: 'button', class: 'btn btn-quiet', text: fillText('lab.time.total.go_sent', { tab: t('lab.sent_out.title') }), onclick: goToCurlTimes })) : null,
+      part === 'total' && adjusted ? el('p', { class: 'note', text: t('lab.time.adjusted') }) : null,
       el('p', { class: 'tip' }, el('b', { text: t('lab.time.tip_label') }), ' ', popText(pop.tip, values)),
-      link
-        ? el('p', { class: 'pop-link' },
-          externalLink(link.url, popText(pop.link, { name: el('span', { lang: 'en', text: pop.linkName || '' }) }), link.english ? { hreflang: 'en' } : null),
-          link.english ? ' ' + t('lab.time.in_english') : null)
-        : null,
+      links.map(({ spec, link }) => el('p', { class: 'pop-link' },
+        externalLink(link.url, popText(spec.text, { name: el('span', { lang: 'en', text: spec.name || '' }) }), link.english ? { hreflang: 'en' } : null),
+        link.english ? ' ' + t('lab.time.in_english') : null)),
       el('div', { class: 'rel-actions' }, el('button', { type: 'button', class: 'btn', text: t('lab.time.close'), onclick: () => closeTimePop(true) }))
     ]
+  }
+
+  // Os números a mais do balão, numa linha sob a fatia: na conexão, o protocolo e, se ela foi aberta agora, o
+  // tempo de DNS, TCP e TLS; no download, o tamanho do corpo e se ele veio comprimido.
+  function timeFacts (part, bar) {
+    const details = bar.details || {}
+    const ms = value => Number.isFinite(value) ? formatMs(value) : null
+    const facts = []
+    if (part === 'conn') {
+      // Uma tabela pequena: o protocolo e, numa conexão aberta agora, cada etapa com o tempo e o que ela faz.
+      const rows = []
+      const protocol = core.protocolName(details.protocol)
+      if (protocol) rows.push([t('lab.time.conn.protocol_label'), protocol, ''])
+      if (bar.connNew && Number.isFinite(details.dns)) {
+        rows.push(['DNS', ms(details.dns), t('lab.time.conn.dns')], ['TCP', ms(details.tcp), t('lab.time.conn.tcp')])
+        rows.push(details.secure ? ['TLS', ms(details.tls), t('lab.time.conn.tls')] : ['TLS', '—', t('lab.time.conn.no_tls')])
+      }
+      return rows.length
+        ? el('dl', { class: 'tl-pop-grid' }, rows.map(([name, value, what]) => [el('dt', { text: name }), el('dd', { class: 'v', text: value }), el('dd', { class: 'd', text: what })]))
+        : null
+    }
+    if (part === 'down') {
+      const size = core.formatBytes(details.size, language)
+      const encoded = core.formatBytes(details.encoded, language)
+      if (size) facts.push(details.encoded > 0 && details.encoded < details.size ? fillText('lab.time.down.size_compressed', { size, encoded }) : fillText('lab.time.down.size', { size }))
+    }
+    return facts.length ? el('p', { class: 'tl-pop-facts', text: facts.filter(Boolean).join(' · ') }) : null
   }
 
   // Um balão só, levado para logo depois da parte que o abriu: o Tab vai da parte para o balão e depois
@@ -3941,8 +4036,13 @@
     const bar = fig.querySelector('.tl-bar')
     const width = bar.clientWidth
     if (!width) return
-    const box = bar.getBoundingClientRect()
     const segs = Array.from(bar.children).filter(node => node.classList.contains('tl-seg'))
+    // Toda parte com tempo precisa de pelo menos TIME_MIN_PX para aparecer; a escala só sai da real se faltar.
+    const ms = segs.map(node => Number(node.getAttribute('data-ms')))
+    const weights = core.timeWeights({ conn: ms[0], half: ms[1], server: ms[2], down: ms[4] }, Math.min(0.2, TIME_MIN_PX / width))
+    ;[weights.conn, weights.half, weights.server, weights.half, weights.down].forEach((weight, index) => segs[index].style.setProperty('--g', weight.toFixed(4)))
+    fig.classList.toggle('tl-adjusted', weights.adjusted)
+    const box = bar.getBoundingClientRect()
     const seg = index => {
       const rect = segs[index].getBoundingClientRect()
       return { left: rect.left - box.left, right: rect.right - box.left }
@@ -3983,7 +4083,7 @@
     fig.querySelectorAll('.tl-dim, .tl-dim-label').forEach(node => {
       const from = seg(Number(node.getAttribute('data-from'))).left
       const to = seg(Number(node.getAttribute('data-to'))).right
-      const top = Number(node.getAttribute('data-top')) * 34
+      const top = Number(node.getAttribute('data-top')) * 26
       if (node.classList.contains('tl-dim')) {
         node.style.left = from + 'px'
         node.style.width = (to - from) + 'px'
@@ -4001,6 +4101,7 @@
   function mountTime (fig) {
     time.fig = fig
     time.pop = fig.querySelector('.tl-pop')
+    linkServerToFlow(fig)
     layoutTime(fig)
     if (time.observer) {
       time.observer.observe(fig.querySelector('.tl-bar'))
@@ -4011,8 +4112,40 @@
     } catch (e) {}
   }
 
+  // A fatia do servidor é a soma das etapas: passar o mouse (ou o foco) nela contorna "Todas as etapas" lá em
+  // cima, e passar o mouse em "Todas as etapas" contorna a fatia. Nada se move; é só a ligação entre os dois.
+  function linkServerToFlow (fig) {
+    const scale = $('flow-body').querySelector('.wf-scale')
+    const summary = scale && scale.querySelector('.wf-summary')
+    const server = [fig.querySelector('.tl-seg.server'), fig.querySelector('.tl-call.server')].filter(Boolean)
+    if (!summary || !server.length) return
+    // Um contorno só, do começo da primeira etapa ao fim da última (a Resposta fica de fora).
+    const ring = el('span', { class: 'wf-link-ring', 'aria-hidden': 'true', hidden: true })
+    scale.append(ring)
+    const lightFlow = on => () => {
+      const cells = summary.querySelectorAll('.wf-cell-stage')
+      const seg = summary.querySelector('.wf-cell-stage .flow-seg')
+      if (on && cells.length && seg) {
+        const box = scale.getBoundingClientRect()
+        const first = cells[0].getBoundingClientRect()
+        const last = cells[cells.length - 1].getBoundingClientRect()
+        const bar = seg.getBoundingClientRect()
+        Object.assign(ring.style, { left: (first.left - box.left - 4) + 'px', width: (last.right - first.left + 8) + 'px', top: (bar.top - box.top - 4) + 'px', height: (bar.height + 8) + 'px' })
+      }
+      ring.hidden = !on
+    }
+    const lightServer = on => () => server.forEach(node => node.classList.toggle('tl-link', on))
+    server.forEach(node => {
+      node.addEventListener('mouseenter', lightFlow(true))
+      node.addEventListener('mouseleave', lightFlow(false))
+    })
+    server[0].addEventListener('focus', lightFlow(true))
+    server[0].addEventListener('blur', lightFlow(false))
+    scale.addEventListener('mouseenter', lightServer(true))
+    scale.addEventListener('mouseleave', lightServer(false))
+  }
+
   function unmountTime () {
-    stopFit()
     closeTimePop(false)
     if (time.observer) time.observer.disconnect()
     time.fig = null
@@ -4041,78 +4174,6 @@
         placeTimePop()
       })
     }
-  }
-
-  /* Encaixe: só em câmera lenta, uma vez por envio, depois do veredito. Uma cópia de "Todas as etapas"
-     encolhe até caber na fatia verde do servidor: todas as etapas de cima são aquela fatia. */
-
-  function fitLater (fn, delay) {
-    fit.timers.push(setTimeout(fn, delay))
-  }
-
-  function stopFit () {
-    fit.timers.forEach(clearTimeout)
-    fit.timers = []
-    if (fit.anim) fit.anim.cancel()
-    if (fit.ghost) fit.ghost.remove()
-    if (fit.summary) fit.summary.classList.remove('fit-src')
-    document.querySelectorAll('.fit-hit').forEach(node => node.classList.remove('fit-hit'))
-    fit.anim = null
-    fit.ghost = null
-    fit.summary = null
-  }
-
-  function playFit () {
-    const fig = time.fig
-    const body = $('flow-body')
-    const summary = body.querySelector('.wf-summary')
-    const target = fig && fig.querySelector('.tl-seg.server')
-    if (!target || !summary || typeof target.animate !== 'function') return
-    const to = target.getBoundingClientRect()
-    // Fora da tela, ele não ensina nada.
-    if (to.bottom < 0 || to.top > window.innerHeight) return
-    const segs = Array.from(summary.querySelectorAll('.wf-cell-stage .flow-seg'))
-    if (!segs.length) return
-    const rects = segs.map(seg => seg.getBoundingClientRect())
-    const left = Math.min(...rects.map(rect => rect.left))
-    const right = Math.max(...rects.map(rect => rect.right))
-    const top = rects[0].top
-    const height = rects[0].height
-    const origin = body.getBoundingClientRect()
-    // A cópia leva o estado de cada etapa: verde, vermelha na que parou, hachurada na que não rodou.
-    const ghost = el('div', { class: 'fit-ghost', 'aria-hidden': 'true' }, segs.map((seg, index) => {
-      const look = seg.classList.contains('flow-seg-skip') ? ' skip' : seg.classList.contains('flow-seg-fail') ? ' fail' : ''
-      const piece = el('span', { class: 'fit-piece' + look })
-      piece.style.left = (rects[index].left - left) + 'px'
-      piece.style.width = rects[index].width + 'px'
-      return piece
-    }))
-    Object.assign(ghost.style, { left: (left - origin.left) + 'px', top: (top - origin.top) + 'px', width: (right - left) + 'px', height: height + 'px' })
-    body.append(ghost)
-    summary.classList.add('fit-src')
-    fit.ghost = ghost
-    fit.summary = summary
-    const end = 'translate(' + (to.left - left) + 'px, ' + (to.top - top) + 'px) scale(' + (to.width / (right - left)) + ', ' + (to.height / height) + ')'
-    fit.anim = ghost.animate([
-      { transform: 'none', opacity: 1 },
-      { transform: end, opacity: 1, offset: 0.92 },
-      { transform: end, opacity: 0 }
-    ], { duration: 1000, delay: 350, easing: 'cubic-bezier(.5, 0, .25, 1)', fill: 'both' })
-    fitLater(() => summary.classList.remove('fit-src'), 500)
-    fitLater(() => {
-      ghost.remove()
-      fit.ghost = null
-      lightServer(fig)
-    }, 1350)
-  }
-
-  // O destaque do fim do encaixe: a fatia do servidor, o rótulo dela e a linha da legenda acendem por um
-  // instante. Ele mora só aqui e na regra .fit-hit do CSS, para ser ajustado sem mexer no resto.
-  function lightServer (fig) {
-    [fig.querySelector('.tl-seg.server'), fig.querySelector('.tl-call.server'), fig.querySelector('.tl-key li[data-key="server"]')].forEach(node => {
-      node.classList.add('fit-hit')
-      node.addEventListener('animationend', () => node.classList.remove('fit-hit'), { once: true })
-    })
   }
 
   /* ---------- Início ---------- */

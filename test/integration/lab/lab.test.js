@@ -82,9 +82,9 @@ describe('/ GET (página inicial)', () => {
     expect(tag.index).to.be.lessThan(text.indexOf('/lab/assets/lab.css'))
   })
 
-  it('aponta o link da documentação para /swagger no idioma da página', async () => {
+  it('aponta o link da documentação para /swagger no idioma da página, numa aba nova', async () => {
     const { text } = await request.get('/').query({ lang: 'en' }).expect(200)
-    expect(text).to.include(`href="/swagger?lang=en">${en['lab.topbar.docs']}</a>`)
+    expect(text).to.include(`href="/swagger?lang=en" target="_blank" rel="noopener">${en['lab.topbar.docs']}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> ${en['lab.link.new_tab']}</span></a>`)
   })
 
   // Com um campo de senha preenchido, o Chrome trata a troca de rota como login enviado,
@@ -221,9 +221,11 @@ describe('/ GET (marcação da página inicial)', () => {
     expect(text.indexOf('class="sprite"')).to.be.lessThan(text.indexOf('class="skip-link"'))
   })
 
+  // A única caixa de marcar da página é a dos tempos do curl, na aba da requisição enviada.
   it('não tem mais a caixa Câmera lenta: o modo fica no Executar dividido', async () => {
     const { text } = await request.get('/').expect(200)
-    expect(text).to.not.include('type="checkbox"')
+    expect(text.match(/type="checkbox"/g)).to.have.lengthOf(1)
+    expect(text).to.include('<input type="checkbox" id="sent-out-times">')
     expect(text).to.not.include('id="slow"')
   })
 

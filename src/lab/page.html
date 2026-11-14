@@ -13,10 +13,11 @@
 </head>
 <body data-1p-ignore>
 <!-- Ícones do Executar dividido e de "Ver em câmera lenta". O caracol, a seta e o visto são ícones do Lucide
-     (licença ISC); as duas setas são as do logo do ServeRest, redesenhadas como vetor. -->
+     (licença ISC); as duas setas são as do logo do ServeRest, redesenhadas como vetor; a seta de abrir as etapas do Fluxo é a da direita. -->
 <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
   <symbol id="i-snail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"/><circle cx="10" cy="13" r="8"/><path d="M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"/><path d="M18 3 19.1 5.2"/><path d="M22 3 20.9 5.2"/></symbol>
   <symbol id="i-setas" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M1.5 8 9 2.5V6h9.5a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9v3.5z"/><path d="M22.5 16 15 10.5V14H5.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H15v3.5z"/></symbol>
+  <symbol id="i-seta" viewBox="4 10 19 12" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M22.5 16 15 10.5V14H5.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H15v3.5z"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
 </svg>
@@ -46,7 +47,7 @@
       <a class="pill-hdr" id="feedback-pill" target="_blank" rel="noopener" hidden>{{lab.feedback.pill}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
     </div>
     <div class="bar-end">
-      <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}">{{lab.topbar.docs}}</a>
+      <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}" target="_blank" rel="noopener">{{lab.topbar.docs}}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
       <div class="view">
         <div class="seg" role="group" aria-label="{{lab.topbar.text_size}}" id="seg-text">
           <button class="seg-btn" type="button" id="text-down" aria-label="A− {{lab.topbar.text_smaller}}" title="{{lab.topbar.text_smaller}}"><span aria-hidden="true"><span class="a-s">A</span>−</span></button>
@@ -121,7 +122,7 @@
     <section class="sent-out result-panel" id="sent-out" role="tabpanel" aria-labelledby="res-tab-enviado" tabindex="0" hidden>
       <h3 class="sr-only" id="sent-out-title">{{lab.sent_out.title}}</h3>
       <div class="band-body">
-        <div class="sent-head"><button class="btn btn-copy" type="button" id="sent-out-copy">{{lab.copy.command}}</button></div>
+        <div class="sent-head"><label class="sent-times"><input type="checkbox" id="sent-out-times"> {{lab.sent_out.times}}</label><button class="btn btn-copy" type="button" id="sent-out-copy">{{lab.copy.command}}</button></div>
         <div id="sent-out-area"></div>
       </div>
     </section>
@@ -134,6 +135,7 @@
       <button class="btn btn-quiet hist-clear" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
     </div>
     <p class="hist-cleared" id="hist-cleared" hidden><span>{{lab.history.clear_done}}</span> <button class="btn btn-quiet" type="button" id="hist-undo">{{lab.history.undo}}</button></p>
+    <p class="hist-limit" id="hist-limit" hidden></p>
     <p class="hist-empty" id="hist-empty" tabindex="-1"></p>
     <div class="hist-scroll" id="hist-scroll" hidden>
       <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span>{{lab.history.col_auth}}</span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_where}}</span></div>

@@ -206,8 +206,18 @@ p { margin: 0; }
 code, pre, kbd { font-family: var(--font-code); }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-a { color: var(--accent); text-underline-offset: 3px; }
-a:hover { color: var(--accent-strong); }
+/* Dois estilos de link. 1) Link no texto corrido (cards, Sobre, avisos): roxo e sublinhado, com a seta ↗
+   quando abre outra aba. 2) Rótulo que também é link (método, status, Ver no Swagger, headers, rótulos da
+   barra de tempos, links da barra do topo): fica na cor do rótulo, com sublinhado pontilhado; com o mouse ou
+   o foco, o sublinhado fica cheio e a seta aparece. */
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
+.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a, .docs-link, .version-link { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.docs-link, .version-link { text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.res-headers dt a, .res-headers dt a:hover { color: inherit; }
+.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible, .docs-link:hover, .docs-link:focus-visible, .version-link:hover, .version-link:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.method-link > span[aria-hidden="true"], .status-link > span[aria-hidden="true"], .head-doc-link > span[aria-hidden="true"], .res-headers dt a > span[aria-hidden="true"] { visibility: hidden; }
+.method-link:hover > span[aria-hidden="true"], .method-link:focus-visible > span[aria-hidden="true"], .status-link:hover > span[aria-hidden="true"], .status-link:focus-visible > span[aria-hidden="true"], .head-doc-link:hover > span[aria-hidden="true"], .head-doc-link:focus-visible > span[aria-hidden="true"], .res-headers dt a:hover > span[aria-hidden="true"], .res-headers dt a:focus-visible > span[aria-hidden="true"] { visibility: visible; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip-link { position: absolute; left: 16px; top: -48px; background: var(--surface); color: var(--ink); padding: 8px 12px; z-index: 20; }
@@ -238,8 +248,11 @@ a:hover { color: var(--accent-strong); }
    saem de baixo do ponteiro em nenhuma largura. */
 .version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
 .version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
-.version-link { color: inherit; text-decoration: none; }
-.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); text-decoration: underline; }
+.version-link { position: relative; color: inherit; }
+.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); }
+.docs-link { position: relative; }
+.version-link .hover-arrow, .docs-link .hover-arrow { position: absolute; left: 100%; margin-left: 2px; visibility: hidden; text-decoration: none; }
+.version-link:hover .hover-arrow, .version-link:focus-visible .hover-arrow, .docs-link:hover .hover-arrow, .docs-link:focus-visible .hover-arrow { visibility: visible; }
 /* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
 .version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
 .version-notice:hover { color: var(--bar-fg); }
@@ -471,8 +484,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-desc code { font-size: 0.78125rem; font-weight: 600; background: var(--well); padding: 1px 4px; border-radius: 2px; }
 /* Link da rota na documentação: no fim da linha do título da zona, discreto (grafite, sem sublinhado em
    repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
-.head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); text-decoration: none; white-space: nowrap; }
-.head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); text-decoration: underline; }
+.head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
+.head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); }
 /* Barra de endereço: sempre uma linha. Selo, URL e Executar na largura natural. Se a URL não cabe, a base
    sai primeiro (ela está inteira em Será enviado e no title); se nem o caminho cabe, ele perde o começo,
    com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. O invólucro dá
@@ -524,8 +537,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-hint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-top: var(--space-xs); }
 .req-hint .kbd-hint { margin-left: auto; }
 @media (pointer: coarse) { .kbd-hint { display: none; } }
-.method-link { font-size: 0.8125rem; color: var(--graphite); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.method-link:hover, .method-link:focus-visible { color: var(--ink); text-decoration-thickness: 2px; }
+.method-link { font-size: 0.8125rem; color: var(--graphite); }
+.method-link:hover, .method-link:focus-visible { color: var(--ink); }
 .method-link .m-name { font-family: var(--font-code); font-weight: 600; }
 .copy-msg { font-size: 0.8125rem; color: var(--ok); }
 .copy-msg:empty { display: none; }
@@ -663,6 +676,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .hist-clear { margin-left: auto; }
 /* Depois de Limpar (P3): "Histórico limpo." e Desfazer, até o próximo envio. */
 .hist-cleared { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: var(--space-m) 16px 0; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+.hist-limit { margin: 0; padding: 6px 16px 0; font-size: 0.75rem; color: var(--graphite); }
+#hist-count.at-limit { display: inline-block; color: var(--accent); font-weight: 600; }
 .hist-empty { padding: var(--space-m) 16px var(--space-l); font-size: 0.8125rem; color: var(--graphite); max-width: 62ch; }
 .hist-empty:focus { outline: none; }
 .hist-empty:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
@@ -731,8 +746,6 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .status-label { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
 .status-link { display: inline-flex; align-items: baseline; gap: 8px; color: inherit; text-decoration: none; }
 .status-link:hover { color: inherit; }
-.status-link .status-text { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.status-link:hover .status-text { text-decoration-thickness: 2px; }
 .status-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
 .shown .method { align-self: center; }
 /* Envio cujo fluxo ainda não chegou ao veredito: no lugar do status, uma frase discreta na entrada do
@@ -757,7 +770,11 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .fill-see { font-weight: 600; white-space: nowrap; }
 /* Foi enviado: a primeira linha do painel tem só o Copiar comando, à direita (a hora já está no cabeçalho
    do Resultado); depois, o que difere do rascunho, numa frase e numa lista. */
-.sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px 12px; margin-bottom: var(--space-s); }
+.sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: var(--space-s); }
+.sent-times { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ink); cursor: pointer; }
+.curl-times-list { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 2px 0 4px; font-size: 0.8125rem; }
+.curl-times-list dt { font-family: var(--font-code); color: var(--ink); }
+.curl-times-list dd { margin: 0; color: var(--graphite); }
 .sent-differs { margin-bottom: var(--space-s); font-size: 0.875rem; font-weight: 600; color: var(--ink); }
 .sent-differs ul { margin: 2px 0 0; padding-left: 1.25rem; }
 .caption { font-size: 0.8125rem; color: var(--graphite); }
@@ -885,7 +902,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-seg.flow-seg-skip { background-color: var(--well); background-image: repeating-linear-gradient(135deg, var(--control) 0 1.5px, transparent 1.5px 5px); }
 /* Ligação entre resumo e etapa: contorno roxo no segmento e no bloco inteiro da etapa (linha e explicação). */
 .wf-summary .flow-seg.linked { outline: 2px solid var(--focus); outline-offset: 2px; }
-.flow-stage.linked { outline: 1px solid var(--focus); outline-offset: -1px; position: relative; z-index: 3; }
+/* O contorno vai numa camada por cima da etapa inteira: a explicação aberta tem fundo próprio e cobriria um
+   contorno desenhado para dentro. */
+.flow-stage.linked { position: relative; z-index: 3; }
+.flow-stage.linked::after { content: ''; position: absolute; inset: 0; border: 1px solid var(--focus); pointer-events: none; z-index: 4; }
 .flow-fill { display: block; width: 0; height: 100%; background: var(--ok); }
 .flow-seg-fail .flow-fill { background: var(--fail); }
 .flow-seg-response .flow-fill { background: var(--seg-response); }
@@ -915,7 +935,7 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-running > .flow-row .flow-right { color: var(--accent); }
 .flow-dur { font-family: var(--font-code); color: var(--ink); font-variant-numeric: tabular-nums; }
 .flow-fail > .flow-row .flow-dur { color: var(--fail); }
-.flow-caret { flex: none; width: 8px; color: var(--graphite); font-size: 0.5625rem; transition: transform 0.15s; }
+.flow-caret { flex: none; width: 12px; height: 8px; color: var(--graphite); transition: transform 0.15s; }
 .flow-row[aria-expanded="true"] .flow-caret { transform: rotate(90deg); }
 .flow-details { position: relative; z-index: 2; background: var(--surface); display: flex; flex-direction: column; gap: 10px; padding: 2px 16px 14px calc(4px + 1rem + 8px); }
 .flow-fail > .flow-details { background: var(--fail-tint); }
@@ -973,44 +993,46 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .tl-call:hover .tl-term, .tl-call.is-open .tl-term, .tl-dim-label:hover .tl-term, .tl-dim-label[aria-expanded="true"] .tl-term, .tl-seg:hover .tl-term, .tl-seg[aria-expanded="true"] .tl-term { text-decoration-style: solid; text-decoration-color: currentColor; }
 .tl-call.is-open { color: var(--accent); }
 .tl-call.is-open.server, .tl-call.is-open.server b { color: var(--ok); }
-.tl-dims { position: relative; height: 70px; }
+.tl-dims { position: relative; height: 56px; }
 .tl-dim { position: absolute; height: 7px; border: 1px solid var(--control); border-top: 0; }
 .tl-dim-label { position: absolute; transform: translateX(-50%); min-height: 24px; margin: 0; border: 0; border-radius: 3px; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
 .tl-dim-label b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
 .tl-dim-label.total { font-size: 0.8125rem; }
 .tl-dim-label.total b { font-weight: 600; }
 .tl-dim-label[aria-expanded="true"] { color: var(--accent); outline: 2px solid var(--focus); outline-offset: 0; }
-.tl-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 0.8125rem; color: var(--graphite); }
-.tl-key li { display: grid; grid-template-columns: 14px 1fr; gap: 6px; align-items: baseline; border-radius: 3px; }
-.tl-key b { color: var(--ink); font-weight: 600; }
-.tl-key .key { display: inline-block; width: 10px; height: 10px; }
-.tl-key .key.server { background: var(--ok); }
-.tl-key .key.net { background: var(--seg-idle); outline: 1px solid var(--control); outline-offset: -1px; }
-.tl-cap { margin-top: 6px; font-size: 0.8125rem; color: var(--graphite); max-width: 64ch; }
 /* O balão de cada parte: o visual do painel do aviso de versão (.rel-pop), com uma ponta para a parte. */
 .tl-pop { position: absolute; z-index: 20; width: min(24rem, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; font-weight: 400; white-space: normal; text-align: left; }
 .tl-pop[hidden] { display: none; }
 .tl-pop::before { content: ""; position: absolute; top: -6px; left: var(--notch, 24px); width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--control); border-top: 1px solid var(--control); transform: translateX(-50%) rotate(45deg); }
-.tl-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
-.tl-pop .rel-title .val { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); }
-.tl-pop .rel-title .val .num { color: var(--ink); }
+.tl-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+/* O tempo da parte em destaque, a fatia dela no total ao lado e uma barrinha cheia até essa fatia. */
+.tl-pop-stats { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 4px 0 0; }
+.tl-pop-ms { font-family: var(--font-code); font-size: 1rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-pop-ms .num { font-family: inherit; }
+.tl-pop-pct { font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
+.tl-pop-pct b { font-family: var(--font-code); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tl-pop-meter { flex: 1 0 100%; display: block; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.tl-pop-meter .fill { display: block; height: 100%; min-width: 2px; background: var(--graphite); }
+.tl-pop-meter .fill.net { background: var(--control); }
+.tl-pop-meter .fill.server { background: var(--ok); }
+.tl-pop-meter .fill.down { background: var(--seg-response); }
+.tl-pop-facts { margin: 4px 0 0; font-family: var(--font-code); font-size: 0.75rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+/* A conexão em tabela: a etapa, o tempo dela e o que ela faz. */
+.tl-pop-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 2px 12px; margin: 2px 0 0; font-size: 0.8125rem; line-height: 1.4; }
+.tl-pop-grid dt { font-family: var(--font-code); font-weight: 600; color: var(--ink); }
+.tl-pop-grid dd { margin: 0; }
+.tl-pop-grid .v { font-family: var(--font-code); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-pop-grid .d { color: var(--graphite); }
 .tl-pop .note { color: var(--graphite); border-left: 3px solid var(--seg-idle); padding-left: 8px; }
 .tl-pop .tip b { font-weight: 700; }
 .tl-pop .pop-link { color: var(--graphite); }
 .tl-pop a { color: var(--accent); }
 .tl-pop code { font-family: var(--font-code); font-size: 0.92em; white-space: nowrap; }
-/* Encaixe (câmera lenta): uma cópia de "Todas as etapas" encolhe até a fatia do servidor. */
-.fit-ghost { position: absolute; z-index: 6; pointer-events: none; transform-origin: 0 0; }
-.fit-piece { position: absolute; top: 0; bottom: 0; background: var(--ok); }
-.fit-piece.fail { background: var(--fail); }
-.fit-piece.skip { background-color: var(--well); background-image: repeating-linear-gradient(135deg, var(--control) 0 1.5px, transparent 1.5px 5px); }
-.wf-summary.fit-src .wf-cell-stage .flow-seg { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); }
-/* O destaque do fim do encaixe (lightServer em app.js): a fatia, o rótulo e a linha da legenda acendem por
-   1,8 s e apagam em 0,5 s. Só esta classe e os quadros dela o desenham. */
-.fit-hit { animation: fitHit 2.3s ease both; }
-.tl-seg.fit-hit { z-index: 2; animation-name: fitHitRing; }
-@keyframes fitHit { 0%, 78% { background-color: var(--accent-tint); } to { background-color: transparent; } }
-@keyframes fitHitRing { 0%, 78% { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); } to { box-shadow: 0 0 0 2px transparent, 0 0 0 4px transparent; } }
+/* A ligação entre a fatia do servidor e "Todas as etapas": passar o mouse numa contorna a outra. */
+.wf-scale { position: relative; }
+.wf-link-ring { position: absolute; z-index: 2; border: 2px solid var(--focus); border-radius: 3px; pointer-events: none; }
+.tl-seg.server.tl-link { z-index: 2; box-shadow: 0 0 0 1px var(--surface), 0 0 0 3px var(--focus); }
+.tl-call.server.tl-link .tl-term { text-decoration-style: solid; }
 
 /* Sobre o ServeRest: a introdução da documentação, numa faixa discreta no fim da página. */
 /* O rodapé, sempre à vista: a marca com a apresentação e três grupos de links com título. */
