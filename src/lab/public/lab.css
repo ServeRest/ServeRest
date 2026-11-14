@@ -651,7 +651,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .hist-empty { padding: var(--space-m) 16px var(--space-l); font-size: 0.8125rem; color: var(--graphite); max-width: 62ch; }
 .hist-empty:focus { outline: none; }
 .hist-empty:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-.hist-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+/* Sem ancoragem de rolagem: o navegador não compensa a rolagem enquanto o lugar da entrada nova abre no topo. */
+.hist-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; overflow-anchor: none; }
 .hist-cols { display: none; }
 .history-list { list-style: none; margin: 0; padding: 0; }
 .history-list > li { border-bottom: 1px solid var(--border); }
