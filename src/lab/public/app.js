@@ -299,8 +299,6 @@
     // A hora do clique do envio em andamento (o círculo do Executar para aos 5 s).
     busyAt: null,
     busyTimer: null,
-    // Espera real: o envio que o Resultado mostra enquanto a resposta não chega (ainda fora do Histórico).
-    waitingId: null,
     // O registro mostrado em Foi enviado (pode ser o da espera, que ainda não está no Histórico).
     sentOutRecord: null,
     // A aba escolhida no Resultado e o envio a que ela se refere: outro envio volta para Resposta.
@@ -2432,7 +2430,6 @@
     }
     wait.interval = null
     wait.record = null
-    state.waitingId = null
   }
 
   // O lugar do status guardado por uma cópia invisível, como no cabeçalho de um envio pendente.
@@ -2463,7 +2460,6 @@
     flow.record = null
     flow.model = null
     stopWaiting()
-    state.waitingId = record.id
     wait.record = record
     wait.clickAt = clickAt
     wait.seconds = 0
