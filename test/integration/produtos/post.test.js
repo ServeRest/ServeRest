@@ -139,6 +139,46 @@ describe(rotaProdutos + ' POST', () => {
     })
   })
 
+  // O serviço tira os espaços em volta de nome e imagem antes de gravar; só espaços viraria "".
+  describe('Texto só com espaços', () => {
+    it('Bad request - nome só com espaços não é aceito', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), nome: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        nome: 'nome não pode ficar em branco'
+      })
+    })
+
+    it('Bad request - imagem só com espaços não é aceita', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), imagem: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        imagem: 'imagem não pode ficar em branco'
+      })
+    })
+
+    it('Nome e imagem com espaços em volta do texto são aceitos e gravados sem esses espaços', async () => {
+      const produto = utils.dadosProduto()
+
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...produto, nome: `  ${produto.nome}  `, imagem: `  ${produto.imagem}  ` })
+        .set('authorization', authorizationAdministrador)
+        .expect(201)
+
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.deepEqual(produtoGravado, { ...produto, _id: body._id })
+    })
+  })
+
   describe('Número enviado como string', () => {
     it('Bad request - preco como string numérica não é aceito', async () => {
       const produto = { ...utils.dadosProduto(), preco: '470' }
