@@ -688,6 +688,13 @@
     }
   }
 
+  // A página da versão no GitHub. O semantic-release publica uma release para cada versão, inclusive as
+  // betas, com a tag v<versão>.
+  function releaseUrl (version) {
+    if (!version) return null
+    return safeHref('https://github.com/ServeRest/ServeRest/releases/tag/v' + encodeURIComponent(version))
+  }
+
   // O link pré-preenchido do formulário de opinião traz VERSAO no lugar da versão: a página troca pela
   // versão que está rodando, para cada resposta dizer de qual versão veio. Sem link, ou depois da data
   // em que o formulário deixa de aceitar respostas, não há formulário: um link morto só frustra.
@@ -825,6 +832,7 @@
     readStoredHistory,
     safeHref,
     feedbackFormUrl,
+    releaseUrl,
     parseInlineMarkdown,
     highlightJson
   }

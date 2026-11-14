@@ -650,7 +650,11 @@
   // idioma escolhido e pedem à página nova que brilhe 1 s na cor da bandeira (sem brilho com menos
   // movimento pedido pelo sistema).
   function setupTopbar () {
-    $('version').textContent = version ? fillText('lab.topbar.version', { version }) : ''
+    // A versão leva à página dela no GitHub: estáveis e betas têm release publicada.
+    const box = $('version')
+    const releaseHref = core.releaseUrl(version)
+    box.textContent = ''
+    if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
     updateLanguageLinks()
     document.querySelectorAll('.lang-switcher__button').forEach(link => {
       link.addEventListener('click', event => {
@@ -2849,7 +2853,10 @@
           routeLine),
         how,
         el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
-      first ? aboutBand() : feedbackInviteNode()
+      // O Sobre aparece em toda rota ainda não executada, não só na primeira visita: quem troca de rota
+      // também chega a um Resultado vazio. O convite de opinião, quando cabe, vem antes dele.
+      first ? null : feedbackInviteNode(),
+      aboutBand()
     ])
   }
 

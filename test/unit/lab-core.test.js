@@ -942,6 +942,17 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('releaseUrl', () => {
+    it('leva à release da versão no GitHub, estável ou beta', () => {
+      expect(core.releaseUrl('3.2.2')).to.equal('https://github.com/ServeRest/ServeRest/releases/tag/v3.2.2')
+      expect(core.releaseUrl('3.3.0-beta.14')).to.equal('https://github.com/ServeRest/ServeRest/releases/tag/v3.3.0-beta.14')
+    })
+
+    it('não devolve link sem versão', () => {
+      expect(core.releaseUrl('')).to.equal(null)
+    })
+  })
+
   describe('feedbackFormUrl', () => {
     const modelo = 'https://docs.google.com/forms/d/e/abc/viewform?usp=pp_url&entry.1=VERSAO'
 

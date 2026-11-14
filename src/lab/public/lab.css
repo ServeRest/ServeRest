@@ -238,6 +238,8 @@ a:hover { color: var(--accent-strong); }
    saem de baixo do ponteiro em nenhuma largura. */
 .version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
 .version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
+.version-link { color: inherit; text-decoration: none; }
+.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); text-decoration: underline; }
 /* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
 .version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
 .version-notice:hover { color: var(--bar-fg); }
