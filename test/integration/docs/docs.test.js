@@ -7,9 +7,10 @@ describe('/swagger GET', () => {
   it('retorna 200 quando lang é válido', async () => {
     await request.get('/swagger').query({ lang: 'en' }).expect(200)
   })
-  it('inclui o plugin do painel de fluxo no script da página', async () => {
+  it('não traz o painel de fluxo, que fica só na página inicial', async () => {
     const { text } = await request.get('/swagger').expect(200)
-    expect(text).to.include('serverestFlowPanelPlugin')
+    expect(text).to.not.include('serverestFlowPanelPlugin')
+    expect(text).to.not.include('serverest-flow')
   })
   it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
     const { text } = await request.get('/swagger').expect(200)
@@ -35,11 +36,10 @@ describe('/swagger GET', () => {
 })
 
 describe('/swagger-ui-init.js GET', () => {
-  it('registra o plugin padrão DownloadUrl e o plugin do painel de fluxo', async () => {
+  it('não registra o plugin do painel de fluxo, que fica só na página inicial', async () => {
     await request.get('/swagger').expect(200)
     const { text } = await request.get('/swagger-ui-init.js').expect(200)
-    expect(text).to.include('window.SwaggerUIBundle.plugins.DownloadUrl.apply')
-    expect(text).to.include('serverestFlowPanelPlugin')
+    expect(text).to.not.include('serverestFlowPanelPlugin')
   })
   it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
     await request.get('/swagger').expect(200)

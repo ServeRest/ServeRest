@@ -1,25 +1,24 @@
 const { expect } = require('chai')
 const { readFileSync } = require('fs')
 const { join } = require('path')
-const vm = require('vm')
 
+const core = require('../../src/lab/public/core')
 const ptBr = require('../../src/swagger/translations/pt-BR')
 const en = require('../../src/swagger/translations/en')
 const es = require('../../src/swagger/translations/es')
 
-const scriptPath = join(__dirname, '../../src/swagger/scripts/08-flow-panel.js')
-const scriptSource = readFileSync(scriptPath, 'utf8')
+// O fluxo da página inicial lê as chaves no código do modelo (core.js) e no da página (app.js).
+const fontesDaPagina = ['core.js', 'app.js']
+  .map(arquivo => readFileSync(join(__dirname, '../../src/lab/public', arquivo), 'utf8'))
+  .join('\n')
 
-function carregarPainel () {
-  const textos = Object.keys(ptBr)
-    .filter(key => key.startsWith('ui.flow.') || key === 'ui.response')
-    .reduce((acc, key) => ({ ...acc, [key]: ptBr[key] }), {})
-  const window = {}
-  vm.runInNewContext(scriptSource, { window, __FLOW_PANEL_TEXTS__: textos })
-  return window.serverestFlowPanelPlugin
-}
+// Os mesmos textos do fluxo que a página inicial recebe no bloco lab-texts.
+const textos = Object.keys(ptBr)
+  .filter(key => key.startsWith('ui.flow.') || key === 'ui.response')
+  .reduce((acc, key) => ({ ...acc, [key]: ptBr[key] }), {})
 
-const { parseStages, buildFlowModel } = carregarPainel()
+const parseStages = core.parseStages
+const buildFlowModel = (entries, status) => core.buildFlowModel(entries, status, textos)
 
 const headers = {
   criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, write;st=ok;dur=1.02',
@@ -51,7 +50,7 @@ function chavesDoModelo (model) {
   return chaves.filter(Boolean)
 }
 
-describe('Painel de fluxo da requisição', () => {
+describe('Modelo do fluxo da requisição na página inicial', () => {
   it('201 em POST /carrinhos: etapas em ordem com as regras aninhadas e resumo completed', () => {
     const model = modelo(headers.criado, 201)
     expect(model.stages.map(stage => stage.name)).to.deep.equal(['body', 'rate_limit', 'auth', 'schema', 'rules', 'write'])
@@ -202,8 +201,8 @@ describe('Painel de fluxo da requisição', () => {
       modelo('auth;st=failed', 408),
       modelo('read;st=failed', 500)
     ]
-    const chavesNoScript = scriptSource.match(/'ui\.(flow\.[a-z_.]*[a-z_]|response)'/g).map(chave => chave.slice(1, -1))
-    const chaves = new Set([...modelos.flatMap(chavesDoModelo), ...chavesNoScript])
+    const chavesNoCodigo = fontesDaPagina.match(/'ui\.(flow\.[a-z_.]*[a-z_]|response)'/g).map(chave => chave.slice(1, -1))
+    const chaves = new Set([...modelos.flatMap(chavesDoModelo), ...chavesNoCodigo])
     chaves.forEach(chave => {
       expect(ptBr, chave).to.have.property(chave)
       expect(en, chave).to.have.property(chave)
@@ -220,19 +219,5 @@ describe('Painel de fluxo da requisição', () => {
     expect(segundo.failedStage).to.equal('rules')
     expect(segundo.stages).to.not.equal(primeiro.stages)
     expect(segundo.stages[0]).to.not.equal(primeiro.stages[0])
-  })
-
-  it('painel é registrado mesmo quando concatenado depois de outro script autoexecutável', () => {
-    const window = {}
-    vm.runInNewContext('(function () {})()\n' + scriptSource, { window, __FLOW_PANEL_TEXTS__: {} })
-    expect(window.serverestFlowPanelPlugin).to.be.a('function')
-  })
-
-  it('script da página compila e não contém mais __FLOW_PANEL_TEXTS__', () => {
-    const { buildCustomJsStr } = require('../../src/swagger')
-    const script = buildCustomJsStr('x')
-    expect(() => new vm.Script(script)).to.not.throw()
-    expect(script).to.not.include('__FLOW_PANEL_TEXTS__')
-    expect(script).to.include('serverestFlowPanelPlugin')
   })
 })

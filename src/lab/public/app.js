@@ -67,16 +67,16 @@
   // Abaixo desta largura cada exemplo de Respostas possíveis fica fechado num details.
   const NARROW_EXAMPLES = '(width < 37.5rem)'
   const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || '') || /Mac|iPhone|iPad/.test(navigator.userAgent || '')
-  // Os textos "Como seguir" do fluxo são do painel do Swagger, que tem outro jeito de obter o token.
-  // Nesta página, os que dizem como conseguir um token viram a instrução única do campo Authorization,
-  // a mesma palavra por palavra em todo lugar.
+  // Os textos "Como seguir" do fluxo (ui.flow.how.*) foram escritos para o antigo painel do Swagger, que
+  // tinha outro jeito de obter o token. Nesta página, os que dizem como conseguir um token viram a
+  // instrução única do campo Authorization, a mesma palavra por palavra em todo lugar.
   const HOW_KEYS = {
     'ui.flow.how.auth.token_missing': 'lab.auth.how_to_get',
     'ui.flow.how.auth.token_expired': 'lab.auth.how_to_get',
     'ui.flow.how.auth.token_invalid': 'lab.auth.how_to_get',
     'ui.flow.how.stage.auth': 'lab.auth.how_to_get',
     'ui.flow.how.auth.user_not_found': 'lab.flow.how.user_not_found',
-    // O painel do Swagger diz "caminho"; esta página diz path, como no resto dela.
+    // O texto ui.flow.how.outside diz "caminho"; esta página diz path, como no resto dela.
     'ui.flow.how.outside': 'lab.flow.how.outside'
   }
   // A legenda do campo Authorization para cada estado de core.tokenCaptionState.
@@ -522,7 +522,7 @@
   }
 
   // O modo de execução vem do menu do Executar dividido. Trocar para o normal no meio da câmera lenta leva
-  // direto ao veredito, como desmarcar a câmera lenta no painel do Swagger.
+  // direto ao veredito.
   function setMode (mode) {
     if (state.mode === mode) return
     state.mode = mode
@@ -2250,7 +2250,7 @@
 
   /* ---------- Histórico ---------- */
 
-  // O modelo é o mesmo do painel do Swagger; só os textos de como conseguir um token mudam (HOW_KEYS).
+  // O modelo vem de core.buildFlowModel; só os textos de como conseguir um token mudam (HOW_KEYS).
   function flowModelOf (record) {
     const model = core.buildFlowModel(core.parseStages(record.stagesHeader), record.status, texts)
     if (model && HOW_KEYS[model.howKey]) model.howKey = HOW_KEYS[model.howKey]
@@ -3602,7 +3602,7 @@
 
   // Na etapa Validação dos dados que parou, quando o corpo da resposta aponta um campo do schema da rota
   // mostrada, "Como seguir" manda comparar com o schema e ganha o botão que leva até a linha do campo. O
-  // texto do painel do Swagger (ui.*) não muda: a troca é só aqui, no lugar do parágrafo.
+  // texto ui.flow.* não muda: a troca é só aqui, no lugar do parágrafo.
   function paintSchemaLink (index) {
     const row = flow.rows[index]
     const record = flow.record
@@ -3645,10 +3645,9 @@
   }
 
   // "Ver em câmera lenta" é o único controle da faixa do Fluxo: fica disponível a partir do veredito de todo
-  // envio e sempre redesenha o fluxo em câmera lenta, qualquer que tenha sido o modo do envio. A chave
-  // ui.flow.replay é do painel do Swagger e não muda; a página usa a sua. "Menos movimento" ligado ou
-  // desligado com a página aberta vale na hora: ligado no meio da câmera lenta, o fluxo vai direto ao
-  // veredito, e o segmento do modo some ou volta junto.
+  // envio e sempre redesenha o fluxo em câmera lenta, qualquer que tenha sido o modo do envio. "Menos
+  // movimento" ligado ou desligado com a página aberta vale na hora: ligado no meio da câmera lenta, o fluxo
+  // vai direto ao veredito, e o segmento do modo some ou volta junto.
   function setupFlowControls () {
     $('flow-title').textContent = t('ui.flow.title')
     $('replay').replaceChildren(icon('i-snail'), t('lab.flow.replay'))

@@ -7,7 +7,7 @@ const STYLES_DIR = join(__dirname, 'styles')
 const SCRIPTS_DIR = join(__dirname, 'scripts')
 const TRANSLATIONS_DIR = join(__dirname, 'translations')
 
-const STYLE_FILES = ['topbar.css', 'language-switcher.css', 'flow-panel.css']
+const STYLE_FILES = ['topbar.css', 'language-switcher.css']
 
 function loadCustomCss () {
   return STYLE_FILES
@@ -28,7 +28,8 @@ function buildUiLabelTranslations () {
   const ptBr = require(join(TRANSLATIONS_DIR, 'pt-BR.js'))
   const en = require(join(TRANSLATIONS_DIR, 'en.js'))
   const es = require(join(TRANSLATIONS_DIR, 'es.js'))
-  const uiKeys = Object.keys(ptBr).filter(k => k.startsWith('ui.')).sort()
+  // Os textos ui.flow.* são só do fluxo da página inicial: o Swagger não tem painel de fluxo.
+  const uiKeys = Object.keys(ptBr).filter(k => k.startsWith('ui.') && !k.startsWith('ui.flow.')).sort()
   const summaryKeys = Object.keys(ptBr).filter(k => k.endsWith('.summary')).sort()
   const keys = [...uiKeys, ...summaryKeys]
   const entries = keys.map(key => {
@@ -40,22 +41,13 @@ function buildUiLabelTranslations () {
   return entries.join(',\n')
 }
 
-// O painel sempre renderiza pt-BR e a tradução da página troca o texto, como no resto da UI.
-// ui.response entra porque o painel reaproveita o rótulo "Resposta" já existente.
-function buildFlowPanelTexts () {
-  const ptBr = require(join(TRANSLATIONS_DIR, 'pt-BR.js'))
-  const keys = Object.keys(ptBr).filter(k => k.startsWith('ui.flow.') || k === 'ui.response')
-  return JSON.stringify(keys.reduce((texts, key) => ({ ...texts, [key]: ptBr[key] }), {}))
-}
-
 const customCss = loadCustomCss()
 const customJsTemplate = loadCustomJsTemplate()
 
 function buildCustomJsStr (currentVersion) {
   const replacements = {
     __CURRENT_VERSION__: JSON.stringify(currentVersion),
-    __UI_LABEL_TRANSLATIONS__: buildUiLabelTranslations(),
-    __FLOW_PANEL_TEXTS__: buildFlowPanelTexts()
+    __UI_LABEL_TRANSLATIONS__: buildUiLabelTranslations()
   }
   return Object.keys(replacements).reduce(
     (output, key) => output.split(key).join(replacements[key]),
