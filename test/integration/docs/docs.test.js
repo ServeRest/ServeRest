@@ -11,6 +11,11 @@ describe('/swagger GET', () => {
     const { text } = await request.get('/swagger').expect(200)
     expect(text).to.include('serverestFlowPanelPlugin')
   })
+  it('inclui o script que tira gerenciador de senha e corretor dos campos', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.include("'data-bwignore': ''")
+    expect(text).to.include("document.body.setAttribute('data-1p-ignore', '')")
+  })
   it('redireciona /swagger/ e /SWAGGER/ para /swagger mantendo a query', async () => {
     const casos = {
       '/swagger/': '/swagger',
