@@ -251,6 +251,62 @@
     }
   }
 
+  // As partes da barra de tempo sob o fluxo, em ms. server é a soma das etapas do header; a rede é o TTFB
+  // menos o servidor, desenhada em duas metades (ida e volta), porque o navegador só mede a soma das duas.
+  // Conexão, ida, servidor, volta e download somam o total. O servidor nunca passa do TTFB; se passasse
+  // (relógios diferentes), a rede ficaria em zero.
+  function timeBar (total, timing, server) {
+    const net = Math.max(0, timing.ttfb - server)
+    return { total, conn: timing.conn, ttfb: timing.ttfb, down: timing.down, connNew: timing.connNew, server, net, half: net / 2 }
+  }
+
+  // Sem as fases (um envio guardado antes da Resource Timing, ou sem entrada dela): o total vira servidor
+  // mais rede, na linha que fica no lugar da barra.
+  function timeFallback (total, server) {
+    return { total, server, net: Math.max(0, total - server) }
+  }
+
+  function formatMsFixed (ms, digits, language) {
+    const text = ms.toFixed(digits)
+    return (language === 'en' ? text : text.replace('.', ',')) + ' ms'
+  }
+
+  // Um tempo em ms como o resto da página: inteiro a partir de 100 ms, com uma casa abaixo disso.
+  function formatMs (ms, language) {
+    return ms >= 100 ? String(Math.round(ms)) + ' ms' : formatMsFixed(ms, 1, language)
+  }
+
+  // Os números da barra prontos para mostrar: o total como formatMs, o servidor com duas casas, como as
+  // etapas, e o resto com uma.
+  function timeLabels (values, language) {
+    const labels = {}
+    Object.keys(values).filter(key => typeof values[key] === 'number').forEach(key => {
+      labels[key] = key === 'total' ? formatMs(values[key], language) : formatMsFixed(values[key], key === 'server' ? 2 : 1, language)
+    })
+    return labels
+  }
+
+  // O link de referência de cada parte da barra. Das páginas usadas, só a do Server-Timing tem tradução, em
+  // pt-BR (conferido também em es); english diz que a página é em inglês, para o texto do link avisar, só
+  // quando a página do lab não é em inglês.
+  const TIME_LINKS = {
+    conn: 'https://developer.chrome.com/docs/devtools/network/reference#timing-explanation',
+    outbound: 'https://developer.mozilla.org/en-US/docs/Glossary/Round_Trip_Time',
+    inbound: 'https://developer.chrome.com/docs/devtools/network#throttle',
+    ttfb: 'https://developer.mozilla.org/en-US/docs/Glossary/Time_to_first_byte',
+    total: 'https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing#resource_loading_timestamps'
+  }
+  const SERVER_TIMING_LOCALES = { pt: 'pt-BR' }
+
+  function timeLink (part, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    if (part === 'server') {
+      const locale = SERVER_TIMING_LOCALES[prefix] || 'en-US'
+      return { url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Headers/Server-Timing', english: locale === 'en-US' && prefix !== 'en' }
+    }
+    return TIME_LINKS[part] ? { url: TIME_LINKS[part], english: prefix !== 'en' } : null
+  }
+
   const isPhase = value => Number.isFinite(value) && value >= 0
 
   function validTiming (timing) {
@@ -859,6 +915,11 @@
     flowColumns,
     resourceEntry,
     resourcePhases,
+    timeBar,
+    timeFallback,
+    formatMs,
+    timeLabels,
+    timeLink,
     resolve,
     deref,
     schemaRows,
