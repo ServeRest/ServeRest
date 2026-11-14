@@ -3532,15 +3532,18 @@
   }
 
   // O bloco inteiro da etapa (a linha e a explicação aberta) liga ao seu segmento no resumo: passar o
-  // mouse ou levar o foco para dentro dele contorna o segmento; passar o mouse no segmento contorna o bloco.
+  // mouse ou levar o foco do teclado para dentro dele contorna o segmento; passar o mouse no segmento contorna
+  // o bloco. O foco de um clique não conta: a linha clicada segue focada, e o contorno ficaria preso depois
+  // que o mouse sai.
   function linkSummary (block, cell, summarySeg) {
     const on = () => { block.classList.add('linked'); summarySeg.classList.add('linked') }
     const off = () => { block.classList.remove('linked'); summarySeg.classList.remove('linked') }
+    const keyboardFocusInside = () => block.contains(document.activeElement) && document.activeElement.matches(':focus-visible')
     cell.addEventListener('mouseenter', on)
     cell.addEventListener('mouseleave', off)
     block.addEventListener('mouseenter', () => summarySeg.classList.add('linked'))
-    block.addEventListener('mouseleave', () => { if (!block.contains(document.activeElement)) summarySeg.classList.remove('linked') })
-    block.addEventListener('focusin', () => summarySeg.classList.add('linked'))
+    block.addEventListener('mouseleave', () => { if (!keyboardFocusInside()) summarySeg.classList.remove('linked') })
+    block.addEventListener('focusin', event => { if (event.target.matches(':focus-visible')) summarySeg.classList.add('linked') })
     block.addEventListener('focusout', event => { if (!block.contains(event.relatedTarget)) summarySeg.classList.remove('linked') })
   }
 
