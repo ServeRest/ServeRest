@@ -19,6 +19,17 @@ describe(rotaProdutos + ' GET', () => {
     })
   })
 
+  // A query chega como texto, mas o express-query-int a converte antes do schema e da busca no banco.
+  it('Query string - preco chega como número e encontra o produto cadastrado', async () => {
+    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+    const { authorization } = await utils.login(email, password)
+    const produto = await utils.cadastrarProduto({ authorization })
+
+    const { body } = await request.get(rotaProdutos).query({ preco: produto.preco }).expect(200)
+
+    chai.assert.deepInclude(body.produtos, produto)
+  })
+
   it('Query string - Nenhum produto encontrado', async () => {
     const { body } = await request.get(rotaProdutos).query({ _id: 'a' }).expect(200)
     chai.assert.deepEqual(body, { quantidade: 0, produtos: [] })
