@@ -10,6 +10,8 @@
   const baseUrl = window.location.origin
 
   const SLOW_MOTION_KEY = 'serverestFlowSlowMotion'
+  // O Fluxo aberto ou fechado neste navegador ("false" quando a pessoa o fechou; aberto por padrão).
+  const FLOW_OPEN_KEY = 'serverestFlowOpen'
   const LANGUAGE_KEY = 'swaggerLanguage'
   const STAGES_HEADER = 'x-serverest-stages'
   const MAX_BODY_CHARS = 300000
@@ -274,6 +276,7 @@
   /* ---------- Estado ---------- */
 
   const state = {
+    flowOpen: true,
     spec: null,
     specError: null,
     authHeader: 'Authorization',
@@ -2506,7 +2509,10 @@
     // Pendente: o lugar do status fica guardado por uma cópia invisível, como no cabeçalho do Resultado, para
     // a entrada ter a mesma altura antes e depois do veredito, mesmo sem a linha do Authorization.
     if (record.id === state.pendingId) {
-      return head.concat(el('span', { class: 'chip-slot', 'aria-hidden': 'true' }, statusChip(record)), el('span', { class: 'pending-note', text: t('lab.pending.short') }))
+      // O esqueleto com brilho ocupa o lugar do status e da frase do resultado, como na Resposta; a frase fica
+      // para o leitor de tela, e a entrada tem a mesma altura antes e depois do veredito.
+      return head.concat(el('span', { class: 'chip-slot', 'aria-hidden': 'true' }, statusChip(record)),
+        el('span', { class: 'pending-note' }, el('span', { class: 'pending-skel', 'aria-hidden': 'true' }), el('span', { class: 'sr-only', text: t('lab.pending.short') })))
     }
     const where = flowWhere(record)
     return head.concat(statusChip(record), el('span', { class: 'where ' + where.className, text: where.text }))
@@ -2823,7 +2829,7 @@
   const flowHeights = {}
 
   function flowHeightKey (record) {
-    return [core.recordKey(record), $('flow-body').clientWidth, getComputedStyle(document.documentElement).fontSize].join('|')
+    return [core.recordKey(record), $('flow-body').clientWidth, getComputedStyle(document.documentElement).fontSize, state.flowOpen ? 'aberto' : 'fechado'].join('|')
   }
 
   function reserveFlow (record) {
@@ -3174,11 +3180,12 @@
 
     append(area, [
       el('div', { class: 'res-line' }, statusLink(record), simpleDocLine(record, documentedResponse(record))),
-      // K3: a oferta do token logo abaixo da linha do status, acima do corpo.
-      tokenOffer(record),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }), copy),
       empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : el('div', { class: 'code res-body' }, pre),
       empty ? null : el('p', { class: 'copy-msg', id: 'body-copy-msg' }),
+      // A oferta do token fica logo abaixo do corpo, onde o token aparece: assim a linha do status, o
+      // "Copiar corpo" e o corpo ficam no mesmo lugar em toda rota, com ou sem token.
+      tokenOffer(record),
       truncated ? el('p', { class: 'muted small', text: fillText('lab.response.truncated', { count: fullLength }) }) : null,
       el('h4', { class: 'sub-label', text: fillText('lab.response.headers', { count: record.headers.length }) }),
       responseHeaders(record.headers)
@@ -3348,7 +3355,11 @@
     return index
   }
 
+  // Uma etapa ignorada (como o limite de requisições no ambiente local) não se aplica a este envio, e isso já
+  // se sabe antes da câmera lenta começar: ela aparece resolvida desde o início, sem esperar a vez dela. As
+  // que não executaram dependem de uma falha anterior e continuam esperando a vez.
   function stateAt (stages, index, active) {
+    if (index < stages.length && stages[index].st === 'skipped') return 'skip'
     if (index > active) return 'pending'
     if (index === active) return 'running'
     return index < stages.length ? finalState(stages[index]) : 'done'
@@ -3392,8 +3403,10 @@
     if (stateName === 'pending') return el('span', { class: 'flow-right', text: t('ui.flow.pending') })
     if (stateName === 'running') return el('span', { class: 'flow-right', text: t('ui.flow.running') })
     // Etapa que não rodou: o status fica nesta coluna, no lugar da duração (visual; o leitor de tela já tem o srStatus).
+    // A ignorada mostra a versão curta, numa linha; a frase inteira e o motivo ficam na etapa aberta.
     if (stateName === 'skip' || stateName === 'not_run') {
-      return el('span', { class: 'flow-right', 'aria-hidden': 'true' }, codeOrLabel(stage.statusKey, stage.st))
+      const key = stateName === 'skip' ? 'ui.flow.status_short.skipped' : stage.statusKey
+      return el('span', { class: 'flow-right', 'aria-hidden': 'true' }, codeOrLabel(key, stage.st))
     }
     if (stage.dur === undefined) return el('span', { class: 'flow-right' })
     return el('span', { class: 'flow-right flow-dur', text: core.formatDuration(stage.dur, language) + ' ms' })
@@ -3403,6 +3416,13 @@
   function textBlock (titleKey, bodyKey, className) {
     return el('div', { class: 'flow-block ' + className }, el('strong', { class: 'flow-block-title', text: t(titleKey) }),
       el('p', { text: fillText(bodyKey, { instruction: t('lab.auth.how_to_get') }) }))
+  }
+
+  // Por que a etapa foi pulada, quando há um texto para ela (hoje, o limite de requisições fora do ServeRest online).
+  function skipBlock (stage) {
+    const reasonKey = 'ui.flow.skipped.stage.' + stage.name
+    return el('div', { class: 'flow-block flow-skip' }, el('strong', { class: 'flow-block-title', text: t('ui.flow.status.skipped') }),
+      Object.prototype.hasOwnProperty.call(texts, reasonKey) ? el('p', { text: t(reasonKey) }) : null)
   }
 
   function ruleRow (rule) {
@@ -3424,7 +3444,14 @@
       originTag(record, flow.live))
     if (!model) return [context]
     const serverTotal = model.stages.reduce((total, stage) => total + (stage.dur || 0), 0)
-    return [context, record.timing ? timeFigure(core.timeBar(record.ms, record.timing, serverTotal)) : timeLine(record.ms, serverTotal)]
+    if (!record.timing) return [context, timeLine(record.ms, serverTotal), null]
+    const bar = core.timeBar(record.ms, record.timing, serverTotal)
+    return [context, timeFigure(bar), miniTime(bar)]
+  }
+
+  // Com o Fluxo fechado, a barra de tempo some e o tempo total fica numa linha, abaixo de "Todas as etapas".
+  function miniTime (bar) {
+    return el('p', { class: 'flow-mini-time' }, t('lab.time.part.total') + ' ', el('b', { text: core.timeLabels(bar, language).total }))
   }
 
   function flowNote (record, content) {
@@ -3494,7 +3521,7 @@
     flow.active = animate ? nextActive(stages, 0) : flow.end
 
     // O veredito vem primeiro; a barra de tempo fica abaixo da cascata.
-    const [context, times] = flowContext(record, model)
+    const [context, times, mini] = flowContext(record, model)
     body.append(context)
     const summary = el('p', { class: 'flow-summary waiting' })
     const outside = el('div', { class: 'flow-outside', hidden: true })
@@ -3529,7 +3556,7 @@
       // O que a linha aberta mostra depende do estado dela (paintStageDetails): antes do fim da etapa, só a
       // descrição geral; as regras, Por que parou aqui e Como seguir entram no estado final.
       const opensEarly = !!stage.descriptionKey
-      const opensFinal = opensEarly || stage.rules.length > 0 || (isFailed && (!!model.whyKey || !!model.howKey))
+      const opensFinal = opensEarly || stage.rules.length > 0 || stage.st === 'skipped' || (isFailed && (!!model.whyKey || !!model.howKey))
       const details = opensFinal ? el('div', { class: 'flow-details', id: 'flow-details-' + index, hidden: true }) : null
       const li = el('li', { class: 'flow-stage' }, el('div', { class: 'flow-row' }), details)
       list.append(li)
@@ -3537,6 +3564,11 @@
       // Clicar no segmento do resumo abre a linha da etapa, como clicar na própria linha.
       summaryBar.children[index].addEventListener('click', () => {
         const item = flow.rows[index]
+        if (!state.flowOpen) {
+          setFlowOpen(true)
+          if (item && item.expandable) setExpanded(index, true)
+          return
+        }
         if (item && item.expandable) setExpanded(index, item.details.hidden)
       })
       flow.rows.push({ stage, li, row: li.firstChild, details, isFailed, opensEarly, opensFinal, expandable: false, filled: null, track, seg, summarySeg, state: null })
@@ -3555,7 +3587,7 @@
     lines.firstChild.querySelectorAll('.wf-cell').forEach(cell => { cell.className = '' })
     // A dica vem antes do desenho de que fala: logo abaixo do veredito, antes das etapas.
     const hint = flowHint()
-    body.append(summary, outside, hint, el('div', { class: 'wf' }, scale, list, lines), times)
+    append(body, [summary, outside, hint, el('div', { class: 'wf' }, scale, list, lines), mini, times])
     flow.hintEl = hint
     flow.summaryEl = summary
     flow.outsideEl = outside
@@ -3647,6 +3679,7 @@
     row.details.replaceChildren(...[
       stage.descriptionKey && !explains ? el('p', { class: 'flow-description', text: t(stage.descriptionKey) }) : null,
       finished && stage.rules.length ? el('ul', { class: 'flow-rules' }, stage.rules.map(ruleRow)) : null,
+      finished && stage.st === 'skipped' ? skipBlock(stage) : null,
       explains ? textBlock('ui.flow.why_title', model.whyKey, 'flow-why') : null,
       finished && row.isFailed && model.howKey ? textBlock('ui.flow.how_title', model.howKey, 'flow-how') : null
     ].filter(Boolean))
@@ -3757,7 +3790,9 @@
   // movimento" ligado ou desligado com a página aberta vale na hora: ligado no meio da câmera lenta, o fluxo
   // vai direto ao veredito, e o segmento do modo some ou volta junto.
   function setupFlowControls () {
-    $('flow-title').textContent = t('ui.flow.title')
+    $('flow-title').replaceChildren(icon('i-seta', 'flow-toggle-ico'), el('span', { class: 'flow-toggle-text', text: t('ui.flow.title') }))
+    $('flow-title').addEventListener('click', () => setFlowOpen(!state.flowOpen))
+    setFlowOpen(readLocal(FLOW_OPEN_KEY) !== 'false', false)
     $('replay').replaceChildren(icon('i-snail'), t('lab.flow.replay'))
     if (state.reduced) $('flow-controls').hidden = true
     try {
@@ -3770,8 +3805,20 @@
     } catch (e) {}
     $('replay').addEventListener('click', () => {
       if ($('replay').getAttribute('aria-disabled') === 'true') return
+      if (!state.flowOpen) setFlowOpen(true)
       if (flow.record) renderFlow(flow.record, flow.live, !state.reduced)
     })
+  }
+
+  // O Fluxo fechado mostra o veredito, "Todas as etapas" e o tempo total; o resto volta ao abrir. A escolha
+  // fica guardada neste navegador e nunca muda sozinha: só o título, um segmento de "Todas as etapas" e "Ver
+  // em câmera lenta" (que abre) a trocam.
+  function setFlowOpen (open, save = true) {
+    state.flowOpen = open
+    $('flow').classList.toggle('is-collapsed', !open)
+    $('flow-title').setAttribute('aria-expanded', open ? 'true' : 'false')
+    if (!open) closeTimePop(false)
+    if (save) writeLocal(FLOW_OPEN_KEY, open ? 'true' : 'false')
   }
 
   // O botão de rever a animação nunca fica desabilitado de verdade: com aria-disabled ele mantém o foco, o
@@ -3787,7 +3834,21 @@
   // servidor (a soma das etapas, no verde de "Todas as etapas"), volta ao navegador e download, com o TTFB e
   // o total marcados embaixo. Cada parte e cada marca abre um balão que diz o que ela mede.
 
-  const time = { fig: null, pop: null, current: null, observer: null }
+  const time = { fig: null, pop: null, current: null, observer: null, onServerPop: null, front: new Map() }
+
+  // Partes da barra de tempo em primeiro plano. Cada motivo (balão aberto, mouse ou foco do teclado na cota do
+  // TTFB) liga um conjunto de partes; enquanto algum estiver ligado, as outras partes
+  // vão para o segundo plano. O TTFB liga ida, servidor e volta juntas, porque é a soma das três.
+  const TIME_FRONT_PARTS = { conn: ['conn'], outbound: ['outbound'], server: ['server'], inbound: ['inbound'], down: ['down'], ttfb: ['outbound', 'server', 'inbound'] }
+
+  function setTimeFront (reason, parts) {
+    if (!time.fig) return
+    if (parts && parts.length) time.front.set(reason, parts)
+    else time.front.delete(reason)
+    const lit = new Set([].concat(...time.front.values()))
+    time.fig.classList.toggle('tl-focus', lit.size > 0)
+    time.fig.querySelectorAll('.tl-seg').forEach(seg => seg.classList.toggle('tl-front', lit.has(seg.getAttribute('data-part'))))
+  }
 
   const TIME_NAMES = {
     outbound: 'lab.time.part.outbound',
@@ -3961,16 +4022,23 @@
   // tempo de DNS, TCP e TLS; no download, o tamanho do corpo e se ele veio comprimido.
   function timeFacts (part, bar) {
     const details = bar.details || {}
-    const ms = value => Number.isFinite(value) ? formatMs(value) : null
+    // Uma casa sempre, como o topo do balão (timeLabels): as linhas somam o tempo mostrado lá.
+    const ms = value => Number.isFinite(value) ? core.formatMsFixed(value, 1, language) : null
     const facts = []
     if (part === 'conn') {
       // Uma tabela pequena: o protocolo e, numa conexão aberta agora, cada etapa com o tempo e o que ela faz.
       const rows = []
       const protocol = core.protocolName(details.protocol)
       if (protocol) rows.push([t('lab.time.conn.protocol_label'), protocol, ''])
-      if (bar.connNew && Number.isFinite(details.dns)) {
-        rows.push(['DNS', ms(details.dns), t('lab.time.conn.dns')], ['TCP', ms(details.tcp), t('lab.time.conn.tcp')])
-        rows.push(details.secure ? ['TLS', ms(details.tls), t('lab.time.conn.tls')] : ['TLS', '—', t('lab.time.conn.no_tls')])
+      if (Number.isFinite(details.dns)) {
+        // A espera vem primeiro, como no DevTools; com ela, as linhas somam o tempo do topo do balão. Numa
+        // conexão reaproveitada o trecho inteiro é espera: DNS, TCP e TLS não acontecem e ficam de fora.
+        const split = core.connParts(bar.conn, bar.connNew ? details : {})
+        rows.push([t('lab.time.conn.wait_label'), ms(split.wait), t('lab.time.conn.wait')])
+        if (bar.connNew) {
+          rows.push(['DNS', ms(split.dns), t('lab.time.conn.dns')], ['TCP', ms(split.tcp), t('lab.time.conn.tcp')])
+          rows.push(details.secure ? ['TLS', ms(split.tls), t('lab.time.conn.tls')] : ['TLS', '—', t('lab.time.conn.no_tls')])
+        }
       }
       return rows.length
         ? el('dl', { class: 'tl-pop-grid' }, rows.map(([name, value, what]) => [el('dt', { text: name }), el('dd', { class: 'v', text: value }), el('dd', { class: 'd', text: what })]))
@@ -3997,6 +4065,8 @@
     const call = time.fig.querySelector('.tl-call[data-part="' + button.getAttribute('data-part') + '"]')
     if (call) call.classList.add('is-open')
     time.current = button
+    if (time.onServerPop) time.onServerPop(button.getAttribute('data-part') === 'server')
+    setTimeFront('pop', TIME_FRONT_PARTS[button.getAttribute('data-part')])
     placeTimePop()
     // Um balão que abre abaixo da dobra pareceria um clique sem efeito.
     const over = pop.getBoundingClientRect().bottom + 12 - window.innerHeight
@@ -4008,6 +4078,8 @@
     if (!button) return
     time.current = null
     time.pop.hidden = true
+    if (time.onServerPop) time.onServerPop(false)
+    setTimeFront('pop', null)
     button.setAttribute('aria-expanded', 'false')
     time.fig.querySelectorAll('.tl-call.is-open').forEach(call => call.classList.remove('is-open'))
     if (refocus) button.focus()
@@ -4101,6 +4173,15 @@
   function mountTime (fig) {
     time.fig = fig
     time.pop = fig.querySelector('.tl-pop')
+    time.front.clear()
+    const ttfb = fig.querySelector('.tl-dim-label[data-part="ttfb"]')
+    if (ttfb) {
+      // Mouse e foco do teclado são motivos separados: o foco de um clique não apaga o destaque do mouse.
+      ttfb.addEventListener('mouseenter', () => setTimeFront('ttfb-hover', TIME_FRONT_PARTS.ttfb))
+      ttfb.addEventListener('mouseleave', () => setTimeFront('ttfb-hover', null))
+      ttfb.addEventListener('focus', () => setTimeFront('ttfb-focus', ttfb.matches(':focus-visible') ? TIME_FRONT_PARTS.ttfb : null))
+      ttfb.addEventListener('blur', () => setTimeFront('ttfb-focus', null))
+    }
     linkServerToFlow(fig)
     layoutTime(fig)
     if (time.observer) {
@@ -4112,41 +4193,35 @@
     } catch (e) {}
   }
 
-  // A fatia do servidor é a soma das etapas: passar o mouse (ou o foco) nela contorna "Todas as etapas" lá em
-  // cima, e passar o mouse em "Todas as etapas" contorna a fatia. Nada se move; é só a ligação entre os dois.
+  // A fatia do servidor é a soma das etapas. Passar o mouse nela, levar o foco do teclado ou abrir o balão dela
+  // traz as barras de "Todas as etapas" para o primeiro plano (crescem e ganham sombra) e leva o resto do fluxo
+  // para o segundo plano; o destaque fica enquanto o balão do servidor estiver aberto.
   function linkServerToFlow (fig) {
     const scale = $('flow-body').querySelector('.wf-scale')
-    const summary = scale && scale.querySelector('.wf-summary')
     const server = [fig.querySelector('.tl-seg.server'), fig.querySelector('.tl-call.server')].filter(Boolean)
-    if (!summary || !server.length) return
-    // Um contorno só, do começo da primeira etapa ao fim da última (a Resposta fica de fora).
-    const ring = el('span', { class: 'wf-link-ring', 'aria-hidden': 'true', hidden: true })
-    scale.append(ring)
-    const lightFlow = on => () => {
-      const cells = summary.querySelectorAll('.wf-cell-stage')
-      const seg = summary.querySelector('.wf-cell-stage .flow-seg')
-      if (on && cells.length && seg) {
-        const box = scale.getBoundingClientRect()
-        const first = cells[0].getBoundingClientRect()
-        const last = cells[cells.length - 1].getBoundingClientRect()
-        const bar = seg.getBoundingClientRect()
-        Object.assign(ring.style, { left: (first.left - box.left - 4) + 'px', width: (last.right - first.left + 8) + 'px', top: (bar.top - box.top - 4) + 'px', height: (bar.height + 8) + 'px' })
-      }
-      ring.hidden = !on
+    if (!scale || !server.length) return
+    const wf = scale.closest('.wf') || scale
+    // Três motivos ligam o destaque (mouse, foco do teclado, balão aberto); ele só apaga quando nenhum resta.
+    const reasons = new Set()
+    const reason = (name, on) => {
+      if (on) reasons.add(name)
+      else reasons.delete(name)
+      wf.classList.toggle('wf-forward', reasons.size > 0)
     }
-    const lightServer = on => () => server.forEach(node => node.classList.toggle('tl-link', on))
+    time.onServerPop = on => reason('pop', on)
     server.forEach(node => {
-      node.addEventListener('mouseenter', lightFlow(true))
-      node.addEventListener('mouseleave', lightFlow(false))
+      node.addEventListener('mouseenter', () => reason('hover', true))
+      node.addEventListener('mouseleave', () => reason('hover', false))
     })
-    server[0].addEventListener('focus', lightFlow(true))
-    server[0].addEventListener('blur', lightFlow(false))
-    scale.addEventListener('mouseenter', lightServer(true))
-    scale.addEventListener('mouseleave', lightServer(false))
+    // O foco de um clique não conta (como em linkSummary): quem clica fica com o balão, que já liga o destaque.
+    server[0].addEventListener('focus', () => reason('focus', server[0].matches(':focus-visible')))
+    server[0].addEventListener('blur', () => reason('focus', false))
   }
 
   function unmountTime () {
     closeTimePop(false)
+    time.onServerPop = null
+    time.front.clear()
     if (time.observer) time.observer.disconnect()
     time.fig = null
     time.pop = null

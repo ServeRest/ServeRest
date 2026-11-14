@@ -130,6 +130,23 @@ describe('Página do lab: funções puras', () => {
       expect(http).to.include({ tcp: 4, tls: 0, secure: false })
     })
 
+    it('connParts põe a espera do navegador numa linha, e as linhas somam o tempo mostrado da conexão', () => {
+      // O caso do balão real: 2,5 ms de conexão com DNS 0,0 e TCP 0,1 deixavam 2,4 ms sem explicação.
+      expect(core.connParts(2.53, { dns: 0.01, tcp: 0.12, tls: 0 })).to.deep.equal({ wait: 2.4, dns: 0, tcp: 0.1, tls: 0 })
+      // Em https o TLS entra na conta; os arredondamentos de cada linha não desfazem a soma.
+      const parts = core.connParts(48.26, { dns: 12.34, tcp: 15.55, tls: 20.04 })
+      expect(parts).to.deep.equal({ wait: 0.4, dns: 12.3, tcp: 15.6, tls: 20 })
+      expect(Math.round((parts.wait + parts.dns + parts.tcp + parts.tls) * 10) / 10).to.equal(48.3)
+      // Acima de 100 ms as linhas continuam somando o topo do balão, que timeLabels mostra com uma casa.
+      const lenta = { dns: 5.2, tcp: 120.46, tls: 110.3 }
+      const linhas = core.connParts(250.47, lenta)
+      const topo = core.timeLabels(core.timeBar(400, { conn: 250.47, ttfb: 100, down: 49.53, connNew: true }, 10), 'en').conn
+      expect(topo).to.equal('250.5 ms')
+      expect(core.formatMsFixed(linhas.wait + linhas.dns + linhas.tcp + linhas.tls, 1, 'en')).to.equal(topo)
+      // A espera nunca fica negativa.
+      expect(core.connParts(0.1, { dns: 0.06, tcp: 0.06, tls: 0 }).wait).to.equal(0)
+    })
+
     it('protocolName e formatBytes escrevem como as pessoas leem', () => {
       expect(core.protocolName('h2')).to.equal('HTTP/2')
       expect(core.protocolName('http/1.1')).to.equal('HTTP/1.1')
@@ -1277,6 +1294,7 @@ describe('Página do lab: funções puras', () => {
       swaggerLanguage: 'LANGUAGE_KEY',
       serverestLangGlow: 'GLOW_KEY',
       serverestFlowSlowMotion: 'SLOW_MOTION_KEY',
+      serverestFlowOpen: 'FLOW_OPEN_KEY',
       serverestLabHistory: 'HISTORY_KEY',
       serverestLabView: 'VIEW_KEY',
       serverestReleaseSeen: 'RELEASE_SEEN_KEY',
