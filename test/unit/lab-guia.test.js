@@ -138,7 +138,10 @@ describe('Guia "Como usar" (guia.js)', () => {
     it('Fazer por mim e o segundo Próximo esperam o envio a caminho antes de clicar em Executar', () => {
       expect(guia).to.match(/const sendBusy = \(\) => P\.sending\(\) \|\| \(sent\(\) && P\.inFlight\(\)\)/)
       expect(corpo('async function execute (key)')).to.match(/await settleSend\(\)[\s\S]*sendBusy\(\)\) return[\s\S]*\$\('run'\)\.click\(\)/)
-      expect(corpo('async function doStep (s)')).to.match(/await settleSend\(true\)\n\s+if \(s\.needs/)
+      expect(corpo('async function doStep (s)')).to.match(/await settleSend\(true\)\n\s+G\.actionAt = P\.lastSend\(\)\n\s+if \(s\.needs/)
+      // Um clique da pessoa em Executar enquanto a ação se prepara já é o envio do passo: execute não manda outro,
+      // e os envios da própria ação não contam como cliques da pessoa.
+      expect(corpo('async function execute (key)')).to.match(/await settleSend\(\)\n(\s+\/\/[^\n]*\n)*\s+if \(P\.lastSend\(\) > G\.actionAt\) return[\s\S]*\$\('run'\)\.click\(\)[\s\S]*G\.actionAt = id/)
     })
 
     it('o login quebrado é lido do que é verdade agora, nunca anotado ao desenhar o cartão', () => {
