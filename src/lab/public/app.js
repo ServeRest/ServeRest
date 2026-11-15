@@ -2218,6 +2218,8 @@
     }, COLD_AFTER * 1000 + 20)
     const sent = { params: Object.assign({}, draft.params), body: draft.body, auth: route.needsToken ? authValue(route) : '' }
     const outgoing = send(route, currentRequest(route), 'route')
+    // O envio que acabou de sair, para o guia (guia.js) contar só envios de verdade, nunca cliques ou teclas.
+    $('request').setAttribute('data-send', String(outgoing.record.id))
     outgoing.record.sent = sent
     // Espera real: passado 1 s sem resposta, e com a mesma rota escolhida, o Resultado passa a mostrar este
     // envio (cabeçalho, Foi enviado e a espera). Antes de 1 s, nada muda.
@@ -2369,6 +2371,8 @@
       if (list) {
         state.history = list
         state.seq = list.reduce((max, item) => Math.max(max, item.id), 0)
+        // Os envios que voltaram com a aba já estavam feitos: o guia (guia.js) só conta os que saírem depois.
+        $('request').setAttribute('data-send', String(state.seq))
       } else {
         discardStored(HISTORY_KEY)
       }
@@ -3089,6 +3093,7 @@
     }
     // Como o chip, o status só chega no veredito.
     box.setAttribute('data-record', core.recordKey(record))
+    box.setAttribute('data-send', String(record.id))
     if (pending) box.removeAttribute('data-status')
     else box.setAttribute('data-status', record.error ? 'error' : String(record.status))
     const real = status.querySelector('.status-real')
@@ -3795,10 +3800,11 @@
     return el('p', { class: 'flow-mini-time' }, t('lab.time.part.total') + ' ', el('b', {}, timeNumber(core.timeLabels(bar, language).total)))
   }
 
+  // Sem resposta ou sem o header de etapas, o envio termina aqui, sem veredito: data-verdict="none" diz isso ao guia.
   function flowNote (record, content) {
     const body = $('flow-body')
     append(body, flowContext(record, null))
-    body.append(el('p', { class: 'flow-note strong' }, content))
+    body.append(el('p', { class: 'flow-note strong', 'data-verdict': 'none' }, content))
   }
 
   // quiet: ao trocar de rota o envio anterior volta sem ser anunciado como se tivesse acabado de chegar.

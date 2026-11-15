@@ -63,6 +63,21 @@ describe('Guia "Como usar" (guia.js)', () => {
       ;[...atributos].filter(nome => !proprios(nome) && nome !== 'data-guide' && nome !== 'data-act' && nome !== 'data-path').forEach(nome => expect(HOOKS.attributes, nome).to.include(nome))
     })
 
+    // Um clique em Executar ou um Ctrl + Enter que a página ignora (envio em andamento, Authorization inválido,
+    // foco fora da Requisição) não é envio: o guia só conta o que app.js despachou.
+    it('conta um envio só pelo data-send que app.js grava ao despachar, nunca por clique ou tecla', () => {
+      expect(app).to.match(/const outgoing = send\(route, currentRequest\(route\), 'route'\)\n(\s+\/\/[^\n]*\n)*\s+\$\('request'\)\.setAttribute\('data-send', String\(outgoing\.record\.id\)\)/)
+      expect(app.match(/setAttribute\('data-send', /g)).to.have.length(3)
+      // Depois de recarregar a aba, os envios restaurados ficam para trás da contagem: nenhum deles marca um passo.
+      expect(app).to.match(/state\.seq = list\.reduce\([^\n]+\n(\s+\/\/[^\n]*\n)*\s+\$\('request'\)\.setAttribute\('data-send', String\(state\.seq\)\)/)
+      expect(guia).to.not.match(/'keydown'[^\n]*\n[^\n]*'Enter'/)
+      expect(guia).to.not.match(/closest\('#run'\)/)
+    })
+
+    it('um envio que termina sem fluxo (sem resposta ou sem o header de etapas) também tem fim para o guia', () => {
+      expect(app).to.match(/function flowNote \(record, content\) \{[\s\S]{0,200}'data-verdict': 'none'/)
+    })
+
     it('a página não pede guia.js: só app.js, no primeiro clique em "Como usar"', () => {
       expect(pagina).to.not.include('guia.js')
       expect(literais(app).filter(texto => texto.includes('guia.js'))).to.deep.equal(['/lab/assets/guia.js?v='])

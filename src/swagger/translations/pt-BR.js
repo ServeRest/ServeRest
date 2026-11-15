@@ -563,6 +563,7 @@ module.exports = {
   'lab.guide.load_failed': 'O guia não abriu. Tente de novo.',
   'lab.guide.needs': 'Este passo continua o anterior: use {do} para preparar.',
   'lab.guide.waiting': 'Enviada. Acompanhe o fluxo.',
+  'lab.guide.no_flow': 'Este envio terminou sem o fluxo (sem resposta ou sem o header de etapas); clique em {run} para tentar de novo.',
   'lab.guide.task_route': 'Clique em `{route}`.',
   'lab.guide.task_run': 'Clique em {run}.',
   'lab.guide.task_use': 'Clique em “{button}”.',

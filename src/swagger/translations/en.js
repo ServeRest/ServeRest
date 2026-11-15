@@ -563,6 +563,7 @@ module.exports = {
   'lab.guide.load_failed': 'The guide did not open. Try again.',
   'lab.guide.needs': 'This step picks up from the previous one: use {do} to set it up.',
   'lab.guide.waiting': 'Sent. Watch the flow.',
+  'lab.guide.no_flow': 'This request ended without the flow (no response, or no stages header); click {run} to try again.',
   'lab.guide.task_route': 'Click `{route}`.',
   'lab.guide.task_run': 'Click {run}.',
   'lab.guide.task_use': 'Click “{button}”.',
