@@ -1583,9 +1583,7 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-done { color: var(--ok); font-weight: 700; }
 .guide-warn { padding: 6px 10px; background: var(--warn-tint); color: var(--warn); }
 .guide-wait { color: var(--graphite); font-style: italic; }
-.guide-exit-hint, .guide-gate, .guide-choice strong { font-weight: 600; color: var(--accent-strong); }
-.guide-shake { animation: guide-shake 0.5s; }
-@keyframes guide-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.guide-exit-hint, .guide-choice strong { font-weight: 600; color: var(--accent-strong); }
 /* Os botões ficam à vista quando o cartão rola (no telefone ele tem no máximo 46% da altura). */
 .guide-foot { position: sticky; bottom: -14px; margin-bottom: -14px; padding: 8px 0 14px; background: var(--surface); }
 .guide-foot:empty { display: none; }
@@ -1595,5 +1593,5 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-choice:hover, .guide-choice:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
 .guide-attn { animation: guide-attn 0.9s 3; }
 @keyframes guide-attn { 50% { box-shadow: 0 0 0 3px var(--accent); } }
-@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-shake, .guide-attn { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-attn { animation: none; } }
 @media (forced-colors: active) { .guide-ring { border-color: Highlight; } }

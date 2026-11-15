@@ -87,8 +87,17 @@
       ctrl: (q('#request .kbd-hint kbd') || { textContent: 'Ctrl' }).textContent,
       ...values
     }
+    // Uma frase com um valor vazio ("O status code resume o resultado: .") não sai: o passo a deixa de fora.
+    if (Object.keys(values || {}).some(name => values[name] === '' || values[name] === undefined || values[name] === null)) return ''
     return t(key).replace(/\{([a-z_]+)\}/g, (mark, name) => Object.prototype.hasOwnProperty.call(names, name) ? String(names[name]) : mark)
   }
+
+  // A rota como a página a escreve: "post /login" vira "POST /login".
+  const routeName = key => key.replace(/^[a-z]+/, method => method.toUpperCase())
+
+  // Aprender deixando errar: com outra rota escolhida num passo que envia, o passo avisa e deixa enviar; esse
+  // envio não conta.
+  const wrongRoute = key => P.selected() && P.selected() !== key ? fill('lab.guide.wrong_route', { current: routeName(P.selected()), route: routeName(key) }) : ''
 
   // Um elemento com texto curto, em que `trecho` vira código.
   function el (tag, className, text) {
@@ -148,10 +157,11 @@
     },
     status: () => (P.shown() || {}).status || '',
     flowOpen: () => !!$('flow-title') && $('flow-title').getAttribute('aria-expanded') !== 'false',
-    stoppedRow () {
+    stoppedStage () {
       const verdict = P.verdict()
-      return verdict && verdict.kind === 'stopped' ? q('#flow .flow-stage[data-stage="' + CSS.escape(verdict.stage) + '"] > .flow-row') : null
+      return verdict && verdict.kind === 'stopped' ? q('#flow .flow-stage[data-stage="' + CSS.escape(verdict.stage) + '"]') : null
     },
+    stoppedRow: () => P.stoppedStage() ? q('.flow-row', P.stoppedStage()) : null,
     authValue: () => $('auth-input') ? $('auth-input').value.trim() : '',
     slow: () => !!$('run') && $('run').getAttribute('data-send-mode') === 'lenta',
     split: () => !!$('run-mode') && !$('run-mode').hidden,
@@ -309,7 +319,7 @@
         // Com um valor em Authorization, o campo e os botões dele entram no destaque, para a pessoa tirar o valor.
         targets: () => runOrFlow(CART).concat(P.authValue() && !sent() ? [$('auth-group')] : []),
         paras: () => [fill(!P.split() ? 'lab.guide.mode_reduced' : P.slow() ? 'lab.guide.learn.send_slow' : 'lab.guide.learn.send_normal')],
-        warn: () => noFlow() || (P.selected() === CART && P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : ''),
+        warn: () => noFlow() || wrongRoute(CART) || (P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : ''),
         waiting: waiting(CART),
         tasks: () => [{ text: fill('lab.guide.task_run'), done: doneSend(CART) }],
         doIt: async () => {
@@ -323,7 +333,8 @@
         label: () => t('ui.flow.title'),
         prepare: expandFlow,
         targets: () => [q('#flow .flow-summary'), q('#flow .flow-stages')],
-        anchor: () => P.stoppedRow() || q('#flow .flow-summary'),
+        // A etapa inteira (a linha e o porquê que ela abre), para caber à vista com o painel aberto.
+        anchor: () => P.stoppedStage() || q('#flow .flow-summary'),
         paras: () => {
           const verdict = P.verdict() || {}
           return [fill('lab.guide.learn.stop_p1'), verdict.kind === 'stopped' ? fill('lab.guide.learn.stop_stopped', { stage: verdict.label }) : verdict.kind === 'completed' ? fill('lab.guide.learn.stop_completed') : '']
@@ -368,7 +379,9 @@
         targets: () => !loginPicked() ? [P.route(LOGIN)] : !loginDone() ? runOrFlow(LOGIN) : [q('#res-body-area .res-body'), $('use-token') || $('token-done')],
         anchor: () => loginDone() ? $('use-token') || $('token-done') : null,
         paras: () => [fill('lab.guide.learn.token_p1')],
-        warn: loginFailure,
+        warn: () => loginFailure() || (loginPicked() && !loginDone() ? wrongRoute(LOGIN) : ''),
+        // O login voltou sem token no servidor compartilhado: o passo não tem como terminar e o Próximo segue.
+        stuck: () => G.loginBroken,
         waiting: waiting(LOGIN),
         tasks: () => [
           { text: fill('lab.guide.task_route', { route: 'POST /login' }), done: loginPicked() },
@@ -407,7 +420,7 @@
           if (sent() && !failedSend() && (withToken() || P.inFlight(CART))) return [$('shown'), $('flow')]
           return [$('run-split')].concat(emptyEdited() ? [$('auth-group')] : [])
         },
-        anchor: () => withToken() && P.stoppedRow() ? P.stoppedRow() : null,
+        anchor: () => withToken() && P.stoppedStage() ? P.stoppedStage() : null,
         paras: () => {
           const verdict = P.verdict() || {}
           const out = [fill('lab.guide.learn.again_p1')]
@@ -419,7 +432,10 @@
           }
           return out
         },
-        warn: () => noFlow() || (noToken() || P.selected() !== CART || P.authValue() || P.inFlight(CART) || withToken() ? '' : fill(emptyEdited() ? 'lab.guide.learn.again_undo' : 'lab.guide.learn.again_warn')),
+        warn: () => {
+          if (noFlow() || noToken() || withToken() || (!G.ev.routes[CART] && !sent())) return noFlow()
+          return wrongRoute(CART) || (P.authValue() || P.inFlight(CART) ? '' : fill(emptyEdited() ? 'lab.guide.learn.again_undo' : 'lab.guide.learn.again_warn'))
+        },
         waiting: waiting(CART),
         tasks: () => {
           const verdict = P.verdict() || {}
@@ -496,9 +512,6 @@
           P.split() ? { text: fill('lab.guide.tour.run_menu'), done: !!G.ev.menu } : null,
           { text: fill('lab.guide.task_run'), done: doneSend() }
         ].filter(Boolean),
-        // O Próximo só segue depois que o menu do modo abriu neste passo (pela pessoa ou por Fazer por mim).
-        gate: () => !!G.ev.menu || !P.split(),
-        gateText: 'lab.guide.tour.run_gate',
         doIt: async () => {
           if (!G.ev.menu && P.split()) {
             $('run-mode').click()
@@ -574,7 +587,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, attnTimer: null, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, attnTimer: null, blocked: false, complete: false, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, card, live
   let frame = 0
   let lastRender = 0
@@ -679,6 +692,7 @@
     paint(layers[0], [], 0)
     paint(layers[1], [], 0)
     loop()
+    G.doneSteps = {}
     if (!path) return showChoice()
     G.path = path
     goTo(0)
@@ -706,6 +720,7 @@
     G.mode = null
     G.pos = null
     G.loginBroken = false
+    G.doneSteps = {}
     if ($('guide-open')) $('guide-open').focus()
   }
 
@@ -871,17 +886,23 @@
       }
       await move(() => {
         if (started !== generation) return
-        Object.assign(G, { mode: 'step', index, sig: '', targetKey: null })
+        Object.assign(G, { mode: 'step', index, sig: '', targetKey: null, blocked: false })
         part('exit-hint').hidden = true
-        // O passo começa do zero: nada feito antes conta. Se a ação dele já estiver feita na página e não der para
-        // refazer, o passo só explica (preDone).
-        G.ev = { routes: {} }
-        G.sendAt = P.lastSend()
-        G.entry = { flowOpen: P.flowOpen() }
-        G.pre = false
-        try {
-          G.pre = !!(s.preDone && s.preDone())
-        } catch (e) {}
+        // Um passo já feito nesta volta do guia continua feito: ao voltar a ele, as tarefas aparecem marcadas e o
+        // Próximo só segue. O resto começa do zero: nada feito antes conta. Se a ação já estiver feita na página e
+        // não der para refazer, o passo só explica (preDone).
+        const memory = G.doneSteps[index]
+        G.complete = !!memory
+        if (memory) Object.assign(G, memory)
+        else {
+          G.ev = { routes: {} }
+          G.sendAt = P.lastSend()
+          G.entry = { flowOpen: P.flowOpen() }
+          G.pre = false
+          try {
+            G.pre = !!(s.preDone && s.preDone())
+          } catch (e) {}
+        }
         const n = index + 1
         setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), el('span', '', t(PATHS[G.path].name))], (n / steps.length) * 100, t(s.title))
         part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
@@ -900,19 +921,36 @@
     if (G.mode === 'step') live.textContent = fill('lab.guide.highlight', { label: step().label() })
   }
 
+  // A primeira tarefa que falta num passo em que a pessoa ainda pode agir; sem ela, o Próximo só segue. Um passo
+  // que só explica (sem tarefas, já feito ao entrar, sem token, o login quebrado) nunca segura o Próximo.
+  function pendingTask (s, tasks) {
+    if (G.complete || G.pre || !s.tasks || (s.explain && s.explain()) || (s.stuck && s.stuck())) return null
+    return (tasks || s.tasks().filter(task => task.text)).find(task => !task.done) || null
+  }
+
+  const plain = text => text.replace(/`/g, '')
+
   // O corpo do passo só é refeito quando o que ele mostra muda: o foco e a leitura ficam estáveis.
   function renderBody (force) {
     if (G.mode !== 'step') return
     const s = step()
     const missing = !!s.needs && !s.needs.test() && !G.busy
     const explain = !!s.explain && s.explain()
-    const tasks = s.tasks && !G.pre && !explain ? s.tasks() : []
+    // Voltando a um passo feito, as tarefas dele aparecem marcadas.
+    const tasks = (s.tasks && !G.pre && !explain ? s.tasks() : []).filter(task => task.text).map(task => G.complete ? { ...task, done: true } : task)
     const done = tasks.length > 0 && tasks.every(task => task.done)
-    const warn = missing ? fill('lab.guide.needs') : (s.warn ? s.warn() : '')
+    // Feito uma vez, o passo fica feito: fechar o balão ou o menu depois não desmarca a tarefa.
+    if (done && !G.complete) {
+      G.doneSteps[G.index] = { ev: G.ev, sendAt: G.sendAt, entry: G.entry, pre: G.pre }
+      G.complete = true
+    }
+    const pending = pendingTask(s, tasks)
+    if (!pending) G.blocked = false
+    const warn = G.complete ? '' : missing ? fill('lab.guide.needs') : (s.warn ? s.warn() : '')
     const wait = !done && s.waiting ? s.waiting() : ''
     const paras = s.paras().concat(G.pre && s.preText ? [fill(s.preText)] : []).filter(Boolean)
-    const gated = !G.pre && !!s.gate && !s.gate()
-    const sig = JSON.stringify([paras, tasks, warn, wait, done, G.busy, gated])
+    const falta = G.blocked ? fill('lab.guide.missing', { task: pending.text }) : ''
+    const sig = JSON.stringify([paras, tasks, warn, wait, done, G.busy, falta])
     isolate(keepList())
     if (!force && sig === G.sig) return
     const wasDone = !!G.sig && JSON.parse(G.sig)[4]
@@ -921,7 +959,7 @@
     if (tasks.length) {
       const list = el('ul', 'guide-tasks')
       tasks.forEach(task => {
-        const item = el('li', task.done ? 'is-done' : '')
+        const item = el('li', task.done ? 'is-done' : task === pending && G.blocked ? 'is-now is-missing' : task === pending ? 'is-now' : '')
         const mark = el('span', 'guide-mark', task.done ? '✓' : '')
         mark.setAttribute('aria-hidden', 'true')
         item.append(mark, el('span', '', task.text), el('span', 'sr-only', task.done ? ' ' + t('lab.guide.task_done') : ''))
@@ -929,29 +967,45 @@
       })
       body.push(list)
     }
+    if (falta) body.push(el('p', 'guide-warn guide-missing', falta))
     if (warn) body.push(el('p', 'guide-warn', warn))
     if (wait) body.push(el('p', 'guide-wait', wait))
     if (done) body.push(el('p', 'guide-done', t('lab.guide.done')))
-    if (gated) {
-      const gate = el('p', 'guide-gate', fill(s.gateText))
-      gate.id = 'guide-gate'
-      body.push(gate)
-    }
     part('body').replaceChildren(...body)
-    const next = q('[data-act="next"]', card)
-    if (gated) {
-      next.setAttribute('aria-disabled', 'true')
-      next.setAttribute('aria-describedby', 'guide-gate')
-    } else {
-      next.removeAttribute('aria-disabled')
-      next.removeAttribute('aria-describedby')
-    }
+    if (!force) keepInBand()
+    // Na segunda vez, o Próximo faz a tarefa que falta e segue: o rótulo diz isso, e o "Fazer por mim" sai.
+    q('[data-act="next"]', card).textContent = t(G.blocked ? 'lab.guide.do_next' : 'lab.guide.next')
     const doButton = q('[data-act="do"]', card)
-    doButton.hidden = (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
+    doButton.hidden = G.blocked || G.complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
     doButton.toggleAttribute('aria-busy', G.busy)
     if (G.busy) doButton.setAttribute('aria-disabled', 'true')
     else doButton.removeAttribute('aria-disabled')
     if (done && !wasDone && !force) live.textContent = t('lab.guide.done')
+  }
+
+  // "Fazer por mim": clica nos mesmos controles que a pessoa clicaria. Devolve false se o guia mudou de tela
+  // no meio (fechou, outro passo).
+  async function doStep (s) {
+    const started = generation
+    G.busy = true
+    renderBody(true)
+    try {
+      if (s.needs && !s.needs.test()) await s.needs.fix()
+      if (s.doIt) await s.doIt()
+      if (s.prepare) s.prepare()
+    } catch (error) {
+      // Fechado, ou outro passo: a ação parou no meio, de propósito. Um erro de verdade não pode deixar o
+      // botão preso em "ocupado".
+      if (error !== CANCELLED) {
+        if (started === generation) G.busy = false
+        throw error
+      }
+    }
+    // Só a ação da tela atual mexe no cartão; uma cancelada já foi largada por quem mudou a geração.
+    if (started !== generation) return false
+    G.busy = false
+    renderBody(true)
+    return true
   }
 
   async function onCardClick (event) {
@@ -959,6 +1013,7 @@
     if (picked) {
       G.path = picked.getAttribute('data-path')
       G.loginBroken = false
+      G.doneSteps = {}
       return goTo(0)
     }
     const control = event.target.closest('[data-act]')
@@ -967,34 +1022,37 @@
     if (kind === 'close') return close()
     if (kind === 'back') return goTo(G.mode === 'end' ? PATHS[G.path].steps.length - 1 : G.index - 1)
     if (kind === 'next') {
-      if (control.getAttribute('aria-disabled') === 'true') {
-        const gate = $('guide-gate')
-        if (gate && !reduced()) replay(gate, 'guide-shake')
+      if (G.mode !== 'step') return
+      if (G.busy) return
+      const s = step()
+      const pending = pendingTask(s)
+      if (!pending) return goTo(G.index + 1)
+      // Primeiro clique sem a ação feita: não segue; mostra o que falta, e o foco fica no botão.
+      if (!G.blocked) {
+        G.blocked = true
+        renderBody(true)
+        live.textContent = plain(fill('lab.guide.missing', { task: pending.text }))
         return
       }
-      return goTo(G.index + 1)
+      // Segundo clique: faz a ação, espera todas as tarefas e segue. Se não deu (o envio falhou), fica no passo,
+      // com o aviso de sempre.
+      const started = generation
+      if (!(await doStep(s))) return
+      try {
+        await waitFor(() => !pendingTask(s), 2500)
+      } catch (error) {
+        if (error !== CANCELLED) throw error
+        return
+      }
+      if (started !== generation) return
+      if (!pendingTask(s)) return goTo(G.index + 1)
+      G.blocked = false
+      renderBody(true)
+      return
     }
     if (kind === 'do' && !G.busy) {
       const s = step()
-      const started = generation
-      G.busy = true
-      renderBody(true)
-      try {
-        if (s.needs && !s.needs.test()) await s.needs.fix()
-        if (s.doIt) await s.doIt()
-        if (s.prepare) s.prepare()
-      } catch (error) {
-        // Fechado, ou outro passo: a ação parou no meio, de propósito. Um erro de verdade não pode deixar o
-        // botão preso em "ocupado".
-        if (error !== CANCELLED) {
-          if (started === generation) G.busy = false
-          throw error
-        }
-      }
-      // Só a ação da tela atual mexe no cartão; uma cancelada já foi largada por quem mudou a geração.
-      if (started !== generation) return
-      G.busy = false
-      renderBody(true)
+      if (!(await doStep(s))) return
       live.textContent = s.tasks && s.tasks().every(task => task.done) ? t('lab.guide.done') : ''
       // O botão some depois de feito: o foco vai para o Próximo, que continua o caminho.
       const next = q('[data-act="next"]', card)
@@ -1145,7 +1203,7 @@
   // O que identifica o destaque: os elementos, menos o menu do modo e o balão da barra de tempo, que abrem e
   // fecham dentro dele sem trocar de lugar.
   function keyOf (els) {
-    return els.filter(item => item.id !== 'run-menu' && item.id !== 'tl-pop').map(item => item.id || item.className).join('|')
+    return els.concat(['>'], anchorEls(els)).filter(item => item.id !== 'run-menu' && item.id !== 'tl-pop').map(item => item === '>' ? item : item.id || item.className).join('|')
   }
 
   function unionRect (nodes) {
@@ -1301,6 +1359,17 @@
       }
       requestAnimationFrame(tick)
     })
+  }
+
+  // No telefone, quando o passo muda por dentro (a etapa abriu o porquê), o anchor volta para a faixa acima da
+  // folha; a folha não se mexe.
+  function keepInBand () {
+    if (!narrow() || G.moving) return
+    const a = unionRect(anchorEls(currentTargets()))
+    const room = card.getBoundingClientRect().top - 8
+    if (!a || (a.top >= 8 && a.bottom <= room)) return
+    const delta = a.height > room - 8 ? a.top - 12 : a.bottom - room
+    window.scrollTo({ top: window.scrollY + delta, behavior: reduced() ? 'instant' : 'smooth' })
   }
 
   function overlap (a, b) {
