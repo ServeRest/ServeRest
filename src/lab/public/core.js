@@ -1074,6 +1074,7 @@
 
   const core = {
     FIELD_ASSISTS_OFF,
+    STATUS_TEXT,
     statusText,
     mdnStatusUrl,
     mdnMethodUrl,
