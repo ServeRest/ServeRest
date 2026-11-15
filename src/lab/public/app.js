@@ -1907,45 +1907,53 @@
     fitReqBar(true)
   }
 
-  // A barra de endereço mostra sempre o caminho inteiro. Mede, numa linha, o selo, a base, o caminho e o
-  // Executar: cabendo tudo, a URL inteira; senão a base sai; e se nem o caminho cabe ao lado do Executar, selo e
-  // caminho ganham uma linha própria (com a base, se couber nela) e o caminho quebra onde precisar. Refeita
-  // quando o caminho, a largura da barra ou o tamanho do texto mudam (o observador fica em init).
+  // A base da URL sai quando não cabe numa linha com o caminho na célula da barra; o caminho quebra dentro da
+  // célula. A forma da barra (uma ou duas linhas, lab.css) depende só da largura, e esta conta só mexe no que
+  // fica dentro da célula. A largura da célula é a de durante o envio ("Executando", mais largo que Executar),
+  // para a base não aparecer e sumir ao enviar. Refeita quando o caminho, a largura da barra ou o tamanho do
+  // texto mudam (o observador fica em init).
   const reqFit = { key: '' }
   function fitReqBar (force) {
     const bar = document.querySelector('#request .req-bar')
     if (!bar) return
-    const text = $('req-route-text')
-    const key = [bar.clientWidth, text.textContent, document.documentElement.getAttribute('data-text')].join('|')
+    const path = $('req-path')
+    const key = [bar.clientWidth, $('req-route-text').textContent, document.documentElement.getAttribute('data-text')].join('|')
     if (!force && key === reqFit.key) return
     reqFit.key = key
-    bar.classList.remove('no-base', 'is-stacked')
-    bar.classList.add('is-measure')
     const width = node => node.getBoundingClientRect().width
-    const style = getComputedStyle(bar)
-    const gap = parseFloat(style.columnGap) || 0
-    const avail = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
-    const path = $('req-path')
-    const pad = parseFloat(getComputedStyle(path).paddingLeft) + parseFloat(getComputedStyle(path).paddingRight)
-    const method = width(bar.querySelector('.method'))
-    const base = width(path.querySelector('.req-base'))
-    const route = width(path.querySelector('.req-route'))
-    // O Executar com o texto mais largo dos dois ("Executando", durante o envio): a barra não muda de forma ao
-    // enviar.
+    // As partes na largura natural, numa cópia invisível fora da barra.
+    const copy = path.cloneNode(true)
+    copy.removeAttribute('id')
+    copy.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'))
+    copy.setAttribute('aria-hidden', 'true')
+    copy.style.cssText = 'position: absolute; visibility: hidden; white-space: nowrap; width: auto'
+    // A cópia fica dentro da barra: sem isto, .no-base da medida anterior esconderia a base dela também.
+    copy.querySelector('.req-base').style.display = 'inline'
     const probe = el('button', { type: 'button', class: 'btn btn-primary', 'aria-hidden': 'true', tabindex: '-1' }, el('span', { class: 'spin' }), ' ', t('lab.actions.executing'))
-    bar.append(probe)
-    const run = width($('run-split')) - width($('run')) + Math.max(width($('run')), width(probe))
-    probe.remove()
-    bar.classList.remove('is-measure')
-    // 1 px de folga: as larguras medidas são fracionárias.
-    const row = avail - method - gap - pad + 1
-    if (base + route + gap + run <= row) return
-    if (route + gap + run <= row) {
-      bar.classList.add('no-base')
-      return
+    probe.style.cssText = 'position: absolute; visibility: hidden'
+    bar.append(copy, probe)
+    const text = width(copy.querySelector('.req-base')) + width(copy.querySelector('.req-route'))
+    const style = getComputedStyle(path)
+    const busyGrow = Math.max(0, width(probe) - width($('run')))
+    const sameRow = $('run-split').getBoundingClientRect().top < path.getBoundingClientRect().bottom
+    const cell = path.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - (sameRow ? busyGrow : 0)
+    // Em duas linhas o Executar fica sob o caminho: a célula guarda a altura do caminho mais alto de todas as
+    // rotas nesta largura, para o Executar não descer de uma rota para outra.
+    let reserve = 0
+    if (!sameRow) {
+      copy.style.whiteSpace = 'normal'
+      copy.style.width = path.offsetWidth + 'px'
+      copy.querySelector('.req-base').style.display = 'none'
+      state.routes.forEach(route => {
+        copy.querySelector('.req-route').textContent = route.path
+        reserve = Math.max(reserve, copy.offsetHeight)
+      })
     }
-    bar.classList.add('is-stacked')
-    if (base + route > row) bar.classList.add('no-base')
+    path.style.minHeight = reserve ? reserve + 'px' : ''
+    copy.remove()
+    probe.remove()
+    // 1 px de folga: as larguras medidas são fracionárias.
+    bar.classList.toggle('no-base', text > cell + 1)
   }
 
   function tokenValues () {
