@@ -494,15 +494,15 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
 .head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
 .head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); }
-/* Barra de endereço: selo, URL e Executar numa linha, na largura natural. Se a URL não cabe, a base sai
-   primeiro (ela está inteira em Requisição a enviar e no title, .no-base); se nem o caminho cabe ao lado do
-   Executar, selo e caminho ficam numa linha própria, o caminho quebra onde precisar e o Executar desce para a
-   linha de baixo (.is-stacked). Nenhum caractere do caminho fica escondido: quem decide é fitReqBar (app.js),
-   que mede a barra. O invólucro dá à barra o respiro de cima e de baixo. */
+/* Barra de endereço: selo, URL e Executar numa linha. A URL fica na célula do meio e quebra dentro dela onde
+   precisar; a base sai primeiro quando não cabe numa linha com o caminho (.no-base, de fitReqBar em app.js; ela
+   está inteira em Requisição a enviar e no title). O selo e o Executar ficam no alto da barra, alinhados pelo
+   centro da primeira linha, e não mudam de lugar de uma rota para outra: um caminho longo só faz a barra crescer
+   uma linha. O invólucro dá à barra o respiro de cima e de baixo. */
 .req-bar-wrap { margin: calc(var(--space-xl) - 8px) calc(-1 * var(--req-x)) 0; padding: 8px var(--req-x); background: var(--surface); }
 .req-bar {
   --m: var(--ink);
-  display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 5px;
+  display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 4px; padding: 5px;
   border: 1px solid color-mix(in srgb, var(--m) 60%, var(--surface)); border-radius: 4px; background: color-mix(in srgb, var(--m) var(--bar-tint), var(--surface));
 }
 .req-bar:has(.m-get) { --m: var(--m-get); }
@@ -510,26 +510,27 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-bar:has(.m-put) { --m: var(--m-put); }
 .req-bar:has(.m-patch) { --m: var(--m-patch); }
 .req-bar:has(.m-delete) { --m: var(--m-delete); }
-.req-bar .method { flex: none; font-size: 0.75rem; padding: 7px 6px 6px; }
-.req-path { flex: 1 1 auto; min-width: 0; display: block; overflow: hidden; padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+/* O selo (0,75rem de texto e 13 px de respiro) e a primeira linha do caminho (1,3125rem e 4 px em cima) centrados
+   na altura do Executar (2,125rem). */
+.req-bar .method { flex: none; margin-top: calc((2.125rem - 0.75rem - 13px) / 2); font-size: 0.75rem; padding: 7px 6px 6px; }
+.req-path { flex: 1 1 0; min-width: 0; display: block; margin-top: calc(0.40625rem - 4px); padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .req-base { color: var(--graphite); font-weight: 400; }
 .req-bar.no-base .req-base { display: none; }
-/* A medida de fitReqBar: cada parte na largura natural, numa linha. */
-.req-bar.is-measure { flex-wrap: nowrap; }
-.req-bar.is-measure .req-path { flex: none; overflow: visible; }
-.req-bar.is-measure .req-base { display: inline; }
-/* Duas linhas: o selo alinhado com a primeira linha do caminho e o Executar sozinho embaixo, à direita, perto
-   do atalho. */
-.req-bar.is-stacked { flex-wrap: wrap; align-items: flex-start; row-gap: 6px; }
-.req-bar.is-stacked .method { margin-top: 3px; }
-.req-bar.is-stacked .req-path { flex: 1 1 0; overflow: visible; white-space: normal; overflow-wrap: anywhere; }
-.req-bar.is-stacked .run-split { flex-basis: 100%; justify-content: flex-end; }
+/* Duas linhas só quando a largura deixa menos de 12 caracteres para o caminho ao lado do Executar mais largo
+   dos três idiomas ("Executando", durante o envio): selo e caminho em cima, o Executar embaixo, à direita, perto
+   do atalho. A conta (selo DELETE, os respiros, 12 caracteres da fonte do caminho, Executando e o botão do modo,
+   mais os 20 px de respiro da zona de cada lado) foi medida com o texto normal e o maior: 15,3rem + 194 px. Ela
+   depende só da largura e do tamanho do texto, nunca da rota: numa largura, todas as rotas têm a mesma forma. */
+@container req (width < calc(15.5rem + 194px)) {
+  .req-bar { flex-wrap: wrap; row-gap: 6px; }
+  .req-bar .run-split { flex-basis: 100%; justify-content: flex-end; }
+}
 .req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
 /* Executar dividido: a parte principal envia no modo em uso; o segmento da direita mostra, em branco, o
    ícone do modo (as setas do ServeRest: normal; o caracol: câmera lenta) e a seta pequena de menu, sempre
    os dois, e abre o menu do modo. Durante o envio os dois ficam com o desenho indisponível. */
 .ico { display: block; flex: none; width: 16px; height: 16px; }
-.run-split { position: relative; display: inline-flex; flex: none; align-self: center; }
+.run-split { position: relative; display: inline-flex; flex: none; }
 .run-split .btn-primary { border-radius: 4px 0 0 4px; }
 .run-split:has(> .run-mode[hidden]) .btn-primary { border-radius: 4px; }
 .run-mode { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 2.25rem; min-height: 2.125rem; padding: 0 8px; border: 1px solid var(--purple); border-left-color: rgba(255, 255, 255, 0.45); border-radius: 0 4px 4px 0; background: var(--purple); color: var(--on-purple); }
@@ -944,7 +945,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    do Resultado); depois, o que difere do rascunho, numa frase e numa lista. */
 .sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: var(--space-s); }
 .sent-times { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 0; font-size: 0.8125rem; color: var(--ink); cursor: pointer; }
-.sent-times input { flex: none; width: 20px; height: 20px; margin: 0; }
+.sent-times input { flex: none; width: 24px; height: 24px; margin: 0; }
 .curl-times-list { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 2px 0 4px; font-size: 0.8125rem; }
 .curl-times-list dt { font-family: var(--font-code); color: var(--ink); }
 .curl-times-list dd { margin: 0; color: var(--graphite); }
