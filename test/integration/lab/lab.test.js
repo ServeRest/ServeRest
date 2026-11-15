@@ -154,7 +154,7 @@ describe('/ GET (marcação da página inicial)', () => {
 
   it('só tem como script inline os dois de antes da primeira pintura, e nenhum handler de evento na marcação', async () => {
     const { text } = await request.get('/').expect(200)
-    const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+    const scripts = [...text.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script[^>]*>/gi)]
     expect(scripts.filter(([, atributos]) => atributos === '').map(([, , conteudo]) => conteudo)).to.deep.equal(scriptsEmbutidos)
     scripts.forEach(([, atributos, conteudo]) => {
       if (atributos === '' || atributos === ' type="application/json" id="lab-texts"') return
