@@ -47,6 +47,7 @@ const textosComprimidos = [
   `/lab/assets/app.js?v=${version}`,
   `/lab/assets/core.js?v=${version}`,
   `/lab/assets/lab.css?v=${version}`,
+  `/lab/assets/guia.js?v=${version}`,
   '/lab/assets/img/favicon.svg',
   `/swagger.json?lang=es&v=${version}`
 ]

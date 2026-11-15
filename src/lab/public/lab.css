@@ -1466,3 +1466,47 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .wf-morph .wf-summary, .wf-morph .wf-track, .wf-morph .wf-lines-cols { transition: grid-template-columns 0.3s ease-out; }
 .wf-probe { position: absolute; left: 0; top: 0; display: grid; visibility: hidden; pointer-events: none; }
 .tl.tl-morph .tl-seg { transition: flex-basis 0.3s ease-out, background-color 0.3s ease-out, box-shadow 0.3s ease-out, color 0.3s ease-out, transform 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }
+
+/* Guia "Como usar": guia.js só é baixado no primeiro clique, e o estilo dele fica aqui. A camada escura é a
+   mesma nos dois temas; o traço de fora do anel, da cor da zona, passa de 3:1 contra ela. */
+.guide-open { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; font-family: var(--font-ui); }
+.guide-open[aria-busy] { cursor: progress; opacity: 0.7; }
+.guide-open + .bar-end { margin-left: 0; }
+@container page (max-width: 760px) { .guide-open + .bar-end { margin-left: auto; } }
+.guide-shade, .guide-shield, .guide-ring { position: fixed; z-index: 1000; }
+.guide-shade { inset: 0; background: rgb(0 0 0 / 0.45); cursor: not-allowed; }
+.guide-ring { pointer-events: none; border: 2px solid var(--accent); border-radius: 8px; box-shadow: 0 0 0 2px var(--surface); }
+.guide-card { position: fixed; z-index: 1001; width: min(23rem, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; padding: 12px 16px 14px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+.guide-card.is-docked { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; max-height: 46vh; }
+.guide-ring, .guide-card:not(.is-docked) { transition: 0.18s; transition-property: left, top, width, height; }
+.guide-head, .guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.guide-kicker { flex: 1; display: grid; font-size: 0.75rem; color: var(--graphite); }
+.guide-nudge { animation: guide-nudge 0.6s 2; border-color: var(--accent); color: var(--accent-strong); }
+@keyframes guide-nudge { 40% { transform: scale(1.12); } }
+.guide-progress { height: 3px; margin: 8px 0 10px; background: var(--seg-idle); }
+.guide-progress span { display: block; height: 100%; background: var(--accent); }
+.guide-title { margin-bottom: 6px; font-size: 1.125rem; outline: none; }
+.guide-body > *, .guide-exit-hint { margin-bottom: 8px; }
+.guide-body code { padding: 0 4px; background: var(--well); }
+.guide-tasks { padding: 0; list-style: none; font-weight: 600; }
+.guide-tasks li { display: flex; gap: 6px; margin-top: 6px; }
+.guide-mark { flex: none; width: 1.1rem; height: 1.1rem; border: 2px solid var(--control); border-radius: 50%; font-size: 0.7rem; line-height: 0.9rem; text-align: center; }
+.guide-tasks .is-done { color: var(--graphite); font-weight: 400; }
+.is-done .guide-mark { border-color: var(--ok); background: var(--ok); color: var(--surface); }
+.guide-done { color: var(--ok); font-weight: 700; }
+.guide-warn { padding: 6px 10px; background: var(--warn-tint); color: var(--warn); }
+.guide-wait { color: var(--graphite); font-style: italic; }
+.guide-exit-hint, .guide-gate, .guide-choice strong { font-weight: 600; color: var(--accent-strong); }
+.guide-shake { animation: guide-shake 0.5s; }
+@keyframes guide-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+/* Os botões ficam à vista quando o cartão rola (no telefone ele tem no máximo 46% da altura). */
+.guide-foot { position: sticky; bottom: -14px; margin-bottom: -14px; padding: 8px 0 14px; background: var(--surface); }
+.guide-foot:empty { display: none; }
+.guide-grow { flex: 1; }
+.guide-choice { display: grid; width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--control); border-radius: 6px; background: var(--surface); text-align: left; color: var(--graphite); }
+.guide-choice strong { font-size: 1rem; }
+.guide-choice:hover, .guide-choice:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
+.guide-attn { animation: guide-attn 0.9s 3; }
+@keyframes guide-attn { 50% { box-shadow: 0 0 0 3px var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-shake, .guide-attn { animation: none; } .guide-ring, .guide-card { transition: none; } }
+@media (forced-colors: active) { .guide-ring { border-color: Highlight; } }

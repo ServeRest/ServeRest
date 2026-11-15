@@ -25,7 +25,7 @@
 <a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
 
 <!-- Barra do topo, na ordem: o seletor de idioma do Swagger, a marca (logo, versão e aviso de versão nova),
-     a documentação e os controles de tamanho do texto e de tema. O idioma da página já vem marcado do
+     o guia "Como usar", a documentação e os controles de tamanho do texto e de tema. O idioma da página já vem marcado do
      servidor (is-active e aria-current); o estado dos controles vem da raiz, escrita por prefs-boot.js. -->
 <header class="topbar">
   <div class="topbar-inner wrap">
@@ -47,6 +47,7 @@
       </div>
       <a class="pill-hdr" id="feedback-pill" target="_blank" rel="noopener" hidden>{{lab.feedback.pill}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
     </div>
+    <button class="docs-link guide-open" type="button" id="guide-open" aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.75c-.5.22-.8.6-.8 1.15v.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></svg>{{lab.guide.open}}</button>
     <div class="bar-end">
       <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}" target="_blank" rel="noopener">{{lab.topbar.docs}}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
       <div class="view">
