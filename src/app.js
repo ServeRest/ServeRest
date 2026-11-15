@@ -31,6 +31,7 @@ const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
+const { robotsTxt, sitemapXml } = require('./lab/buscadores')
 const {
   cacheForaDoLocalhost,
   cacheNoStatic,
@@ -111,6 +112,10 @@ swaggerDocument.servers = currentUrl === serverestUrl
   : [{ url: currentUrl }, { url: serverestUrl }]
 
 swaggerDocument.info.version = version
+
+// Com a URL deste ambiente, montados uma vez. Só a produção libera os buscadores.
+const textoDoRobots = robotsTxt(currentUrl, currentUrl === serverestUrl)
+const textoDoSitemap = sitemapXml(currentUrl)
 
 // O documento como a página inicial o pede, com v: montado e comprimido uma vez por idioma.
 const swaggerJsonDaPagina = new Map([...supportedLanguages].map(idioma => [
@@ -200,6 +205,10 @@ app.get('/swagger.json', (req, res) => {
   res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
+// Sem estas duas rotas os buscadores recebiam o 405 em JSON das URLs desconhecidas, que continua igual para as
+// outras: os testes dos alunos podem conferir essa resposta.
+app.get('/robots.txt', (req, res) => { res.type('text/plain').send(textoDoRobots) })
+app.get('/sitemap.xml', (req, res) => { res.type('application/xml').send(textoDoSitemap) })
 app.get('/swagger-sw.js', (req, res) => {
   const workerCode = readFileSync(join(__dirname, 'swagger/swagger-sw.js'), 'utf8')
     .replace(/__VERSION__/g, version)
