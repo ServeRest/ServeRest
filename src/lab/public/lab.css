@@ -660,6 +660,9 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .band-body.is-running .num-real { opacity: 0; visibility: hidden; }
 .band-body.is-running .tl > .sr-only { display: none; }
 .band-body.is-running .num-slot > .num-skel { opacity: 1; visibility: visible; }
+/* Fora da espera o esqueleto dos números fica escondido, e o brilho dele para (seguia rodando com a página
+   parada). */
+.band-body:not(.is-running) .num-slot > .num-skel::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .num-slot > * { transition: none; } }
 .skel-still .skel-bar::after { animation: none; display: none; }
 /* Na linha de leitura, uma parte do tempo vem com um quadrado na cor dela, o tempo e a fatia do total. */
@@ -925,7 +928,9 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .status-value { display: inline-grid; align-items: baseline; }
 .status-value > * { grid-area: 1 / 1; transition: opacity 0.15s ease-out, visibility 0.15s; }
 .status-value > .chip-neutral { position: relative; visibility: hidden; opacity: 0; }
-.status-value > .chip-neutral::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; animation: skelSweep 1.5s ease-in-out infinite; }
+.status-value > .chip-neutral::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; }
+/* O brilho só roda na espera: escondido depois do veredito, ele seguia recalculando o estilo da página parada. */
+.is-pending > .status-value > .chip-neutral::after { animation: skelSweep 1.5s ease-in-out infinite; }
 .is-pending > .status-value > .chip-neutral { opacity: 1; }
 .is-pending > .status-value > .status-real { opacity: 0; visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .status-value > * { transition: none; } .status-value > .chip-neutral::after { animation: none; } }
@@ -959,6 +964,11 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .about-go { font-weight: 600; margin-top: var(--space-xs); }
 .go-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
 .go-list li::marker { color: var(--graphite); }
+/* A linha de apoio que fica no lugar do Sobre depois do primeiro envio: centrada, discreta, os links separados
+   por um ponto que o leitor de tela não lê. */
+.support-line { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 10px; padding: 0 16px var(--space-xl); font-size: 0.8125rem; color: var(--graphite); text-align: center; }
+.support-lead { font-weight: 600; color: var(--ink); }
+.support-sep { color: var(--graphite); }
 /* O convite para dar opinião (V3): um cartão centrado acima do Sobre, com o ícone, o título, o custo antes do
    pedido (2 minutos, 6 perguntas, sem login; cada item quebra inteiro) e as duas ações. */
 .invite { box-sizing: border-box; display: grid; justify-items: center; gap: 8px; width: min(52ch, calc(100% - 28px)); margin: 0 auto var(--space-xl); padding: 20px 22px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 1px 0 var(--border); text-align: center; }
