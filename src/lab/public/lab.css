@@ -399,6 +399,29 @@ button.cap { cursor: pointer; }
   .guide-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .brand { margin-right: 8px; }
 }
+/* Etiqueta de pré-release (v3.4.0-beta.2) com aviso de versão nova: o aviso já é só o ponto abaixo de 900 px, e
+   a linha ainda passava até 19 px de 640 a 658 px e até 33 px de 760 a 793 px. Só nesse estado, a forma do
+   telefone ("Mais opções") vale até 679 px e a barra junta de 640 a 759 px vale até 799 px; todos os rótulos
+   ficam. placeBarItems segue o CSS (o botão "Mais opções" à vista). */
+@container page (min-width: 640px) and (max-width: 679px) {
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner { height: 56px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .brand .version-box,
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner > .docs-link,
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end > .prefs { display: none; }
+  :root:not([data-notice-url=""])[data-version*="-"] .more-wrap { display: flex; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar .guide-open { height: 36px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end { padding-left: 6px; gap: 6px; }
+}
+@container page (min-width: 760px) and (max-width: 799px) {
+  :root:not([data-notice-url=""])[data-version*="-"] .logo { height: 30px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .brand { margin-right: 12px; gap: 6px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar .guide-open { padding: 0 10px 0 8px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner > .docs-link { margin-left: 10px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end { gap: 8px; padding-left: 8px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .lang-btn { padding: 0 8px 0 10px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .prefs .seg-btn { width: 28px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .prefs-sep { margin: 0 2px; }
+}
 
 /* Controles */
 .input { width: 100%; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 4px 8px; min-height: 2rem; font-size: 0.875rem; }
