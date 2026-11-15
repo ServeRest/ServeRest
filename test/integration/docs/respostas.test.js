@@ -54,28 +54,28 @@ describe('Respostas documentadas dos erros comuns', () => {
   // Cada erro comum: a rota, o envio, o status real, o trecho da descrição em pt-BR que nomeia a causa deste
   // envio e, quando o documento traz exemplo para o caso, o exemplo igual ao corpo real (true é o exemplo único).
   const casos = [
-    { rota: 'POST /login', caso: 'corpo vazio', envio: () => request.post('/login').send({}), status: 400, causa: 'Dados inválidos', exemplo: 'dadosInvalidos' },
-    { rota: 'POST /login', caso: 'JSON sem aspas', envio: () => request.post('/login').set('content-type', 'application/json').send('{"email": fulano}'), status: 400, causa: 'JSON malformado', exemplo: 'jsonMalformado' },
+    { rota: 'POST /login', caso: 'corpo vazio', envio: () => request.post('/login').send({}), status: 400, causa: 'dados inválidos', exemplo: 'dadosInvalidos' },
+    { rota: 'POST /login', caso: 'JSON sem aspas', envio: () => request.post('/login').set('content-type', 'application/json').send('{"email": fulano}'), status: 400, causa: 'JSON ou dados inválidos', exemplo: 'jsonMalformado' },
     { rota: 'POST /login', caso: 'charset latin9', envio: () => request.post('/login').set('content-type', 'application/json; charset=latin9').send('{"email":"fulano@qa.com","password":"teste"}'), status: 415, causa: 'Charset', exemplo: true },
     { rota: 'POST /login', caso: 'corpo acima de 100 KB', envio: () => request.post('/login').set('content-type', 'application/json').send(CORPO_GRANDE_DEMAIS), status: 413, causa: '100 KB', exemplo: true },
     { rota: 'GET /usuarios', caso: 'email inválido no filtro', envio: () => request.get('/usuarios?email=nao-email'), status: 400, causa: 'Filtro inválido', exemplo: true },
     { rota: 'GET /usuarios', caso: 'filtro que a rota não tem', envio: () => request.get('/usuarios?foo=1'), status: 400, causa: 'Filtro inválido' },
     { rota: 'GET /produtos', caso: 'preco que não é número', envio: () => request.get('/produtos?preco=abc'), status: 400, causa: 'Filtro inválido', exemplo: true },
     { rota: 'GET /carrinhos', caso: 'precoTotal que não é número', envio: () => request.get('/carrinhos?precoTotal=abc'), status: 400, causa: 'Filtro inválido', exemplo: true },
-    { rota: 'POST /usuarios', caso: 'nome vazio', envio: () => request.post('/usuarios').send({ nome: '' }), status: 400, causa: 'Dados inválidos' },
-    { rota: 'POST /usuarios', caso: 'JSON sem aspas', envio: () => request.post('/usuarios').set('content-type', 'application/json').send('{"nome": x}'), status: 400, causa: 'JSON malformado' },
-    { rota: 'PUT /usuarios/{_id}', caso: 'campos faltando', envio: () => request.put('/usuarios/0uxuPY0cbmQhpEz1').send({ nome: 'x' }), status: 400, causa: 'Dados inválidos' },
-    { rota: 'PUT /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.put(`/usuarios/${ID_MAL_CODIFICADO}`).send({}), status: 400, causa: 'parâmetro de URL inválido' },
+    { rota: 'POST /usuarios', caso: 'nome vazio', envio: () => request.post('/usuarios').send({ nome: '' }), status: 400, causa: 'dados inválidos' },
+    { rota: 'POST /usuarios', caso: 'JSON sem aspas', envio: () => request.post('/usuarios').set('content-type', 'application/json').send('{"nome": x}'), status: 400, causa: 'JSON ou dados inválidos' },
+    { rota: 'PUT /usuarios/{_id}', caso: 'campos faltando', envio: () => request.put('/usuarios/0uxuPY0cbmQhpEz1').send({ nome: 'x' }), status: 400, causa: 'JSON, dados ou URL inválidos' },
+    { rota: 'PUT /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.put(`/usuarios/${ID_MAL_CODIFICADO}`).send({}), status: 400, causa: 'URL inválid' },
     { rota: 'GET /usuarios/{_id}', caso: 'id curto', envio: () => request.get(`/usuarios/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
-    { rota: 'DELETE /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.del(`/usuarios/${ID_MAL_CODIFICADO}`), status: 400, causa: 'parâmetro de URL inválido' },
+    { rota: 'DELETE /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.del(`/usuarios/${ID_MAL_CODIFICADO}`), status: 400, causa: 'URL inválid' },
     { rota: 'GET /produtos/{_id}', caso: 'id curto', envio: () => request.get(`/produtos/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
-    { rota: 'POST /produtos', caso: 'preço que não é número', envio: () => request.post('/produtos').set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 'abc', descricao: 'x', quantidade: 1 }), status: 400, causa: 'Dados inválidos' },
+    { rota: 'POST /produtos', caso: 'preço que não é número', envio: () => request.post('/produtos').set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 'abc', descricao: 'x', quantidade: 1 }), status: 400, causa: 'dados inválidos' },
     { rota: 'DELETE /produtos/{_id}', caso: 'id curto', envio: () => request.del(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador), status: 400, causa: 'ID inválido' },
-    { rota: 'PUT /produtos/{_id}', caso: 'id curto', envio: () => request.put(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 1, descricao: 'x', quantidade: 1 }), status: 400, causa: 'ID ou dados inválidos' },
+    { rota: 'PUT /produtos/{_id}', caso: 'id curto', envio: () => request.put(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 1, descricao: 'x', quantidade: 1 }), status: 400, causa: 'ID, JSON ou dados inválidos' },
     { rota: 'GET /carrinhos/{_id}', caso: 'id curto', envio: () => request.get(`/carrinhos/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
-    { rota: 'POST /carrinhos', caso: 'JSON sem aspas, antes do token', envio: () => request.post('/carrinhos').set('content-type', 'application/json').send('{"produtos": [}'), status: 400, causa: 'JSON malformado' },
-    { rota: 'POST /carrinhos', caso: 'produtos vazio', envio: () => request.post('/carrinhos').set('authorization', tokenDeAdministrador).send({ produtos: [] }), status: 400, causa: 'Dados inválidos' },
-    { rota: 'POST /carrinhos', caso: 'token de usuário excluído', envio: () => request.post('/carrinhos').set('authorization', tokenDeUsuarioExcluido).send({ produtos: [] }), status: 401, causa: 'usuário que não existe mais' }
+    { rota: 'POST /carrinhos', caso: 'JSON sem aspas, antes do token', envio: () => request.post('/carrinhos').set('content-type', 'application/json').send('{"produtos": [}'), status: 400, causa: 'JSON ou dados inválidos' },
+    { rota: 'POST /carrinhos', caso: 'produtos vazio', envio: () => request.post('/carrinhos').set('authorization', tokenDeAdministrador).send({ produtos: [] }), status: 400, causa: 'dados inválidos' },
+    { rota: 'POST /carrinhos', caso: 'token de usuário excluído', envio: () => request.post('/carrinhos').set('authorization', tokenDeUsuarioExcluido).send({ produtos: [] }), status: 401, causa: 'usuário excluído' }
   ]
 
   casos.forEach(({ rota, caso, envio, status, causa, exemplo }) => {
