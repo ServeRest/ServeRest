@@ -781,7 +781,10 @@
     document.querySelectorAll('#lang-menu a[data-lang]').forEach(link => link.addEventListener('click', followLanguageLink))
     setupMenus()
     placeBarItems()
-    window.addEventListener('resize', placeBarItems)
+    // A forma da barra vem de uma consulta de contêiner no body, que muda de largura sem resize da janela (a
+    // barra de rolagem aparece quando a página cresce): observar o body pega toda troca, também a primeira.
+    if (window.ResizeObserver) new ResizeObserver(placeBarItems).observe(document.body)
+    else window.addEventListener('resize', placeBarItems)
     let glow = null
     try {
       glow = window.sessionStorage.getItem(GLOW_KEY)
@@ -868,6 +871,12 @@
     const phone = $('more-btn').getClientRects().length > 0
     if (phone === phoneBar) return
     phoneBar = phone
+    // Mover um elemento no DOM tira o foco dele: quem estava num controle que muda de lugar continua nele, ou
+    // vai ao botão que agora o guarda (o menu fechado, ou o aviso de versão quando o painel fecha). O CSS
+    // pode já ter escondido o controle e mandado o foco ao body: vale o último foco (lastFocus, como em
+    // placeSide).
+    const focused = document.activeElement === document.body && lastFocus && lastFocus.isConnected ? lastFocus : document.activeElement
+    const moved = ['prefs', 'docs-link', 'version-box', 'more-menu'].some(id => $(id).contains(focused)) ? focused : null
     closeMenu(false)
     closeRelease(false)
     if (phone) {
@@ -878,6 +887,10 @@
       $('guide-open').after($('docs-link'))
       $('lang-btn').parentNode.after($('prefs'))
     }
+    if (!moved || document.activeElement === moved) return
+    const shown = node => !!node && node.getClientRects().length > 0
+    const holder = [moved, $('release-panel').contains(moved) ? $('release-btn') : null, $('more-btn')].find(shown)
+    if (holder) holder.focus({ preventScroll: true })
   }
 
   /* ---------- Documento OpenAPI ---------- */
