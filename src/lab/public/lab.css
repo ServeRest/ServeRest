@@ -1660,6 +1660,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .is-missing .guide-mark { border-color: var(--warn); }
 .is-done .guide-mark { border-color: var(--ok); background: var(--ok); }
 .is-done .guide-mark svg { display: block; }
+/* A opcional não pede nada: círculo tracejado e a palavra "Opcional" esmaecida, para o passo não parecer preso. */
+.is-opt:not(.is-done) .guide-mark { border-style: dashed; }
+.guide-opt { color: var(--graphite); font-weight: 600; }
 .is-pop .guide-mark { animation: guide-check 220ms cubic-bezier(0.3, 1.4, 0.6, 1); }
 @keyframes guide-check { from { transform: scale(0.6); } }
 .guide-tasks .guide-done { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); color: var(--ok); font-weight: 700; }

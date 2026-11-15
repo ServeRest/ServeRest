@@ -130,6 +130,64 @@ describe('Guia "Como usar" (guia.js)', () => {
     })
   })
 
+  describe('Caminho curto ("Quero conhecer a página")', () => {
+    const tour = guia.slice(guia.indexOf('  const TOUR = {'), guia.indexOf('  const PATHS = {'))
+    const corpo = nome => { const inicio = guia.indexOf(nome); return guia.slice(inicio, guia.indexOf('\n  }\n', inicio)) }
+
+    // O fluxo abre no passo 2 e fica aberto no 3; só o passo 4 o fecha: nada abre e fecha de novo em seguida.
+    it('segue numa direção só: câmera lenta, fluxo, barra de tempo, fluxo fechado e Histórico', () => {
+      expect([...tour.matchAll(/title: 'lab\.guide\.tour\.([a-z]+)_title'/g)].map(match => match[1])).to.deep.equal(['run', 'flow', 'time', 'close', 'history'])
+    })
+
+    it('o passo 1 entra no modo normal pelo menu, só na entrada, e só conta envio em câmera lenta', () => {
+      expect(tour).to.match(/prepare: \(\) => \{ if \(G\.mode !== 'step' && P\.split\(\) && !G\.doneSteps\[0\]\) G\.wantNormal = !chooseMode\('normal'\) \}/)
+      expect(corpo('function chooseMode (mode)')).to.match(/\$\('run-mode'\)\.click\(\)[\s\S]*item\.click\(\)/)
+      expect(guia).to.match(/const doneRun = \(\) => doneSend\(\) && \(!P\.split\(\) \|\| slowShown\(\)\)/)
+      expect(tour).to.match(/warn: \(\) => noFlow\(\) \|\| \(normalSend\(\) \? fill\('lab\.guide\.tour\.run_normal'\) : ''\)/)
+    })
+
+    it('Rever em câmera lenta é uma tarefa opcional, que só conta quando a página redesenha', () => {
+      expect(tour).to.match(/\{ text: fill\('lab\.guide\.tour\.flow_replay'\), optional: true, done: !!G\.ev\.replay, target: \(\) => \$\('replay'\) \}/)
+      expect(guia).to.match(/if \(target\.closest\('#replay'\) && P\.replayReady\(\)\) G\.ev\.replay = true/)
+    })
+
+    it('o passo da barra de tempo só pede para abrir o fluxo quando ele chegou fechado', () => {
+      expect(tour).to.match(/G\.entry\.flowOpen \? null : \{ text: fill\('lab\.guide\.tour\.time_open'\)/)
+    })
+  })
+
+  describe('Tarefa opcional', () => {
+    it('fica fora do que falta, do Feito do passo e do Fazer por mim', () => {
+      expect(guia).to.match(/\.find\(task => !task\.done && !task\.optional\)/)
+      expect(guia).to.match(/const required = tasks\.filter\(task => !task\.optional\)\n\s+const done = required\.length > 0 && required\.every\(task => task\.done\)/)
+      expect(guia).to.match(/doButton\.hidden = [^\n]*\|\| \(!required\.length && !missing\)/)
+    })
+
+    it('diz que é opcional no texto e tem um círculo próprio, mais discreto', () => {
+      expect(guia).to.match(/if \(task\.optional\) text\.prepend\(el\('span', 'guide-opt', t\('lab\.guide\.optional'\)\), ' '\)/)
+      expect(cssDoGuia).to.match(/\.is-opt:not\(\.is-done\) \.guide-mark \{ border-style: dashed; \}/)
+      ;[ptBr, en, es].forEach(lingua => expect(lingua['lab.guide.optional']).to.match(/^Opcional:$|^Optional:$/))
+    })
+  })
+
+  describe('A página como o guia a encontrou', () => {
+    const corpo = nome => { const inicio = guia.indexOf(nome); return guia.slice(inicio, guia.indexOf('\n  }\n', inicio)) }
+
+    it('guarda o modo e o fluxo ao abrir e os devolve ao fechar e no fim', () => {
+      expect(corpo('function open (path)')).to.match(/G\.origin = \{ mode: P\.mode\(\), flow: P\.flowOpen\(\) \}/)
+      expect(corpo('function close ()')).to.match(/track\(\)\n\s+G\.open = false[\s\S]*restoreSoon\(160\)/)
+      expect(corpo('async function showEnd ()')).to.match(/track\(\)\n\s+await screen\(\(\) => \{\n\s+restoreSoon\(160\)/)
+    })
+
+    // Só volta o que um passo pediu para mudar: uma mudança da pessoa em outro passo fica.
+    it('só devolve o que um passo (owns) mudou, e pelos controles de verdade', () => {
+      expect(corpo('function restore ()')).to.match(/P\.flowOpen\(\) === G\.owned\.flow && G\.owned\.flow !== o\.flow[^\n]*\$\('flow-title'\)\.click\(\)/)
+      expect(corpo('function restore ()')).to.match(/P\.mode\(\) === G\.owned\.mode && G\.owned\.mode !== o\.mode && !chooseMode\(o\.mode\)/)
+      expect((guia.match(/owns: \['flow'\]/g) || []).length).to.equal(5)
+      expect((guia.match(/owns: \['mode'\]/g) || []).length).to.equal(1)
+    })
+  })
+
   describe('Revisão do PR #581', () => {
     const corpo = nome => { const inicio = guia.indexOf(nome); return guia.slice(inicio, guia.indexOf('\n  }\n', inicio)) }
 
