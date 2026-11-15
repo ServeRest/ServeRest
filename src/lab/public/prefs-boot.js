@@ -44,6 +44,19 @@
     }
   } catch (e) {}
 
+  // A linha de opinião da faixa roxa nasce decidida, para a faixa nunca mudar de altura: app.js guarda a cada
+  // carga o que o próximo dia de uso mostra, e aqui só se compara (a mesma conta de core.feedbackLineToday).
+  // Sem o valor ou sem armazenamento, a faixa fica fina.
+  const FEEDBACK_KEY = 'serverestFeedbackInvite'
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(FEEDBACK_KEY))
+    const now = new Date()
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0')
+    if ((saved.last === today && saved.answered !== today) || (saved.seen !== today && saved.next && saved.next <= today)) {
+      document.documentElement.setAttribute('data-feedback', 'line')
+    }
+  } catch (e) {}
+
   const theme = read(THEME_KEY, THEMES, 'system')
   const dark = theme === 'dark' || (theme === 'system' && systemDark())
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')

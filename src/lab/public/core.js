@@ -1049,14 +1049,11 @@
     }
   }
 
-  // O convite para dar opinião, no Resultado vazio (R4 estendida). Aparece a partir do 3º envio do Histórico
-  // da aba, numa aba só por dia de uso (a primeira em que as condições valem). Nos 10 primeiros dias em que
-  // aparece, pula os 2 dias de uso seguintes; depois, aparece uma vez a cada 30 dias, para seguir ouvindo por
-  // anos sem insistir. "Responder" tira por 180 dias, ou até o formulário ganhar uma edição nova; "Agora não"
-  // tira só naquele dia. Dia de uso é um dia do calendário em que a página foi aberta. O estado vai em JSON no
-  // localStorage: days (dias em que apareceu), last (o último deles), seen (o último dia de uso), gap (dias de
-  // uso desde last), off (o dia do "Agora não"), answered (o dia da resposta) e edition (a edição respondida).
-  const FEEDBACK_MIN_COUNT = 3
+  // O pedido de opinião. Seguir qualquer link do formulário grava a resposta: o dia e a edição respondida. Ela
+  // vale 180 dias, ou até o formulário ganhar uma edição nova. O estado vai em JSON no localStorage: days (dias
+  // em que o pedido apareceu), last (o último deles), seen (o último dia de uso), gap (dias de uso desde last),
+  // answered (o dia da resposta), edition (a edição respondida) e next (veja feedbackLineToday). Dia de uso é um
+  // dia do calendário em que a página foi aberta.
   const FEEDBACK_SKIP_DAYS = 2
   const FEEDBACK_MAX_DAYS = 10
   const FEEDBACK_LATE_DAYS = 30
@@ -1073,7 +1070,8 @@
   }
 
   // O valor guardado, com os valores antigos migrados: "answered" (o texto, ou true no JSON) vira respondido
-  // hoje, na edição 1; "shown" e "closed" recomeçam a contagem. Qualquer outra coisa é um estado novo.
+  // hoje, na edição 1; "shown" e "closed" recomeçam a contagem; o dia do "Agora não" (off), que não existe
+  // mais, cai. Qualquer outra coisa é um estado novo.
   function readInvite (raw, today) {
     let value = raw === 'answered' ? { answered: true } : null
     try {
@@ -1081,31 +1079,52 @@
     } catch (e) {}
     if (!value || typeof value !== 'object' || Array.isArray(value)) value = {}
     const answered = value.answered === true ? today || null : typeof value.answered === 'string' ? value.answered : null
-    return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, off: value.off || null, answered, edition: answered ? Number(value.edition) || 1 : 0 }
+    return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, answered, edition: answered ? Number(value.edition) || 1 : 0, next: typeof value.next === 'string' ? value.next : null }
   }
 
-  // A página foi aberta hoje: o primeiro uso do dia conta mais um dia de uso desde o último convite.
-  function inviteVisit (state, today) {
-    if (state.seen === today) return state
-    return { ...state, seen: today, gap: state.last && state.last !== today ? (state.gap || 0) + 1 : state.gap || 0 }
+  function addDays (day, count) {
+    return new Date(Date.parse(day + 'T00:00Z') + count * 864e5).toISOString().slice(0, 10)
   }
 
-  // session é o dia em que esta aba mostrou o convite (sessionStorage); edition, a do formulário de hoje. Devolve
-  // se aparece e, quando muda, o estado novo e o dia a guardar na aba. Uma resposta a uma edição anterior não
-  // segura o convite nem a folga: ele aparece no próximo dia de uso.
-  function feedbackInvite (input) {
-    const { count, today, state = readInvite(null), session, edition = 1 } = input || {}
-    const no = { show: false, state: null, session: null }
-    const older = !!state.answered && (state.edition || 1) < edition
-    if (!(count >= FEEDBACK_MIN_COUNT) || state.off === today || (state.answered && !older && daysBetween(state.answered, today) < FEEDBACK_ANSWER_DAYS)) return no
-    if (state.last === today) return session === today ? { show: true, state: null, session: null } : no
-    if (!older && state.last && ((state.days || 0) < FEEDBACK_MAX_DAYS ? (state.gap || 0) <= FEEDBACK_SKIP_DAYS : daysBetween(state.last, today) < FEEDBACK_LATE_DAYS)) return no
-    return { show: true, state: { ...state, days: (state.days || 0) + 1, last: today, seen: today, gap: 0, answered: null }, session: today }
+  // A resposta ainda vale: dada há menos de 180 dias, para a edição de hoje do formulário (ou uma mais nova).
+  function feedbackAnswered (state, today, edition) {
+    return !!state.answered && (state.edition || 1) >= (edition || 1) && daysBetween(state.answered, today) < FEEDBACK_ANSWER_DAYS
   }
 
-  // "Responder" guarda o dia e a edição respondida; "Agora não" tira só naquele dia.
-  function inviteEnd (state, today, answered, edition) {
-    return answered ? { ...state, answered: today, edition: edition || 1 } : { ...state, off: today }
+  // A linha da faixa roxa. Nunca no primeiro dia de uso neste navegador; a partir do segundo, aparece num dia e
+  // pula os 2 dias de uso seguintes, até ter aparecido em 10 dias; depois, no máximo uma vez a cada 30 dias do
+  // calendário. No dia em que aparece, aparece em toda carga e em toda aba. A altura da faixa é decidida antes
+  // da primeira pintura, por prefs-boot.js, que não carrega este arquivo: cada carga guarda em next a partir de
+  // que data o próximo dia de uso mostra a linha (ou null), e lá só se compara, com a mesma conta de
+  // feedbackLineToday (um teste confere as duas).
+  function feedbackLineToday (state, today) {
+    return (state.last === today && state.answered !== today) || (state.seen !== today && !!state.next && state.next <= today)
+  }
+
+  // A data a partir da qual o próximo dia de uso (um dia depois de hoje) mostra a linha, ou null. Uma resposta
+  // que vale empurra a data para o fim dos 180 dias.
+  function feedbackNext (state, today, edition) {
+    let from = null
+    if (!state.last || ((state.days || 0) < FEEDBACK_MAX_DAYS && (state.gap || 0) + 1 > FEEDBACK_SKIP_DAYS)) from = addDays(today, 1)
+    else if ((state.days || 0) >= FEEDBACK_MAX_DAYS) from = addDays(state.last, FEEDBACK_LATE_DAYS)
+    const answered = from && feedbackAnswered(state, from, edition) ? addDays(state.answered, FEEDBACK_ANSWER_DAYS) : null
+    return answered && answered > from ? answered : from
+  }
+
+  // Cada carga da página: o primeiro uso do dia conta mais um dia de uso desde o último pedido, shown diz se a
+  // linha foi pintada (o que prefs-boot.js decidiu vale para o dia todo) e next é refeito.
+  function feedbackVisit (state, today, shown, edition) {
+    let value = state
+    if (value.seen !== today) value = { ...value, seen: today, gap: value.last ? (value.gap || 0) + 1 : 0 }
+    if (shown && value.last !== today) value = { ...value, days: (value.days || 0) + 1, last: today, gap: 0 }
+    return { ...value, next: feedbackNext(value, today, edition) }
+  }
+
+  // Seguir um link do formulário guarda o dia e a edição respondida. A linha da faixa já pintada fica até a
+  // próxima carga (a faixa não muda de altura depois da primeira pintura).
+  function feedbackAnswer (state, today, edition) {
+    const value = { ...state, answered: today, edition: edition || 1 }
+    return { ...value, next: feedbackNext(value, today, edition) }
   }
 
   // O ServeRest não tem login de verdade: /login, email e password são dados de exemplo. Estes atributos
@@ -1134,10 +1153,11 @@
     mdnStatusUrl,
     mdnMethodUrl,
     releaseNotice,
-    feedbackInvite,
     readInvite,
-    inviteVisit,
-    inviteEnd,
+    feedbackAnswered,
+    feedbackLineToday,
+    feedbackVisit,
+    feedbackAnswer,
     dayKey,
     segmentGrow,
     formatDuration,

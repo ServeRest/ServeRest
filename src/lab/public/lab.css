@@ -343,9 +343,11 @@ button.cap { cursor: pointer; }
 .more-menu .version-notice:hover { color: var(--accent-strong); }
 .more-menu .version-notice .dot { align-self: flex-start; margin-top: 5px; }
 .more-menu .rel-pop { position: static; width: auto; margin: 4px; box-shadow: none; }
-/* Branco no roxo: 7,2:1. */
+/* Branco no roxo: 7,2:1. A faixa tem 20 px, como a do Swagger; a linha de opinião (28 px) só aparece com
+   data-feedback, que prefs-boot.js põe antes da primeira pintura. */
 .topbar-band { min-height: 20px; background: var(--purple); }
-.fb-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 0.3em; min-height: 28px; padding: 4px 12px; font-size: 12.5px; line-height: 1.2; color: #ffffff; text-align: center; }
+.fb-line { display: none; }
+:root[data-feedback] .fb-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 0.3em; min-height: 28px; padding: 4px 12px; font-size: 12.5px; line-height: 1.2; color: #ffffff; text-align: center; }
 .fb-link { color: #ffffff; font-weight: 600; text-decoration-color: rgba(255, 255, 255, 0.6); white-space: nowrap; }
 .fb-link:hover { color: #ffffff; text-decoration-color: #ffffff; text-decoration-thickness: 1px; }
 .topbar-band :focus-visible { outline-color: #ffffff; outline-offset: 1px; }
@@ -1068,39 +1070,56 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .setas { --setas-p: url("data:image/png;base64,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"); --setas-d: url("data:image/png;base64,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"); position: relative; display: block; flex: none; height: 32px; width: calc(32px * 135 / 96); }
 .setas > span { position: absolute; inset: 0; -webkit-mask: var(--setas-p) 0 0 / 100% 100% no-repeat; mask: var(--setas-p) 0 0 / 100% 100% no-repeat; background: var(--logo-accent); }
 .setas > .setas-d { -webkit-mask-image: var(--setas-d); mask-image: var(--setas-d); background: var(--logo-ink); }
-/* Sobre o ServeRest no Resultado vazio, só na primeira visita desta aba. */
-.about-body { display: flex; flex-direction: column; gap: var(--space-s); }
-.about-body > p, .go-list { max-width: 64ch; }
-.about-body strong { font-weight: 600; }
-.about-go { font-weight: 600; margin-top: var(--space-xs); }
-.go-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
-.go-list li::marker { color: var(--graphite); }
-/* A linha de apoio que fica no lugar do Sobre depois do primeiro envio: centrada, discreta, os links separados
-   por um ponto que o leitor de tela não lê. */
+/* A linha de apoio no fim do Resultado vazio: centrada, discreta, os links separados por um ponto que o leitor
+   de tela não lê. */
 .support-line { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 10px; padding: 0 16px var(--space-xl); font-size: 0.8125rem; color: var(--graphite); text-align: center; }
 .support-lead { font-weight: 600; color: var(--ink); }
 .support-sep { color: var(--graphite); }
-/* O convite para dar opinião (V3): um cartão centrado acima do Sobre, com o ícone, o título, o custo antes do
-   pedido (2 minutos, 6 perguntas, sem login; cada item quebra inteiro) e as duas ações. */
-.invite { box-sizing: border-box; display: grid; justify-items: center; gap: 8px; width: min(52ch, calc(100% - 28px)); margin: 0 auto var(--space-xl); padding: 20px 22px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 1px 0 var(--border); text-align: center; }
-.inv-art { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
-.invite-title { font-family: var(--font-head); font-size: 1.1875rem; font-weight: 600; line-height: 1.25; }
-.inv-promise { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; font-size: 0.8125rem; color: var(--graphite); }
-.inv-promise > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.inv-promise svg { flex: none; color: var(--accent); }
-.invite-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-top: 6px; }
-.invite .inv-go { text-decoration: none; }
-.invite-where { font-size: 0.75rem; color: var(--graphite); }
 /* O Resultado vazio fica centrado na zona, com as linhas numa medida de leitura: as setas com a frase da rota,
-   como seguir, a nota do Histórico, o convite e o Sobre. */
+   como seguir e a nota do Histórico. */
 #result-empty .result-empty-lines { align-items: center; text-align: center; max-width: none; }
-#result-empty .result-empty-lines > p, #result-empty .about-body > p, #result-empty .go-list { max-width: 60ch; }
+#result-empty .result-empty-lines > p { max-width: 60ch; }
 #result-empty .result-empty-head { justify-content: center; }
-#result-empty .result-about .band { justify-content: center; text-align: center; }
-#result-empty .about-body { align-items: center; text-align: center; }
-/* Sem marcadores no Sobre centrado: cada item numa linha própria, com um respiro entre eles. role="list" (no
-   script) mantém a lista para o leitor de tela, que alguns navegadores esquecem com list-style: none. */
-#result-empty .go-list { padding-left: 0; list-style: none; gap: 8px; }
+/* Enquanto as rotas carregam, a linha gira; quando não carregam, a linha usa a cor e o fundo do erro. */
+.result-wait { text-align: center; font-size: 0.875rem; color: var(--graphite); }
+.result-wait.is-failed { padding: 10px 12px; border-radius: 4px; background: var(--fail-tint); color: var(--fail); font-weight: 600; }
+/* O cartão do guia: a cara das boas-vindas dele (a faixa preta com o fio roxo) e os dois caminhos. */
+.gw { box-sizing: border-box; width: min(31rem, calc(100% - 28px)); margin: 0 auto var(--space-xl); border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 1px 0 var(--border); overflow: hidden; }
+.gw-brand { padding: 12px 18px 11px; border-bottom: 5px solid var(--purple); background: var(--bar-bg); color: var(--bar-fg); }
+.gw-title { font-size: 1.375rem; }
+.gw-lead { margin-top: 2px; font-size: 0.875rem; }
+.gw-body { padding: 14px 14px 8px; }
+.gw-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr)); gap: 8px; }
+.gw-path { display: grid; grid-template-columns: 34px 1fr; gap: 2px 10px; align-items: start; width: 100%; padding: 10px 12px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); color: var(--ink); text-align: left; }
+.gw-path:hover, .gw-path:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
+.gw-path strong { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.2; color: var(--accent-strong); }
+.gw-path .guide-icon { height: 34px; }
+.gw-path .guide-icon svg { width: 20px; height: 20px; }
+.gw-path:hover .guide-icon, .gw-path:focus-visible .guide-icon { background: var(--accent); }
+.gw-path:hover .guide-icon svg, .gw-path:focus-visible .guide-icon svg { stroke: var(--surface); }
+.gw-steps { grid-column: 2; font-size: 0.75rem; color: var(--graphite); }
+.gw-steps b { margin-left: 4px; font-size: 1rem; font-weight: 600; color: var(--accent); }
+.gw-foot { display: flex; justify-content: center; margin-top: 6px; }
+.gw-no { min-height: 2rem; padding: 4px 10px; border: 1px solid transparent; border-radius: 4px; background: none; color: var(--graphite); font-size: 0.8125rem; font-weight: 600; }
+.gw-no:hover { background: var(--hover); color: var(--ink); }
+@container result (max-width: 26rem) {
+  .gw-path { grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 0 10px; padding: 8px 10px; }
+  .gw-path .guide-icon { grid-row: auto; height: 30px; }
+  .gw-steps { grid-column: 3; white-space: nowrap; }
+  .gw-path strong { font-size: 1rem; }
+}
+/* O pedido de opinião: uma linha fixa entre um fio e a linha de apoio (ou o obrigado, sem botão). */
+.res-foot.has-row { margin: 0 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.res-foot.has-row .support-line { padding-left: 0; padding-right: 0; }
+.op-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; max-width: 60ch; margin: 0 auto 14px; }
+.op-who { display: flex; align-items: center; gap: 10px; text-align: left; }
+.op-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
+.op-ico.ok { background: var(--ok-tint); color: var(--ok); }
+.op-txt { display: grid; line-height: 1.3; }
+.op-txt b { font-size: 0.875rem; font-weight: 700; color: var(--ink); }
+.op-txt span { font-size: 0.75rem; color: var(--graphite); }
+.op-go { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-size: 0.8125rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.op-go:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .link-btn { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
 .link-btn:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .result-route { font-weight: 600; }

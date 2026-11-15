@@ -38,21 +38,21 @@
   const HANDOFF_KEY = 'serverestLangHandoff'
   // A versão nova cujo painel a pessoa já abriu (o ponto do aviso some para ela).
   const RELEASE_SEEN_KEY = 'serverestReleaseSeen'
-  // O convite para dar opinião: o estado dele em JSON neste navegador (core.readInvite), e a marca desta aba.
+  // O pedido de opinião: o estado dele em JSON neste navegador (core.readInvite). prefs-boot.js lê a mesma chave.
   const FEEDBACK_KEY = 'serverestFeedbackInvite'
-  const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
-  // O convite do guia "Como usar": "opened" ou "dismissed" ("Agora não"); com qualquer valor, não volta.
+  // O cartão do guia "Como usar": "opened" (o guia abriu, por qualquer caminho) ou "dismissed" ("Não,
+  // obrigado"); com qualquer valor, não volta.
   const GUIDE_KEY = 'serverestGuideInvite'
   // O formulário de opinião de cada idioma; VERSAO vira a versão da página no campo pré-preenchido. Vazio,
-  // nenhuma entrada de opinião aparece (rodapé, convite e linha da faixa roxa).
+  // nenhuma entrada de opinião aparece (rodapé, linha do Resultado e linha da faixa roxa).
   const FEEDBACK_FORM_URL = {
     'pt-BR': 'https://docs.google.com/forms/d/e/1FAIpQLScVAi6hLqT1rpsuN-Jtrxu2r8dcg20EjfTzsjci7wQHPtegPQ/viewform?usp=pp_url&entry.924035673=VERSAO',
     en: 'https://docs.google.com/forms/d/e/1FAIpQLScHuNJNhQc5eDK-vGqD5H4GcJPwFUYwBHbQPjoH52zxkhAQ7Q/viewform?usp=pp_url&entry.924035673=VERSAO',
     es: 'https://docs.google.com/forms/d/e/1FAIpQLSfHpCxjm3tKfEEANKKMrQyWz4_raAQ6Dpu-ow8k9CA90UwOHg/viewform?usp=pp_url&entry.924035673=VERSAO'
   }
-  // A edição do formulário: quem respondeu fica 180 dias sem o convite; subir o número o traz de volta na hora.
+  // A edição do formulário: quem respondeu fica 180 dias sem o pedido; subir o número o traz de volta.
   const FEEDBACK_FORM_EDITION = 1
-  // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
+  // Os links do rodapé e da linha de apoio do Resultado vazio. Cada um passa por core.safeHref.
   const ABOUT_URLS = {
     postman: 'https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json',
     repository: 'https://github.com/ServeRest/ServeRest',
@@ -150,12 +150,12 @@
     parent.append(child.nodeType ? child : String(child))
   }
 
-  function svgIcon (size, shapes) {
+  function svgIcon (size, shapes, box) {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('width', String(size))
     svg.setAttribute('height', String(size))
-    svg.setAttribute('viewBox', '0 0 16 16')
+    svg.setAttribute('viewBox', box || '0 0 16 16')
     svg.setAttribute('aria-hidden', 'true')
     shapes.forEach(shape => {
       const node = document.createElementNS(ns, shape[0])
@@ -438,14 +438,6 @@
     } catch (e) {}
   }
 
-  function readSession (key) {
-    try {
-      return window.sessionStorage.getItem(key)
-    } catch (e) {
-      return null
-    }
-  }
-
   function writeSession (key, value) {
     try {
       window.sessionStorage.setItem(key, value)
@@ -576,14 +568,12 @@
     $('about-help').replaceChildren(...[
       item(externalLink(ABOUT_URLS.issues, t('lab.about.link_issue'))),
       contactUrl ? item(externalLink(contactUrl, fillText('lab.about.link_contact', { name: contact.name || '' }))) : null,
-      form ? item(externalLink(form, t('lab.feedback.footer')), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
+      form ? item(formLink(externalLink(form, t('lab.feedback.footer'))), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
     ].filter(Boolean))
     $('about-support').replaceChildren(...supportItems())
     $('about-thanks').replaceChildren(...thanksParts())
   }
 
-  // "Apoie o ServeRest" aparece no rodapé e no Sobre do Resultado vazio: os mesmos links e o mesmo
-  // agradecimento, feitos de novo para cada lugar.
   function supportItems () {
     return [[ABOUT_URLS.author, 'lab.about.link_follow'], [ABOUT_URLS.repository, 'lab.about.link_star'], [ABOUT_URLS.fund, 'lab.about.link_fund'], [ABOUT_URLS.contribute, 'lab.about.link_contribute']]
       .map(([url, key]) => el('li', null, externalLink(url, t(key))))
@@ -593,47 +583,24 @@
     return parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) })
   }
 
-  // A linha de opinião da faixa roxa vem do servidor, sempre à vista; só some sem o endereço do formulário.
+  // A linha de opinião da faixa roxa vem do servidor; prefs-boot.js decide antes da primeira pintura se ela
+  // aparece (core.feedbackLineToday). Sem o endereço do formulário ela não volta, e se já estava pintada fica
+  // invisível no mesmo lugar, para a faixa não mudar de altura.
   function paintFeedbackBand () {
     const form = feedbackUrl()
-    if (form) $('feedback-band-link').href = form
-    else $('feedback-band').hidden = true
+    const link = $('feedback-band-link')
+    if (form) formLink(link).href = form
+    else $('feedback-band').style.visibility = 'hidden'
   }
 
-  // Sobre o ServeRest no Resultado vazio da primeira visita: a apresentação e os três links de quem vai
-  // testar fora desta página, e o caminho para o rodapé.
-  // Depois de quem vai testar fora daqui, como apoiar o projeto, como no rodapé, e o convite para o
-  // formulário de opinião enquanto ele estiver aberto.
-  function aboutBand () {
-    const go = (key, linkKey, url) => el('li', null, parts(key, { link: externalLink(url, t(linkKey)) }))
-    const form = feedbackUrl()
-    return el('section', { class: 'result-about' },
-      el('div', { class: 'band' }, el('h3', { class: 'band-title', id: 'result-about-title', text: t('lab.about.title') })),
-      el('div', { class: 'band-body about-body' },
-        el('p', null, el('strong', { text: t('lab.about.intro') })),
-        el('p', { class: 'about-go', text: t('lab.about.go_title') }),
-        el('ul', { class: 'go-list', role: 'list' },
-          go('lab.about.go_postman', 'lab.about.go_postman_link', ABOUT_URLS.postman),
-          go('lab.about.go_local', 'lab.about.go_local_link', ABOUT_URLS.repository),
-          go('lab.about.go_load', 'lab.about.go_load_link', ABOUT_URLS.load)),
-        el('p', { class: 'about-go', text: t('lab.about.group_support') }),
-        el('ul', { class: 'go-list', role: 'list' }, supportItems()),
-        form ? el('p', null, parts('lab.about.feedback', { link: externalLink(form, t('lab.about.feedback_link')) })) : null,
-        el('p', { class: 'muted small' }, thanksParts()),
-        el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link'), onclick: goToAbout }) }))))
-  }
-
-  // Depois do primeiro envio, as rotas ainda não enviadas mostram só uma linha centrada no lugar do Sobre: como
-  // apoiar o projeto (star, apoio financeiro e opinião) e o caminho para o rodapé, onde está o resto. Quatro
-  // paradas do Tab em vez das nove do Sobre inteiro, que o rodapé já repete.
+  // A linha curta no fim do Resultado vazio: como apoiar o projeto (star e apoio financeiro) e o caminho para
+  // o rodapé, onde está o resto. O pedido de opinião fica na linha própria, logo acima.
   function supportLine () {
-    const form = feedbackUrl()
     const links = [
       externalLink(ABOUT_URLS.repository, t('lab.about.support_star')),
       externalLink(ABOUT_URLS.fund, t('lab.about.support_fund')),
-      form ? externalLink(form, t('lab.about.support_feedback')) : null,
       el('a', { href: '#about', text: t('lab.about.support_more'), onclick: goToAbout })
-    ].filter(Boolean)
+    ]
     const items = []
     links.forEach((link, index) => {
       if (index) items.push(el('span', { class: 'support-sep', 'aria-hidden': 'true', text: '·' }))
@@ -653,83 +620,95 @@
     about.focus({ preventScroll: true })
   }
 
-  // O convite para dar opinião, no Resultado vazio (core.feedbackInvite decide: a partir do 3º envio, uma aba
-  // por dia de uso, com dois dias de uso de folga entre um dia e outro nos 10 primeiros dias, depois uma vez a
-  // cada 30 dias). O cartão diz o custo antes de pedir: 2 minutos, 7 perguntas, sem login. O estado fica em
-  // JSON no localStorage; o dia em que esta aba mostrou o convite, no sessionStorage.
-  const INVITE_ICONS = {
+  /* ---------- Pedido de opinião ---------- */
+
+  // O pedido de opinião tem dois lugares: a linha da faixa roxa, nos dias que core.feedbackLineToday escolhe,
+  // e uma linha fixa no Resultado vazio. Seguir qualquer link do formulário (essa linha, a faixa ou o rodapé)
+  // grava a resposta, e a linha do Resultado vira um obrigado até a resposta deixar de valer.
+  const PAGE_ICONS = {
     art: [['path', { d: 'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }], ['path', { d: 'M8.5 9.6l2.2 2.2 4.6-4.6', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }]],
-    time: [['circle', { cx: '8', cy: '8', r: '6.25', 'stroke-width': '1.5' }], ['path', { d: 'M8 4.5V8l2.5 1.5', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
-    questions: [['path', { d: 'M3 4h10M3 8h10M3 12h6', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
-    login: [['path', { d: 'M8 1.75l5 2v4c0 3.2-2.2 5.4-5 6.5-2.8-1.1-5-3.3-5-6.5v-4z', 'stroke-width': '1.5', 'stroke-linejoin': 'round' }]]
+    heart: [['path', { d: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', 'stroke-width': '1.7', 'stroke-linejoin': 'round' }]],
+    // Os dos caminhos do guia, como em guia.js (ICONS); o traço vem do CSS (.guide-icon).
+    learn: [['path', { d: 'M4 8h12l-3-3M20 16H8l3 3' }]],
+    tour: [['circle', { cx: '12', cy: '12', r: '8' }], ['path', { d: 'M15 9l-2 5-4 1 2-5z' }]]
   }
 
-  function inviteIcon (name, size, box) {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    ;[['width', size], ['height', size], ['viewBox', box], ['aria-hidden', 'true'], ['fill', 'none'], ['stroke', 'currentColor']].forEach(([key, value]) => svg.setAttribute(key, value))
-    INVITE_ICONS[name].forEach(([tag, attrs]) => {
-      const shape = document.createElementNS('http://www.w3.org/2000/svg', tag)
-      Object.entries(attrs).forEach(([key, value]) => shape.setAttribute(key, value))
-      svg.append(shape)
-    })
+  // Os ícones de 24 px, só com traço.
+  function drawIcon (name, size) {
+    const svg = svgIcon(size, PAGE_ICONS[name], '0 0 24 24')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('stroke', 'currentColor')
     return svg
   }
 
-  function inviteState () {
-    return core.readInvite(readLocal(FEEDBACK_KEY), core.dayKey(new Date()))
+  function feedbackState (today) {
+    return core.readInvite(readLocal(FEEDBACK_KEY), today)
   }
 
-  // Cada abertura da página conta o dia de uso, para a folga entre um convite e outro. Um valor antigo é
-  // regravado na hora, para a resposta migrada ficar com o dia de hoje.
-  function countUsageDay () {
+  // Cada carga conta o dia de uso e guarda o que o próximo dia de uso mostra na faixa. O que prefs-boot.js
+  // pintou vale para o dia todo; sem formulário, nada aparece nem fica marcado para depois.
+  function visitFeedback () {
+    const today = core.dayKey(new Date())
     const raw = readLocal(FEEDBACK_KEY)
-    const after = JSON.stringify(core.inviteVisit(inviteState(), core.dayKey(new Date())))
-    if (after !== raw) writeLocal(FEEDBACK_KEY, after)
+    const form = !!feedbackUrl()
+    const after = core.feedbackVisit(feedbackState(today), today, form && document.documentElement.hasAttribute('data-feedback'), FEEDBACK_FORM_EDITION)
+    if (!form) after.next = null
+    if (JSON.stringify(after) !== raw) writeLocal(FEEDBACK_KEY, JSON.stringify(after))
   }
 
-  function feedbackInviteNode () {
+  // Um link do formulário: o clique (ou o botão do meio, que abre em outra aba) grava a resposta.
+  function formLink (link) {
+    if (!link || !link.nodeType) return link
+    link.addEventListener('click', recordAnswer)
+    link.addEventListener('auxclick', event => {
+      if (event.button === 1) recordAnswer()
+    })
+    return link
+  }
+
+  // A linha do Resultado vazio: o pedido, ou o obrigado de quem já respondeu. Sem formulário, nenhuma.
+  function opinionRow () {
     const form = feedbackUrl()
     if (!form) return null
     const today = core.dayKey(new Date())
-    const decision = core.feedbackInvite({ count: state.history.length, today, state: inviteState(), session: readSession(FEEDBACK_SESSION_KEY), edition: FEEDBACK_FORM_EDITION })
-    if (!decision.show) return null
-    if (decision.state) writeLocal(FEEDBACK_KEY, JSON.stringify(decision.state))
-    if (decision.session) writeSession(FEEDBACK_SESSION_KEY, decision.session)
-    const promise = (icon, key) => el('span', null, inviteIcon(icon, '13', '0 0 16 16'), t(key))
-    return el('section', { class: 'invite', id: 'invite' },
-      el('span', { class: 'inv-art' }, inviteIcon('art', '26', '0 0 24 24')),
-      el('p', { class: 'invite-title', id: 'invite-title', text: t('lab.feedback.invite_title') }),
-      el('p', { class: 'inv-promise' }, promise('time', 'lab.feedback.promise_time'), promise('questions', 'lab.feedback.promise_questions'), promise('login', 'lab.feedback.promise_login')),
-      el('div', { class: 'invite-actions' },
-        externalLink(form, t('lab.feedback.invite_go'), { class: 'btn btn-primary inv-go', onclick: () => endInvite(true) }),
-        el('button', { type: 'button', class: 'btn btn-quiet', id: 'invite-close', text: t('lab.feedback.invite_close'), onclick: () => endInvite(false) })),
-      el('p', { class: 'invite-where', text: t('lab.feedback.invite_where') }))
+    if (core.feedbackAnswered(feedbackState(today), today, FEEDBACK_FORM_EDITION)) {
+      return el('div', { class: 'op-row', id: 'op-row' },
+        el('p', { class: 'op-who', id: 'op-thanks', tabindex: '-1' },
+          el('span', { class: 'op-ico ok' }, drawIcon('heart', '17')),
+          el('span', { class: 'op-txt' }, el('b', { text: t('lab.feedback.thanks_title') }), el('span', { text: t('lab.feedback.thanks_text') }))))
+    }
+    return el('div', { class: 'op-row', id: 'op-row' },
+      el('p', { class: 'op-who' },
+        el('span', { class: 'op-ico' }, drawIcon('art', '18')),
+        el('span', { class: 'op-txt' }, el('b', { text: t('lab.feedback.row_title') }), el('span', { text: t('lab.feedback.promise_questions') + ', ' + t('lab.feedback.promise_login') }))),
+      formLink(externalLink(form, t('lab.feedback.invite_go'), { class: 'op-go' })))
   }
 
-  // "Responder" (o link abre o formulário em outra aba) tira o convite por 180 dias; "Agora não", só hoje. O
-  // cartão sai depois do clique, para o link abrir antes; o foco vai para a primeira linha do Resultado vazio,
-  // em vez de cair no body, e "Agora não" anuncia que o convite volta outro dia e onde o link continua.
-  function endInvite (answered) {
-    writeLocal(FEEDBACK_KEY, JSON.stringify(core.inviteEnd(inviteState(), core.dayKey(new Date()), answered, FEEDBACK_FORM_EDITION)))
+  // A resposta fica gravada no clique; a linha do Resultado troca depois dele, para o link abrir antes. Quem
+  // estava no botão da linha fica no obrigado, em vez de cair no body.
+  function recordAnswer () {
+    const today = core.dayKey(new Date())
+    writeLocal(FEEDBACK_KEY, JSON.stringify(core.feedbackAnswer(feedbackState(today), today, FEEDBACK_FORM_EDITION)))
     setTimeout(() => {
-      const invite = $('invite')
-      if (!invite) return
-      const first = $('result-empty-first')
-      if (first) first.focus()
-      invite.remove()
-      if (!answered) announce(t('lab.feedback.closed'))
+      const row = $('op-row')
+      if (!row) return
+      const focused = row.contains(document.activeElement)
+      row.replaceWith(opinionRow())
+      if (focused && $('op-thanks')) $('op-thanks').focus()
     }, 0)
   }
 
   // O guia "Como usar" (guia.js) só é baixado quando abre pela primeira vez. Enquanto baixa, o botão fica
-  // ocupado; numa falha, uma frase curta diz isso, e o botão continua valendo. Abrir o guia encerra o convite.
+  // ocupado; numa falha, uma frase curta diz isso, e o botão continua valendo. Com um caminho (os botões do
+  // cartão do Resultado), abre direto no primeiro passo dele. Abrir o guia tira o cartão de vez.
   let guideLoading = false
-  function openGuide (trigger) {
+  function openGuide (trigger, path) {
     if (guideLoading) return
     if (window.serverestGuide) {
       writeLocal(GUIDE_KEY, 'opened')
-      if ($('guide-invite')) $('guide-invite').remove()
-      window.serverestGuide.open()
+      if ($('guide-card')) $('guide-card').remove()
+      if (path) window.serverestGuide.start(path)
+      else window.serverestGuide.open()
       return
     }
     guideLoading = true
@@ -739,7 +718,7 @@
     script.onload = script.onerror = () => {
       guideLoading = false
       busy.forEach(button => button.removeAttribute('aria-busy'))
-      if (window.serverestGuide) return openGuide()
+      if (window.serverestGuide) return openGuide(null, path)
       script.remove()
       const note = el('p', { class: 'rel-pop', 'aria-hidden': 'true', text: t('lab.guide.load_failed') })
       note.style.cssText = 'left: auto; right: 20px'
@@ -751,22 +730,33 @@
     document.head.append(script)
   }
 
-  // O convite da primeira visita só aparece com o Histórico desta aba vazio (o de opinião pede 3 envios: os dois
-  // nunca ficam juntos) e some de vez quando o guia abre ou em "Agora não".
-  function guideInviteNode () {
+  // O cartão do guia no Resultado vazio, com a cara das boas-vindas dele e os dois caminhos: um clique já
+  // começa o caminho. Aparece enquanto este navegador nunca abriu o guia (por qualquer caminho) nem disse "Não,
+  // obrigado". Os textos e a contagem de passos são os do guia: cada passo tem um título lab.guide.<caminho>.
+  // *_title, e um teste confere que a contagem bate com os passos de guia.js.
+  function guideCard () {
     if (readLocal(GUIDE_KEY)) return null
-    return el('section', { class: 'invite', id: 'guide-invite' },
-      el('p', { class: 'invite-title', id: 'guide-invite-title', text: t('lab.guide.invite_lead') }),
-      el('p', { text: t('lab.guide.invite_text') }),
-      el('div', { class: 'invite-actions' },
-        el('button', { type: 'button', class: 'btn btn-primary', text: t('lab.guide.invite_open'), onclick: event => openGuide(event.currentTarget) }),
-        el('button', { type: 'button', class: 'btn btn-quiet', text: t('lab.feedback.invite_close'), onclick: dismissGuideInvite })))
+    const steps = id => Object.keys(texts).filter(key => (/^lab\.guide\.([a-z]+)\.[a-z_]+_title$/.exec(key) || [])[1] === id).length
+    const path = (id, name) => {
+      const count = el('span', { class: 'gw-steps' }, fillText('lab.guide.count', { count: steps(id) }), el('b', { 'aria-hidden': 'true', text: '→' }))
+      return el('button', { type: 'button', class: 'gw-path', 'data-path': id, onclick: event => openGuide(event.currentTarget, id) },
+        el('span', { class: 'guide-icon' }, drawIcon(id, '20')), el('strong', { text: t(name) }), count)
+    }
+    return el('section', { class: 'gw', id: 'guide-card', 'aria-labelledby': 'guide-card-title' },
+      el('div', { class: 'gw-brand' },
+        el('h3', { class: 'gw-title', id: 'guide-card-title', text: t('lab.guide.welcome_title') }),
+        el('p', { class: 'gw-lead', text: t('lab.guide.welcome_lead') + ' ' + t('lab.guide.welcome_pick') })),
+      el('div', { class: 'gw-body' },
+        el('div', { class: 'gw-paths' }, path('learn', 'lab.guide.learn.name'), path('tour', 'lab.guide.tour.name')),
+        el('div', { class: 'gw-foot' }, el('button', { type: 'button', class: 'gw-no', text: t('lab.guide.card_no'), onclick: dismissGuideCard }))))
   }
 
-  function dismissGuideInvite () {
+  // "Não, obrigado": o cartão sai de vez, o foco vai para a primeira linha do Resultado vazio e um aviso diz
+  // onde o guia continua.
+  function dismissGuideCard () {
     writeLocal(GUIDE_KEY, 'dismissed')
     $('result-empty-first').focus()
-    $('guide-invite').remove()
+    $('guide-card').remove()
     announce(fillText('lab.guide.where', { open: t('lab.guide.open') }))
   }
 
@@ -904,6 +894,8 @@
     list.append(el('p', { class: 'empty' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading')))
     $('routes-count').textContent = ''
     renderRequest()
+    // O Resultado vazio diz que as rotas carregam (também numa nova tentativa); um envio à vista fica.
+    if (state.shownId === null) renderResultEmpty(null)
     // A versão na URL troca a lista a cada versão nova: fora do localhost o servidor a deixa no cache do
     // navegador por um ano, e a visita seguinte não pede a lista de novo.
     const url = '/swagger.json?lang=' + encodeURIComponent(language) + '&v=' + encodeURIComponent(version)
@@ -937,6 +929,7 @@
       }
       renderRoutes()
       renderRequest()
+      if (state.shownId === null) renderResultEmpty(null)
       announce(t('lab.routes.error'))
     })
   }
@@ -3564,14 +3557,23 @@
     state.offer = null
     const box = $('result-empty')
     box.textContent = ''
-    // Primeira visita: esta aba ainda não tem Histórico (um recarregamento com Histórico não é primeira visita).
-    const first = !state.history.length
+    // Enquanto as rotas carregam, ou quando não carregam, uma linha só, sem cartão nem pedido: as duas não se
+    // parecem (a da espera gira, a da falha usa a frase e a cor do erro da lista de rotas).
+    if (state.specError || !state.spec) {
+      box.append(el('div', { class: 'result-empty-lines' }, state.specError
+        ? el('p', { class: 'result-wait is-failed', text: t('lab.routes.error') })
+        : el('p', { class: 'result-wait' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading'))))
+      return
+    }
     const routeLine = route ? el('p', { class: 'result-route' }, parts('lab.result.not_sent', { route: el('code', { text: route.method.toUpperCase() + ' ' + route.path }) })) : null
     const how = el('p', { text: t('lab.result.not_sent_how') })
-    // A primeira linha recebe o foco quando o convite é fechado.
+    // A primeira linha recebe o foco quando o cartão do guia sai por "Não, obrigado".
     const firstLine = routeLine || how
     firstLine.id = 'result-empty-first'
     firstLine.setAttribute('tabindex', '-1')
+    const row = opinionRow()
+    // Sempre o mesmo esqueleto: a frase da rota, como seguir e a nota; o cartão do guia, enquanto ele vale; a
+    // linha de opinião, com formulário; e a linha de apoio. Quando o cartão sai, só o que vem depois dele sobe.
     append(box, [
       el('div', { class: 'result-empty-lines' },
         // As setas da marca abrem o Resultado vazio; a logo completa fica na barra e no rodapé.
@@ -3579,12 +3581,9 @@
           el('span', { class: 'setas', 'aria-hidden': 'true' }, el('span', { class: 'setas-p' }), el('span', { class: 'setas-d' })),
           routeLine),
         how,
-        el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
-      // O Sobre inteiro aparece só enquanto o Histórico desta aba está vazio (a primeira visita); depois, cada
-      // rota ainda não executada mostra a linha curta de apoio (supportLine). O convite do guia ou o de opinião,
-      // quando cabe, vem antes dele.
-      first ? guideInviteNode() : feedbackInviteNode(),
-      first ? aboutBand() : supportLine()
+        el('p', { class: 'muted small', text: t(state.history.length ? 'lab.result.others' : 'lab.result.history_note') })),
+      guideCard(),
+      el('div', { class: row ? 'res-foot has-row' : 'res-foot' }, row, supportLine())
     ])
   }
 
@@ -5763,7 +5762,7 @@
     setupTopbar()
     paintNotice()
     paintFeedbackBand()
-    countUsageDay()
+    visitFeedback()
     renderAbout(null)
     setupFlowControls()
     setupTime()
@@ -5782,7 +5781,6 @@
       document.fonts.ready.then(() => fitReqBar(true))
     } catch (e) {}
     renderHistory()
-    renderResultEmpty(null)
     const filter = $('filter')
     Object.keys(core.FIELD_ASSISTS_OFF).forEach(name => filter.setAttribute(name, core.FIELD_ASSISTS_OFF[name]))
     filter.addEventListener('input', renderRoutes)
