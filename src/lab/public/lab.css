@@ -1559,48 +1559,77 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-open[aria-busy] { cursor: progress; opacity: 0.7; }
 .guide-open + .bar-end { margin-left: 0; }
 @container page (max-width: 760px) { .guide-open + .bar-end { margin-left: auto; } }
+/* A camada escura separa o cartão da página nos dois temas (no escuro, mais fechada); o anel e o cartão usam
+   o acento e as linhas da página. */
+:root { --guide-dim: rgb(20 22 28 / 0.45); --guide-glow: color-mix(in srgb, var(--accent) 22%, transparent); --guide-line: var(--border); --guide-shadow: 0 16px 40px rgb(0 0 0 / 0.24), 0 2px 8px rgb(0 0 0 / 0.1); }
+:root[data-theme="dark"] { --guide-dim: rgb(0 0 0 / 0.62); --guide-glow: color-mix(in srgb, var(--accent) 30%, transparent); --guide-line: color-mix(in srgb, var(--control) 50%, var(--border)); --guide-shadow: 0 16px 40px rgb(0 0 0 / 0.7); }
 /* Cada camada leva a sombra com os recortes e os anéis: as duas se cruzam quando o recorte não pode andar. */
-.guide-layer, .guide-shield { position: fixed; z-index: 1000; }
-.guide-layer { inset: 0; pointer-events: none; }
-.guide-shade { position: absolute; inset: 0; pointer-events: auto; background: rgb(0 0 0 / 0.45); cursor: not-allowed; }
-.guide-ring { position: fixed; pointer-events: none; border: 2px solid var(--accent); border-radius: 10px; box-shadow: 0 0 0 2px var(--surface); }
-.guide-card { position: fixed; z-index: 1001; width: min(23rem, calc(100vw - 32px)); border: 1px solid var(--control); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
-.guide-scroll { max-height: calc(100vh - 32px); overflow: auto; padding: 12px 16px 14px; border-radius: inherit; }
-.guide-card.is-docked { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; }
-.guide-card.is-docked .guide-scroll { max-height: 46vh; }
+.guide-layer, .guide-shield, .guide-marker { position: fixed; z-index: 1000; pointer-events: none; }
+.guide-layer { inset: 0; }
+.guide-shade, .guide-shield { pointer-events: auto; }
+.guide-shade { position: absolute; inset: 0; background: var(--guide-dim); cursor: default; }
+.guide-ring { position: fixed; border: 2px solid var(--accent); border-radius: 10px; box-shadow: 0 0 0 4px var(--guide-glow); }
+.guide-marker { border: 2px solid var(--accent); border-radius: 6px; }
+.guide-marker.is-ripple { animation: guide-ripple 1.2s cubic-bezier(0.2, 0, 0, 1) 2; }
+@keyframes guide-ripple { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } to { box-shadow: 0 0 0 12px transparent; } }
+.guide-card { position: fixed; z-index: 1001; width: min(24rem, calc(100vw - 32px)); border: 1px solid var(--guide-line); border-radius: 10px; background: var(--surface); box-shadow: var(--guide-shadow); }
+.guide-scroll { max-height: calc(100vh - 32px); overflow: auto; padding: 14px 18px 16px; border-radius: inherit; }
 /* A ponta: um quadrado girado, da cor do cartão, com a borda só nos dois lados de fora. */
-.guide-arrow { position: absolute; width: 14px; height: 14px; background: var(--surface); border: 1px solid var(--control); transform: rotate(45deg); }
+.guide-arrow { position: absolute; width: 14px; height: 14px; background: var(--surface); border: 1px solid var(--guide-line); transform: rotate(45deg); }
 .guide-arrow[data-dir="left"] { left: -8px; border-top: 0; border-right: 0; }
 .guide-arrow[data-dir="right"] { right: -8px; border-bottom: 0; border-left: 0; }
 .guide-arrow[data-dir="up"] { top: -8px; border-right: 0; border-bottom: 0; }
 .guide-arrow[data-dir="down"] { bottom: -8px; border-top: 0; border-left: 0; }
-.guide-marker { position: fixed; z-index: 1000; pointer-events: none; border: 2px solid var(--accent); border-radius: 6px; }
-.guide-marker.is-ripple { animation: guide-ripple 1.2s cubic-bezier(0.2, 0, 0, 1) 2; }
-@keyframes guide-ripple { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } to { box-shadow: 0 0 0 12px transparent; } }
-.guide-head, .guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.guide-kicker { flex: 1; display: grid; font-size: 0.75rem; color: var(--graphite); }
-.guide-nudge { animation: guide-nudge 0.6s 2; border-color: var(--accent); color: var(--accent-strong); }
-@keyframes guide-nudge { 40% { transform: scale(1.12); } }
-.guide-progress { height: 3px; margin: 8px 0 10px; background: var(--seg-idle); }
-.guide-progress span { display: block; height: 100%; background: var(--accent); }
-.guide-title { margin-bottom: 6px; font-size: 1.125rem; outline: none; }
-.guide-body > *, .guide-exit-hint { margin-bottom: 8px; }
-.guide-body code { padding: 0 4px; background: var(--well); }
-.guide-tasks { padding: 0; list-style: none; font-weight: 600; }
-.guide-tasks li { display: flex; gap: 6px; margin-top: 6px; }
-.guide-mark { flex: none; width: 1.1rem; height: 1.1rem; border: 2px solid var(--control); border-radius: 50%; font-size: 0.7rem; line-height: 0.9rem; text-align: center; }
-.guide-tasks .is-done { color: var(--graphite); font-weight: 400; }
-.is-done .guide-mark { border-color: var(--ok); background: var(--ok); color: var(--surface); }
-.guide-done { color: var(--ok); font-weight: 700; }
-.guide-warn { padding: 6px 10px; background: var(--warn-tint); color: var(--warn); }
+.guide-head, .guide-foot { display: flex; align-items: center; gap: 8px; }
+.guide-kicker { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.75rem; color: var(--graphite); }
+.guide-kicker b { color: var(--ink); }
+.guide-close { display: inline-flex; align-items: center; gap: 4px; min-height: 1.75rem; padding: 2px 8px; border: 1px solid transparent; border-radius: 4px; background: none; font-size: 0.8125rem; font-weight: 600; color: var(--graphite); }
+.guide-close:hover { border-color: var(--control); color: var(--ink); }
+/* Clicar fora acende o Fechar uma vez, de leve. */
+.guide-close.guide-nudge { border-color: var(--accent); background: var(--accent-tint); color: var(--accent-strong); animation: guide-pop 240ms cubic-bezier(0.2, 0, 0, 1); }
+@keyframes guide-pop { 50% { transform: scale(1.06); } }
+.guide-progress { display: flex; gap: 3px; margin: 10px 0 12px; }
+.guide-progress i { flex: 1; height: 4px; border-radius: 2px; background: var(--seg-idle); }
+.guide-progress .is-on { background: var(--accent); }
+.guide-title { margin-bottom: 6px; font-size: 1.25rem; outline: none; }
+.guide-body > * + * { margin-top: 8px; }
+.guide-body code { padding: 0 4px; border-radius: 3px; background: var(--well); }
+.guide-body .guide-tasks { margin-top: 12px; padding: 8px 12px; list-style: none; border-radius: 6px; background: var(--well); }
+.guide-tasks li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 3px 0; }
+.guide-tasks .is-now { font-weight: 600; }
+.guide-tasks .is-done { color: var(--graphite); }
+.guide-tasks .is-missing { margin: 0 -6px; padding: 3px 6px; border-radius: 4px; background: var(--warn-tint); color: var(--warn); }
+.guide-mark { display: grid; place-items: center; width: 18px; height: 18px; margin-top: 1px; border: 2px solid var(--control); border-radius: 50%; }
+.guide-mark svg { display: none; width: 10px; height: 10px; fill: none; stroke: var(--surface); stroke-width: 2.4; }
+.is-now .guide-mark { border-color: var(--accent); }
+.is-missing .guide-mark { border-color: var(--warn); }
+.is-done .guide-mark { border-color: var(--ok); background: var(--ok); }
+.is-done .guide-mark svg { display: block; }
+.is-pop .guide-mark { animation: guide-check 220ms cubic-bezier(0.3, 1.4, 0.6, 1); }
+@keyframes guide-check { from { transform: scale(0.6); } }
+.guide-tasks .guide-done { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); color: var(--ok); font-weight: 700; }
+.guide-done.is-fresh { animation: guide-in 180ms ease-out; }
+@keyframes guide-in { from { opacity: 0; transform: translateY(4px); } }
+.guide-body .guide-warn { display: grid; grid-template-columns: 18px 1fr; gap: 8px; margin-top: 10px; padding: 8px 10px; border-left: 3px solid var(--warn); border-radius: 4px; background: var(--warn-tint); color: var(--warn); font-weight: 600; }
+.guide-warn > :first-child { display: grid; place-items: center; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; background: var(--warn); color: var(--warn-tint); font-size: 0.75rem; font-weight: 800; }
 .guide-wait { color: var(--graphite); font-style: italic; }
-.guide-exit-hint, .guide-choice strong { font-weight: 600; color: var(--accent-strong); }
-/* Os botões ficam à vista quando o cartão rola (no telefone ele tem no máximo 46% da altura). */
-.guide-foot { position: sticky; bottom: -14px; margin-bottom: -14px; padding: 8px 0 14px; background: var(--surface); }
+.guide-exit-hint { margin-top: 8px; font-weight: 600; color: var(--accent-strong); }
+/* O rodapé fica à vista quando o cartão rola (no telefone, a folha tem no máximo 56% da altura). */
+.guide-foot { position: sticky; bottom: -16px; flex-wrap: wrap; margin: 14px 0 -16px; padding: 12px 0 16px; border-top: 1px solid var(--border); background: var(--surface); }
+.guide-foot .btn { min-height: 2.25rem; padding: 6px 14px; }
+.guide-foot .btn-primary { padding: 6px 18px; }
+.guide-foot .guide-quiet { padding: 6px 8px; border-color: transparent; background: none; color: var(--graphite); }
+.guide-foot .guide-quiet:hover { background: var(--hover); color: var(--ink); }
+.guide-foot .is-ready { animation: guide-pop 260ms cubic-bezier(0.2, 0, 0, 1); }
+/* Telefone: a folha presa embaixo, de borda a borda, com o rodapé preso e a margem da área segura. */
+.guide-card.is-docked { left: 0 !important; right: 0; top: auto !important; bottom: 0; width: auto; border-bottom: 0; border-radius: 14px 14px 0 0; }
+.is-docked .guide-scroll { --safe: max(16px, env(safe-area-inset-bottom)); max-height: 56vh; padding: 12px 16px var(--safe); }
+.is-docked.is-tall .guide-scroll { max-height: 86vh; }
+.is-docked .guide-foot { bottom: calc(-1 * var(--safe)); margin-bottom: calc(-1 * var(--safe)); padding-bottom: var(--safe); }
 .guide-foot:empty { display: none; }
 .guide-grow { flex: 1; }
 .guide-choice { display: grid; width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--control); border-radius: 6px; background: var(--surface); text-align: left; color: var(--graphite); }
-.guide-choice strong { font-size: 1rem; }
+.guide-choice strong { font-size: 1rem; font-weight: 600; color: var(--accent-strong); }
 .guide-choice:hover, .guide-choice:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
-@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-marker { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .guide-card *, .guide-marker { animation: none !important; } }
 @media (forced-colors: active) { .guide-ring, .guide-marker { border-color: Highlight; } }
