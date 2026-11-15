@@ -379,6 +379,9 @@
         label: () => t('lab.actions.execute'),
         // Com um valor em Authorization, o campo e os botões dele entram no destaque, para a pessoa tirar o valor.
         targets: () => runOrFlow(CART).concat(P.authValue() && !sent() ? [$('auth-group')] : []),
+        // No telefone, a descrição entre a barra e o campo deixa os dois mais altos que a faixa acima da folha:
+        // primeiro o campo com os botões que tiram o valor; vazio o campo, Executar volta à faixa.
+        anchor: () => narrow() && P.authValue() && !sent() ? $('auth-group') : null,
         paras: () => [fill(!P.split() ? 'lab.guide.mode_reduced' : P.slow() ? 'lab.guide.learn.send_slow' : 'lab.guide.learn.send_normal')],
         warn: () => noFlow() || wrongRoute(CART) || (P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : ''),
         waiting: waiting(CART),
@@ -488,8 +491,14 @@
           return [$('run-split')].concat(emptyEdited() ? [$('auth-group')] : [])
         },
         separate: authShown,
-        // A ponta e a rolagem vão primeiro ao campo, que é o assunto da frase; o contorno fica em Executar.
-        anchor: () => withToken() && P.stoppedStage() ? P.stoppedStage() : authShown() ? $('auth-group') : null,
+        // A ponta e a rolagem vão primeiro ao campo, que é o assunto da frase; o contorno fica em Executar. No
+        // telefone, o campo inteiro e a barra passam da faixa acima da folha (a descrição fica entre os dois): a
+        // rolagem pega de Executar até a caixa do campo, e se nem isso couber, Executar fica no alto da faixa.
+        anchor: () => {
+          if (withToken() && P.stoppedStage()) return P.stoppedStage()
+          if (!authShown()) return null
+          return narrow() ? [$('run-split'), $('auth-input')] : $('auth-group')
+        },
         paras: () => {
           const verdict = P.verdict() || {}
           const out = [fill('lab.guide.learn.again_p1')]
