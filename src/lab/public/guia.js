@@ -956,8 +956,14 @@
     }
   }
 
-  function announceTarget () {
-    if (G.mode === 'step') live.textContent = fill('lab.guide.highlight', { label: step().label() })
+  // Na troca de passo, sempre; na troca de destaque dentro dele, só quando o nome muda: o "Feito" que acabou
+  // de ser anunciado não é atropelado por um "Em destaque" igual ao anterior.
+  function announceTarget (change) {
+    if (G.mode !== 'step') return
+    const label = step().label()
+    if (change && label === G.label) return
+    G.label = label
+    live.textContent = fill('lab.guide.highlight', { label })
   }
 
   // A primeira tarefa que falta num passo em que a pessoa ainda pode agir; sem ela, o Próximo só segue. Um passo
@@ -1555,7 +1561,7 @@
         G.keyFrames = key === G.nextKey ? G.keyFrames + 1 : 1
         G.nextKey = key
         if (G.keyFrames >= 3 && !G.going) {
-          move(null, false).then(announceTarget)
+          move(null, false).then(() => announceTarget(true))
           return
         }
       } else G.nextKey = null
