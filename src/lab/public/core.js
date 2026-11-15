@@ -897,24 +897,34 @@
 
   /* Passagem de uso único da troca de idioma */
 
-  // O valor igual ao padrão fica com o do outro idioma.
+  // O valor igual ao padrão fica com o do outro idioma. O corpo e o Authorization preenchidos por um envio levam a
+  // hora dele (bodyFrom, authFrom), para a legenda seguir dizendo de qual envio vieram.
   function draftChanges (draft, fresh) {
     if (!draft) return null
     const out = {}
     const params = {}
-    if (draft.body !== fresh.body) out.body = draft.body
+    const ms = date => date instanceof Date && Number.isFinite(date.getTime()) ? date.getTime() : null
+    if (draft.body !== fresh.body) {
+      out.body = draft.body
+      if (ms(draft.bodyFrom) !== null) out.bodyFrom = ms(draft.bodyFrom)
+    }
     Object.keys(fresh.params).forEach(key => {
       if (isText(draft.params[key]) && draft.params[key] !== fresh.params[key]) params[key] = draft.params[key]
     })
     if (Object.keys(params).length) out.params = params
-    if (isText(draft.auth)) out.auth = draft.auth
+    if (isText(draft.auth)) {
+      out.auth = draft.auth
+      if (ms(draft.authFrom) !== null) out.authFrom = ms(draft.authFrom)
+    }
     return Object.keys(out).length ? out : null
   }
 
   const isTime = Number.isFinite
   const isMap = (value, keys, check) => !!value && typeof value === 'object' && !Array.isArray(value) &&
     Object.keys(value).every(key => keys.test(key) && check(value[key], key))
-  const validDraft = item => isMap(item, /^(body|auth|params)$/, (value, key) => key === 'params' ? isMap(value, /^(path|query):/, isText) : isText(value))
+  const validDraft = item => isMap(item, /^(body|auth|params|bodyFrom|authFrom)$/, (value, key) => key === 'params'
+    ? isMap(value, /^(path|query):/, isText)
+    : /From$/.test(key) ? isTime(value) : isText(value))
 
   // Um valor estranho, velho ou de outro idioma é descartado inteiro.
   function readHandoff (value, { now, language, maxAge }) {
@@ -930,9 +940,14 @@
       (saved.token === null || (isText(saved.token) && saved.token !== '')) &&
       [saved.tokenAt, saved.tokenExp].every(time => time === null || isTime(time)) &&
       isMap(saved.drafts, /^(get|post|put|patch|delete) \//, validDraft) && isTime(saved.scrollY) && saved.scrollY >= 0 &&
-      ['rotas', 'historico'].includes(saved.sideTab) && ['resposta', 'enviado'].includes(saved.resultTab)
+      ['rotas', 'historico'].includes(saved.sideTab) && ['resposta', 'enviado'].includes(saved.resultTab) &&
+      typeof saved.routesCollapsed === 'boolean'
+    if (!ok) return null
     const date = time => time === null ? null : new Date(time)
-    return ok ? Object.assign(saved, { tokenAt: date(saved.tokenAt), tokenExp: date(saved.tokenExp) }) : null
+    Object.values(saved.drafts).forEach(draft => ['bodyFrom', 'authFrom'].forEach(name => {
+      if (name in draft) draft[name] = date(draft[name])
+    }))
+    return Object.assign(saved, { tokenAt: date(saved.tokenAt), tokenExp: date(saved.tokenExp) })
   }
 
   /* Texto */
