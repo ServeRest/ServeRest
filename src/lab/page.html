@@ -7,6 +7,28 @@
 <script>{{script.prefs-boot}}</script>
 <title>{{lab.page.title}}</title>
 <meta name="description" content="{{lab.page.description}}">
+<!-- Para buscadores e redes sociais, com endereços absolutos do próprio ambiente (src/lab/index.js). O pt-BR
+     é a raiz, que também é a página de um lang desconhecido; o x-default aponta para ela. -->
+<link rel="canonical" href="{{head.canonical}}">
+<link rel="alternate" hreflang="pt-BR" href="{{head.url.pt-BR}}">
+<link rel="alternate" hreflang="en" href="{{head.url.en}}">
+<link rel="alternate" hreflang="es" href="{{head.url.es}}">
+<link rel="alternate" hreflang="x-default" href="{{head.url.pt-BR}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ServeRest">
+<meta property="og:title" content="{{lab.page.title}}">
+<meta property="og:description" content="{{lab.page.description}}">
+<meta property="og:url" content="{{head.canonical}}">
+<meta property="og:locale" content="{{head.og_locale}}">
+<meta property="og:image" content="{{head.image}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{lab.page.image_alt}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{lab.page.title}}">
+<meta name="twitter:description" content="{{lab.page.description}}">
+<meta name="twitter:image" content="{{head.image}}">
+<meta name="twitter:image:alt" content="{{lab.page.image_alt}}">
 <link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">
 <link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
 <script src="/lab/assets/core.js?v={{version}}" defer></script>

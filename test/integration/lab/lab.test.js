@@ -170,7 +170,9 @@ describe('/ GET (marcação da página inicial)', () => {
     const { text: html } = await request.get('/').expect(200)
     const { text: css } = await request.get(`/lab/assets/lab.css?v=${body.version}`).expect(200)
     const absoluto = /(?:src|href)\s*=\s*["']?\s*(?:[a-z][a-z0-9+.-]*:|\/\/)/gi
-    expect(html.match(absoluto)).to.equal(null)
+    // O canonical e os alternates precisam do endereço absoluto e o navegador não os pede; o teste deles confere
+    // que apontam para o próprio ambiente.
+    expect(html.replace(/<link rel="(?:canonical|alternate)" [^>]*>/g, '').match(absoluto)).to.equal(null)
     for (const fonte of [html, css]) {
       expect(fonte.match(/url\(\s*["']?\s*(?:https?:|\/\/)/gi)).to.equal(null)
       expect(fonte).to.not.include('@import')
@@ -339,6 +341,94 @@ describe('/ GET (marcação da página inicial)', () => {
     const raiz = /<html [^>]*>/.exec(text)[0]
     expect(raiz).to.include('data-notice-version=""')
     expect(raiz).to.include('data-notice-url=""')
+  })
+})
+
+describe('/ GET (endereços e cartão de compartilhamento)', () => {
+  // A URL do servidor que o teste usa, que é a que a página anuncia.
+  const BASES = { 'e2e-staging': 'https://staging.serverest.dev', 'e2e-production': 'https://serverest.dev' }
+  const base = BASES[process.env.TEST_TYPE] || 'http://localhost:3000'
+  const enderecos = { 'pt-BR': `${base}/`, en: `${base}/?lang=en`, es: `${base}/?lang=es` }
+  const locais = { 'pt-BR': 'pt_BR', en: 'en_GB', es: 'es_PE' }
+  const imagem = '/lab/assets/img/serverest-og.png'
+  const idiomas = [['pt-BR', ptBr], ['en', en], ['es', es]]
+
+  function cabecalho (html) {
+    return /<head>([\s\S]*?)<\/head>/.exec(html)[1]
+  }
+
+  function links (head, rel) {
+    return [...head.matchAll(new RegExp(`<link rel="${rel}"([^>]*)>`, 'g'))].map(([, atributos]) => ({
+      hreflang: (/ hreflang="([^"]+)"/.exec(atributos) || [])[1],
+      href: / href="([^"]+)"/.exec(atributos)[1]
+    }))
+  }
+
+  // O conteúdo de cada meta com aquele property ou name; uma meta repetida aparece duas vezes.
+  function metas (head, atributo, nome) {
+    return [...head.matchAll(new RegExp(`<meta ${atributo}="${nome}" content="([^"]*)">`, 'g'))].map(([, conteudo]) => conteudo)
+  }
+
+  it('tem um canonical, o endereço do idioma, e um alternate para cada idioma e o x-default, nos três idiomas', async () => {
+    for (const [lang] of idiomas) {
+      const head = cabecalho((await request.get('/').query({ lang }).expect(200)).text)
+      expect(links(head, 'canonical'), lang).to.deep.equal([{ hreflang: undefined, href: enderecos[lang] }])
+      expect(links(head, 'alternate'), lang).to.deep.equal([
+        { hreflang: 'pt-BR', href: enderecos['pt-BR'] },
+        { hreflang: 'en', href: enderecos.en },
+        { hreflang: 'es', href: enderecos.es },
+        { hreflang: 'x-default', href: enderecos['pt-BR'] }
+      ])
+    }
+  })
+
+  it('com lang desconhecido, ou pt-BR escrito na URL, responde 200 e o canonical é a raiz', async () => {
+    for (const lang of ['xx', 'fr', 'pt-BR', '']) {
+      const head = cabecalho((await request.get('/').query({ lang }).expect(200)).text)
+      expect(links(head, 'canonical'), lang).to.deep.equal([{ hreflang: undefined, href: `${base}/` }])
+    }
+  })
+
+  it('traz Open Graph e Twitter com o título e a descrição do idioma e a imagem de 1200x630, nos três idiomas', async () => {
+    for (const [lang, textos] of idiomas) {
+      const head = cabecalho((await request.get('/').query({ lang }).expect(200)).text)
+      const esperado = {
+        property: {
+          'og:type': 'website',
+          'og:site_name': 'ServeRest',
+          'og:title': escaparHtml(textos['lab.page.title']),
+          'og:description': escaparHtml(textos['lab.page.description']),
+          'og:url': enderecos[lang],
+          'og:locale': locais[lang],
+          'og:image': base + imagem,
+          'og:image:width': '1200',
+          'og:image:height': '630',
+          'og:image:alt': escaparHtml(textos['lab.page.image_alt'])
+        },
+        name: {
+          'twitter:card': 'summary_large_image',
+          'twitter:title': escaparHtml(textos['lab.page.title']),
+          'twitter:description': escaparHtml(textos['lab.page.description']),
+          'twitter:image': base + imagem,
+          'twitter:image:alt': escaparHtml(textos['lab.page.image_alt'])
+        }
+      }
+      for (const [atributo, nomes] of Object.entries(esperado)) {
+        for (const [nome, conteudo] of Object.entries(nomes)) {
+          expect(metas(head, atributo, nome), `${lang} ${nome}`).to.deep.equal([conteudo])
+        }
+      }
+      expect(head.match(/<meta property="og:/g), lang).to.have.length(Object.keys(esperado.property).length)
+      expect(head.match(/<meta name="twitter:/g), lang).to.have.length(Object.keys(esperado.name).length)
+    }
+  })
+
+  it('serve a imagem de compartilhar como PNG de 1200x630 com menos de 60 KB', async () => {
+    const res = await request.get(imagem).buffer(true).parse(corpoBinario).expect(200)
+    expect(res.headers['content-type']).to.match(/^image\/png/)
+    expect(res.body.subarray(1, 4).toString('ascii')).to.equal('PNG')
+    expect([res.body.readUInt32BE(16), res.body.readUInt32BE(20)]).to.deep.equal([1200, 630])
+    expect(res.body.length).to.be.below(60 * 1024)
   })
 })
 

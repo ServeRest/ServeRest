@@ -180,6 +180,7 @@ module.exports = {
   'components.securitySchemes.ApiKeyAuth.description': 'Provide the `Authorization` value returned by the _/login_ route',
   'lab.page.title': 'Try the API | ServeRest',
   'lab.page.description': 'Free REST API to practice API testing: send requests, see the flow inside the server, the status code and the response, with Swagger documentation.',
+  'lab.page.image_alt': 'ServeRest logo in white on a purple background, with the tagline in Portuguese: free REST API to study API testing',
   'lab.page.heading': 'Try the API',
   'lab.page.skip_link': 'Skip to the request',
   'lab.topbar.logo': 'ServeRest',

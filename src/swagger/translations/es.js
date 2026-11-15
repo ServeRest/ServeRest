@@ -180,6 +180,7 @@ module.exports = {
   'components.securitySchemes.ApiKeyAuth.description': 'Indica el valor de `Authorization` devuelto por la ruta _/login_',
   'lab.page.title': 'Probar la API | ServeRest',
   'lab.page.description': 'API REST gratuita para practicar pruebas de API: envíe solicitudes, vea el flujo dentro del servidor, el status code y la respuesta, con documentación Swagger.',
+  'lab.page.image_alt': 'Logo de ServeRest en blanco sobre fondo morado, con la frase en portugués: API REST gratuita para estudiar pruebas de API',
   'lab.page.heading': 'Probar la API',
   'lab.page.skip_link': 'Ir a la solicitud',
   'lab.topbar.logo': 'ServeRest',
