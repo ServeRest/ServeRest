@@ -21,7 +21,7 @@
     classes: ['route', 'req-bar', 'req-hint', 'method-link', 'kbd-hint', 'flow-summary', 'flow-summary-stage',
       'flow-stages', 'flow-stage', 'flow-row', 'band', 'tl', 'tl-seg', 'tl-call', 'entry', 'zone-head', 'res-line',
       'res-body', 'res-headers', 'status-link', 'doc-code'],
-    attributes: ['data-layout', 'data-route', 'data-key', 'data-send-mode', 'data-record', 'data-status',
+    attributes: ['data-layout', 'data-route', 'data-key', 'data-send', 'data-send-mode', 'data-record', 'data-status',
       'data-verdict', 'data-stage', 'data-token', 'data-token-in-use', 'data-part', 'aria-busy', 'aria-current',
       'aria-expanded', 'aria-selected', 'href']
   }
@@ -38,13 +38,21 @@
   const CART = 'post /carrinhos'
   const LOGIN = 'post /login'
 
+  // Cada tela do guia (abrir, trocar de caminho ou de passo, fechar) muda a geração. "Fazer por mim" espera
+  // sempre por wait e waitFor, que param com CANCELLED quando a geração mudou durante a espera: nada dele toca
+  // a página depois que a pessoa fechou o guia ou saiu do passo.
+  let generation = 0
+  const CANCELLED = new Error('guia: ação cancelada')
+
+  async function wait (ms) {
+    const started = generation
+    await sleep(ms)
+    if (started !== generation) throw CANCELLED
+  }
+
   async function waitFor (test, ms) {
     const end = Date.now() + ms
-    while (Date.now() < end) {
-      if (test()) return true
-      await sleep(120)
-    }
-    return false
+    while (Date.now() < end && !test()) await wait(120)
   }
 
   /* ---------- Textos ---------- */
@@ -112,26 +120,31 @@
     selected: () => ($('request') && $('request').getAttribute('data-route')) || '',
     route: key => q('.route[data-key="' + key + '"]'),
     sending: () => !!$('run') && $('run').getAttribute('aria-busy') === 'true',
+    // O id do último envio que a página despachou de fato (app.js grava em data-send ao enviar).
+    lastSend: () => Number($('request') && $('request').getAttribute('data-send')) || 0,
     // O envio mostrado no Resultado; o status só existe depois do veredito do fluxo.
     shown () {
       const box = $('shown')
       if (!box || box.hidden || !box.getAttribute('data-record')) return null
-      return { key: box.getAttribute('data-record'), status: box.getAttribute('data-status') || '' }
+      return { key: box.getAttribute('data-record'), status: box.getAttribute('data-status') || '', id: Number(box.getAttribute('data-send')) || 0 }
     },
+    // O fim do fluxo: o veredito, ou "none" quando o envio terminou sem fluxo (sem resposta, sem o header de etapas).
     verdict () {
-      const summary = q('#flow .flow-summary[data-verdict]')
-      if (!summary || $('flow').hidden) return null
-      return { kind: summary.getAttribute('data-verdict'), stage: summary.getAttribute('data-stage') || '', label: (q('.flow-summary-stage', summary) || summary).textContent.trim() }
+      const mark = q('#flow [data-verdict]')
+      if (!mark || $('flow').hidden) return null
+      return { kind: mark.getAttribute('data-verdict'), stage: mark.getAttribute('data-stage') || '', label: (q('.flow-summary-stage', mark) || mark).textContent.trim() }
     },
-    // Um envio pronto: a resposta chegou e o fluxo chegou ao veredito.
-    ready (key) {
+    // O envio mostrado terminou: a resposta chegou (ou falhou) e o fluxo chegou ao fim, com ou sem veredito.
+    ended (key) {
       const shown = P.shown()
       return !P.sending() && !!shown && (!key || shown.key === key) && !!shown.status && !!P.verdict()
     },
-    // Enviada neste passo e ainda sem veredito: a resposta pode ter chegado, mas a câmera lenta ainda desenha.
+    // Terminou com o fluxo desenhado: é o envio que os passos explicam.
+    ready: key => P.ended(key) && P.verdict().kind !== 'none',
+    // Enviada neste passo e ainda sem fim: a resposta pode ter chegado, mas a câmera lenta ainda desenha.
     inFlight (key) {
       const shown = P.shown()
-      return P.sending() || (!!shown && (!key || shown.key === key) && sent() && !P.ready(key))
+      return P.sending() || (mine() && (!key || shown.key === key) && !P.ended(key))
     },
     status: () => (P.shown() || {}).status || '',
     flowOpen: () => !!$('flow-title') && $('flow-title').getAttribute('aria-expanded') !== 'false',
@@ -168,19 +181,24 @@
   // force: clica mesmo com a rota já escolhida (Fazer por mim faz a ação do passo, que só conta nele).
   async function selectRoute (key, force) {
     revealRoute(key)
-    await sleep(60)
+    await wait(60)
     const route = P.route(key)
     if (route && (force || P.selected() !== key)) {
       route.click()
-      await sleep(250)
+      await wait(250)
     }
   }
 
+  // Envia e volta assim que o envio termina, com ou sem veredito. Se a página recusou o envio (Authorization
+  // inválido, outro envio em andamento), nada saiu e não há o que esperar.
   async function execute (key) {
     if (key && P.selected() !== key) await selectRoute(key)
     if (!$('run') || P.sending()) return
+    const before = P.lastSend()
     $('run').click()
-    await waitFor(() => P.ready(key), 40000)
+    const id = P.lastSend()
+    if (id === before) return
+    await waitFor(() => !P.sending() && (!P.shown() || P.shown().id !== id || P.ended()), 40000)
   }
 
   function showResponseTab () {
@@ -197,7 +215,7 @@
     for (const button of [() => $('auth-undo'), () => $('auth-discard')]) {
       if (P.authValue() && visible(button())) {
         button().click()
-        await sleep(150)
+        await wait(150)
       }
     }
   }
@@ -205,15 +223,20 @@
   // Regra dos passos: um passo só fica feito com a ação feita DURANTE ele. O que a página já tinha ao entrar
   // (envios antigos, fluxo fechado, token em uso) nunca conta. G.ev guarda o que a pessoa (ou Fazer por mim,
   // que clica nos mesmos controles) fez no passo, e zera a cada troca de passo.
-  const historyLength = () => qa('#history-body > li').length
-  // Um envio neste passo: o clique em Executar, ou Ctrl + Enter (o Histórico ganha uma linha).
-  const sent = () => !!G.ev.run || historyLength() > G.historyAt
+  // Um envio neste passo é um envio que a página despachou depois da entrada no passo (data-send cresceu): um
+  // clique ou um Ctrl + Enter que a página ignorou não conta, nem um envio que já estava a caminho.
+  const sent = () => P.lastSend() > G.sendAt
+  // O envio mostrado no Resultado saiu neste passo.
+  const mine = () => !!P.shown() && P.shown().id > G.sendAt
+  const doneSend = key => mine() && P.ready(key)
+  // O envio deste passo terminou sem fluxo, em qualquer rota: o passo diz isso e deixa Executar ativo.
+  const failedSend = () => mine() && P.ended() && P.verdict().kind === 'none'
+  const noFlow = () => failedSend() ? fill('lab.guide.no_flow') : ''
 
   document.addEventListener('click', event => {
     if (!G.open || G.mode !== 'step' || !event.target.closest) return
     const target = event.target
     if (target.closest('#run-mode')) G.ev.menu = true
-    if (target.closest('#run')) G.ev.run = true
     if (target.closest('#flow-title')) G.ev.title = true
     if (target.closest('#flow .flow-row')) G.ev.row = true
     if (target.closest('.tl-seg[data-part="server"], .tl-call[data-part="server"]')) G.ev.server = true
@@ -221,15 +244,12 @@
     const route = target.closest('.route[data-key]')
     if (route) G.ev.routes[route.getAttribute('data-key')] = true
   }, true)
-  document.addEventListener('keydown', event => {
-    if (G.open && G.mode === 'step' && event.key === 'Enter' && (event.ctrlKey || event.metaKey)) G.ev.run = true
-  }, true)
 
   /* ---------- Os passos ---------- */
 
   // Depois do clique em Executar o destaque vai para o Resultado, onde o fluxo é desenhado. Só um envio deste
   // passo leva o destaque para lá: um resultado antigo na tela não conta.
-  const runOrFlow = key => sent() && (P.inFlight(key) || P.ready(key)) ? [$('shown'), $('flow')] : [$('run-split'), visible($('run-menu')) ? $('run-menu') : null]
+  const runOrFlow = key => sent() && !failedSend() && (P.inFlight(key) || doneSend(key)) ? [$('shown'), $('flow')] : [$('run-split'), visible($('run-menu')) ? $('run-menu') : null]
   const historyTargets = () => {
     const first = q('#history-body > li')
     return first ? [q('#history .zone-head'), first] : [$('history')]
@@ -238,17 +258,18 @@
 
   // O envio de POST /carrinhos mostrado no Resultado foi feito neste passo e levou o header Authorization.
   function withToken () {
-    return sent() && P.ready(CART) && !!q('#history-body .entry[aria-current="true"][data-token="sent"][data-key="' + CART + '"]')
+    return doneSend(CART) && !!q('#history-body .entry[aria-current="true"][data-token="sent"][data-key="' + CART + '"]')
   }
 
   // POST /login, neste passo: clicada, enviada com 200 e o token usado.
   const loginPicked = () => !!G.ev.routes[LOGIN] || (sent() && P.selected() === LOGIN)
-  const loginDone = () => sent() && P.ready(LOGIN) && P.status() === '200'
+  const loginDone = () => doneSend(LOGIN) && P.status() === '200'
   const tokenUsed = () => !!G.ev.useToken && !!$('token-done')
   // O login enviado neste passo voltou sem token. Com o corpo do exemplo (Restaurar exemplo escondido), quem
   // mudou foi o usuário de exemplo, no banco compartilhado: os passos que pedem o token passam a só explicar.
   function loginFailure () {
-    if (!sent() || !P.ready(LOGIN) || P.status() === '200') return ''
+    if (failedSend()) return noFlow()
+    if (!doneSend(LOGIN) || P.status() === '200') return ''
     if (visible($('body-restore'))) return fill('lab.guide.learn.token_edited', { status: statusLine(P.status()) })
     G.loginBroken = true
     return fill('lab.guide.learn.token_shared', { status: statusLine(P.status()) })
@@ -288,9 +309,9 @@
         // Com um valor em Authorization, o campo e os botões dele entram no destaque, para a pessoa tirar o valor.
         targets: () => runOrFlow(CART).concat(P.authValue() && !sent() ? [$('auth-group')] : []),
         paras: () => [fill(!P.split() ? 'lab.guide.mode_reduced' : P.slow() ? 'lab.guide.learn.send_slow' : 'lab.guide.learn.send_normal')],
-        warn: () => P.selected() === CART && P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : '',
+        warn: () => noFlow() || (P.selected() === CART && P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : ''),
         waiting: waiting(CART),
-        tasks: () => [{ text: fill('lab.guide.task_run'), done: sent() && P.ready(CART) }],
+        tasks: () => [{ text: fill('lab.guide.task_run'), done: doneSend(CART) }],
         doIt: async () => {
           await selectRoute(CART)
           await clearAuth()
@@ -320,10 +341,10 @@
         needs: { test: () => P.ready(CART), fix: () => execute(CART) },
         doIt: async () => {
           expandFlow()
-          await sleep(150)
+          await wait(150)
           const row = P.stoppedRow() || q('#flow .flow-row')
           if (row && row.getAttribute('aria-expanded') !== 'true') row.click()
-          await sleep(200)
+          await wait(200)
         }
       },
       {
@@ -362,15 +383,15 @@
           if (!loginDone()) {
             if (visible($('body-restore'))) {
               $('body-restore').click()
-              await sleep(120)
+              await wait(120)
             }
             await execute(LOGIN)
           }
           if (loginDone() && $('use-token')) {
             showResponseTab()
-            await sleep(60)
+            await wait(60)
             $('use-token').click()
-            await sleep(200)
+            await wait(200)
           }
         }
       },
@@ -383,7 +404,7 @@
         // O Resultado ainda mostra o envio sem token do começo: o destaque só vai para o fluxo depois do novo envio.
         targets: () => {
           if (noToken() || (!G.ev.routes[CART] && !sent())) return [P.route(CART)]
-          if (sent() && (withToken() || P.inFlight(CART))) return [$('shown'), $('flow')]
+          if (sent() && !failedSend() && (withToken() || P.inFlight(CART))) return [$('shown'), $('flow')]
           return [$('run-split')].concat(emptyEdited() ? [$('auth-group')] : [])
         },
         anchor: () => withToken() && P.stoppedRow() ? P.stoppedRow() : null,
@@ -398,7 +419,7 @@
           }
           return out
         },
-        warn: () => noToken() || P.selected() !== CART || P.authValue() || P.inFlight(CART) || withToken() ? '' : fill(emptyEdited() ? 'lab.guide.learn.again_undo' : 'lab.guide.learn.again_warn'),
+        warn: () => noFlow() || (noToken() || P.selected() !== CART || P.authValue() || P.inFlight(CART) || withToken() ? '' : fill(emptyEdited() ? 'lab.guide.learn.again_undo' : 'lab.guide.learn.again_warn')),
         waiting: waiting(CART),
         tasks: () => {
           const verdict = P.verdict() || {}
@@ -415,15 +436,15 @@
             await selectRoute(CART, !G.ev.routes[CART])
             if (emptyEdited()) {
               $('auth-undo').click()
-              await sleep(150)
+              await wait(150)
             }
             await execute(CART)
           }
           expandFlow()
-          await sleep(150)
+          await wait(150)
           const row = P.stoppedRow()
           if (row && row.getAttribute('aria-expanded') !== 'true') row.click()
-          await sleep(200)
+          await wait(200)
         }
       },
       {
@@ -466,13 +487,14 @@
         label: () => t('lab.actions.execute'),
         // O botão e o menu ficam ativos o tempo todo; depois do envio, o fluxo ganha um recorte próprio.
         separate: true,
-        targets: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null].concat(sent() ? [$('shown'), $('flow')] : []),
+        targets: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null].concat(sent() && !failedSend() ? [$('shown'), $('flow')] : []),
         anchor: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null],
         paras: () => [fill(P.split() ? 'lab.guide.tour.run_p1' : 'lab.guide.mode_reduced'), fill('lab.guide.tour.run_p2')],
+        warn: () => noFlow(),
         waiting: waiting(),
         tasks: () => [
           P.split() ? { text: fill('lab.guide.tour.run_menu'), done: !!G.ev.menu } : null,
-          { text: fill('lab.guide.task_run'), done: sent() && P.ready() }
+          { text: fill('lab.guide.task_run'), done: doneSend() }
         ].filter(Boolean),
         // O Próximo só segue depois que o menu do modo abriu neste passo (pela pessoa ou por Fazer por mim).
         gate: () => !!G.ev.menu || !P.split(),
@@ -480,11 +502,12 @@
         doIt: async () => {
           if (!G.ev.menu && P.split()) {
             $('run-mode').click()
-            await sleep(1400)
+            await wait(1400)
             if (visible($('run-menu'))) $('run-mode').click()
-            await sleep(200)
+            await wait(200)
           }
-          if (!sent()) await execute(P.selected() || LOGIN)
+          // Um envio deste passo que terminou sem fluxo não serve: o botão envia de novo.
+          if (!sent() || failedSend()) await execute(P.selected() || LOGIN)
         }
       },
       {
@@ -511,7 +534,7 @@
         needs: { test: () => P.ready(), fix: () => execute(P.selected() || LOGIN) },
         doIt: async () => {
           if (P.flowOpen()) $('flow-title').click()
-          await sleep(200)
+          await wait(200)
         }
       },
       {
@@ -531,10 +554,10 @@
         needs: { test: () => P.ready(), fix: () => execute(P.selected() || LOGIN) },
         doIt: async () => {
           expandFlow()
-          await sleep(250)
+          await wait(250)
           const segment = q('#flow .tl-seg[data-part="server"]')
           if (segment && segment.getAttribute('aria-expanded') !== 'true') segment.click()
-          await sleep(200)
+          await wait(200)
         }
       },
       {
@@ -551,7 +574,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, historyAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, side: null, corner: null, loginBroken: false, attnTimer: null }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, side: null, corner: null, loginBroken: false, attnTimer: null }
   let shade, ring, shield, card, live
   let frame = 0
   let lastRender = 0
@@ -642,6 +665,9 @@
   function close () {
     if (!G.open) return
     G.open = false
+    // Um "Fazer por mim" em andamento para na próxima espera, e o guia reaberto começa livre.
+    generation++
+    G.busy = false
     clearAttention()
     cancelAnimationFrame(frame)
     release()
@@ -721,6 +747,8 @@
 
   function showChoice () {
     clearAttention()
+    generation++
+    G.busy = false
     G.mode = 'choice'
     G.path = null
     G.index = -1
@@ -736,6 +764,8 @@
 
   function showEnd () {
     clearAttention()
+    generation++
+    G.busy = false
     const path = PATHS[G.path]
     G.mode = 'end'
     G.sig = ''
@@ -781,7 +811,10 @@
     if (index >= steps.length) return showEnd()
     if (index < 0) return showChoice()
     const s = steps[index]
-    // Enquanto o passo se prepara, nada dele vale ainda: nem destaque, nem cliques contados.
+    // Enquanto o passo se prepara, nada dele vale ainda: nem destaque, nem cliques contados. Um "Fazer por mim"
+    // do passo anterior para aqui.
+    const started = ++generation
+    G.busy = false
     G.mode = 'wait'
     if (s.prepare) {
       try {
@@ -789,13 +822,13 @@
       } catch (e) {}
       await sleep(80)
     }
-    if (!G.open) return
+    if (started !== generation) return
     Object.assign(G, { mode: 'step', index, sig: '', targetKey: null, side: null, corner: null })
     part('exit-hint').hidden = true
     // O passo começa do zero: nada feito antes conta. Se a ação dele já estiver feita na página e não der para
     // refazer, o passo só explica (preDone).
     G.ev = { routes: {} }
-    G.historyAt = historyLength()
+    G.sendAt = P.lastSend()
     G.entry = { flowOpen: P.flowOpen() }
     G.pre = false
     try {
@@ -891,23 +924,29 @@
     }
     if (kind === 'do' && !G.busy) {
       const s = step()
-      const index = G.index
+      const started = generation
       G.busy = true
       renderBody(true)
       try {
         if (s.needs && !s.needs.test()) await s.needs.fix()
         if (s.doIt) await s.doIt()
         if (s.prepare) s.prepare()
-      } finally {
-        G.busy = false
-        if (G.open && G.index === index && G.mode === 'step') {
-          renderBody(true)
-          live.textContent = s.tasks && s.tasks().every(task => task.done) ? t('lab.guide.done') : ''
+      } catch (error) {
+        // Fechado, ou outro passo: a ação parou no meio, de propósito. Um erro de verdade não pode deixar o
+        // botão preso em "ocupado".
+        if (error !== CANCELLED) {
+          if (started === generation) G.busy = false
+          throw error
         }
-        // O botão some depois de feito: o foco vai para o Próximo, que continua o caminho.
-        const next = q('[data-act="next"]', card)
-        if (next && (!card.contains(document.activeElement) || control.hidden)) next.focus()
       }
+      // Só a ação da tela atual mexe no cartão; uma cancelada já foi largada por quem mudou a geração.
+      if (started !== generation) return
+      G.busy = false
+      renderBody(true)
+      live.textContent = s.tasks && s.tasks().every(task => task.done) ? t('lab.guide.done') : ''
+      // O botão some depois de feito: o foco vai para o Próximo, que continua o caminho.
+      const next = q('[data-act="next"]', card)
+      if (next && (!card.contains(document.activeElement) || control.hidden)) next.focus()
     }
   }
 
