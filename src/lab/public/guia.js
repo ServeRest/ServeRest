@@ -343,6 +343,9 @@
   const noToken = () => loginBroken() && !P.tokenInUse()
   // Authorization vazio por edição da pessoa: o token da página não chega a esta rota até "Desfazer a edição".
   const emptyEdited = () => P.selected() === CART && !P.authValue() && visible($('auth-undo'))
+  // Passo 7, antes do envio: a rota escolhida neste passo já leva o token do login em Authorization. O passo
+  // mostra o campo junto com Executar, porque o token no header é o motivo de enviar de novo.
+  const authShown = () => !!G.ev.routes[CART] && P.selected() === CART && !sent() && !!P.authValue() && P.tokenInUse() && !noToken()
 
   const LEARN = {
     id: 'learn',
@@ -477,15 +480,20 @@
         label: () => noToken() || (!G.ev.routes[CART] && !sent()) ? 'POST /carrinhos' : sent() ? t('ui.flow.title') : t('lab.actions.execute'),
         prepare: () => { if (P.selected() !== CART) revealRoute(CART) },
         // O Resultado ainda mostra o envio sem token do começo: o destaque só vai para o fluxo depois do novo envio.
+        // Antes dele, com o token em Authorization, dois recortes: o campo e a barra com Executar.
         targets: () => {
           if (noToken() || (!G.ev.routes[CART] && !sent())) return [P.route(CART)]
           if (sent() && !failedSend() && (withToken() || P.inFlight(CART))) return [$('shown'), $('flow')]
+          if (authShown()) return [$('auth-group'), q('#request .req-bar')]
           return [$('run-split')].concat(emptyEdited() ? [$('auth-group')] : [])
         },
-        anchor: () => withToken() && P.stoppedStage() ? P.stoppedStage() : null,
+        separate: authShown,
+        // A ponta e a rolagem vão primeiro ao campo, que é o assunto da frase; o contorno fica em Executar.
+        anchor: () => withToken() && P.stoppedStage() ? P.stoppedStage() : authShown() ? $('auth-group') : null,
         paras: () => {
           const verdict = P.verdict() || {}
           const out = [fill('lab.guide.learn.again_p1')]
+          if (authShown()) out.push(fill('lab.guide.learn.again_auth'))
           if (noToken()) out.push(fill('lab.guide.learn.no_token'))
           else if (withToken()) {
             const values = { stage: verdict.label, status: statusLine(P.status()) }
@@ -1468,7 +1476,7 @@
     const r = unionRect(els)
     if (!r) return []
     const s = G.mode === 'step' ? step() : null
-    const list = s && s.separate ? mergeRects(els.map(item => unionRect([item])).filter(Boolean)) : [r]
+    const list = s && (typeof s.separate === 'function' ? s.separate() : s.separate) ? mergeRects(els.map(item => unionRect([item])).filter(Boolean)) : [r]
     const W = document.documentElement.clientWidth
     const bottom = narrow() ? card.getBoundingClientRect().top : window.innerHeight + 10
     return list.map(h => box(Math.max(h.left, -10), Math.max(h.top, -10), Math.min(h.right, W + 10), Math.min(h.bottom, bottom)))

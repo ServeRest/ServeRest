@@ -640,6 +640,7 @@ module.exports = {
   'lab.guide.learn.token_pre': 'El token de esta respuesta ya está en uso.',
   'lab.guide.learn.again_title': 'Envíela de nuevo, con token',
   'lab.guide.learn.again_p1': 'La misma solicitud, ahora con el token en el header `Authorization`.',
+  'lab.guide.learn.again_auth': 'El header `Authorization` ahora viene lleno con el token del login: es lo que la API verifica antes de aceptar el carrito.',
   'lab.guide.learn.again_rules': 'Pasó la Autenticación y se detuvo en {stage}, con `{status}`: el usuario de ejemplo ya tiene un carrito, y solo puede tener uno.',
   'lab.guide.learn.again_stopped': 'Se detuvo en {stage}, con `{status}`.',
   'lab.guide.learn.again_completed': 'Pasó por todas las etapas, con `{status}`: el carrito fue registrado.',

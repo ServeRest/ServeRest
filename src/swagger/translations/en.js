@@ -640,6 +640,7 @@ module.exports = {
   'lab.guide.learn.token_pre': 'The token from this response is already in use.',
   'lab.guide.learn.again_title': 'Send it again, with the token',
   'lab.guide.learn.again_p1': 'The same request, now with the token in the `Authorization` header.',
+  'lab.guide.learn.again_auth': 'The `Authorization` header now comes filled with the token from the login: it is what the API checks before accepting the cart.',
   'lab.guide.learn.again_rules': 'It passed Authentication and stopped at {stage}, with `{status}`: the sample user already has a cart, and can have only one.',
   'lab.guide.learn.again_stopped': 'It stopped at {stage}, with `{status}`.',
   'lab.guide.learn.again_completed': 'It went through every stage, with `{status}`: the cart was created.',
