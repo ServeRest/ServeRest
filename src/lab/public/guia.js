@@ -301,7 +301,7 @@
         prepare: () => revealRoute(CART),
         targets: () => [P.route(CART)],
         paras: () => [fill('lab.guide.learn.route_p1')],
-        tasks: () => [{ text: fill('lab.guide.task_route', { route: 'POST /carrinhos' }), done: !!G.ev.routes[CART] && P.selected() === CART }],
+        tasks: () => [{ text: fill('lab.guide.task_route', { route: 'POST /carrinhos' }), done: !!G.ev.routes[CART] && P.selected() === CART, target: () => P.route(CART) }],
         doIt: () => selectRoute(CART, true)
       },
       {
@@ -321,7 +321,7 @@
         paras: () => [fill(!P.split() ? 'lab.guide.mode_reduced' : P.slow() ? 'lab.guide.learn.send_slow' : 'lab.guide.learn.send_normal')],
         warn: () => noFlow() || wrongRoute(CART) || (P.authValue() && !sent() ? fill('lab.guide.learn.send_warn') : ''),
         waiting: waiting(CART),
-        tasks: () => [{ text: fill('lab.guide.task_run'), done: doneSend(CART) }],
+        tasks: () => [{ text: fill('lab.guide.task_run'), done: doneSend(CART), target: () => $('run') }],
         doIt: async () => {
           await selectRoute(CART)
           await clearAuth()
@@ -343,8 +343,8 @@
           const verdict = P.verdict() || {}
           const row = P.stoppedRow()
           return verdict.kind === 'stopped'
-            ? [{ text: fill('lab.guide.task_stage', { stage: verdict.label }), done: !!G.ev.row && !!row && row.getAttribute('aria-expanded') === 'true' }]
-            : [{ text: t('lab.flow.hint'), done: !!G.ev.row && !!q('#flow .flow-row[aria-expanded="true"]') }]
+            ? [{ text: fill('lab.guide.task_stage', { stage: verdict.label }), done: !!G.ev.row && !!row && row.getAttribute('aria-expanded') === 'true', target: P.stoppedRow }]
+            : [{ text: t('lab.flow.hint'), done: !!G.ev.row && !!q('#flow .flow-row[aria-expanded="true"]'), target: () => q('#flow .flow-row[aria-expanded]') }]
         },
         // A etapa já estava aberta ao entrar: o clique a fecharia, então o passo só explica.
         preDone: () => !!P.stoppedRow() && P.stoppedRow().getAttribute('aria-expanded') === 'true',
@@ -384,9 +384,9 @@
         stuck: () => G.loginBroken,
         waiting: waiting(LOGIN),
         tasks: () => [
-          { text: fill('lab.guide.task_route', { route: 'POST /login' }), done: loginPicked() },
-          { text: fill('lab.guide.task_run'), done: loginDone() },
-          { text: fill('lab.guide.task_use'), done: tokenUsed() }
+          { text: fill('lab.guide.task_route', { route: 'POST /login' }), done: loginPicked(), target: () => P.route(LOGIN) },
+          { text: fill('lab.guide.task_run'), done: loginDone(), target: () => $('run') },
+          { text: fill('lab.guide.task_use'), done: tokenUsed(), target: () => $('use-token') }
         ],
         // O token desta resposta já estava em uso ao entrar: no lugar do botão, a página confirma.
         preDone: () => P.selected() === LOGIN && !!$('token-done'),
@@ -441,10 +441,10 @@
           const verdict = P.verdict() || {}
           const row = P.stoppedRow()
           const list = [
-            { text: fill('lab.guide.task_route', { route: 'POST /carrinhos' }), done: !!G.ev.routes[CART] || withToken() },
-            { text: fill('lab.guide.task_run'), done: withToken() }
+            { text: fill('lab.guide.task_route', { route: 'POST /carrinhos' }), done: !!G.ev.routes[CART] || withToken(), target: () => P.route(CART) },
+            { text: fill('lab.guide.task_run'), done: withToken(), target: () => $('run') }
           ]
-          if (withToken() && verdict.kind === 'stopped') list.push({ text: fill('lab.guide.task_stage', { stage: verdict.label }), done: !!G.ev.row && !!row && row.getAttribute('aria-expanded') === 'true' })
+          if (withToken() && verdict.kind === 'stopped') list.push({ text: fill('lab.guide.task_stage', { stage: verdict.label }), done: !!G.ev.row && !!row && row.getAttribute('aria-expanded') === 'true', target: P.stoppedRow })
           return list
         },
         doIt: async () => {
@@ -509,8 +509,8 @@
         warn: () => noFlow(),
         waiting: waiting(),
         tasks: () => [
-          P.split() ? { text: fill('lab.guide.tour.run_menu'), done: !!G.ev.menu } : null,
-          { text: fill('lab.guide.task_run'), done: doneSend() }
+          P.split() ? { text: fill('lab.guide.tour.run_menu'), done: !!G.ev.menu, target: () => $('run-mode') } : null,
+          { text: fill('lab.guide.task_run'), done: doneSend(), target: () => $('run') }
         ].filter(Boolean),
         doIt: async () => {
           if (!G.ev.menu && P.split()) {
@@ -535,12 +535,10 @@
       {
         title: 'lab.guide.tour.close_title',
         label: () => t('ui.flow.title'),
-        // O título pisca de leve para chamar o clique; com menos movimento, nada.
-        attention: () => $('flow-title'),
         targets: () => [$('flow')],
         anchor: () => $('flow-title'),
         paras: () => [fill('lab.guide.tour.close_p1')],
-        tasks: () => [{ text: fill('lab.guide.tour.close_task'), done: !!G.ev.title && !P.flowOpen() }],
+        tasks: () => [{ text: fill('lab.guide.tour.close_task'), done: !!G.ev.title && !P.flowOpen(), target: () => $('flow-title') }],
         // Já fechado ao entrar: o clique o abriria, então o passo só explica.
         preDone: () => !P.flowOpen(),
         preText: 'lab.guide.tour.close_pre',
@@ -558,8 +556,8 @@
         openLinks: () => qa('#tl-pop a[href]'),
         paras: () => [fill('lab.guide.tour.time_p1')],
         tasks: () => [
-          G.entry.flowOpen ? null : { text: fill('lab.guide.tour.time_open'), done: !!G.ev.title && P.flowOpen() },
-          { text: fill('lab.guide.tour.time_server'), done: P.flowOpen() && !!G.ev.server && !!q('.tl-seg[data-part="server"][aria-expanded="true"]') }
+          G.entry.flowOpen ? null : { text: fill('lab.guide.tour.time_open'), done: !!G.ev.title && P.flowOpen(), target: () => $('flow-title') },
+          { text: fill('lab.guide.tour.time_server'), done: P.flowOpen() && !!G.ev.server && !!q('.tl-seg[data-part="server"][aria-expanded="true"]'), target: () => q('#flow .tl-seg[data-part="server"]') }
         ].filter(Boolean),
         // O balão de servidor já aberto ao entrar: o clique o fecharia, então o passo só explica.
         preDone: () => P.flowOpen() && !!q('.tl-seg[data-part="server"][aria-expanded="true"]'),
@@ -587,8 +585,8 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, attnTimer: null, blocked: false, complete: false, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
-  let shield, card, live
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, blocked: false, complete: false, mark: null, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
   // Duas camadas escuras: o recorte anda numa só; quando não dá para andar (o antigo ou o novo fora da janela,
@@ -655,10 +653,18 @@
     const foot = el('div', 'guide-foot')
     live = el('p', 'sr-only')
     live.setAttribute('aria-live', 'polite')
-    card.append(head, progress, title, body, hint, foot, live)
+    // A ponta do cartão aponta para o destaque por fora da caixa: a caixa de fora deixa transbordar, e a de dentro
+    // rola.
+    arrow = node('span', 'guide-arrow', { 'aria-hidden': 'true' })
+    const scroller = el('div', 'guide-scroll')
+    scroller.append(head, progress, title, body, hint, foot, live)
+    card.append(arrow, scroller)
+    // O que clicar: um contorno parado em volta do controle da primeira tarefa que falta.
+    marker = node('div', 'guide-marker', { 'aria-hidden': 'true' })
+    marker.hidden = true
     card.hidden = true
     card.style.opacity = '0'
-    document.body.append(...layers.map(item => item.box), shield, card)
+    document.body.append(...layers.map(item => item.box), shield, marker, card)
     shield.addEventListener('pointerdown', event => event.preventDefault())
     shield.addEventListener('click', block)
     card.addEventListener('click', onCardClick)
@@ -706,12 +712,12 @@
     G.moveId++
     G.busy = false
     G.going = false
-    clearAttention()
     cancelAnimationFrame(frame)
     release()
     card.getAnimations().forEach(item => item.cancel())
     for (const item of layers) paint(item, [], 0)
     shield.style.display = 'none'
+    marker.hidden = true
     card.hidden = true
     card.style.opacity = '0'
     document.body.style.paddingBottom = ''
@@ -825,7 +831,6 @@
     G.going = true
     try {
       if (G.moving) await G.moving
-      clearAttention()
       generation++
       G.busy = false
       G.mode = 'wait'
@@ -845,22 +850,6 @@
     return !!s.interactive || (!!s.tasks && !G.pre && !(s.explain && s.explain()))
   }
 
-  function clearAttention () {
-    qa('.guide-attn').forEach(item => item.classList.remove('guide-attn'))
-    clearTimeout(G.attnTimer)
-  }
-
-  function startAttention (s) {
-    if (!s.attention || reduced()) return
-    // Depois da rolagem até o passo, para a pessoa ver a piscada.
-    G.attnTimer = setTimeout(() => {
-      const target = s.attention()
-      if (!target || !G.open) return
-      target.classList.add('guide-attn')
-      target.addEventListener('animationend', () => target.classList.remove('guide-attn'), { once: true })
-    }, 600)
-  }
-
   async function goTo (index) {
     // Um clique a mais no Próximo enquanto o passo se prepara não pula um passo.
     if (G.going) return
@@ -871,7 +860,6 @@
     try {
       // Uma troca de destaque dentro do passo termina antes: o cartão nunca está em duas viagens.
       if (G.moving) await G.moving
-      clearAttention()
       const s = steps[index]
       // Enquanto o passo se prepara, nada dele vale ainda: nem destaque, nem cliques contados. Um "Fazer por mim"
       // do passo anterior para aqui.
@@ -911,7 +899,6 @@
       }, true)
       if (started !== generation || !G.open) return
       announceTarget()
-      startAttention(s)
     } finally {
       G.going = false
     }
@@ -946,6 +933,7 @@
     }
     const pending = pendingTask(s, tasks)
     if (!pending) G.blocked = false
+    G.mark = pending && pending.target ? pending.target : null
     const warn = G.complete ? '' : missing ? fill('lab.guide.needs') : (s.warn ? s.warn() : '')
     const wait = !done && s.waiting ? s.waiting() : ''
     const paras = s.paras().concat(G.pre && s.preText ? [fill(s.preText)] : []).filter(Boolean)
@@ -972,7 +960,7 @@
     if (wait) body.push(el('p', 'guide-wait', wait))
     if (done) body.push(el('p', 'guide-done', t('lab.guide.done')))
     part('body').replaceChildren(...body)
-    if (!force) keepInBand()
+    keepInBand()
     // Na segunda vez, o Próximo faz a tarefa que falta e segue: o rótulo diz isso, e o "Fazer por mim" sai.
     q('[data-act="next"]', card).textContent = t(G.blocked ? 'lab.guide.do_next' : 'lab.guide.next')
     const doButton = q('[data-act="do"]', card)
@@ -1032,6 +1020,7 @@
         G.blocked = true
         renderBody(true)
         live.textContent = plain(fill('lab.guide.missing', { task: pending.text }))
+        ripple()
         return
       }
       // Segundo clique: faz a ação, espera todas as tarefas e segue. Se não deu (o envio falhou), fica no passo,
@@ -1077,6 +1066,7 @@
     try {
       const from = G.holes.slice()
       shield.style.display = 'none'
+      marker.hidden = true
       await fadeOut()
       if (id !== G.moveId || !G.open) return
       if (apply) apply()
@@ -1094,6 +1084,12 @@
       const toward = placeCard(currentTargets())
       if (focus) focusTitle()
       paintShield()
+      // O passo assentou: o contorno do que clicar manda duas ondas.
+      if (G.mode === 'step') {
+        renderBody(false)
+        paintMarker()
+        ripple()
+      }
       await fadeIn(toward)
     } finally {
       // Quem esperava esta viagem segue; uma viagem que começou depois dela continua marcada.
@@ -1296,6 +1292,40 @@
       : 'none'
   }
 
+  // O contorno fica 4 px fora do controle da primeira tarefa que falta, até ela ser feita; no telefone, some se
+  // o controle está sob a folha.
+  function paintMarker () {
+    let target = null
+    try {
+      target = G.mode === 'step' && G.mark ? G.mark() : null
+    } catch (e) {}
+    const r = visible(target) ? target.getBoundingClientRect() : null
+    const floor = narrow() ? card.getBoundingClientRect().top : window.innerHeight
+    marker.hidden = !r || r.bottom + 4 > floor || r.top < -4
+    if (!marker.hidden) Object.assign(marker.style, { left: r.left - 4 + 'px', top: r.top - 4 + 'px', width: r.width + 8 + 'px', height: r.height + 8 + 'px' })
+  }
+
+  // Duas ondas saem do contorno; com menos movimento, ele só aparece.
+  function ripple () {
+    if (!reduced()) replay(marker, 'is-ripple')
+  }
+
+  // A ponta do cartão mira o centro do anchor; num canto (ou sem destaque), ela some. No telefone, fica na borda
+  // de cima da folha, na altura do destaque.
+  function paintArrow () {
+    const els = currentTargets()
+    const a = els.length ? unionRect(anchorEls(els)) : null
+    const side = narrow() ? 'sheet' : G.pos && G.pos.side
+    const dir = { right: 'left', left: 'right', bottom: 'up', top: 'down', sheet: 'up' }[side]
+    arrow.hidden = !a || !dir
+    if (arrow.hidden) return
+    const c = card.getBoundingClientRect()
+    arrow.setAttribute('data-dir', dir)
+    const clamp = (v, max) => Math.round(Math.min(Math.max(18, v), max - 32)) + 'px'
+    if (dir === 'left' || dir === 'right') Object.assign(arrow.style, { top: clamp((a.top + a.bottom) / 2 - c.top - 7, c.height), left: '' })
+    else Object.assign(arrow.style, { left: clamp((a.left + a.right) / 2 - c.left - 7, c.width), top: '' })
+  }
+
   // O que precisa ficar à vista no passo: o anchor do passo (um elemento ou uma lista) ou o primeiro destaque.
   function anchorEls (els) {
     const s = G.mode === 'step' ? step() : null
@@ -1392,6 +1422,7 @@
       G.pos = null
       card.style.left = ''
       card.style.top = G.mode === 'step' ? '' : Math.max(12, (H - ch) / 2) + 'px'
+      paintArrow()
       return [0, 4]
     }
     const r = G.holes.length ? G.holes.reduce((a, b) => box(Math.min(a.left, b.left), Math.min(a.top, b.top), Math.max(a.right, b.right), Math.max(a.bottom, b.bottom))) : null
@@ -1423,11 +1454,13 @@
     }
     G.pos = { x: Math.round(clampX(x)), y: Math.round(clampY(y)), sy: window.scrollY, side }
     followCard()
+    paintArrow()
     return { right: [4, 0], left: [-4, 0], bottom: [0, 4], top: [0, -4] }[side] || [0, 4]
   }
 
   // Durante o passo, o cartão só acompanha a rolagem da página, sem animação, e nunca sai da janela.
   function followCard () {
+    paintArrow()
     if (!G.pos || narrow()) return
     const H = window.innerHeight
     const y = G.pos.sy === null ? G.pos.y : G.pos.y - (window.scrollY - G.pos.sy)
@@ -1463,6 +1496,7 @@
     } else G.holes = []
     paint(layers[G.front], G.holes, 1)
     paintShield()
+    paintMarker()
     setPadding()
     followCard()
     const now = performance.now()
