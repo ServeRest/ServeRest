@@ -49,9 +49,6 @@
     en: 'https://docs.google.com/forms/d/e/1FAIpQLScHuNJNhQc5eDK-vGqD5H4GcJPwFUYwBHbQPjoH52zxkhAQ7Q/viewform?usp=pp_url&entry.924035673=VERSAO',
     es: 'https://docs.google.com/forms/d/e/1FAIpQLSfHpCxjm3tKfEEANKKMrQyWz4_raAQ6Dpu-ow8k9CA90UwOHg/viewform?usp=pp_url&entry.924035673=VERSAO'
   }
-  // O formulário deixa de aceitar respostas nesta data; depois dela as entradas de opinião somem sozinhas.
-  // Precisa ser a mesma data configurada no Google Forms.
-  const FEEDBACK_UNTIL = '2027-01-31T23:59:59-03:00'
   // A edição do formulário: quem respondeu fica 180 dias sem o convite; subir o número o traz de volta na hora.
   const FEEDBACK_FORM_EDITION = 1
   // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
@@ -555,7 +552,7 @@
 
   // O endereço do formulário de opinião no idioma da página; vazio, nenhuma entrada de opinião aparece.
   function feedbackUrl () {
-    return core.feedbackFormUrl(FEEDBACK_FORM_URL[language], version, Date.now(), FEEDBACK_UNTIL)
+    return core.feedbackFormUrl(FEEDBACK_FORM_URL[language], version)
   }
 
   // As listas do rodapé, que a marcação traz vazias. A documentação Swagger abre nesta aba, como o link da
