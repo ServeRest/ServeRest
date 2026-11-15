@@ -1137,6 +1137,88 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('passagem da troca de idioma: draftChanges e readHandoff', () => {
+    const novo = () => ({ params: { 'path:_id': '0uxuPY0cbmQhpEz1', 'query:nome': '' }, body: '{\n  "nome": "Fulano"\n}' })
+    const agora = Date.parse('2026-11-15T12:00:00.000Z')
+    const opcoes = { now: agora, language: 'es', maxAge: 10000 }
+    // Como app.js a grava (writeHandoff).
+    const passagem = (extra = {}) => Object.assign({
+      v: 1,
+      at: agora,
+      to: 'es',
+      token: 'Bearer a.b.c',
+      tokenAt: Date.parse('2026-11-15T11:58:00.000Z'),
+      tokenExp: Date.parse('2026-11-15T12:08:00.000Z'),
+      drafts: { 'post /usuarios': { body: '{}', params: { 'query:nome': 'Ana' }, auth: '' } },
+      scrollY: 312.5,
+      sideTab: 'historico',
+      resultTab: 'enviado'
+    }, extra)
+    const ler = (extra, outras = {}) => core.readHandoff(JSON.stringify(passagem(extra)), Object.assign({}, opcoes, outras))
+
+    it('draftChanges leva só o que a pessoa mudou do padrão', () => {
+      expect(core.draftChanges(undefined, novo())).to.equal(null)
+      expect(core.draftChanges(novo(), novo())).to.equal(null)
+      const editado = Object.assign(novo(), { body: '{}' })
+      editado.params['query:nome'] = 'Ana'
+      expect(core.draftChanges(editado, novo())).to.deep.equal({ body: '{}', params: { 'query:nome': 'Ana' } })
+    })
+
+    it('draftChanges leva o Authorization editado, mesmo vazio, e ignora parâmetro que a rota não tem ou que não é texto', () => {
+      expect(core.draftChanges(Object.assign(novo(), { auth: '' }), novo())).to.deep.equal({ auth: '' })
+      const estranho = novo()
+      estranho.params['query:outro'] = 'x'
+      estranho.params['query:nome'] = undefined
+      expect(core.draftChanges(estranho, novo())).to.equal(null)
+    })
+
+    it('ida e volta: as horas do token voltam como Date e o resto igual', () => {
+      const lido = ler()
+      expect(lido.tokenAt.toISOString()).to.equal('2026-11-15T11:58:00.000Z')
+      expect(lido.tokenExp.toISOString()).to.equal('2026-11-15T12:08:00.000Z')
+      expect(lido).to.deep.include({ token: 'Bearer a.b.c', scrollY: 312.5, sideTab: 'historico', resultTab: 'enviado' })
+      expect(lido.drafts).to.deep.equal(passagem().drafts)
+      expect(ler({ token: null, tokenAt: null, tokenExp: null })).to.deep.include({ token: null, tokenAt: null, tokenExp: null })
+    })
+
+    it('vale por maxAge: com 10 s ainda vale, depois disso não, e uma hora no futuro também não', () => {
+      expect(ler({ at: agora - 10000 })).to.not.equal(null)
+      expect(ler({ at: agora - 10001 })).to.equal(null)
+      expect(ler({ at: agora + 1 })).to.equal(null)
+    })
+
+    it('só a página no idioma de destino a usa: uma recarga da mesma página não', () => {
+      expect(ler({}, { language: 'pt-BR' })).to.equal(null)
+    })
+
+    it('descarta o valor inteiro quando não é JSON, tem outra forma ou um campo estranho', () => {
+      ['{not json', null, '[]', '0', '"es"'].forEach(valor => expect(core.readHandoff(valor, opcoes), valor).to.equal(null))
+      const quebrados = [
+        { v: 2 },
+        { at: 'agora' },
+        { token: '' },
+        { token: 42 },
+        { tokenAt: 'ontem' },
+        { tokenExp: {} },
+        { drafts: null },
+        { drafts: [] },
+        { drafts: { usuarios: {} } },
+        { drafts: { 'post /usuarios': [] } },
+        { drafts: { 'post /usuarios': { body: 1 } } },
+        { drafts: { 'post /usuarios': { auth: null } } },
+        { drafts: { 'post /usuarios': { body: '{}', token: 'x' } } },
+        { drafts: { 'post /usuarios': { params: [] } } },
+        { drafts: { 'post /usuarios': { params: { 'query:nome': 1 } } } },
+        { drafts: { 'post /usuarios': { params: { 'header:x': 'a' } } } },
+        { scrollY: -1 },
+        { scrollY: '10' },
+        { sideTab: 'outra' },
+        { resultTab: 'curl' }
+      ]
+      quebrados.forEach(campo => expect(ler(campo), JSON.stringify(campo)).to.equal(null))
+    })
+  })
+
   describe('storedRecord e readStoredHistory', () => {
     const registro = (id, extra = {}) => ({
       id,
@@ -1427,7 +1509,8 @@ describe('Página do lab: funções puras', () => {
       serverestReleaseSeen: 'RELEASE_SEEN_KEY',
       serverestFeedbackInvite: 'FEEDBACK_KEY',
       serverestFeedbackInviteSession: 'FEEDBACK_SESSION_KEY',
-      serverestGuideInvite: 'GUIDE_KEY'
+      serverestGuideInvite: 'GUIDE_KEY',
+      serverestLangHandoff: 'HANDOFF_KEY'
     }
 
     it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {

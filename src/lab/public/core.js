@@ -895,6 +895,46 @@
     return ok ? list.map(item => Object.assign({}, item, { at: new Date(item.at) })) : null
   }
 
+  /* Passagem de uso único da troca de idioma */
+
+  // O valor igual ao padrão fica com o do outro idioma.
+  function draftChanges (draft, fresh) {
+    if (!draft) return null
+    const out = {}
+    const params = {}
+    if (draft.body !== fresh.body) out.body = draft.body
+    Object.keys(fresh.params).forEach(key => {
+      if (isText(draft.params[key]) && draft.params[key] !== fresh.params[key]) params[key] = draft.params[key]
+    })
+    if (Object.keys(params).length) out.params = params
+    if (isText(draft.auth)) out.auth = draft.auth
+    return Object.keys(out).length ? out : null
+  }
+
+  const isTime = Number.isFinite
+  const isMap = (value, keys, check) => !!value && typeof value === 'object' && !Array.isArray(value) &&
+    Object.keys(value).every(key => keys.test(key) && check(value[key], key))
+  const validDraft = item => isMap(item, /^(body|auth|params)$/, (value, key) => key === 'params' ? isMap(value, /^(path|query):/, isText) : isText(value))
+
+  // Um valor estranho, velho ou de outro idioma é descartado inteiro.
+  function readHandoff (value, { now, language, maxAge }) {
+    let saved = null
+    try {
+      saved = JSON.parse(value)
+    } catch (e) {
+      return null
+    }
+    const age = saved && now - saved.at
+    const ok = !!saved && saved.v === 1 && isTime(saved.at) && age >= 0 && age <= maxAge &&
+      saved.to === language &&
+      (saved.token === null || (isText(saved.token) && saved.token !== '')) &&
+      [saved.tokenAt, saved.tokenExp].every(time => time === null || isTime(time)) &&
+      isMap(saved.drafts, /^(get|post|put|patch|delete) \//, validDraft) && isTime(saved.scrollY) && saved.scrollY >= 0 &&
+      ['rotas', 'historico'].includes(saved.sideTab) && ['resposta', 'enviado'].includes(saved.resultTab)
+    const date = time => time === null ? null : new Date(time)
+    return ok ? Object.assign(saved, { tokenAt: date(saved.tokenAt), tokenExp: date(saved.tokenExp) }) : null
+  }
+
   /* Texto */
 
   function safeHref (url) {
@@ -1137,6 +1177,8 @@
     offerState,
     storedRecord,
     readStoredHistory,
+    draftChanges,
+    readHandoff,
     safeHref,
     feedbackFormUrl,
     releaseUrl,

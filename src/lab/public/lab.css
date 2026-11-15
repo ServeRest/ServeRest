@@ -1597,6 +1597,12 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .route[aria-current="true"]::before { forced-color-adjust: none; background: Highlight; }
 }
 
+/* A troca de idioma recarrega a página: um esmaecer curto no lugar do piscar. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(root) { animation-duration: 180ms; }
+}
+
 /* Guia "Como usar" (guia.js só vem no primeiro clique): curto, porque pesa na primeira visita. */
 .guide-open { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; font-family: var(--font-ui); }
 .guide-open[aria-busy] { cursor: progress; opacity: 0.7; }

@@ -35,6 +35,7 @@
   const TEXT_KEY = 'serverestTextSize'
   // Pedido da página anterior para a página nova brilhar na cor do idioma escolhido (só nesta aba).
   const GLOW_KEY = 'serverestLangGlow'
+  const HANDOFF_KEY = 'serverestLangHandoff'
   // A versão nova cujo painel a pessoa já abriu (o ponto do aviso some para ela).
   const RELEASE_SEEN_KEY = 'serverestReleaseSeen'
   // O convite para dar opinião: o estado dele em JSON neste navegador (core.readInvite), e a marca desta aba.
@@ -322,6 +323,7 @@
     unseen: 0,
     // O envio que estava no Resultado antes de a página recarregar, até as rotas chegarem.
     restoreShownId: null,
+    handoff: null,
     // O envio cujo fluxo ainda anda: até o veredito, nenhum lugar da página mostra o status dele.
     pendingId: null,
     // O envio de POST /login cujo token a rota escolhida envia agora em Authorization (o selo "token em uso").
@@ -902,10 +904,12 @@
       state.authHeader = core.authHeaderOf(spec)
       const wanted = state.selected ? state.selected.key : routeKeyFromHash()
       state.selected = state.routes.find(route => route.key === wanted) || state.routes[0] || null
+      applyHandoffDrafts()
       renderRoutes()
       renderRequest()
       renderAbout(spec)
       showAfterLoad()
+      finishHandoff()
     }).catch(error => {
       if (seq !== state.loadSeq) return
       state.specError = (error && error.message) || String(error)
@@ -1140,7 +1144,7 @@
   }
 
   // Abas com o teclado: setas, Home e End, com ativação automática. A aba escolhida não é guardada: toda
-  // carga da página abre em Rotas, mesmo depois de recarregar ou trocar de idioma.
+  // carga da página abre em Rotas, mesmo depois de recarregar.
   function setupSide () {
     const ids = Object.keys(SIDE_PANELS)
     ids.forEach((id, index) => {
@@ -1232,15 +1236,17 @@
 
   /* ---------- Requisição ---------- */
 
+  function freshDraft (route) {
+    const params = {}
+    route.params.forEach(param => {
+      params[param.in + ':' + param.name] = prefills(route, param) ? String(param.def) : ''
+    })
+    // Sem a chave auth a rota segue o token da página; a primeira edição do campo cria a chave.
+    return { params, body: route.body ? JSON.stringify(route.body.example, null, 2) : '' }
+  }
+
   function draftFor (route) {
-    if (!state.drafts[route.key]) {
-      const params = {}
-      route.params.forEach(param => {
-        params[param.in + ':' + param.name] = prefills(route, param) ? String(param.def) : ''
-      })
-      // Sem a chave auth a rota segue o token da página; a primeira edição do campo cria a chave.
-      state.drafts[route.key] = { params, body: route.body ? JSON.stringify(route.body.example, null, 2) : '' }
-    }
+    if (!state.drafts[route.key]) state.drafts[route.key] = freshDraft(route)
     return state.drafts[route.key]
   }
 
@@ -1316,8 +1322,7 @@
       el('div', { class: 'req-hint' },
         methodLink(route.method),
         el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) }))),
-      // A descrição vem depois da barra: com uma a cinco linhas conforme a rota, antes dela empurrava o método,
-      // a URL e o Executar para uma altura diferente em cada rota.
+      // Depois da barra, que mudava de altura com a descrição de cada rota.
       route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
       reqSection('params', t('lab.section.params'), null, paramsContent(route, draft)),
       route.body ? reqSection('body', t('lab.section.body'), null, bodyContent(route, draft)) : null,
@@ -2531,6 +2536,51 @@
     }
     if (state.history.some(item => item.id === view.shownId)) state.restoreShownId = view.shownId
     if (Number.isInteger(view.unseen) && view.unseen > 0) state.unseen = Math.min(view.unseen, state.history.length)
+  }
+
+  /* ---------- Passagem da troca de idioma ---------- */
+
+  // A troca de idioma recarrega a página e perderia o token, os rascunhos e a rolagem. O token nunca fica na
+  // sessão; esta passagem é a única exceção e vale só para a navegação: some aos 10 s, ao ser lida e na volta
+  // do cache, só o idioma de destino a usa, e um clique que abre outra aba não a grava.
+  function setupLanguageHandoff () {
+    document.addEventListener('click', event => {
+      const link = event.target.closest && event.target.closest('a[data-lang]')
+      const to = link && link.getAttribute('data-lang')
+      if (!to || to === language || event.button || event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || (link.target && link.target !== '_self')) return
+      const drafts = {}
+      state.routes.forEach(route => {
+        const changes = core.draftChanges(state.drafts[route.key], freshDraft(route))
+        if (changes) drafts[route.key] = changes
+      })
+      const time = date => date ? date.getTime() : null
+      writeSession(HANDOFF_KEY, JSON.stringify({ v: 1, at: Date.now(), to, token: state.token, tokenAt: time(state.tokenAt), tokenExp: time(state.tokenExp), drafts, scrollY: window.scrollY, sideTab: state.sideTab, resultTab: state.resultTab }))
+    }, true)
+    window.addEventListener('pageshow', event => event.persisted && discardStored(HANDOFF_KEY))
+  }
+
+  function takeHandoff () {
+    const raw = readStored(HANDOFF_KEY)
+    discardStored(HANDOFF_KEY)
+    const handoff = raw && core.readHandoff(raw, { now: Date.now(), language, maxAge: 10000 })
+    if (handoff) Object.assign(state, { token: handoff.token, tokenAt: handoff.tokenAt, tokenExp: handoff.tokenExp, handoff })
+  }
+
+  // buildRequest só lê o que a rota tem.
+  function applyHandoffDrafts () {
+    state.routes.forEach(route => {
+      const from = state.handoff && state.handoff.drafts[route.key]
+      const draft = from && draftFor(route)
+      if (draft) Object.assign(draft, from, { params: Object.assign(draft.params, from.params) })
+    })
+  }
+
+  function finishHandoff () {
+    const handoff = state.handoff
+    state.handoff = null
+    if (!handoff) return
+    if (state.shownId !== null) selectResultTab(handoff.resultTab, false)
+    window.scrollTo(0, handoff.scrollY)
   }
 
   // Depois de carregar as rotas: o envio que estava à vista volta ao Resultado, se é da rota escolhida (a do
@@ -5652,7 +5702,9 @@
     } catch (e) {}
     // O Histórico da sessão volta antes de qualquer pintura: as marcas das Rotas, o Histórico e a contagem
     // leem dele.
+    takeHandoff()
     restoreSession()
+    setupLanguageHandoff()
     setupTopbar()
     paintNotice()
     paintFeedbackBand()
@@ -5663,6 +5715,7 @@
     setupResultTabs()
     setupView()
     setupSide()
+    if (state.handoff) selectSideTab(state.handoff.sideTab, false)
     // O CSS precisa da altura do Resultado para grudá-lo pela base quando ele, vazio, é mais alto que a janela.
     if (window.ResizeObserver) {
       new ResizeObserver(() => document.documentElement.style.setProperty('--res-h', $('result').offsetHeight + 'px')).observe($('result'))
