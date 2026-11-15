@@ -1465,9 +1465,13 @@
 
   // No telefone, quando o passo muda por dentro (a etapa abriu o porquê), o anchor volta para a faixa acima da
   // folha; a folha não se mexe.
-  function keepInBand () {
+  // Também quando o anchor cresce sozinho (o balão da barra de tempo abriu).
+  function keepInBand (grown) {
     if (!narrow() || G.moving) return
     const a = unionRect(anchorEls(currentTargets()))
+    const height = a ? Math.round(a.height) : 0
+    if (grown && height === G.anchorH) return
+    G.anchorH = height
     const room = card.getBoundingClientRect().top - 8
     if (!a || (a.top >= 8 && a.bottom <= room)) return
     const delta = a.height > room - 8 ? a.top - 12 : a.bottom - room
@@ -1575,8 +1579,10 @@
     const now = performance.now()
     if (now - lastRender > 200) {
       lastRender = now
-      if (G.mode === 'step') renderBody(false)
-      else isolate(keepList())
+      if (G.mode === 'step') {
+        renderBody(false)
+        keepInBand(true)
+      } else isolate(keepList())
     }
   }
 
