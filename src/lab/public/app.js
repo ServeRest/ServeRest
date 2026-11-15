@@ -3626,11 +3626,13 @@
     return { found: route.responses.find(response => response.status === String(record.status)) || null }
   }
 
-  // Só a descrição da documentação, sem "Na documentação:".
+  // A descrição vem com "Na documentação:" na frente: sozinha, logo abaixo do status, ela era lida como a causa
+  // deste envio, e um status tem várias causas na mesma rota (um 400 de validação aparecia como "E-mail já
+  // cadastrado"). O corpo da resposta é que diz a causa.
   function simpleDocLine (record, doc) {
     if (!doc) return null
     if (!doc.found) return el('span', { class: 'res-doc', text: t('lab.simple.undocumented') })
-    return el('span', { class: 'res-doc' }, richInline(doc.found.description))
+    return el('span', { class: 'res-doc' }, richInline(fillText('lab.simple.documented', { description: doc.found.description })))
   }
 
   // Headers da resposta, sempre à vista; sob o de etapas, de onde vem o desenho do fluxo.

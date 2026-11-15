@@ -130,7 +130,14 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/EmailJaUtilizado"
+                        "description": "paths.usuarios.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorEmailJaUtilizado"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -273,7 +280,14 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/EmailJaUtilizado"
+                        "description": "paths.usuariosById.put.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorEmailJaUtilizado"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -340,7 +354,14 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                        "description": "paths.produtos.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/existeProdutoComEsseNome"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
@@ -507,7 +528,14 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                        "description": "paths.produtosById.put.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/existeProdutoComEsseNome"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
@@ -902,26 +930,6 @@
             }
         },
         "responses": {
-            "EmailJaUtilizado": {
-                "description": "components.responses.EmailJaUtilizado.description",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/errorEmailJaUtilizado"
-                        }
-                    }
-                }
-            },
-            "ProdutoNomeDuplicado": {
-                "description": "components.responses.ProdutoNomeDuplicado.description",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/existeProdutoComEsseNome"
-                        }
-                    }
-                }
-            },
             "TokenInvalido": {
                 "description": "components.responses.TokenInvalido.description",
                 "content": {
