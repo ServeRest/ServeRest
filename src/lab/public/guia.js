@@ -285,16 +285,25 @@
   // O aviso some quando a pessoa escolhe a câmera lenta: a tarefa que falta já diz para executar de novo.
   const normalSend = () => P.split() && sent() && G.sendSlow[P.lastSend()] === false && !P.slow()
   const doneRun = () => doneSend() && (!P.split() || slowShown())
-  // "Rever em câmera lenta" redesenha o fluxo sem veredito por alguns segundos: enquanto isso, o passo não diz
-  // que falta o resultado do passo anterior.
-  const flowReady = () => P.ready() || (!!G.ev.replay && !!P.shown() && !P.sending())
+  // "Rever em câmera lenta" redesenha o fluxo sem veredito por alguns segundos: enquanto isso, nenhum passo diz
+  // que falta o resultado do passo anterior, nem envia para repor. O replay vale para o registro que estava no
+  // Resultado (G.replayed), não para o passo: o Próximo logo depois do clique não o esquece.
+  const flowReady = () => P.ready() || (!!G.replayed && !!P.shown() && P.shown().id === G.replayed && !P.sending())
+  // A página ainda trabalha num envio: esperando a resposta, ou desenhando o fluxo (do envio ou de um replay).
+  const pageBusy = () => P.sending() || (!!P.shown() && !P.verdict())
 
   document.addEventListener('click', event => {
-    if (!G.open || G.mode !== 'step' || !event.target.closest) return
+    if (!event.target.closest) return
+    // Fechado o guia, um modo que a pessoa escolhe vale mais que o que ainda esperava para ser devolvido.
+    if (!G.open && event.target.closest('#run-menu [data-mode]')) delete G.owned.mode
+    if (!G.open || G.mode !== 'step') return
     const target = event.target
     if (target.closest('#run-menu [data-mode="lenta"]')) G.ev.slow = true
     // Roda antes do clique chegar à página: o replay ainda não começou, e só conta se a página vai redesenhar.
-    if (target.closest('#replay') && P.replayReady()) G.ev.replay = true
+    if (target.closest('#replay') && P.replayReady()) {
+      G.ev.replay = true
+      G.replayed = (P.shown() || {}).id || 0
+    }
     if (target.closest('#flow-title')) G.ev.title = true
     if (target.closest('#flow .flow-row')) G.ev.row = true
     if (target.closest('.tl-seg[data-part="server"], .tl-call[data-part="server"]')) G.ev.server = true
@@ -715,12 +724,20 @@
     claim(s)
   }
 
-  // Devolve false enquanto falta o modo (a seta presa por um envio a caminho): restoreSoon tenta de novo.
+  // Cada estado volta uma vez só e sai de G.owned: depois disso, o que a pessoa faz na página fica. O modo
+  // espera a página parar (envio a caminho ou fluxo sendo desenhado), porque o modo normal leva o desenho direto
+  // ao veredito; devolve false enquanto espera, e restoreSoon tenta de novo.
   function restore () {
     const o = G.origin
     if (!o) return true
-    if (G.owned.flow !== undefined && P.flowOpen() === G.owned.flow && G.owned.flow !== o.flow && $('flow-title')) $('flow-title').click()
-    return !(G.owned.mode && P.mode() === G.owned.mode && G.owned.mode !== o.mode && !chooseMode(o.mode))
+    if (G.owned.flow !== undefined) {
+      if (P.flowOpen() === G.owned.flow && G.owned.flow !== o.flow && $('flow-title')) $('flow-title').click()
+      delete G.owned.flow
+    }
+    if (!G.owned.mode) return true
+    if (P.mode() === G.owned.mode && G.owned.mode !== o.mode && (pageBusy() || !chooseMode(o.mode))) return false
+    delete G.owned.mode
+    return true
   }
 
   function restoreSoon (tries) {
@@ -731,7 +748,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, actionAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, sendSlow: {}, seenSend: 0, origin: null, owned: {}, wantNormal: false, restoring: false, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, actionAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, sendSlow: {}, seenSend: 0, origin: null, owned: {}, wantNormal: false, restoring: false, replayed: 0, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
@@ -851,6 +868,7 @@
     G.seenSend = P.lastSend()
     G.sendSlow = {}
     G.wantNormal = false
+    G.replayed = 0
     if (!card) build()
     card.hidden = false
     G.front = 0
@@ -1310,7 +1328,8 @@
     if (kind === 'do' && !G.busy) {
       const s = step()
       if (!(await doStep(s))) return
-      live.textContent = s.tasks && s.tasks().every(task => task.done || task.optional) ? t('lab.guide.done') : ''
+      // "Feito" só quando o cartão o mostra: um passo só com opcionais não tem o que dizer feito.
+      live.textContent = q('.guide-done', card) ? t('lab.guide.done') : ''
       // O botão some depois de feito: o foco vai para o Próximo, que continua o caminho.
       const next = q('[data-act="next"]', card)
       if (next && (!card.contains(document.activeElement) || control.hidden)) next.focus()
