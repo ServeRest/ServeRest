@@ -214,11 +214,16 @@
   // inválido), nada saiu e não há o que esperar.
   async function execute (key) {
     await settleSend()
+    // A pessoa clicou em Executar enquanto a ação se preparava (a rota sendo escolhida, o Authorization sendo
+    // limpo): esse envio já é o do passo, e mandar outro por cima seria uma segunda requisição de verdade.
+    if (P.lastSend() > G.actionAt) return
     if (key && P.selected() !== key) await selectRoute(key)
     if (!$('run') || sendBusy()) return
     const before = P.lastSend()
     $('run').click()
     const id = P.lastSend()
+    // Os envios da própria ação não contam como cliques da pessoa.
+    G.actionAt = id
     if (id === before) return
     await waitFor(() => !P.sending() && (!P.shown() || P.shown().id !== id || P.ended()), 40000)
   }
@@ -609,7 +614,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, actionAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
@@ -1089,6 +1094,7 @@
       // Primeiro o envio deste passo termina; o que fazer é decidido depois, com a página já parada. Um envio de
       // antes do passo não segura ações que não enviam (escolher a rota): execute espera por ele, se precisar.
       await settleSend(true)
+      G.actionAt = P.lastSend()
       if (s.needs && !s.needs.test()) await s.needs.fix()
       if (s.doIt) await s.doIt()
       if (s.prepare) s.prepare()
