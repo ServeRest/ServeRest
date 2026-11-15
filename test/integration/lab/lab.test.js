@@ -339,16 +339,17 @@ describe('/ GET (marcação da página inicial)', () => {
     expect(caixa.indexOf('id="release-btn"')).to.be.lessThan(caixa.indexOf('id="release-panel"'))
   })
 
-  // A linha vem do servidor à vista, para a faixa já nascer com a altura dela; o endereço do formulário é de
-  // app.js, que a esconde sem formulário.
-  it('traz na faixa roxa a linha de opinião, à vista e com o link sem href, nos três idiomas', async () => {
+  // A linha vem do servidor, mas a faixa nasce fina: só prefs-boot.js, antes da primeira pintura, põe
+  // data-feedback na raiz nos dias em que ela aparece. O endereço do formulário é de app.js.
+  it('traz na faixa roxa a linha de opinião escondida, com o link sem href, nos três idiomas', async () => {
     const linhas = {
-      'pt-BR': ['Esta página é nova.', 'Dê sua opinião'],
-      en: ['This page is new.', 'Tell us what you think'],
-      es: ['Esta página es nueva.', 'Danos tu opinión']
+      'pt-BR': ['Tem 2 minutos?', 'Ajude a melhorar esta página'],
+      en: ['Got 2 minutes?', 'Help improve this page'],
+      es: ['¿Tiene 2 minutos?', 'Ayude a mejorar esta página']
     }
     for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
       const { text } = await request.get('/').query({ lang }).expect(200)
+      expect(text, lang).to.not.include('data-feedback=')
       const faixa = /<div class="topbar-band">\s*<p class="fb-line" id="feedback-band">([\s\S]*?)<\/p>\s*<\/div>\s*<\/header>/.exec(text)
       expect(faixa, lang).to.not.equal(null)
       expect(faixa[1], lang).to.equal(`${escaparHtml(linhas[lang][0])} <a class="fb-link" id="feedback-band-link" target="_blank" rel="noopener">${escaparHtml(linhas[lang][1])}<span aria-hidden="true"> ↗</span><span class="sr-only"> ${escaparHtml(textos['lab.link.new_tab'])}</span></a>`)

@@ -85,6 +85,26 @@ describe('Guia "Como usar" (guia.js)', () => {
       expect(pagina).to.not.include('guia.js')
       expect(literais(app).filter(texto => texto.includes('guia.js'))).to.deep.equal(['/lab/assets/guia.js?v='])
     })
+
+    // O cartão do guia no Resultado vazio conta os passos sem baixar guia.js: um título lab.guide.<caminho>.*_title
+    // por passo. Um passo novo sem título próprio (ou um título que não é de passo) quebra este teste.
+    it('a contagem de passos do cartão do Resultado é a de cada caminho de guia.js, nos três idiomas', () => {
+      ;['learn', 'tour'].forEach(caminho => {
+        const inicio = guia.indexOf(`id: '${caminho}',`)
+        const passos = guia.slice(inicio, guia.indexOf('\n  }\n', inicio)).match(new RegExp(`^ {8}title: 'lab\\.guide\\.${caminho}\\.[a-z_]+_title',$`, 'gm'))
+        expect(passos.length, caminho).to.be.greaterThan(3)
+        ;[ptBr, en, es].forEach(textos => {
+          const titulos = Object.keys(textos).filter(chave => new RegExp(`^lab\\.guide\\.${caminho}\\.[a-z_]+_title$`).test(chave))
+          expect(titulos.length, caminho).to.equal(passos.length)
+        })
+      })
+      expect(app).to.include('/^lab\\.guide\\.([a-z]+)\\.[a-z_]+_title$/')
+    })
+
+    it('os botões do cartão do Resultado abrem o guia direto no caminho, por start', () => {
+      expect(guia).to.match(/start: id => \{\n\s+if \(!G\.open\) return open\(id\)/)
+      expect(app).to.match(/if \(path\) window\.serverestGuide\.start\(path\)/)
+    })
   })
 
   describe('Movimento e destaque', () => {
