@@ -179,6 +179,17 @@ describe('Guia "Como usar" (guia.js)', () => {
     })
   })
 
+  describe('Caminho longo, passo 7 ("Envie de novo, com token")', () => {
+    // O token no header é o motivo de enviar de novo: antes do envio, o campo e Executar ficam à vista.
+    it('antes do envio, mostra o Authorization preenchido e Executar em recortes próprios', () => {
+      expect(guia).to.match(/if \(authShown\(\)\) return \[\$\('auth-group'\), q\('#request \.req-bar'\)\]/)
+      expect(guia).to.match(/separate: authShown,/)
+      expect(guia).to.match(/authShown\(\) \? \$\('auth-group'\) : null/)
+      expect(guia).to.match(/if \(authShown\(\)\) out\.push\(fill\('lab\.guide\.learn\.again_auth'\)\)/)
+      ;[ptBr, en, es].forEach(lingua => expect(lingua['lab.guide.learn.again_auth']).to.include('`Authorization`').and.include('header').and.include('token'))
+    })
+  })
+
   describe('Tarefa opcional', () => {
     it('fica fora do que falta, do Feito do passo e do Fazer por mim', () => {
       expect(guia).to.match(/\.find\(task => !task\.done && !task\.optional\)/)
