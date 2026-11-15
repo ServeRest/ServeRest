@@ -1201,8 +1201,9 @@
     // Na segunda vez, o Próximo faz a tarefa que falta e segue: o rótulo diz isso, e o "Fazer por mim" sai.
     const next = q('[data-act="next"]', card)
     q('.guide-label', next).textContent = t(G.blocked ? 'lab.guide.do_next' : 'lab.guide.next')
-    // Feito: o Próximo dá um empurrãozinho.
-    if (done && !wasDone && !force) replay(next, 'is-ready')
+    // Feito: o Próximo brilha três vezes e fica com o halo enquanto o passo estiver feito. O botão é novo a cada
+    // passo, então o brilho para ao sair e recomeça ao voltar a um passo já feito.
+    next.classList.toggle('is-ready', done && !G.blocked)
     const doButton = q('[data-act="do"]', card)
     doButton.hidden = G.blocked || complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing) || (!required.length && !missing)
     doButton.toggleAttribute('aria-busy', G.busy)

@@ -1678,7 +1678,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-foot .btn-primary { padding: 6px 18px; }
 .guide-foot .guide-quiet { padding: 6px 8px; border-color: transparent; background: none; color: var(--graphite); }
 .guide-foot .guide-quiet:hover { background: var(--hover); color: var(--ink); }
-.guide-foot .is-ready { animation: guide-pop 260ms; }
+.guide-foot .is-ready { box-shadow: 0 0 0 4px var(--guide-glow); animation: guide-glow 1.6s ease-in-out 3; }
+/* O passo feito chama o Próximo: três ondas suaves (o fundo clareia e o halo cresce, sem mexer na caixa) e depois
+   o halo parado. O mais claro (80% do roxo) ainda deixa o texto branco acima de 4.5:1. */
+@keyframes guide-glow { 50% { border-color: color-mix(in srgb, var(--purple) 80%, var(--on-purple)); background: color-mix(in srgb, var(--purple) 80%, var(--on-purple)); box-shadow: 0 0 0 7px var(--guide-glow); } }
 .guide-grow { flex: 1; }
 /* Telefone: uma folha presa embaixo. */
 .guide-card.is-docked { left: 0 !important; right: 0; top: auto !important; bottom: 0; width: auto; border-bottom: 0; border-radius: 14px 14px 0 0; }

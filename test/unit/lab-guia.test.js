@@ -111,6 +111,14 @@ describe('Guia "Como usar" (guia.js)', () => {
       expect(guia).to.match(/function animate \(ms, paintStep\) \{\n\s+return new Promise\(resolve => \{\n\s+if \(reduced\(\)\)/)
     })
 
+    // Três ondas e depois o halo parado, enquanto o passo estiver feito; nunca no "Fazer por mim e seguir".
+    it('o Próximo de um passo feito brilha três vezes e fica com o halo, sem o empurrãozinho antigo', () => {
+      expect(cssDoGuia).to.match(/\.guide-foot \.is-ready \{ box-shadow: 0 0 0 4px var\(--guide-glow\); animation: guide-glow 1\.6s ease-in-out 3; \}/)
+      expect(cssDoGuia).to.not.match(/\.is-ready \{ animation: guide-pop/)
+      expect(guia).to.match(/next\.classList\.toggle\('is-ready', done && !G\.blocked\)/)
+      expect(guia).to.not.match(/replay\(next, 'is-ready'\)/)
+    })
+
     it('a camada escura tem um tom em cada tema', () => {
       expect(cssDoGuia).to.include('--guide-dim: rgb(20 22 28 / 0.45)')
       expect(cssDoGuia).to.include('--guide-dim: rgb(0 0 0 / 0.62)')
