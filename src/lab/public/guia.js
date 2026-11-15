@@ -574,11 +574,14 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, side: null, corner: null, loginBroken: false, attnTimer: null }
-  let shade, ring, shield, card, live
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, attnTimer: null, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  let shield, card, live
   let frame = 0
   let lastRender = 0
-  const rings = []
+  // Duas camadas escuras: o recorte anda numa só; quando não dá para andar (o antigo ou o novo fora da janela,
+  // ou um número diferente de recortes), uma some enquanto a outra aparece.
+  const layers = []
+  const EASE = 'cubic-bezier(0.2, 0, 0, 1)'
 
   function node (tag, className, attributes) {
     const item = document.createElement(tag)
@@ -595,10 +598,28 @@
     return item
   }
 
+  const block = event => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
+  function layer () {
+    const box = node('div', 'guide-layer')
+    const shade = node('div', 'guide-shade')
+    box.hidden = true
+    box.append(shade)
+    // Clicar fora: nada acontece na página, e o Fechar pulsa para mostrar a saída.
+    shade.addEventListener('pointerdown', event => {
+      event.preventDefault()
+      nudgeClose()
+    })
+    shade.addEventListener('click', block)
+    return { box, shade, rings: [] }
+  }
+
   function build () {
-    shade = node('div', 'guide-shade')
+    layers.push(layer(), layer())
     shield = node('div', 'guide-shield')
-    ring = node('div', 'guide-ring', { 'aria-hidden': 'true' })
     card = node('div', 'guide-card', { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'guide-title', 'aria-describedby': 'guide-body' })
     const close = button('btn', 'close', t('lab.guide.close') + ' ')
     close.id = 'guide-close'
@@ -622,17 +643,11 @@
     live = el('p', 'sr-only')
     live.setAttribute('aria-live', 'polite')
     card.append(head, progress, title, body, hint, foot, live)
-    document.body.append(shade, shield, ring, card)
-    // Clicar fora: nada acontece na página, e o Fechar pulsa para mostrar a saída.
-    shade.addEventListener('pointerdown', event => {
-      event.preventDefault()
-      nudgeClose()
-    })
-    ;[shade, shield].forEach(layer => layer.addEventListener('click', event => {
-      event.preventDefault()
-      event.stopPropagation()
-    }))
+    card.hidden = true
+    card.style.opacity = '0'
+    document.body.append(...layers.map(item => item.box), shield, card)
     shield.addEventListener('pointerdown', event => event.preventDefault())
+    shield.addEventListener('click', block)
     card.addEventListener('click', onCardClick)
   }
 
@@ -653,13 +668,20 @@
     nudgeClose.timer = setTimeout(() => close.classList.remove('guide-nudge'), 1200)
   }
 
-  function open () {
+  // Abre na tela de boas-vindas ou, com um caminho, direto no primeiro passo dele.
+  function open (path) {
     if (G.open) return
     G.open = true
     if (!card) build()
-    for (const layer of [shade, shield, card, ...rings]) layer.hidden = false
-    showChoice()
+    card.hidden = false
+    G.front = 0
+    G.holes = []
+    paint(layers[0], [], 0)
+    paint(layers[1], [], 0)
     loop()
+    if (!path) return showChoice()
+    G.path = path
+    goTo(0)
   }
 
   function close () {
@@ -667,15 +689,22 @@
     G.open = false
     // Um "Fazer por mim" em andamento para na próxima espera, e o guia reaberto começa livre.
     generation++
+    G.moveId++
     G.busy = false
+    G.going = false
     clearAttention()
     cancelAnimationFrame(frame)
     release()
-    for (const layer of [shade, ring, shield, card, ...rings]) layer.hidden = true
+    card.getAnimations().forEach(item => item.cancel())
+    for (const item of layers) paint(item, [], 0)
+    shield.style.display = 'none'
+    card.hidden = true
+    card.style.opacity = '0'
     document.body.style.paddingBottom = ''
     G.path = null
     G.index = -1
     G.mode = null
+    G.pos = null
     G.loginBroken = false
     if ($('guide-open')) $('guide-open').focus()
   }
@@ -745,36 +774,50 @@
     part('title').textContent = title
   }
 
-  function showChoice () {
-    clearAttention()
-    generation++
-    G.busy = false
-    G.mode = 'choice'
-    G.path = null
-    G.index = -1
-    G.sig = ''
-    setHead([t('lab.guide.open')], 0, t('lab.guide.choose_title'))
-    const list = el('div')
-    list.append(choice(LEARN), choice(TOUR))
-    part('body').replaceChildren(el('p', '', t('lab.guide.choose_intro')), list)
-    part('foot').replaceChildren()
-    part('exit-hint').hidden = true
-    focusTitle()
+  // Abrir, trocar de caminho ou voltar dele: a tela de escolha, sem destaque.
+  async function showChoice () {
+    await screen(() => {
+      G.mode = 'choice'
+      G.path = null
+      G.index = -1
+      G.sig = ''
+      setHead([t('lab.guide.open')], 0, t('lab.guide.choose_title'))
+      const list = el('div')
+      list.append(choice(LEARN), choice(TOUR))
+      part('body').replaceChildren(el('p', '', t('lab.guide.choose_intro')), list)
+      part('foot').replaceChildren()
+      part('exit-hint').hidden = true
+    })
   }
 
-  function showEnd () {
-    clearAttention()
-    generation++
-    G.busy = false
-    const path = PATHS[G.path]
-    G.mode = 'end'
-    G.sig = ''
-    setHead([t(path.name)], 100, t('lab.guide.end_title'))
-    const list = el('div')
-    list.append(choice(PATHS[path.offer]))
-    part('body').replaceChildren(...path.end.map(key => el('p', '', fill(key))), list)
-    part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close')))
-    focusTitle()
+  async function showEnd () {
+    await screen(() => {
+      const path = PATHS[G.path]
+      G.mode = 'end'
+      G.sig = ''
+      setHead([t(path.name)], 100, t('lab.guide.end_title'))
+      const list = el('div')
+      list.append(choice(PATHS[path.offer]))
+      part('body').replaceChildren(...path.end.map(key => el('p', '', fill(key))), list)
+      part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close')))
+      part('exit-hint').hidden = true
+    })
+  }
+
+  // Uma tela sem destaque (escolha ou fim): o "Fazer por mim" em andamento para, e o cartão troca sumido.
+  async function screen (render) {
+    if (G.going) return
+    G.going = true
+    try {
+      if (G.moving) await G.moving
+      clearAttention()
+      generation++
+      G.busy = false
+      G.mode = 'wait'
+      await move(render, true)
+    } finally {
+      G.going = false
+    }
   }
 
   function step () {
@@ -805,43 +848,52 @@
 
   async function goTo (index) {
     // Um clique a mais no Próximo enquanto o passo se prepara não pula um passo.
-    if (G.mode === 'wait') return
-    clearAttention()
+    if (G.going) return
     const steps = PATHS[G.path].steps
     if (index >= steps.length) return showEnd()
     if (index < 0) return showChoice()
-    const s = steps[index]
-    // Enquanto o passo se prepara, nada dele vale ainda: nem destaque, nem cliques contados. Um "Fazer por mim"
-    // do passo anterior para aqui.
-    const started = ++generation
-    G.busy = false
-    G.mode = 'wait'
-    if (s.prepare) {
-      try {
-        s.prepare()
-      } catch (e) {}
-      await sleep(80)
-    }
-    if (started !== generation) return
-    Object.assign(G, { mode: 'step', index, sig: '', targetKey: null, side: null, corner: null })
-    part('exit-hint').hidden = true
-    // O passo começa do zero: nada feito antes conta. Se a ação dele já estiver feita na página e não der para
-    // refazer, o passo só explica (preDone).
-    G.ev = { routes: {} }
-    G.sendAt = P.lastSend()
-    G.entry = { flowOpen: P.flowOpen() }
-    G.pre = false
+    G.going = true
     try {
-      G.pre = !!(s.preDone && s.preDone())
-    } catch (e) {}
-    const n = index + 1
-    setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), el('span', '', t(PATHS[G.path].name))], (n / steps.length) * 100, t(s.title))
-    part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
-      button('btn btn-primary', 'next', t('lab.guide.next')))
-    renderBody(true)
-    focusTitle()
-    announceTarget()
-    startAttention(s)
+      // Uma troca de destaque dentro do passo termina antes: o cartão nunca está em duas viagens.
+      if (G.moving) await G.moving
+      clearAttention()
+      const s = steps[index]
+      // Enquanto o passo se prepara, nada dele vale ainda: nem destaque, nem cliques contados. Um "Fazer por mim"
+      // do passo anterior para aqui.
+      const started = ++generation
+      G.busy = false
+      G.mode = 'wait'
+      // O preparo (abrir a lista, o fluxo, a aba) corre enquanto o cartão some.
+      if (s.prepare) {
+        try {
+          s.prepare()
+        } catch (e) {}
+      }
+      await move(() => {
+        if (started !== generation) return
+        Object.assign(G, { mode: 'step', index, sig: '', targetKey: null })
+        part('exit-hint').hidden = true
+        // O passo começa do zero: nada feito antes conta. Se a ação dele já estiver feita na página e não der para
+        // refazer, o passo só explica (preDone).
+        G.ev = { routes: {} }
+        G.sendAt = P.lastSend()
+        G.entry = { flowOpen: P.flowOpen() }
+        G.pre = false
+        try {
+          G.pre = !!(s.preDone && s.preDone())
+        } catch (e) {}
+        const n = index + 1
+        setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), el('span', '', t(PATHS[G.path].name))], (n / steps.length) * 100, t(s.title))
+        part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
+          button('btn btn-primary', 'next', t('lab.guide.next')))
+        renderBody(true)
+      }, true)
+      if (started !== generation || !G.open) return
+      announceTarget()
+      startAttention(s)
+    } finally {
+      G.going = false
+    }
   }
 
   function announceTarget () {
@@ -954,7 +1006,128 @@
     part('title').focus({ preventScroll: true })
   }
 
-  /* ---------- Posição: recorte, anel e cartão, a cada quadro ---------- */
+  /* ---------- Movimento: o cartão nunca viaja ---------- */
+
+  // A troca de passo (ou de destaque dentro dele) segue sempre a mesma ordem: o cartão some; o passo se prepara
+  // e a página rola até o destaque, com o recorte antigo parado onde estava; o recorte e o anel vão juntos do
+  // antigo ao novo; o cartão aparece já no lugar, sem viajar. Com menos movimento, a mesma ordem, sem animação.
+  async function move (apply, focus) {
+    const id = ++G.moveId
+    let done
+    const moving = new Promise(resolve => { done = resolve })
+    G.moving = moving
+    try {
+      const from = G.holes.slice()
+      shield.style.display = 'none'
+      await fadeOut()
+      if (id !== G.moveId || !G.open) return
+      if (apply) apply()
+      setPadding()
+      isolate(keepList())
+      await frames(2)
+      if (id !== G.moveId || !G.open) return
+      await scrollToTarget(currentTargets())
+      if (id !== G.moveId || !G.open) return
+      const els = currentTargets()
+      G.targetKey = keyOf(els)
+      G.nextKey = null
+      await morph(from, () => holesFor(currentTargets()))
+      if (id !== G.moveId || !G.open) return
+      const toward = placeCard(currentTargets())
+      if (focus) focusTitle()
+      paintShield()
+      await fadeIn(toward)
+    } finally {
+      // Quem esperava esta viagem segue; uma viagem que começou depois dela continua marcada.
+      if (G.moving === moving) G.moving = null
+      done()
+    }
+  }
+
+  const frames = n => new Promise(resolve => {
+    const tick = () => --n <= 0 ? resolve() : requestAnimationFrame(tick)
+    requestAnimationFrame(tick)
+  })
+
+  // cubic-bezier(0.2, 0, 0, 1) por quadro, para o recorte e o anel andarem com a mesma curva do cartão.
+  function ease (x) {
+    const curve = (a, b, s) => 3 * a * (1 - s) * (1 - s) * s + 3 * b * (1 - s) * s * s + s * s * s
+    let lo = 0
+    let hi = 1
+    for (let i = 0; i < 20; i++) {
+      const mid = (lo + hi) / 2
+      if (curve(0.2, 0, mid) < x) lo = mid
+      else hi = mid
+    }
+    return curve(0, 1, (lo + hi) / 2)
+  }
+
+  // Chama paint(e) a cada quadro por ms milissegundos, com e de 0 a 1 na curva; com menos movimento, só o fim.
+  function animate (ms, paintStep) {
+    return new Promise(resolve => {
+      if (reduced()) {
+        paintStep(1)
+        return resolve()
+      }
+      const t0 = performance.now()
+      const tick = now => {
+        if (!G.open) return resolve()
+        const p = Math.min(1, (now - t0) / ms)
+        paintStep(ease(p))
+        if (p < 1) requestAnimationFrame(tick)
+        else resolve()
+      }
+      requestAnimationFrame(tick)
+    })
+  }
+
+  function fadeOut () {
+    if (card.style.opacity === '0') return
+    card.style.opacity = '0'
+    if (reduced()) return
+    return card.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-out' }).finished.catch(() => {})
+  }
+
+  // Aparece andando 4 px na direção do destaque.
+  function fadeIn ([dx, dy]) {
+    card.style.opacity = ''
+    if (reduced()) return
+    return card.animate([{ opacity: 0, transform: `translate(${dx}px, ${dy}px)` }, { opacity: 1, transform: 'none' }], { duration: 180, easing: EASE }).finished.catch(() => {})
+  }
+
+  const lerp = (a, b, e) => a + (b - a) * e
+  const box = (left, top, right, bottom) => ({ left, top, right, bottom, width: right - left, height: bottom - top })
+  const onScreen = r => r.right > 0 && r.bottom > 0 && r.left < document.documentElement.clientWidth && r.top < window.innerHeight
+
+  // O recorte e o anel vão do antigo ao novo num só movimento quando os dois estão na janela; senão, trocam
+  // por um esmaecer. Sem destaque dos dois lados, a camada escura fica como está.
+  async function morph (from, to) {
+    const end = to()
+    const front = layers[G.front]
+    const back = layers[1 - G.front]
+    // Logo depois de abrir, ainda não há camada escura: ela aparece junto com o cartão.
+    const base = front.box.hidden ? 0 : 1
+    if (!from.length && !end.length) {
+      G.holes = []
+      return base ? paint(front, [], 1) : animate(180, e => paint(front, [], e))
+    }
+    if (base && from.length && from.length === end.length && from.concat(end).every(onScreen)) {
+      return animate(280, e => {
+        const now = to()
+        G.holes = now.length === from.length ? now.map((r, i) => box(lerp(from[i].left, r.left, e), lerp(from[i].top, r.top, e), lerp(from[i].right, r.right, e), lerp(from[i].bottom, r.bottom, e))) : now
+        paint(front, G.holes, 1)
+      })
+    }
+    await animate(280, e => {
+      G.holes = to()
+      paint(front, from, base * (1 - e))
+      paint(back, G.holes, e)
+    })
+    paint(front, [], 0)
+    G.front = 1 - G.front
+  }
+
+  /* ---------- Posição: recorte, anel e cartão ---------- */
 
   function narrow () {
     return window.innerWidth < 640
@@ -969,30 +1142,44 @@
     return list.filter(visible)
   }
 
+  // O que identifica o destaque: os elementos, menos o menu do modo e o balão da barra de tempo, que abrem e
+  // fecham dentro dele sem trocar de lugar.
+  function keyOf (els) {
+    return els.filter(item => item.id !== 'run-menu' && item.id !== 'tl-pop').map(item => item.id || item.className).join('|')
+  }
+
   function unionRect (nodes) {
     const rects = nodes.map(item => item.getBoundingClientRect()).filter(rect => rect.width || rect.height)
     if (!rects.length) return null
     const pad = 6
-    const left = Math.min(...rects.map(rect => rect.left)) - pad
-    const top = Math.min(...rects.map(rect => rect.top)) - pad
-    const right = Math.max(...rects.map(rect => rect.right)) + pad
-    const bottom = Math.max(...rects.map(rect => rect.bottom)) + pad
-    return { left, top, right, bottom, width: right - left, height: bottom - top }
+    return box(Math.min(...rects.map(rect => rect.left)) - pad, Math.min(...rects.map(rect => rect.top)) - pad,
+      Math.max(...rects.map(rect => rect.right)) + pad, Math.max(...rects.map(rect => rect.bottom)) + pad)
   }
 
-  function holePath (r, W, H) {
-    const x = Math.max(r.left, -10)
-    const y = Math.max(r.top, -10)
-    const w = Math.min(r.right, W + 10) - x
-    const h = Math.min(r.bottom, H + 10) - y
-    if (w <= 0 || h <= 0) return ''
-    const k = Math.min(8, w / 2, h / 2)
+  // Os recortes do passo, já cortados na janela (e, no telefone, na borda de cima da folha): o anel usa o
+  // mesmo retângulo, então nunca se separa do recorte.
+  function holesFor (els) {
+    const r = unionRect(els)
+    if (!r) return []
+    const s = G.mode === 'step' ? step() : null
+    const list = s && s.separate ? mergeRects(els.map(item => unionRect([item])).filter(Boolean)) : [r]
+    const W = document.documentElement.clientWidth
+    const bottom = narrow() ? card.getBoundingClientRect().top : window.innerHeight + 10
+    return list.map(h => box(Math.max(h.left, -10), Math.max(h.top, -10), Math.min(h.right, W + 10), Math.min(h.bottom, bottom)))
+      .filter(h => h.width > 0 && h.height > 0)
+  }
+
+  function holePath (r) {
+    const k = Math.min(10, r.width / 2, r.height / 2)
+    const [x, y, w, h] = [r.left, r.top, r.width, r.height]
     return ` M${x + k} ${y}H${x + w - k}A${k} ${k} 0 0 1 ${x + w} ${y + k}V${y + h - k}A${k} ${k} 0 0 1 ${x + w - k} ${y + h}H${x + k}A${k} ${k} 0 0 1 ${x} ${y + h - k}V${y + k}A${k} ${k} 0 0 1 ${x + k} ${y}Z`
   }
 
   // Com evenodd, recortes sobrepostos se anulariam: por isso eles chegam aqui já unidos (mergeRects).
-  function roundedHoles (rects, W, H) {
-    return `path(evenodd, 'M0 0H${W}V${H}H0Z${rects.map(r => holePath(r, W, H)).join('')}')`
+  function roundedHoles (rects) {
+    const W = document.documentElement.clientWidth + 20
+    const H = window.innerHeight + 20
+    return `path(evenodd, 'M-10 -10H${W}V${H}H-10Z${rects.map(holePath).join('')}')`
   }
 
   function mergeRects (rects) {
@@ -1004,12 +1191,8 @@
           const a = list[i]
           const b = list[j]
           if (a.left <= b.right && b.left <= a.right && a.top <= b.bottom && b.top <= a.bottom) {
-            const left = Math.min(a.left, b.left)
-            const top = Math.min(a.top, b.top)
-            const right = Math.max(a.right, b.right)
-            const bottom = Math.max(a.bottom, b.bottom)
             list.splice(j, 1)
-            list[i] = { left, top, right, bottom, width: right - left, height: bottom - top }
+            list[i] = box(Math.min(a.left, b.left), Math.min(a.top, b.top), Math.max(a.right, b.right), Math.max(a.bottom, b.bottom))
             again = true
             break
           }
@@ -1019,22 +1202,40 @@
     return list
   }
 
-  function paintRings (holes) {
-    while (rings.length < holes.length) {
-      const copy = ring.cloneNode()
-      copy.hidden = false
-      document.body.append(copy)
-      rings.push(copy)
+  // Uma camada: a sombra com os recortes e um anel em cada um, na mesma opacidade.
+  function paint (L, holes, opacity) {
+    L.box.hidden = opacity <= 0
+    L.box.style.opacity = opacity >= 1 ? '' : String(opacity)
+    if (L.box.hidden) return
+    L.shade.style.clipPath = holes.length ? roundedHoles(holes) : 'none'
+    while (L.rings.length < holes.length) {
+      const ring = node('div', 'guide-ring', { 'aria-hidden': 'true' })
+      L.box.append(ring)
+      L.rings.push(ring)
     }
-    rings.forEach((item, index) => {
+    L.rings.forEach((ring, index) => {
       const r = holes[index]
-      if (!r || !G.open) {
-        item.style.display = 'none'
-        return
-      }
-      Object.assign(item.style, { display: 'block', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
+      ring.hidden = !r
+      if (r) Object.assign(ring.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
     })
-    ring.style.display = 'none'
+  }
+
+  // Num passo que só explica, um escudo transparente cobre o recorte; os links do passo continuam clicáveis.
+  function paintShield () {
+    const s = G.mode === 'step' ? step() : null
+    const r = G.holes.length ? G.holes.reduce((a, b) => box(Math.min(a.left, b.left), Math.min(a.top, b.top), Math.max(a.right, b.right), Math.max(a.bottom, b.bottom))) : null
+    if (!r || !s || acts(s)) {
+      shield.style.display = 'none'
+      return
+    }
+    Object.assign(shield.style, { display: 'block', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
+    let links = []
+    try {
+      links = s.openLinks ? s.openLinks().filter(visible) : []
+    } catch (e) {}
+    shield.style.clipPath = links.length
+      ? `path(evenodd, 'M0 0H${r.width}V${r.height}H0Z ${links.map(link => { const b = link.getBoundingClientRect(); return `M${b.left - r.left - 2} ${b.top - r.top - 2}h${b.width + 4}v${b.height + 4}h${-(b.width + 4)}Z` }).join(' ')}')`
+      : 'none'
   }
 
   // O que precisa ficar à vista no passo: o anchor do passo (um elemento ou uma lista) ou o primeiro destaque.
@@ -1048,68 +1249,58 @@
     return list.length ? list : els.slice(0, 1)
   }
 
-  function scrollToAnchor (els) {
-    const list = anchorEls(els)
-    if (!list.length) return
-    const behavior = reduced() ? 'auto' : 'smooth'
-    if (list.length > 1) {
-      const u = unionRect(list)
-      if (u.top < 8 || u.bottom > window.innerHeight - 8) window.scrollTo({ top: window.scrollY + u.top - 16, behavior })
-      return
+  // Dentro de uma lista com rolagem própria (as rotas, o Histórico), o item vai para o meio dela, na hora.
+  function revealInList (item) {
+    for (let at = item.parentElement; at && at !== document.body; at = at.parentElement) {
+      if (at.scrollHeight <= at.clientHeight + 1 || !/auto|scroll/.test(getComputedStyle(at).overflowY)) continue
+      const a = at.getBoundingClientRect()
+      const r = item.getBoundingClientRect()
+      if (r.top < a.top || r.bottom > a.bottom) at.scrollTop += r.top - a.top - (a.height - r.height) / 2
     }
-    const anchor = list[0]
-    const r = anchor.getBoundingClientRect()
-    const all = unionRect(els)
-    if (narrow()) {
-      // No telefone o cartão fica embaixo: o destaque precisa caber na faixa de cima.
-      const room = window.innerHeight - card.offsetHeight - 24
-      const fitsAll = !!all && all.height <= room
-      const top = fitsAll ? all.top : r.top - 8
-      if (top >= 8 && (fitsAll ? all.bottom : r.bottom) <= room) return
-      anchor.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-      const r2 = fitsAll ? unionRect(els) : anchor.getBoundingClientRect()
-      window.scrollTo({ top: window.scrollY + r2.top - 12, behavior })
-      return
-    }
-    if (r.top < 8 || r.bottom > window.innerHeight - 8) anchor.scrollIntoView({ block: r.height > window.innerHeight * 0.7 ? 'start' : 'center', inline: 'nearest', behavior })
   }
 
-  function place () {
-    const W = document.documentElement.clientWidth
+  // Rola a página até o destaque: de uma vez quando a distância passa de uma tela, suave quando é menor. Espera a
+  // rolagem acabar (scrollend, ou o destaque parado por dois quadros), no máximo 900 ms.
+  async function scrollToTarget (els, instant) {
+    const list = anchorEls(els)
+    if (!list.length) return
+    list.forEach(revealInList)
     const H = window.innerHeight
-    const els = currentTargets()
-    const s = G.mode === 'step' ? step() : null
-    const active = !!s && acts(s)
-    const key = [...els, ...(s ? anchorEls(els) : [])].map(item => item.id || item.className).join('|') + '|' + G.index + G.mode
-    if (key !== G.targetKey) {
-      G.targetKey = key
-      G.side = null
-      G.corner = null
-      isolate(keepList())
-      if (els.length) {
-        scrollToAnchor(els)
-        if (s) announceTarget()
+    const a = unionRect(list)
+    let delta = 0
+    if (narrow()) {
+      // No telefone a folha fica embaixo: o destaque e o anchor precisam caber na faixa de cima.
+      const room = card.getBoundingClientRect().top - 8
+      const all = unionRect(els)
+      const r = all && all.height <= room - 8 ? all : a
+      if (r.top < 8 || r.bottom > room) delta = r.top - 12
+    } else if (a.top < 8 || a.bottom > H - 8) {
+      delta = list.length > 1 || a.height > H * 0.7 ? a.top - 16 : (a.top + a.bottom) / 2 - H / 2
+    }
+    const goal = Math.round(Math.min(Math.max(0, window.scrollY + delta), document.documentElement.scrollHeight - H))
+    const far = Math.abs(goal - window.scrollY) > H
+    if (Math.abs(goal - window.scrollY) >= 1) window.scrollTo({ top: goal, behavior: instant || far || reduced() ? 'instant' : 'smooth' })
+    await new Promise(resolve => {
+      const t0 = performance.now()
+      let ended = false
+      let last = ''
+      let still = 0
+      const onEnd = () => { ended = true }
+      window.addEventListener('scrollend', onEnd)
+      const tick = () => {
+        const r = unionRect(list)
+        const key = r ? [r.left, r.top, r.width, r.height].map(Math.round).join() : ''
+        still = key === last ? still + 1 : 0
+        last = key
+        const arrived = ended || Math.abs(window.scrollY - goal) < 1
+        if ((arrived && still >= 2) || performance.now() - t0 > 900 || !G.open) {
+          window.removeEventListener('scrollend', onEnd)
+          return resolve()
+        }
+        requestAnimationFrame(tick)
       }
-    }
-    const r = unionRect(els)
-    // Destaques distantes (separate) ganham um recorte e um anel cada; os que se tocam viram um só.
-    const holes = r && s && s.separate ? mergeRects(els.map(item => unionRect([item])).filter(Boolean)) : (r ? [r] : [])
-    shade.style.clipPath = holes.length ? roundedHoles(holes, W, H) : 'none'
-    paintRings(holes)
-    if (r) {
-      Object.assign(shield.style, { display: active ? 'none' : 'block', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' })
-      // Num passo que só explica, os links do passo continuam clicáveis: o escudo tem um furo em cada um.
-      let links = []
-      try {
-        links = s && s.openLinks ? s.openLinks().filter(visible) : []
-      } catch (e) {}
-      shield.style.clipPath = !active && links.length
-        ? `path(evenodd, 'M0 0H${r.width}V${r.height}H0Z ${links.map(link => { const b = link.getBoundingClientRect(); return `M${b.left - r.left - 2} ${b.top - r.top - 2}h${b.width + 4}v${b.height + 4}h${-(b.width + 4)}Z` }).join(' ')}')`
-        : 'none'
-    } else {
-      shield.style.display = 'none'
-    }
-    placeCard(r, W, H, els)
+      requestAnimationFrame(tick)
+    })
   }
 
   function overlap (a, b) {
@@ -1119,55 +1310,92 @@
     return w > 0 && h > 0 ? w * h : 0
   }
 
-  function placeCard (r, W, H, els) {
+  // O lado é escolhido uma vez, quando o cartão está sumido; devolve a direção (dx, dy) em que ele entra.
+  function placeCard (els) {
+    const W = document.documentElement.clientWidth
+    const H = window.innerHeight
     const cw = card.offsetWidth
     const ch = card.offsetHeight
     const m = 16
-    card.classList.toggle('is-docked', narrow() && !!r)
+    const gap = 14
+    card.classList.toggle('is-docked', narrow() && G.mode === 'step')
     if (narrow()) {
+      G.pos = null
       card.style.left = ''
-      card.style.top = r ? '' : Math.max(12, (H - ch) / 2) + 'px'
-      document.body.style.paddingBottom = r ? (ch + 24) + 'px' : ''
-      return
+      card.style.top = G.mode === 'step' ? '' : Math.max(12, (H - ch) / 2) + 'px'
+      return [0, 4]
     }
-    document.body.style.paddingBottom = ''
+    const r = G.holes.length ? G.holes.reduce((a, b) => box(Math.min(a.left, b.left), Math.min(a.top, b.top), Math.max(a.right, b.right), Math.max(a.bottom, b.bottom))) : null
     if (!r) {
-      card.style.left = Math.round((W - cw) / 2) + 'px'
-      card.style.top = Math.round(Math.max(m, (H - ch) / 2)) + 'px'
-      return
+      G.pos = { x: Math.round((W - cw) / 2), y: Math.round(Math.max(m, (H - ch) / 2)), sy: null }
+      followCard()
+      return [0, 4]
     }
-    const fits = { right: r.right + m + cw <= W - m, left: r.left - m - cw >= m, bottom: r.bottom + m + ch <= H - m, top: r.top - m - ch >= m }
-    if (!G.side || (G.side !== 'corner' && !fits[G.side])) G.side = ['right', 'left', 'bottom', 'top'].find(side => fits[side]) || 'corner'
+    const a = unionRect(anchorEls(els)) || r
+    const midY = (a.top + a.bottom) / 2
+    const midX = (a.left + a.right) / 2
     const clampY = y => Math.min(Math.max(m, y), H - ch - m)
     const clampX = x => Math.min(Math.max(m, x), W - cw - m)
+    const fits = { right: r.right + gap + cw <= W - m, left: r.left - gap - cw >= m, bottom: r.bottom + gap + ch <= H - m, top: r.top - gap - ch >= m }
+    const side = ['right', 'left', 'bottom', 'top'].find(name => fits[name]) || 'corner'
     let x, y
-    if (G.side === 'right') [x, y] = [r.right + m, clampY(r.top)]
-    else if (G.side === 'left') [x, y] = [r.left - m - cw, clampY(r.top)]
-    else if (G.side === 'bottom') [x, y] = [clampX(r.left), r.bottom + m]
-    else if (G.side === 'top') [x, y] = [clampX(r.left), r.top - m - ch]
+    if (side === 'right') [x, y] = [r.right + gap, clampY(midY - 48)]
+    else if (side === 'left') [x, y] = [r.left - gap - cw, clampY(midY - 48)]
+    else if (side === 'bottom') [x, y] = [clampX(midX - cw / 2), r.bottom + gap]
+    else if (side === 'top') [x, y] = [clampX(midX - cw / 2), r.top - gap - ch]
     else {
       // Sem lado livre: o canto da janela que menos cobre o que o passo quer mostrar (o anchor), depois o destaque.
-      const a = unionRect(anchorEls(els))
       const corners = [[W - cw - m, H - ch - m], [m, H - ch - m], [W - cw - m, m], [m, m]]
       const score = ([cx, cy]) => {
-        const c = { left: cx, top: cy, right: cx + cw, bottom: cy + ch }
+        const c = box(cx, cy, cx + cw, cy + ch)
         return overlap(c, a) * 1000 + overlap(c, r)
       }
-      const best = corners.reduce((b, c) => score(c) < score(b) ? c : b)
-      // Fica no canto atual enquanto ele não cobrir o anchor mais que o melhor: o cartão não pula ao rolar.
-      const current = G.corner && corners.find(c => c[0] === G.corner[0] && c[1] === G.corner[1])
-      G.corner = current && score(current) <= score(best) * 1.05 + 1 ? current : best
-      ;[x, y] = G.corner
+      ;[x, y] = corners.reduce((best, c) => score(c) < score(best) ? c : best)
     }
-    // O cartão nunca sai da janela, mesmo quando o destaque saiu dela.
-    card.style.left = Math.round(clampX(x)) + 'px'
-    card.style.top = Math.round(clampY(y)) + 'px'
+    G.pos = { x: Math.round(clampX(x)), y: Math.round(clampY(y)), sy: window.scrollY, side }
+    followCard()
+    return { right: [4, 0], left: [-4, 0], bottom: [0, 4], top: [0, -4] }[side] || [0, 4]
+  }
+
+  // Durante o passo, o cartão só acompanha a rolagem da página, sem animação, e nunca sai da janela.
+  function followCard () {
+    if (!G.pos || narrow()) return
+    const H = window.innerHeight
+    const y = G.pos.sy === null ? G.pos.y : G.pos.y - (window.scrollY - G.pos.sy)
+    card.style.left = G.pos.x + 'px'
+    card.style.top = Math.round(Math.min(Math.max(16, y), H - card.offsetHeight - 16)) + 'px'
+  }
+
+  // No telefone, a página ganha embaixo a altura da folha, para o fim dela poder subir acima do cartão.
+  function setPadding () {
+    const docked = narrow() && G.mode === 'step'
+    card.classList.toggle('is-docked', docked)
+    document.body.style.paddingBottom = docked ? (card.offsetHeight + 24) + 'px' : ''
   }
 
   function loop () {
     if (!G.open) return
     frame = requestAnimationFrame(loop)
-    place()
+    if (G.moving) return
+    if (G.mode === 'step') {
+      const els = currentTargets()
+      const key = keyOf(els)
+      // O destaque trocou dentro do passo (Executar e depois o fluxo): a mesma viagem da troca de passo, depois de
+      // três quadros iguais, para um redesenho da página não disparar nada.
+      if (els.length && key !== G.targetKey) {
+        G.keyFrames = key === G.nextKey ? G.keyFrames + 1 : 1
+        G.nextKey = key
+        if (G.keyFrames >= 3 && !G.going) {
+          move(null, false).then(announceTarget)
+          return
+        }
+      } else G.nextKey = null
+      if (els.length) G.holes = holesFor(els)
+    } else G.holes = []
+    paint(layers[G.front], G.holes, 1)
+    paintShield()
+    setPadding()
+    followCard()
     const now = performance.now()
     if (now - lastRender > 200) {
       lastRender = now
@@ -1175,6 +1403,20 @@
       else isolate(keepList())
     }
   }
+
+  // Mudou o tamanho da janela: o destaque volta à vista e o cartão escolhe o lado de novo, sem animação.
+  window.addEventListener('resize', () => {
+    clearTimeout(G.resizeTimer)
+    G.resizeTimer = setTimeout(async () => {
+      if (!G.open || G.moving || G.going) return
+      setPadding()
+      const els = currentTargets()
+      if (els.length) await scrollToTarget(els, true)
+      if (G.moving || !G.open) return
+      G.holes = holesFor(currentTargets())
+      placeCard(currentTargets())
+    }, 150)
+  })
 
   /* ---------- Teclado: Esc fecha (o Tab já fica no cartão e no destaque, pelo inert) ---------- */
 
@@ -1188,13 +1430,13 @@
 
   // Para app.js, que abre o guia depois de baixar este arquivo, e para os testes.
   window.serverestGuide = {
-    open,
     close,
+    open: () => open(),
     start: id => {
-      open()
+      if (!G.open) return open(id)
       G.path = id
       goTo(0)
     },
-    state: () => ({ open: G.open, path: G.path, index: G.index, mode: G.mode })
+    state: () => ({ open: G.open, path: G.path, index: G.index, mode: G.mode, moving: !!G.moving || G.going })
   }
 })()

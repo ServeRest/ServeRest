@@ -1559,12 +1559,13 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-open[aria-busy] { cursor: progress; opacity: 0.7; }
 .guide-open + .bar-end { margin-left: 0; }
 @container page (max-width: 760px) { .guide-open + .bar-end { margin-left: auto; } }
-.guide-shade, .guide-shield, .guide-ring { position: fixed; z-index: 1000; }
-.guide-shade { inset: 0; background: rgb(0 0 0 / 0.45); cursor: not-allowed; }
-.guide-ring { pointer-events: none; border: 2px solid var(--accent); border-radius: 8px; box-shadow: 0 0 0 2px var(--surface); }
+/* Cada camada leva a sombra com os recortes e os anéis: as duas se cruzam quando o recorte não pode andar. */
+.guide-layer, .guide-shield { position: fixed; z-index: 1000; }
+.guide-layer { inset: 0; pointer-events: none; }
+.guide-shade { position: absolute; inset: 0; pointer-events: auto; background: rgb(0 0 0 / 0.45); cursor: not-allowed; }
+.guide-ring { position: fixed; pointer-events: none; border: 2px solid var(--accent); border-radius: 10px; box-shadow: 0 0 0 2px var(--surface); }
 .guide-card { position: fixed; z-index: 1001; width: min(23rem, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; padding: 12px 16px 14px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
 .guide-card.is-docked { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; max-height: 46vh; }
-.guide-ring, .guide-card:not(.is-docked) { transition: 0.18s; transition-property: left, top, width, height; }
 .guide-head, .guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .guide-kicker { flex: 1; display: grid; font-size: 0.75rem; color: var(--graphite); }
 .guide-nudge { animation: guide-nudge 0.6s 2; border-color: var(--accent); color: var(--accent-strong); }
@@ -1594,5 +1595,5 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-choice:hover, .guide-choice:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
 .guide-attn { animation: guide-attn 0.9s 3; }
 @keyframes guide-attn { 50% { box-shadow: 0 0 0 3px var(--accent); } }
-@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-shake, .guide-attn { animation: none; } .guide-ring, .guide-card { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-shake, .guide-attn { animation: none; } }
 @media (forced-colors: active) { .guide-ring { border-color: Highlight; } }
