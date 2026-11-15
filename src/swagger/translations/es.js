@@ -544,7 +544,7 @@ module.exports = {
   'lab.feedback.promise_questions': '7 preguntas',
   'lab.feedback.promise_login': 'sin inicio de sesión',
   'lab.feedback.invite_go': 'Responder en 2 minutos',
-  'lab.feedback.row_title': 'Tu opinión sobre esta página',
+  'lab.feedback.row_title': 'Su opinión sobre esta página',
   'lab.feedback.thanks_title': 'Gracias por su opinión',
   'lab.feedback.thanks_text': 'Ayuda a decidir qué cambia en esta página.',
   'lab.feedback.footer': 'Opinar sobre esta página',
