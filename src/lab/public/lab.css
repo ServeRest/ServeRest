@@ -212,10 +212,9 @@ button { cursor: pointer; }
    o foco, o sublinhado fica cheio e a seta aparece. */
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
-.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a, .docs-link, .version-link { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.docs-link, .version-link { text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .res-headers dt a, .res-headers dt a:hover { color: inherit; }
-.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible, .docs-link:hover, .docs-link:focus-visible, .version-link:hover, .version-link:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
 .method-link > span[aria-hidden="true"], .status-link > span[aria-hidden="true"], .head-doc-link > span[aria-hidden="true"], .res-headers dt a > span[aria-hidden="true"] { visibility: hidden; }
 .method-link:hover > span[aria-hidden="true"], .method-link:focus-visible > span[aria-hidden="true"], .status-link:hover > span[aria-hidden="true"], .status-link:focus-visible > span[aria-hidden="true"], .head-doc-link:hover > span[aria-hidden="true"], .head-doc-link:focus-visible > span[aria-hidden="true"], .res-headers dt a:hover > span[aria-hidden="true"], .res-headers dt a:focus-visible > span[aria-hidden="true"] { visibility: visible; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -237,96 +236,169 @@ a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
    inteira; o conteúdo dela usa o mesmo recipiente. */
 .wrap { width: 100%; max-width: 1800px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
 
-/* Barra superior: a mesma do Swagger, nos dois esquemas */
-.topbar { background: var(--bar-bg); color: var(--bar-fg); border-bottom: 20px solid var(--purple); }
-.topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
+/* Barra superior: uma linha de 64 px (56 no telefone) e a faixa roxa. Tudo em px: a barra é a mesma nos três
+   tamanhos de texto. */
+.topbar { background: var(--bar-bg); color: var(--bar-fg); }
+.topbar-inner { position: relative; display: flex; align-items: center; height: 64px; }
 .topbar :focus-visible { outline-color: var(--bar-fg); }
-.brand { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: 32px; flex: none; }
 /* A logo completa (a arte da marca, recortada) como máscara: branca na barra. O PNG fica no dobro da maior
    altura mostrada, 88 px; a proporção e as divisas do degradê do Sobre seguem as da arte de 4005 x 1536. */
 .logo { display: block; flex: none; height: 44px; aspect-ratio: 4005 / 1536; background-color: var(--bar-fg); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
-/* Os textos da barra em px, como os botões: a barra fica igual nos três tamanhos de texto, e A− e A+ não
-   saem de baixo do ponteiro em nenhuma largura. */
-.version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
-.version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
-.version-link { position: relative; color: inherit; }
-.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); }
-.docs-link { position: relative; }
-.version-link .hover-arrow, .docs-link .hover-arrow { position: absolute; left: 100%; margin-left: 2px; visibility: hidden; text-decoration: none; }
-.version-link:hover .hover-arrow, .version-link:focus-visible .hover-arrow, .docs-link:hover .hover-arrow, .docs-link:focus-visible .hover-arrow { visibility: visible; }
-/* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
-.version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
+/* A etiqueta mostra "v3.4.0"; o leitor de tela e o menu do telefone, "versão 3.4.0" (.v-long). */
+.version-box { position: relative; display: flex; align-items: center; gap: 6px; }
+.version-tag { font-size: 12px; line-height: 1; color: var(--bar-muted); border: 1px solid #444444; border-radius: 4px; padding: 5px 6px; text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.version-tag:hover, .version-tag:focus-visible { color: var(--bar-fg); border-color: #999999; }
+.version-tag .m-arrow { display: none; }
+.brand .v-long { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Aviso de versão nova, colado na etiqueta; o ponto some quando o painel dessa versão já foi aberto. */
+.version-notice { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 24px; min-height: 24px; font-size: 12px; font-weight: 600; color: var(--bar-notice); white-space: nowrap; }
 .version-notice:hover { color: var(--bar-fg); }
-/* Com o número da versão, o aviso é um botão sublinhado, com um ponto enquanto o painel dessa versão não
-   foi aberto; o painel abre logo abaixo, nas cores da página (segue o tema mesmo sobre a barra preta). */
-button.version-notice { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-family: inherit; line-height: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+button.version-notice { padding: 0 2px; border: 0; background: none; font-family: inherit; line-height: 1; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
 button.version-notice[aria-expanded="true"] { color: var(--bar-fg); }
 .version-notice .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 20; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; }
+.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 30; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; white-space: normal; text-align: left; }
 .rel-pop[hidden] { display: none; }
 .rel-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
 .rel-pop .code-page { padding: 6px 10px; }
 .rel-pop a { color: var(--accent); }
 .rel-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
 .topbar .rel-pop :focus-visible { outline-color: var(--focus); }
-/* O selo de opinião, depois da versão: só com espaço na barra (regra de 1024 px abaixo). */
-.pill-hdr { position: relative; isolation: isolate; overflow: hidden; display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
-.pill-hdr:hover { color: var(--bar-fg); border-color: var(--bar-fg); }
-/* Para o selo ser notado, uma faixa de luz o atravessa da esquerda para a direita duas vezes e para de vez.
-   Movimento que começa sozinho e passa de 5 s precisaria de um botão de pausa (WCAG 2.2.2): tudo termina
-   5 s depois de o selo aparecer (1 s de espera, 1,6 s por passada, 0,8 s entre elas). A faixa fica atrás do
-   texto, e no pico clareia o fundo só até manter 7:1 de contraste; parada, ela fica fora do selo. Uma
-   animação de CSS recomeçaria quando o selo volta a aparecer depois de um display: none (janela estreitada
-   abaixo de 1024 px e alargada de novo): app.js põe .shine-done quando ela termina ou é interrompida. */
-.pill-hdr::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.2) 50%, transparent 75%); transform: translateX(-100%); animation: pillShine 4s ease-in-out 1s; }
-.pill-hdr.shine-done::after { animation: none; display: none; }
-@keyframes pillShine {
-  0% { transform: translateX(-100%); }
-  40% { transform: translateX(100%); animation-timing-function: steps(1, end); }
-  60% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-@media (prefers-reduced-motion: reduce) { .pill-hdr::after { animation: none; display: none; } }
-.docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
-.docs-link:hover { color: var(--bar-fg); }
-
-/* O seletor de idioma do Swagger (src/swagger/styles/language-switcher.css), sem position fixed: a cápsula
-   branca com as três bandeiras, no começo da barra. A bandeira do idioma da página fica maior; depois de
-   trocar de idioma, a cápsula brilha na cor da bandeira escolhida por 1 s. */
-.lang-switcher { display: flex; flex: none; gap: 6px; background: rgba(255, 255, 255, 0.92); border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 8px; box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5); transition: box-shadow 1.5s ease-out; }
-.lang-switcher.lang-switcher--glow { transition: box-shadow 0.15s ease-out; }
-.lang-switcher__button { border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; opacity: 0.6; display: inline-flex; align-items: center; justify-content: center; color: #000; text-decoration: none; }
-.lang-switcher__flag { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
-.lang-switcher__button:hover { opacity: 1; transform: translateY(-2px); }
-.lang-switcher__button.is-active { opacity: 1; transform: scale(1.3); }
-.lang-switcher[data-glow-lang='pt-BR'].lang-switcher--glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
-.lang-switcher[data-glow-lang='en'].lang-switcher--glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
-.lang-switcher[data-glow-lang='es'].lang-switcher--glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
-/* O anel branco da barra some na cápsula branca: dentro dela, anel preto. */
-.topbar .lang-switcher__button:focus-visible { opacity: 1; outline: 2px solid #000000; outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .lang-switcher, .lang-switcher.lang-switcher--glow { transition: none; } }
-
-/* No fim da barra, o link da documentação e os dois pares de botões: tamanho do texto (A− e A+) e tema
-   (claro e escuro). Sem caixa: cada botão é só o texto ou o ícone, com um fundo escuro ao passar o mouse;
-   os pares ficam a 10 px um do outro. O tema em uso fica branco e sublinhado (uma barra de 2 px, forma além
-   da cor); o outro, cinza claro (11,4:1 no preto). O anel de foco é o branco da barra (21:1), rente ao
-   botão. Tudo em px, para a barra não crescer com o texto. */
-.bar-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 20px; margin-left: auto; }
-.view { display: flex; align-items: center; gap: 10px; flex: none; }
-.seg { display: inline-flex; }
-.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 4px; background: none; color: #ffffff; font: 600 14px/1 "Open Sans", sans-serif; cursor: pointer; }
+.topbar .guide-open { margin-left: 0; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border: 1px solid var(--bar-notice); border-radius: 4px; background: none; color: var(--bar-notice); font: 600 14px/1 var(--font-ui); white-space: nowrap; flex: none; }
+.topbar .guide-open:hover { background: rgba(215, 180, 255, 0.14); color: var(--bar-fg); }
+.guide-open svg { display: block; flex: none; }
+/* Abaixo de 900 px a documentação mostra "Swagger"; o nome inteiro continua para o leitor de tela. */
+.docs-link { margin-left: 20px; color: var(--bar-fg); font-size: 14px; font-weight: 600; line-height: 20px; padding: 8px 2px; white-space: nowrap; text-decoration: underline solid 1px; text-decoration-color: rgba(255, 255, 255, 0.4); text-underline-offset: 4px; }
+.docs-link:hover, .docs-link:focus-visible { color: var(--bar-fg); text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.docs-link .m-arrow { display: inline-block; margin-left: 3px; text-decoration: none; }
+.docs-short { display: none; }
+.bar-end { margin-left: auto; display: flex; align-items: center; gap: 12px; flex: none; padding-left: 16px; }
+.cap { display: inline-flex; align-items: center; height: 36px; border: 1px solid #333333; border-radius: 999px; background: none; color: var(--bar-fg); }
+button.cap { cursor: pointer; }
+.lang-btn { gap: 6px; padding: 0 10px 0 12px; font: 600 13px/1 var(--font-ui); letter-spacing: 0.02em; transition: box-shadow 1.5s ease-out; }
+.lang-btn img { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+.lang-btn .chev { display: block; color: var(--bar-muted); }
+.lang-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.lang-btn:hover, .more-btn:hover { border-color: #777777; }
+/* Depois da troca de idioma, o botão brilha 1 s na cor da bandeira. */
+.lang-btn.lang-glow { transition: box-shadow 0.15s ease-out; }
+.lang-btn[data-glow-lang='pt-BR'].lang-glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
+.lang-btn[data-glow-lang='en'].lang-glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
+.lang-btn[data-glow-lang='es'].lang-glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
+@media (prefers-reduced-motion: reduce) { .lang-btn, .lang-btn.lang-glow { transition: none; } }
+/* O tema em uso fica branco e sublinhado (forma além da cor); o outro, cinza claro (11,4:1 no preto). Os
+   títulos e os nomes só aparecem no menu do telefone. */
+.prefs { padding: 0 3px; }
+.prefs-sep { width: 1px; height: 20px; background: #333333; margin: 0 4px; }
+.prefs .m-h, .prefs .m-size, .prefs .m-label { display: none; }
+.seg { display: inline-flex; align-items: center; }
+.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 34px; height: 32px; padding: 0; border: 0; border-radius: 999px; background: none; color: #ffffff; font: 600 14px/1 var(--font-ui); cursor: pointer; }
 .seg-btn:hover { background: #2f3238; }
 .topbar .seg-btn:focus-visible { z-index: 1; outline-offset: 0; }
 .seg-btn[data-theme-choice] { color: var(--bar-muted); }
 .seg-btn[data-theme-choice]:hover { color: #ffffff; }
 /* O estado vem da raiz (gravada antes da primeira pintura): o botão já nasce marcado, sem piscar. */
 :root[data-theme="light"] .seg-btn[data-theme-choice="light"], :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"] { color: #ffffff; }
-:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 2px; border-radius: 1px; background: currentColor; }
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 2px; height: 2px; border-radius: 1px; background: currentColor; }
 :root[data-text="normal"] #text-down, :root[data-text="maior"] #text-up { color: #80848c; background: none; cursor: not-allowed; }
 @media (forced-colors: active) { :root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { background: CanvasText; } }
 .seg-btn .a-s { font-size: 12px; }
 .seg-btn .a-l { font-size: 17px; }
 .seg-btn svg { display: block; }
+.menu-wrap { position: relative; display: flex; }
+.menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: 248px; max-width: calc(100vw - 20px); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 6px; box-shadow: var(--shadow); padding: 6px; font: 400 14px/1.35 var(--font-ui); text-align: left; }
+.topbar .menu :focus-visible { outline-color: var(--focus); outline-offset: -2px; }
+.m-h { margin: 0; padding: 8px 10px 4px; font-size: 12px; font-weight: 600; color: var(--graphite); }
+.m-list { margin: 0; padding: 0; list-style: none; }
+.m-item { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 10px; border-radius: 4px; color: inherit; text-decoration: none; }
+.m-item:hover { background: var(--hover); color: inherit; }
+.m-item img { width: 20px; height: 14px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.m-check { margin-left: auto; flex: none; visibility: hidden; color: var(--accent); }
+.m-item[aria-current="true"] { font-weight: 600; }
+.m-item[aria-current="true"] .m-check { visibility: visible; }
+.m-sep { display: block; height: 1px; margin: 6px 4px; background: var(--border); }
+/* "Mais opções", só no telefone: os mesmos controles da barra, arrumados como itens do menu. */
+.more-wrap { display: none; }
+.more-btn { width: 40px; justify-content: center; }
+.more-btn svg { display: block; }
+.more-menu .prefs { display: block; height: auto; padding: 0; border: 0; border-radius: 0; color: inherit; }
+.more-menu .prefs-sep { display: none; }
+.more-menu .seg { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 6px; padding: 0 4px 6px; }
+.more-menu .seg-theme { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.more-menu .prefs .m-h { display: block; grid-column: 1 / -1; padding-left: 6px; padding-right: 6px; }
+.more-menu .prefs .m-size { display: block; text-align: center; font-weight: 600; }
+.more-menu .prefs .m-label { display: inline; }
+.topbar .more-menu .seg-btn { width: auto; height: auto; min-height: 36px; gap: 6px; padding: 0 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--ink); font: 400 14px/1 var(--font-ui); }
+.topbar .more-menu .seg-btn:hover { background: var(--hover); }
+.topbar .more-menu #text-down, .topbar .more-menu #text-up { font-weight: 600; }
+:root .topbar .more-menu .seg-btn[data-theme-choice][aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }
+:root .topbar .more-menu .seg-btn[data-theme-choice]::after { display: none; }
+:root[data-text="normal"] .more-menu #text-down, :root[data-text="maior"] .more-menu #text-up { color: var(--control); }
+.more-menu .docs-link, .more-menu .version-tag { display: flex; align-items: center; min-height: 36px; margin: 0; padding: 6px 10px; border: 0; border-radius: 4px; color: var(--ink); font: 400 14px/1.35 var(--font-ui); text-decoration: none; }
+.more-menu .docs-link:hover, .more-menu .version-tag:hover { background: var(--hover); color: var(--ink); }
+.more-menu .docs-link .m-arrow, .more-menu .version-tag .m-arrow { display: inline; margin-left: auto; padding-left: 10px; color: var(--graphite); }
+.more-menu .version-box { display: block; }
+.more-menu .v-short { display: none; }
+.more-menu .version-notice { display: flex; justify-content: flex-start; min-height: 36px; padding: 6px 10px; color: var(--accent); font-size: 13px; white-space: normal; text-align: left; }
+.more-menu .version-notice:hover { color: var(--accent-strong); }
+.more-menu .version-notice .dot { align-self: flex-start; margin-top: 5px; }
+.more-menu .rel-pop { position: static; width: auto; margin: 4px; box-shadow: none; }
+/* Branco no roxo: 7,2:1. */
+.topbar-band { min-height: 20px; background: var(--purple); }
+.fb-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 0.3em; min-height: 28px; padding: 4px 12px; font-size: 12.5px; line-height: 1.2; color: #ffffff; text-align: center; }
+.fb-link { color: #ffffff; font-weight: 600; text-decoration-color: rgba(255, 255, 255, 0.6); white-space: nowrap; }
+.fb-link:hover { color: #ffffff; text-decoration-color: #ffffff; text-decoration-thickness: 1px; }
+.topbar-band :focus-visible { outline-color: #ffffff; outline-offset: 1px; }
+/* Para caber numa linha: abaixo de 1280 px o aviso mostra o ponto e o número (só o ponto abaixo de 900 px), e
+   com aviso (data-notice-url, do servidor) a documentação já vira "Swagger". */
+@container page (max-width: 1279px) {
+  .brand .rel-words, :root:not([data-notice-url=""]) .topbar-inner > .docs-link .docs-long { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :root:not([data-notice-url=""]) .topbar-inner > .docs-link .docs-short { display: inline; }
+}
+@container page (max-width: 899px) {
+  .topbar-inner > .docs-link .docs-long, .brand .rel-num { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .topbar-inner > .docs-link .docs-short { display: inline; }
+}
+@container page (max-width: 759px) {
+  .logo { height: 34px; }
+  .brand { margin-right: 20px; gap: 8px; }
+  .docs-link { margin-left: 14px; }
+  .bar-end { gap: 8px; }
+  .prefs .seg-btn { width: 32px; }
+}
+/* De 640 a 759 px tudo fica mais junto, com alvos ainda de 24 px ou mais. */
+@container page (min-width: 640px) and (max-width: 759px) {
+  .logo { height: 30px; }
+  .brand { margin-right: 12px; gap: 6px; }
+  .topbar .guide-open { padding: 0 10px 0 8px; }
+  .docs-link { margin-left: 10px; }
+  .bar-end { padding-left: 8px; }
+  .lang-btn { padding: 0 8px 0 10px; }
+  .prefs .seg-btn { width: 28px; }
+  .prefs-sep { margin: 0 2px; }
+}
+/* Telefone: logo, "Como usar", idioma e "Mais opções", com alvos de 36 px. */
+@container page (max-width: 639px) {
+  .topbar-inner { height: 56px; }
+  .brand { margin-right: 12px; }
+  .brand .version-box, .topbar-inner > .docs-link, .bar-end > .prefs { display: none; }
+  .more-wrap { display: flex; }
+  .topbar .guide-open { height: 36px; }
+  .bar-end { padding-left: 6px; gap: 6px; }
+  .lang-btn { padding: 0 8px 0 10px; }
+}
+@container page (max-width: 399px) {
+  .logo { height: 30px; }
+  .brand { margin-right: 10px; }
+  .topbar .guide-open { padding: 0 10px 0 8px; }
+  .fb-line { font-size: 12px; padding-left: 8px; padding-right: 8px; }
+}
+/* Abaixo de 360 px "Como usar" fica só com o ícone. */
+@container page (max-width: 359px) {
+  .topbar .guide-open { width: 36px; padding: 0; justify-content: center; }
+  .guide-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .brand { margin-right: 8px; }
+}
 
 /* Controles */
 .input { width: 100%; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 4px 8px; min-height: 2rem; font-size: 0.875rem; }
@@ -1425,35 +1497,11 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .about-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Abaixo de 1024 px a barra fica justa numa linha só: em 768 px, com o link da documentação e a versão em
-   inglês ou espanhol (um pouco mais longos), ela quebrava para duas linhas. O vão entre o link e A− passa
-   a 12 px, o mesmo da regra de 760 px; os vãos entre o seletor de idioma, a logo e a versão também, porque
-   a logo completa é 4 px mais larga que o SVG de antes. */
-@container page (max-width: 1023px) {
-  .bar-end { column-gap: 12px; }
-  .topbar-inner { column-gap: 12px; }
-  .brand { column-gap: 12px; }
-}
-/* O selo de opinião só cabe na barra a partir de 1024 px (em px, para não depender do tamanho do texto);
-   abaixo disso fica fora da tela e da ordem do Tab. */
-@container page (min-width: 1024px) {
-  .pill-hdr:not([hidden]) { display: inline-flex; }
-}
-/* A barra do topo e o respiro lateral do recipiente mudam numa largura em px (760 px, os 47,5 rem do texto
-   normal), nunca com o tamanho do texto: a barra é a mesma nos três tamanhos em toda largura, e as bordas
-   dela seguem as do conteúdo. O resto da página continua mudando em rem (abaixo). */
+/* O respiro lateral do recipiente muda numa largura em px (760 px, os 47,5 rem do texto normal), nunca com o
+   tamanho do texto: as bordas da barra seguem as do conteúdo nos três tamanhos. O resto da página continua
+   mudando em rem (abaixo). */
 @container page (max-width: 760px) {
   .wrap { padding-left: 12px; padding-right: 12px; }
-  .topbar-inner { gap: 6px 10px; }
-  .docs-link { font-size: 13px; }
-  .bar-end { gap: 8px 12px; }
-  .logo { height: 34px; }
-  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo. Sem aviso,
-     a marca é só o logo. */
-  .brand { position: static; flex-direction: column; align-items: flex-start; gap: 2px; }
-  .version-box { display: contents; }
-  .version { display: none; }
-  .rel-pop { left: 12px; }
 }
 @container page (max-width: 47.5rem) {
   .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
@@ -1465,14 +1513,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .about-inner { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
-   a regra entraria também em 390 px, e os botões encolheriam debaixo do dedo. */
+/* Telefones estreitos (até 384 px): o recipiente perde um pouco de respiro. Em px, não em rem: com o texto
+   maior a regra entraria também em 390 px. */
 @container page (max-width: 384px) {
   .wrap { padding-left: 10px; padding-right: 10px; }
-  .rel-pop { left: 10px; }
-  .bar-end { gap: 8px; }
-  .view { gap: 6px; }
-  .seg-btn { width: 32px; }
 }
 
 /* Zona Resultado estreita (telefone, ou texto maior em três colunas): a trilha desce para baixo do

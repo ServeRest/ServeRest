@@ -96,9 +96,10 @@ describe('/ GET (página inicial)', () => {
     expect(text).to.not.include('/lab/assets/legacy-links.js')
   })
 
+  // O nome curto (Swagger) fica escondido do leitor de tela: o nome do link é sempre o inteiro.
   it('aponta o link da documentação para /swagger no idioma da página, numa aba nova', async () => {
     const { text } = await request.get('/').query({ lang: 'en' }).expect(200)
-    expect(text).to.include(`href="/swagger?lang=en" target="_blank" rel="noopener">${en['lab.topbar.docs']}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> ${en['lab.link.new_tab']}</span></a>`)
+    expect(text).to.include(`href="/swagger?lang=en" target="_blank" rel="noopener"><span class="docs-long">${en['lab.topbar.docs_full']}</span><span class="docs-short" aria-hidden="true">Swagger</span><span class="m-arrow" aria-hidden="true">↗</span><span class="sr-only"> ${en['lab.link.new_tab']}</span></a>`)
   })
 
   // Com um campo de senha preenchido, o Chrome trata a troca de rota como login enviado,
@@ -190,27 +191,73 @@ describe('/ GET (marcação da página inicial)', () => {
     }
   })
 
-  it('abre a barra com o seletor de idioma: três links, e só o do idioma da página marcado, nos três idiomas', async () => {
-    const nomes = { 'pt-BR': 'lab.lang.pt_br', en: 'lab.lang.en', es: 'lab.lang.es' }
+  it('abre a barra com a marca e a etiqueta da versão, antes de "Como usar", da documentação e do idioma', async () => {
+    const { body } = await request.get('/version').expect(200)
     for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
       const { text } = await request.get('/').query({ lang }).expect(200)
       const barra = /<header class="topbar">([\s\S]*?)<\/header>/.exec(text)[1]
-      expect(barra.indexOf('class="lang-switcher"'), lang).to.be.lessThan(barra.indexOf('class="brand"'))
-      const links = [...barra.matchAll(/<a class="lang-switcher__button[^"]*"[^>]*>/g)].map(match => match[0])
-      expect(links, lang).to.have.length(3)
-      links.forEach(link => {
-        const codigo = /data-lang="([^"]+)"/.exec(link)[1]
-        expect(link, `${lang} ${codigo}`).to.include(`aria-label="${escaparHtml(textos[nomes[codigo]])}"`)
-        if (codigo === lang) {
-          expect(link, codigo).to.include('aria-current="true"')
-          expect(link, codigo).to.include('lang-switcher__button is-active"')
-        } else {
-          expect(link, codigo).to.not.include('aria-current')
-          expect(link, codigo).to.not.include('is-active')
-        }
-      })
-      expect(barra.match(/<img class="lang-switcher__flag" src="\/flags\/[a-z_]+\.svg" alt=""/g), lang).to.have.length(3)
+      const ordem = ['class="logo"', 'id="version"', 'id="guide-open"', 'id="docs-link"', 'id="lang-btn"', 'id="prefs"', 'id="more-btn"', 'id="feedback-band"']
+      const posicoes = ordem.map(trecho => barra.indexOf(trecho))
+      expect(posicoes, lang).to.not.include(-1)
+      expect(posicoes, lang).to.deep.equal([...posicoes].sort((x, y) => x - y))
+      const etiqueta = /<a class="version-tag" id="version"[^>]*>([\s\S]*?)<\/a>/.exec(barra)
+      expect(etiqueta[0], lang).to.not.include('href=')
+      expect(etiqueta[1], lang).to.include(`<span class="v-short" aria-hidden="true">v${body.version}</span>`)
+      expect(etiqueta[1], lang).to.include(`<span class="v-long">${escaparHtml(textos['lab.topbar.version'].replace('{version}', body.version))}</span>`)
     }
+  })
+
+  // Os idiomas são links comuns na mesma aba (funcionam antes do script e para os buscadores), com data-lang,
+  // que outras partes da página usam para reconhecer a troca de idioma.
+  it('tem o menu de idiomas com três links pelo nome nativo, e só o do idioma da página marcado, nos três idiomas', async () => {
+    const nomes = { 'pt-BR': 'lab.lang.pt_br', en: 'lab.lang.en', es: 'lab.lang.es' }
+    const bandeiras = { 'pt-BR': 'flag_brazil.svg', en: 'flag_uk.svg', es: 'flag_peru.svg' }
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const menu = /<div class="menu lang-menu" id="lang-menu" hidden>([\s\S]*?)<\/ul>/.exec(text)[1]
+      const links = [...menu.matchAll(/<a class="m-item"([^>]*)><img src="\/flags\/([a-z_]+\.svg)" alt="" width="20" height="14">([^<]+)</g)]
+      expect(links.map(([, atributos]) => /data-lang="([^"]+)"/.exec(atributos)[1]), lang).to.deep.equal(['pt-BR', 'es', 'en'])
+      links.forEach(([, atributos, bandeira, nome]) => {
+        const codigo = /data-lang="([^"]+)"/.exec(atributos)[1]
+        expect(atributos, `${lang} ${codigo}`).to.include(` href="?lang=${codigo}" hreflang="${codigo}" lang="${codigo}"`)
+        expect(atributos, `${lang} ${codigo}`).to.not.include('target=')
+        expect(bandeira, `${lang} ${codigo}`).to.equal(bandeiras[codigo])
+        expect(nome, `${lang} ${codigo}`).to.equal(escaparHtml(textos[nomes[codigo]]))
+        if (codigo === lang) expect(atributos, codigo).to.include('aria-current="true"')
+        else expect(atributos, codigo).to.not.include('aria-current')
+      })
+      expect(menu, lang).to.include(`<p class="m-h" id="lang-menu-title">${escaparHtml(textos['lab.topbar.languages'])}</p>`)
+      expect(menu, lang).to.include('<ul class="m-list" aria-labelledby="lang-menu-title">')
+    }
+  })
+
+  it('mostra no botão do idioma a bandeira e a sigla do idioma da página, com o nome dele e o que o botão faz, nos três idiomas', async () => {
+    const esperado = { 'pt-BR': ['flag_brazil.svg', 'PT', ptBr], en: ['flag_uk.svg', 'EN', en], es: ['flag_peru.svg', 'ES', es] }
+    const nomes = { 'pt-BR': 'lab.lang.pt_br', en: 'lab.lang.en', es: 'lab.lang.es' }
+    for (const [lang, [bandeira, sigla, textos]] of Object.entries(esperado)) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const botao = /<button class="cap lang-btn"([^>]*)>([\s\S]*?)<\/button>/.exec(text)
+      expect(botao[1], lang).to.include('data-menu aria-expanded="false" aria-controls="lang-menu"')
+      expect(botao[2], lang).to.include(`<img src="/flags/${bandeira}" alt="" width="20" height="14"><span class="lang-code">${sigla}</span>`)
+      expect(botao[2], lang).to.include(`<span class="sr-only">, ${escaparHtml(textos[nomes[lang]])}. ${escaparHtml(textos['lab.topbar.lang_change'])}</span>`)
+    }
+  })
+
+  it('tem o botão "Mais opções" com o nome traduzido, que abre o menu do telefone, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const botao = /<button class="cap more-btn"([^>]*)>([\s\S]*?)<\/button>/.exec(text)
+      expect(botao[1], lang).to.include('data-menu aria-expanded="false" aria-controls="more-menu"')
+      expect(botao[2], lang).to.include(`<span class="sr-only">${escaparHtml(textos['lab.topbar.more'])}</span>`)
+      expect(text, lang).to.match(/<div class="menu more-menu" id="more-menu" hidden>/)
+    }
+  })
+
+  // O title repetia o nome dos controles: o leitor de tela lia duas vezes e a dica não acrescentava nada.
+  it('não tem title nos controles da barra', async () => {
+    const { text } = await request.get('/').expect(200)
+    const barra = /<header class="topbar">([\s\S]*?)<\/header>/.exec(text)[1]
+    expect(barra).to.not.match(/\stitle=/)
   })
 
   it('tem os botões de tamanho do texto e de tema com os nomes traduzidos, nos três idiomas', async () => {
@@ -233,7 +280,7 @@ describe('/ GET (marcação da página inicial)', () => {
       const botao = /<button [^>]*id="guide-open"[^>]*>([\s\S]*?)<\/button>/.exec(text)
       expect(botao, lang).to.not.equal(null)
       expect(botao[0], lang).to.include('aria-haspopup="dialog"')
-      expect(botao[1].replace(/<svg[\s\S]*<\/svg>/, ''), lang).to.equal(escaparHtml(textos['lab.guide.open']))
+      expect(botao[1].replace(/<svg[\s\S]*<\/svg>/, ''), lang).to.equal(`<span class="guide-label">${escaparHtml(textos['lab.guide.open'])}</span>`)
       expect(text, lang).to.not.include('guia.js')
       expect(JSON.parse(blocoDeTextos(text)), lang).to.have.property('lab.guide.learn.name', textos['lab.guide.learn.name'])
     }
@@ -281,7 +328,7 @@ describe('/ GET (marcação da página inicial)', () => {
 
   it('traz o botão do aviso com número e o painel dele escondidos, logo depois do link, sem texto de versão', async () => {
     const { text } = await request.get('/').expect(200)
-    const caixa = /<div class="version-box">([\s\S]*?)<\/div>\s*<a class="pill-hdr"/.exec(text)[1]
+    const caixa = /<div class="version-box" id="version-box">([\s\S]*?)<\/div>\s*<\/div>\s*<button class="guide-open"/.exec(text)[1]
     const botao = /<button [^>]*id="release-btn"[^>]*>/.exec(caixa)[0]
     expect(botao).to.include('aria-expanded="false"')
     expect(botao).to.include('aria-controls="release-panel"')
@@ -292,26 +339,20 @@ describe('/ GET (marcação da página inicial)', () => {
     expect(caixa.indexOf('id="release-btn"')).to.be.lessThan(caixa.indexOf('id="release-panel"'))
   })
 
-  it('deixa o selo de opinião escondido e sem href: só app.js o mostra, com o endereço do formulário', async () => {
+  // A linha vem do servidor à vista, para a faixa já nascer com a altura dela; o endereço do formulário é de
+  // app.js, que a esconde sem formulário.
+  it('traz na faixa roxa a linha de opinião, à vista e com o link sem href, nos três idiomas', async () => {
+    const linhas = {
+      'pt-BR': ['Esta página é nova.', 'Dê sua opinião'],
+      en: ['This page is new.', 'Tell us what you think'],
+      es: ['Esta página es nueva.', 'Danos tu opinión']
+    }
     for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
       const { text } = await request.get('/').query({ lang }).expect(200)
-      const selo = /<a class="pill-hdr"[^>]*>([\s\S]*?)<\/a>/.exec(text)
-      expect(selo[0], lang).to.not.include('href=')
-      expect(selo[0], lang).to.include('hidden')
-      expect(selo[1], lang).to.include(escaparHtml(textos['lab.feedback.pill']))
-    }
-  })
-
-  it('o selo de opinião pede feedback sobre a repaginação, nos três idiomas', async () => {
-    const selos = {
-      'pt-BR': 'Dê feedback sobre a repaginação',
-      en: 'Give feedback on the redesign',
-      es: 'Opine sobre el rediseño'
-    }
-    for (const [lang, esperado] of Object.entries(selos)) {
-      const { text } = await request.get('/').query({ lang }).expect(200)
-      const selo = /<a class="pill-hdr"[^>]*>([^<]*)</.exec(text)
-      expect(selo[1], lang).to.equal(escaparHtml(esperado))
+      const faixa = /<div class="topbar-band">\s*<p class="fb-line" id="feedback-band">([\s\S]*?)<\/p>\s*<\/div>\s*<\/header>/.exec(text)
+      expect(faixa, lang).to.not.equal(null)
+      expect(faixa[1], lang).to.equal(`${escaparHtml(linhas[lang][0])} <a class="fb-link" id="feedback-band-link" target="_blank" rel="noopener">${escaparHtml(linhas[lang][1])}<span aria-hidden="true"> ↗</span><span class="sr-only"> ${escaparHtml(textos['lab.link.new_tab'])}</span></a>`)
+      expect(textos['lab.feedback.band'], lang).to.equal(linhas[lang][0])
     }
   })
 
