@@ -1250,12 +1250,6 @@ describe('Página do lab: funções puras', () => {
       expect(core.feedbackFormUrl('', '3.3.0')).to.equal(null)
       expect(core.feedbackFormUrl('javascript:alert(1)', '3.3.0')).to.equal(null)
     })
-
-    it('para de devolver o link depois da data final do formulário', () => {
-      const ate = '2027-01-31T23:59:59-03:00'
-      expect(core.feedbackFormUrl(modelo, '3.3.0', Date.parse('2027-01-31T23:59:58-03:00'), ate)).to.equal('https://docs.google.com/forms/d/e/abc/viewform?usp=pp_url&entry.1=3.3.0')
-      expect(core.feedbackFormUrl(modelo, '3.3.0', Date.parse('2027-02-01T00:00:00-03:00'), ate)).to.equal(null)
-    })
   })
 
   describe('parseInlineMarkdown', () => {

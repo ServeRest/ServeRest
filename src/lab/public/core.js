@@ -913,11 +913,10 @@
   }
 
   // O link pré-preenchido do formulário de opinião traz VERSAO no lugar da versão: a página troca pela
-  // versão que está rodando, para cada resposta dizer de qual versão veio. Sem link, ou depois da data
-  // em que o formulário deixa de aceitar respostas, não há formulário: um link morto só frustra.
-  function feedbackFormUrl (template, version, now, until) {
+  // versão que está rodando, para cada resposta dizer de qual versão veio. O formulário não tem data para
+  // acabar: a opinião de quem usa a página vale em qualquer época. Sem link, não há formulário.
+  function feedbackFormUrl (template, version) {
     if (!template) return null
-    if (until && now > Date.parse(until)) return null
     return safeHref(String(template).replace('VERSAO', encodeURIComponent(version || '')))
   }
 
