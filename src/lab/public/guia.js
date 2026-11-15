@@ -292,7 +292,9 @@
     id: 'learn',
     name: 'lab.guide.learn.name',
     about: 'lab.guide.learn.about',
-    end: ['lab.guide.learn.end'],
+    end: 'lab.guide.learn.end',
+    // O login voltou sem token: o fim não diz que a requisição foi com token.
+    endNoToken: 'lab.guide.learn.end_no_token',
     offer: 'tour',
     steps: [
       {
@@ -495,7 +497,7 @@
     id: 'tour',
     name: 'lab.guide.tour.name',
     about: 'lab.guide.tour.about',
-    end: ['lab.guide.tour.end', 'lab.guide.where'],
+    end: 'lab.guide.tour.end',
     offer: 'learn',
     steps: [
       {
@@ -656,7 +658,12 @@
     // rola.
     arrow = node('span', 'guide-arrow', { 'aria-hidden': 'true' })
     const scroller = el('div', 'guide-scroll')
-    scroller.append(head, progress, title, body, hint, foot, live)
+    // Boas-vindas e fim: o cabeçalho e o título vão para a faixa preta e roxa da barra do topo.
+    const brand = el('div', 'guide-brand')
+    brand.append(el('p', 'guide-lead'))
+    const inner = el('div', 'guide-inner')
+    inner.append(head, progress, title, body, hint, foot, live)
+    scroller.append(brand, inner)
     card.append(arrow, scroller)
     // O que clicar: um contorno parado em volta do controle da primeira tarefa que falta.
     marker = node('div', 'guide-marker', { 'aria-hidden': 'true' })
@@ -698,7 +705,7 @@
     paint(layers[1], [], 0)
     loop()
     G.doneSteps = {}
-    if (!path) return showChoice()
+    if (!path) return showWelcome()
     G.path = path
     goTo(0)
   }
@@ -781,11 +788,36 @@
 
   /* ---------- Telas: escolha, passo, fim ---------- */
 
-  function choice (path) {
-    const item = button('guide-choice')
+  const ICONS = {
+    learn: '<path d="M4 8h12l-3-3M20 16H8l3 3"/>',
+    tour: '<circle cx="12" cy="12" r="8"/><path d="M15 9l-2 5-4 1 2-5z"/>'
+  }
+
+  // Um caminho como cartão: ícone, nome, o que ele mostra e quantos passos tem.
+  function pathCard (path) {
+    const item = button('guide-path')
     item.setAttribute('data-path', path.id)
-    item.append(el('strong', '', t(path.name)), el('span', '', fill(path.about, { count: path.steps.length })))
+    const icon = el('span', 'guide-icon')
+    icon.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[path.id] + '</svg>'
+    const meta = el('span', 'guide-meta')
+    meta.append(el('span', '', fill('lab.guide.count', { count: path.steps.length })), el('span', '', '→'))
+    meta.lastChild.setAttribute('aria-hidden', 'true')
+    item.append(icon, el('strong', '', t(path.name)), el('span', '', t(path.about)), meta)
     return item
+  }
+
+  // As telas sem destaque (boas-vindas e fim) usam a faixa da marca; os passos, o cabeçalho de sempre.
+  function setBrand (on, lead) {
+    const brand = part('brand')
+    const inner = part('inner')
+    card.classList.toggle('is-wide', on)
+    brand.hidden = !on
+    if (on) brand.prepend(part('head'), part('title'))
+    else {
+      inner.prepend(part('head'), part('progress'))
+      part('progress').after(part('title'))
+    }
+    part('lead').textContent = lead || ''
   }
 
   // O cabeçalho numa linha ("Passo 7 de 9 · caminho") e o progresso em segmentos, um por passo.
@@ -808,32 +840,37 @@
     return item
   }
 
-  // Abrir, trocar de caminho ou voltar dele: a tela de escolha, sem destaque.
-  async function showChoice () {
+  // Abrir, ou voltar do primeiro passo: as boas-vindas, sem destaque, com os dois caminhos.
+  async function showWelcome () {
     await screen(() => {
-      G.mode = 'choice'
+      G.mode = 'welcome'
       G.path = null
       G.index = -1
       G.sig = ''
-      setHead([t('lab.guide.open')], 0, 0, t('lab.guide.choose_title'))
-      const list = el('div')
-      list.append(choice(LEARN), choice(TOUR))
-      part('body').replaceChildren(el('p', '', t('lab.guide.choose_intro')), list)
+      setHead([t('lab.guide.open')], 0, 0, t('lab.guide.welcome_title'))
+      setBrand(true, t('lab.guide.welcome_lead'))
+      part('body').replaceChildren(el('p', '', t('lab.guide.welcome_text')), el('h3', 'guide-sect', t('lab.guide.welcome_pick')), pathCard(LEARN), pathCard(TOUR),
+        el('p', 'guide-note', t('lab.guide.welcome_note')))
       part('foot').replaceChildren()
       part('exit-hint').hidden = true
     })
   }
 
+  // O fim: o que a pessoa fez (sem dizer que usou token quando o login não deu), o outro caminho e onde o guia
+  // continua.
   async function showEnd () {
     await screen(() => {
       const path = PATHS[G.path]
       G.mode = 'end'
       G.sig = ''
       setHead([t(path.name)], 0, 0, t('lab.guide.end_title'))
-      const list = el('div')
-      list.append(choice(PATHS[path.offer]))
-      part('body').replaceChildren(...path.end.map(key => el('p', '', fill(key))), list)
-      part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close')))
+      const check = el('span', 'guide-check')
+      check.innerHTML = CHECK
+      part('title').prepend(check)
+      setBrand(true, fill('lab.guide.end_lead', { count: path.steps.length }))
+      part('body').replaceChildren(el('p', '', fill(G.loginBroken && path.endNoToken ? path.endNoToken : path.end)), pathCard(PATHS[path.offer]),
+        el('p', 'guide-note', fill('lab.guide.where')))
+      part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close_guide')))
       part('exit-hint').hidden = true
     })
   }
@@ -868,7 +905,7 @@
     if (G.going) return
     const steps = PATHS[G.path].steps
     if (index >= steps.length) return showEnd()
-    if (index < 0) return showChoice()
+    if (index < 0) return showWelcome()
     G.going = true
     try {
       // Uma troca de destaque dentro do passo termina antes: o cartão nunca está em duas viagens.
@@ -906,6 +943,7 @@
         }
         const n = index + 1
         setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), ' · ' + t(PATHS[G.path].name)], n, steps.length, t(s.title))
+        setBrand(false)
         part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
           arrowButton('btn btn-primary', 'next', t('lab.guide.next')))
         G.seen = {}
@@ -1025,7 +1063,7 @@
   }
 
   async function onCardClick (event) {
-    const picked = event.target.closest('.guide-choice')
+    const picked = event.target.closest('.guide-path')
     if (picked) {
       G.path = picked.getAttribute('data-path')
       G.loginBroken = false
