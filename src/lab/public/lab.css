@@ -444,7 +444,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .filter svg { position: absolute; left: 21px; top: 50%; transform: translateY(-50%); color: var(--graphite); }
 .route-list { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .group h3 { position: sticky; top: 0; z-index: 1; display: flex; gap: 6px; align-items: baseline; font-size: 0.9375rem; padding: 5px 12px 3px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.group h3 span { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
+/* Só a contagem fica miúda e grafite; o nome do grupo (um span com lang fora do pt-BR) segue o título. */
+.group h3 .group-count { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
 /* A descrição do grupo (tags[].description) sob o nome, como no Swagger: uma linha discreta que rola com
    a lista (o nome continua grudado no topo) e pode quebrar, nunca cortada. */
 .group-desc { padding: 6px 12px 0; font-size: 0.75rem; line-height: 1.4; color: var(--graphite); overflow-wrap: break-word; }
@@ -903,7 +904,10 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 /* Numa zona mais estreita que esse lugar (320 px com o texto maior), o lugar é a largura da zona e o status
    quebra dentro dele, em vez de passar da tela; o esqueleto completa o mesmo lugar. */
 .shown .status-value .chip { min-width: min(16em, 100cqw - 32px); white-space: normal; }
-.shown .status-value .chip-neutral { min-width: 0; margin-right: calc(min(16em, 100cqw - 32px) - 8em); }
+/* O esqueleto tem o texto do status mais longo, invisível (longestChip), com a mesma largura mínima e a mesma
+   quebra: a célula tem a mesma altura na espera e no veredito. A barra do esqueleto fica na primeira linha. */
+.shown .status-value .chip-neutral { width: auto; }
+.shown .status-value > .chip-neutral::after { right: auto; width: min(8em, 100%); top: 0.75em; }
 /* "Status code" escrito antes do status, no cabeçalho do Resultado (texto, sem link) e na linha da Resposta
    (link para a página do status na MDN). Até o veredito, o rótulo e o status ficam juntos no lugar guardado
    e invisível (D29). */
@@ -912,6 +916,15 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .status-link { display: inline-flex; align-items: baseline; gap: 8px; color: inherit; text-decoration: none; }
 .status-link:hover { color: inherit; }
 .status-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+/* O status da Resposta e uma cópia invisível do status mais longo dividem a célula (statusCell): a linha tem a
+   mesma altura no esqueleto e na resposta, e numa zona estreita o status quebra dentro da célula, sem passar da
+   tela. A seta do link, no esqueleto, guarda o lugar dela, invisível. */
+.status-link { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.status-cell { display: inline-grid; min-width: 0; }
+.status-cell > * { grid-area: 1 / 1; }
+.res-line .status-cell .chip { white-space: normal; }
+.status-ghost, .pv-arrow { visibility: hidden; }
+.status-cell > .pv-chip { justify-self: start; align-self: start; height: 1.5em; }
 .shown .method { align-self: center; }
 /* Envio cujo fluxo ainda não chegou ao veredito: no cabeçalho do Resultado e na entrada do Histórico, o
    lugar do status fica guardado, invisível, com o esqueleto com brilho por cima (no cabeçalho, "Status

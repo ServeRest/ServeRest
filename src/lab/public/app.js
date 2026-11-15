@@ -928,7 +928,7 @@
       // O nome do grupo é a tag do Swagger, em português em todo idioma (como no Swagger UI): fora do pt-BR ele
       // leva lang, para o leitor de tela não o pronunciar em inglês ou espanhol.
       const name = tag ? el('span', { lang: language === 'pt-BR' ? null : 'pt-BR', text: tag }) : t('lab.routes.untagged')
-      const count = el('span', { text: String(items.length) })
+      const count = el('span', { class: 'group-count', text: String(items.length) })
       const desc = description ? el('p', { class: 'group-desc', text: description }) : null
       list.append(el('div', { class: 'group' }, el('h3', null, name, count), desc, ul))
     })
@@ -3150,6 +3150,25 @@
     return el('span', { class: 'chip chip-neutral' }, el('span', { text: '•' }), '000')
   }
 
+  // O esqueleto do status no cabeçalho do Resultado traz, invisível, a linha de status mais longa que a API
+  // devolve: ele fica na célula do status nos dois estados, então a célula já nasce com a altura que o status
+  // real vai ter, numa linha ou em duas numa zona estreita, e o veredito não empurra o Fluxo e a Resposta.
+  function longestStatus () {
+    const lines = Object.keys(core.STATUS_TEXT).map(code => code + ' ' + core.statusText(code)).concat(t('lab.history.failed'))
+    return lines.reduce((a, b) => b.length > a.length ? b : a, '')
+  }
+
+  function longestChip () {
+    return el('span', { class: 'chip chip-neutral' }, el('span', { text: '✗' }), ' ', longestStatus())
+  }
+
+  // Na linha do status da Resposta, a mesma ideia: o status fica numa célula com uma cópia invisível do status
+  // mais longo, na resposta e no esqueleto, e a linha tem a mesma altura nos dois; numa zona estreita o status
+  // quebra dentro dela em vez de passar da tela.
+  function statusCell (chip) {
+    return el('span', { class: 'status-cell' }, chip, el('span', { class: 'chip status-ghost', 'aria-hidden': 'true' }, el('span', { text: '✗' }), ' ', longestStatus()))
+  }
+
   // O cabeçalho do Resultado: método, path e "Status code" com o status. Até o veredito o status dá lugar ao
   // esqueleto, e o lugar inteiro sai da árvore de acessibilidade (D29). Num envio novo da mesma rota nada é
   // refeito: "Status code" é o mesmo nos dois estados e fica parado, e só o valor cruza com o esqueleto, que
@@ -3162,7 +3181,7 @@
     let status = box.querySelector(':scope > .shown-status')
     if (!status || box.getAttribute('data-key') !== key) {
       status = el('span', { class: 'shown-status' }, labelled ? [el('span', { class: 'status-label', text: t('lab.status.label') }), ' '] : null,
-        el('span', { class: 'status-value' }, el('span', { class: 'status-real' }), neutralChip()))
+        el('span', { class: 'status-value' }, el('span', { class: 'status-real' }), longestChip()))
       box.replaceChildren(
         el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
         methodBadge(record.method),
@@ -3647,10 +3666,10 @@
     return el('a', { class: 'status-link', href: mdn.url, target: '_blank', rel: 'noopener', 'aria-label': name },
       el('span', { class: 'status-label', text: t('lab.status.label') }),
       ' ',
-      el('span', { class: 'chip ' + statusClass(record.status) },
+      statusCell(el('span', { class: 'chip ' + statusClass(record.status) },
         el('span', { 'aria-hidden': 'true', text: statusGlyph(record.status) }),
         ' ',
-        el('span', { class: 'status-text', text: statusLine(record) })),
+        el('span', { class: 'status-text', text: statusLine(record) }))),
       el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
@@ -3678,7 +3697,7 @@
     const bar = className => el('span', { class: 'skel-bar' + (className ? ' ' + className : '') })
     const node = el('div', { class: 'pv' + (record.ms >= COLD_AFTER * 1000 ? ' is-still' : '') },
       el('div', { class: 'res-line', 'aria-hidden': 'true' },
-        el('span', { class: 'status-link' }, el('span', { class: 'status-label', text: t('lab.status.label') }), ' ', el('span', { class: 'chip pv-chip' }, ' ', bar())),
+        el('span', { class: 'status-link' }, el('span', { class: 'status-label', text: t('lab.status.label') }), ' ', statusCell(el('span', { class: 'chip pv-chip' }, '\u00a0', bar())), el('span', { class: 'pv-arrow', text: ' ↗' })),
         el('span', { class: 'res-doc pv-doc' }, ' ', bar())),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }),
         el('button', { type: 'button', class: 'btn', id: 'show-now', text: t('lab.pending.show_now'), onclick: showNow })),
