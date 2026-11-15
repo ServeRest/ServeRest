@@ -17,13 +17,13 @@
     ids: ['guide-open', 'announcer', 'lab-texts', 'side-tab-rotas', 'side-tab-historico', 'routes-toggle', 'filter',
       'request', 'run', 'run-mode', 'run-menu', 'run-split', 'auth-group', 'auth-input', 'auth-undo', 'auth-discard',
       'body-restore', 'sec-responses', 'shown', 'flow', 'flow-title', 'tl-pop', 'res-tab-resposta', 'res-body-area',
-      'use-token', 'token-done', 'history', 'history-body'],
+      'use-token', 'token-done', 'history', 'history-body', 'replay'],
     classes: ['route', 'req-bar', 'req-hint', 'method-link', 'kbd-hint', 'flow-summary', 'flow-summary-stage',
       'flow-stages', 'flow-stage', 'flow-row', 'band', 'tl', 'tl-seg', 'tl-call', 'entry', 'zone-head', 'res-line',
       'res-body', 'res-headers', 'status-link', 'doc-code'],
     attributes: ['data-layout', 'data-route', 'data-key', 'data-send', 'data-send-mode', 'data-record', 'data-status',
-      'data-verdict', 'data-stage', 'data-token', 'data-token-in-use', 'data-part', 'aria-busy', 'aria-current',
-      'aria-expanded', 'aria-selected', 'href']
+      'data-verdict', 'data-stage', 'data-token', 'data-token-in-use', 'data-part', 'data-mode', 'aria-busy',
+      'aria-current', 'aria-expanded', 'aria-selected', 'aria-checked', 'aria-disabled', 'href']
   }
   if (typeof module !== 'undefined' && module.exports) module.exports = { HOOKS }
   if (typeof document === 'undefined') return
@@ -165,6 +165,10 @@
     authValue: () => $('auth-input') ? $('auth-input').value.trim() : '',
     slow: () => !!$('run') && $('run').getAttribute('data-send-mode') === 'lenta',
     split: () => !!$('run-mode') && !$('run-mode').hidden,
+    // O modo escolhido no menu ('lenta' ou 'normal'), mesmo com menos movimento pedido pelo sistema.
+    mode: () => (q('#run-menu [aria-checked="true"]') || { getAttribute: () => '' }).getAttribute('data-mode'),
+    // "Rever em câmera lenta" só redesenha depois do veredito; antes disso o clique é ignorado pela página.
+    replayReady: () => !!$('replay') && $('replay').getAttribute('aria-disabled') !== 'true',
     tokenInUse: () => !!$('token-done') || !!q('#history-body .entry[data-token-in-use]'),
     tabSelected: id => !!$(id) && $(id).getAttribute('aria-selected') === 'true',
     // A entrada mais recente de uma rota no Histórico, com (true) ou sem (false) o header Authorization.
@@ -222,6 +226,7 @@
     const before = P.lastSend()
     $('run').click()
     const id = P.lastSend()
+    track()
     // Os envios da própria ação não contam como cliques da pessoa.
     G.actionAt = id
     if (id === before) return
@@ -234,6 +239,21 @@
 
   function expandFlow () {
     if (!P.flowOpen() && $('flow-title')) $('flow-title').click()
+  }
+
+  // Troca o modo pelo menu de verdade (a seta abre, o item escolhe), sem tirar o foco nem a rolagem de onde
+  // estavam: o menu põe o foco num item e depois em Executar. Devolve false quando o menu não abre (um envio
+  // esperando a resposta segura a seta).
+  function chooseMode (mode) {
+    if (P.mode() === mode) return true
+    if (!P.split() || $('run-mode').getAttribute('aria-disabled') === 'true') return false
+    const [active, x, y] = [document.activeElement, window.scrollX, window.scrollY]
+    if (!visible($('run-menu'))) $('run-mode').click()
+    const item = q('#run-menu [data-mode="' + mode + '"]')
+    if (visible(item)) item.click()
+    if (active && active.isConnected && active !== document.activeElement) active.focus({ preventScroll: true })
+    window.scrollTo({ left: x, top: y, behavior: 'instant' })
+    return P.mode() === mode
   }
 
   // Tira o valor de Authorization sem deixar a rota editada ("Desfazer a edição" e depois "Descartar o token"):
@@ -259,11 +279,22 @@
   // O envio deste passo terminou sem fluxo, em qualquer rota: o passo diz isso e deixa Executar ativo.
   const failedSend = () => mine() && P.ended() && P.verdict().kind === 'none'
   const noFlow = () => failedSend() ? fill('lab.guide.no_flow') : ''
+  // O modo de cada envio é lido no quadro em que a página o despachou (track). No passo 1 do caminho curto só
+  // conta um envio em câmera lenta; um no modo normal ganha um aviso e não conta, como a rota errada.
+  const slowShown = () => mine() && G.sendSlow[P.shown().id] === true
+  // O aviso some quando a pessoa escolhe a câmera lenta: a tarefa que falta já diz para executar de novo.
+  const normalSend = () => P.split() && sent() && G.sendSlow[P.lastSend()] === false && !P.slow()
+  const doneRun = () => doneSend() && (!P.split() || slowShown())
+  // "Rever em câmera lenta" redesenha o fluxo sem veredito por alguns segundos: enquanto isso, o passo não diz
+  // que falta o resultado do passo anterior.
+  const flowReady = () => P.ready() || (!!G.ev.replay && !!P.shown() && !P.sending())
 
   document.addEventListener('click', event => {
     if (!G.open || G.mode !== 'step' || !event.target.closest) return
     const target = event.target
-    if (target.closest('#run-mode')) G.ev.menu = true
+    if (target.closest('#run-menu [data-mode="lenta"]')) G.ev.slow = true
+    // Roda antes do clique chegar à página: o replay ainda não começou, e só conta se a página vai redesenhar.
+    if (target.closest('#replay') && P.replayReady()) G.ev.replay = true
     if (target.closest('#flow-title')) G.ev.title = true
     if (target.closest('#flow .flow-row')) G.ev.row = true
     if (target.closest('.tl-seg[data-part="server"], .tl-call[data-part="server"]')) G.ev.server = true
@@ -360,6 +391,7 @@
       {
         title: 'lab.guide.learn.stop_title',
         label: () => t('ui.flow.title'),
+        owns: ['flow'],
         prepare: expandFlow,
         targets: () => [q('#flow .flow-summary'), q('#flow .flow-stages')],
         // A etapa inteira (a linha e o porquê que ela abre), para caber à vista com o painel aberto.
@@ -441,6 +473,7 @@
         title: 'lab.guide.learn.again_title',
         // Sem token (o login não deu), o passo só explica.
         explain: noToken,
+        owns: ['flow'],
         label: () => noToken() || (!G.ev.routes[CART] && !sent()) ? 'POST /carrinhos' : sent() ? t('ui.flow.title') : t('lab.actions.execute'),
         prepare: () => { if (P.selected() !== CART) revealRoute(CART) },
         // O Resultado ainda mostra o envio sem token do começo: o destaque só vai para o fluxo depois do novo envio.
@@ -532,58 +565,58 @@
         label: () => t('lab.actions.execute'),
         // O botão e o menu ficam ativos o tempo todo; depois do envio, o fluxo ganha um recorte próprio.
         separate: true,
-        targets: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null].concat(sent() && !failedSend() ? [$('shown'), $('flow')] : []),
+        owns: ['mode'],
+        // A página entra no modo normal pelo menu, para a escolha da câmera lenta ser uma escolha de verdade. Só
+        // na entrada (doStep prepara de novo depois da ação, já com o passo na tela); um passo já feito nesta volta
+        // fica como está; com a seta presa por um envio, track tenta de novo.
+        prepare: () => { if (G.mode !== 'step' && P.split() && !G.doneSteps[0]) G.wantNormal = !chooseMode('normal') },
+        targets: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null].concat(sent() && !failedSend() && !normalSend() ? [$('shown'), $('flow')] : []),
         anchor: () => [$('run-split'), visible($('run-menu')) ? $('run-menu') : null],
         paras: () => [fill(P.split() ? 'lab.guide.tour.run_p1' : 'lab.guide.mode_reduced'), fill('lab.guide.tour.run_p2')],
-        warn: () => noFlow(),
+        warn: () => noFlow() || (normalSend() ? fill('lab.guide.tour.run_normal') : ''),
         waiting: waiting(),
-        tasks: () => [
-          P.split() ? { text: fill('lab.guide.tour.run_menu'), done: !!G.ev.menu, target: () => $('run-mode') } : null,
-          { text: fill('lab.guide.task_run'), done: doneSend(), target: () => $('run') }
-        ].filter(Boolean),
+        // Com menos movimento pedido pelo sistema não há câmera lenta: o passo só pede o envio.
+        tasks: () => P.split()
+          ? [
+              { text: fill('lab.guide.tour.run_slow'), done: !!G.ev.slow && P.slow(), target: () => visible($('run-menu')) ? q('#run-menu [data-mode="lenta"]') : $('run-mode') },
+              { text: fill('lab.guide.task_run'), done: doneRun(), target: () => $('run') }
+            ]
+          : [{ text: fill('lab.guide.task_run'), done: doneSend(), target: () => $('run') }],
         doIt: async () => {
-          if (!G.ev.menu && P.split()) {
-            $('run-mode').click()
-            await wait(1400)
-            if (visible($('run-menu'))) $('run-mode').click()
-            await wait(200)
+          if (P.split() && !(G.ev.slow && P.slow())) {
+            await settleSend()
+            if (!visible($('run-menu'))) $('run-mode').click()
+            await wait(900)
+            const item = q('#run-menu [data-mode="lenta"]')
+            if (visible(item)) item.click()
+            await wait(250)
           }
-          // Um envio deste passo que terminou sem fluxo não serve: o botão envia de novo.
-          if (!sent() || failedSend()) await execute(P.selected() || LOGIN)
+          // Um envio deste passo no modo normal, ou que terminou sem fluxo, não serve: o botão envia de novo.
+          if (!doneRun()) await execute(P.selected() || LOGIN)
         }
       },
       {
         title: 'lab.guide.tour.flow_title',
         label: () => t('ui.flow.title'),
         interactive: true,
+        owns: ['flow'],
         prepare: expandFlow,
         targets: () => [q('#flow .band'), q('#flow .flow-stages')],
         paras: () => [fill('lab.guide.tour.flow_p1')],
-        needs: { test: () => P.ready(), fix: () => execute(P.selected() || LOGIN) }
-      },
-      {
-        title: 'lab.guide.tour.close_title',
-        label: () => t('ui.flow.title'),
-        targets: () => [$('flow')],
-        anchor: () => $('flow-title'),
-        paras: () => [fill('lab.guide.tour.close_p1')],
-        tasks: () => [{ text: fill('lab.guide.tour.close_task'), done: !!G.ev.title && !P.flowOpen(), target: () => $('flow-title') }],
-        // Já fechado ao entrar: o clique o abriria, então o passo só explica.
-        preDone: () => !P.flowOpen(),
-        preText: 'lab.guide.tour.close_pre',
-        needs: { test: () => P.ready(), fix: () => execute(P.selected() || LOGIN) },
-        doIt: async () => {
-          if (P.flowOpen()) $('flow-title').click()
-          await wait(200)
-        }
+        // Rever é opcional: não segura o Próximo nem ganha "Fazer por mim". Com menos movimento o botão some, e a
+        // tarefa junto.
+        tasks: () => [visible($('replay')) ? { text: fill('lab.guide.tour.flow_replay'), optional: true, done: !!G.ev.replay, target: () => $('replay') } : null].filter(Boolean),
+        needs: { test: flowReady, fix: () => execute(P.selected() || LOGIN) }
       },
       {
         title: 'lab.guide.tour.time_title',
         label: () => t(P.flowOpen() ? 'lab.time.part.total' : 'ui.flow.title'),
+        owns: ['flow'],
         targets: () => P.flowOpen() ? [q('#flow figure.tl'), visible($('tl-pop')) ? $('tl-pop') : null] : [q('#flow .band')],
         anchor: () => P.flowOpen() ? [q('#flow figure.tl'), visible($('tl-pop')) ? $('tl-pop') : null] : $('flow-title'),
         openLinks: () => qa('#tl-pop a[href]'),
         paras: () => [fill('lab.guide.tour.time_p1')],
+        // O passo anterior deixa o fluxo aberto: abrir pelo título só entra quando ele chegou fechado.
         tasks: () => [
           G.entry.flowOpen ? null : { text: fill('lab.guide.tour.time_open'), done: !!G.ev.title && P.flowOpen(), target: () => $('flow-title') },
           { text: fill('lab.guide.tour.time_server'), done: P.flowOpen() && !!G.ev.server && !!q('.tl-seg[data-part="server"][aria-expanded="true"]'), target: () => q('#flow .tl-seg[data-part="server"]') }
@@ -591,12 +624,35 @@
         // O balão de servidor já aberto ao entrar: o clique o fecharia, então o passo só explica.
         preDone: () => P.flowOpen() && !!q('.tl-seg[data-part="server"][aria-expanded="true"]'),
         preText: 'lab.guide.tour.time_pre',
-        needs: { test: () => P.ready(), fix: () => execute(P.selected() || LOGIN) },
+        needs: { test: flowReady, fix: () => execute(P.selected() || LOGIN) },
         doIt: async () => {
           expandFlow()
           await wait(250)
           const segment = q('#flow .tl-seg[data-part="server"]')
           if (segment && segment.getAttribute('aria-expanded') !== 'true') segment.click()
+          await wait(200)
+        }
+      },
+      {
+        title: 'lab.guide.tour.close_title',
+        label: () => t('ui.flow.title'),
+        owns: ['flow'],
+        // O balão que o passo da barra de tempo abriu fecha pelo mesmo segmento, para a barra fechada aparecer
+        // inteira.
+        prepare: () => {
+          const segment = q('#flow .tl-seg[aria-expanded="true"]')
+          if (segment) segment.click()
+        },
+        targets: () => [$('flow')],
+        anchor: () => $('flow-title'),
+        paras: () => [fill('lab.guide.tour.close_p1'), G.pre ? '' : fill('lab.guide.tour.close_p2')],
+        tasks: () => [{ text: fill('lab.guide.tour.close_task'), done: !!G.ev.title && !P.flowOpen(), target: () => $('flow-title') }],
+        // Já fechado ao entrar: o clique o abriria, então o passo só explica.
+        preDone: () => !P.flowOpen(),
+        preText: 'lab.guide.tour.close_pre',
+        needs: { test: flowReady, fix: () => execute(P.selected() || LOGIN) },
+        doIt: async () => {
+          if (P.flowOpen()) $('flow-title').click()
           await wait(200)
         }
       },
@@ -612,9 +668,53 @@
   }
   const PATHS = { learn: LEARN, tour: TOUR }
 
+  /* ---------- O que o guia muda na página, e devolve ---------- */
+
+  // O guia devolve a página como a encontrou: o modo de envio e o fluxo aberto ou fechado voltam, ao fechar ou
+  // no fim, ao que eram quando ele abriu, pelos controles de verdade (que também guardam a escolha no
+  // navegador). Só volta o que um passo pediu para mudar: o passo que muda algo (no preparo, numa tarefa ou no
+  // Fazer por mim) diz isso em owns, e o que muda enquanto ele está na tela é do guia. O que a pessoa mudou por
+  // conta própria em outro passo fica como ela deixou.
+  const READ = { mode: () => P.mode(), flow: () => P.flowOpen() }
+
+  function claim (s) {
+    ;(s.owns || []).forEach(name => {
+      if (name !== 'mode' || P.split()) G.owned[name] = READ[name]()
+    })
+  }
+
+  // A cada quadro: o modo de cada envio novo (o quadro do envio já tem o modo dele) e o que o passo na tela muda.
+  function track () {
+    const id = P.lastSend()
+    if (id !== G.seenSend) {
+      G.seenSend = id
+      G.sendSlow[id] = P.slow()
+    }
+    if (G.mode !== 'step') return
+    const s = step()
+    // O passo 1 do caminho curto não conseguiu pôr o modo normal ao entrar (a seta presa por um envio): tenta de
+    // novo, até a pessoa escolher a câmera lenta ou sair do passo.
+    if (G.wantNormal && (s !== TOUR.steps[0] || G.ev.slow || !P.split() || chooseMode('normal'))) G.wantNormal = false
+    claim(s)
+  }
+
+  // Devolve false enquanto falta o modo (a seta presa por um envio a caminho): restoreSoon tenta de novo.
+  function restore () {
+    const o = G.origin
+    if (!o) return true
+    if (G.owned.flow !== undefined && P.flowOpen() === G.owned.flow && G.owned.flow !== o.flow && $('flow-title')) $('flow-title').click()
+    return !(G.owned.mode && P.mode() === G.owned.mode && G.owned.mode !== o.mode && !chooseMode(o.mode))
+  }
+
+  function restoreSoon (tries) {
+    clearTimeout(G.restoreTimer)
+    G.restoring = !restore()
+    if (G.restoring && tries > 0) G.restoreTimer = setTimeout(() => restoreSoon(tries - 1), 250)
+  }
+
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, actionAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, actionAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, sendSlow: {}, seenSend: 0, origin: null, owned: {}, wantNormal: false, restoring: false, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
@@ -724,6 +824,16 @@
   function open (path) {
     if (G.open) return
     G.open = true
+    // Uma devolução que ainda esperava a seta (o guia fechou com um envio a caminho) continua valendo: o estado
+    // a devolver segue sendo o de antes da primeira abertura.
+    clearTimeout(G.restoreTimer)
+    if (!G.restoring) {
+      G.origin = { mode: P.mode(), flow: P.flowOpen() }
+      G.owned = {}
+    }
+    G.seenSend = P.lastSend()
+    G.sendSlow = {}
+    G.wantNormal = false
     if (!card) build()
     card.hidden = false
     G.front = 0
@@ -741,6 +851,7 @@
 
   function close () {
     if (!G.open) return
+    track()
     G.open = false
     // Um "Fazer por mim" em andamento para na próxima espera, e o guia reaberto começa livre.
     generation++
@@ -763,6 +874,8 @@
     G.loginFailed = false
     G.runToken = false
     G.doneSteps = {}
+    G.wantNormal = false
+    restoreSoon(160)
     if ($('guide-open')) $('guide-open').focus()
   }
 
@@ -891,7 +1004,9 @@
   // O fim: o que a pessoa fez (sem dizer que usou token quando o login não deu), o outro caminho e onde o guia
   // continua.
   async function showEnd () {
+    track()
     await screen(() => {
+      restoreSoon(160)
       const path = PATHS[G.path]
       G.mode = 'end'
       G.sig = ''
@@ -936,6 +1051,7 @@
   async function goTo (index) {
     // Um clique a mais no Próximo enquanto o passo se prepara não pula um passo.
     if (G.going) return
+    track()
     const steps = PATHS[G.path].steps
     if (index >= steps.length) return showEnd()
     if (index < 0) return showWelcome()
@@ -955,6 +1071,7 @@
           s.prepare()
         } catch (e) {}
       }
+      claim(s)
       await move(() => {
         if (started !== generation) return
         Object.assign(G, { mode: 'step', index, sig: '', targetKey: null, blocked: false })
@@ -1004,10 +1121,11 @@
   }
 
   // A primeira tarefa que falta num passo em que a pessoa ainda pode agir; sem ela, o Próximo só segue. Um passo
-  // que só explica (sem tarefas, já feito ao entrar, sem token, o login quebrado) nunca segura o Próximo.
+  // que só explica (sem tarefas, já feito ao entrar, sem token, o login quebrado) nunca segura o Próximo, nem
+  // uma tarefa opcional (optional), que fica fora de toda regra de pendência.
   function pendingTask (s, tasks) {
     if (G.complete || G.pre || !s.tasks || (s.explain && s.explain()) || (s.stuck && s.stuck())) return null
-    return (tasks || s.tasks().filter(task => task.text)).find(task => !task.done) || null
+    return (tasks || s.tasks().filter(task => task.text)).find(task => !task.done && !task.optional) || null
   }
 
   const plain = text => text.replace(/`/g, '')
@@ -1023,8 +1141,10 @@
     // e o passo não se diz feito sobre uma página que não tem o que ele mostra.
     const complete = G.complete && !missing
     const tasks = (s.tasks && !G.pre && !explain ? s.tasks() : []).filter(task => task.text)
-      .map(task => missing ? { ...task, done: false } : complete ? { ...task, done: true } : task)
-    const done = tasks.length > 0 && tasks.every(task => task.done)
+      .map(task => missing ? { ...task, done: false } : complete && !task.optional ? { ...task, done: true } : task)
+    // Só as tarefas obrigatórias fazem o passo: um passo só com opcionais é um passo que explica.
+    const required = tasks.filter(task => !task.optional)
+    const done = required.length > 0 && required.every(task => task.done)
     // Feito uma vez, o passo fica feito: fechar o balão ou o menu depois não desmarca a tarefa.
     if (done && !G.complete) {
       G.doneSteps[G.index] = { ev: G.ev, sendAt: G.sendAt, entry: G.entry, pre: G.pre }
@@ -1032,7 +1152,9 @@
     }
     const pending = pendingTask(s, tasks)
     if (!pending) G.blocked = false
-    G.mark = pending && pending.target ? pending.target : null
+    // O contorno vai na primeira obrigatória que falta; sem ela, na opcional que ainda dá para fazer.
+    const pointed = pending || (missing ? null : tasks.find(task => task.optional && !task.done))
+    G.mark = pointed && pointed.target ? pointed.target : null
     const warn = missing ? fill('lab.guide.needs') : complete ? '' : (s.warn ? s.warn() : '')
     const wait = !done && s.waiting ? s.waiting() : ''
     const paras = s.paras().concat(G.pre && s.preText ? [fill(s.preText)] : []).filter(Boolean)
@@ -1048,16 +1170,21 @@
     if (tasks.length) {
       const list = el('ul', 'guide-tasks')
       tasks.forEach(task => {
-        const item = el('li', [task.done ? 'is-done' : task === pending ? 'is-now' : '', task === pending && G.blocked ? 'is-missing' : '', fresh(task) && !reduced() ? 'is-pop' : ''].join(' ').trim())
+        const item = el('li', [task.done ? 'is-done' : task === pending ? 'is-now' : '', task.optional ? 'is-opt' : '', task === pending && G.blocked ? 'is-missing' : '', fresh(task) && !reduced() ? 'is-pop' : ''].join(' ').replace(/\s+/g, ' ').trim())
         const mark = el('span', 'guide-mark')
         mark.innerHTML = CHECK
         mark.setAttribute('aria-hidden', 'true')
-        item.append(mark, el('span', '', task.text), el('span', 'sr-only', task.done ? ' ' + t('lab.guide.task_done') : ''))
+        // A opcional diz que é opcional no próprio texto, que o leitor de tela também lê.
+        const text = el('span', '', task.text)
+        if (task.optional) text.prepend(el('span', 'guide-opt', t('lab.guide.optional')), ' ')
+        item.append(mark, text, el('span', 'sr-only', task.done ? ' ' + t('lab.guide.task_done') : ''))
         list.append(item)
       })
       if (done) list.append(el('li', 'guide-done' + (!force && !wasDone ? ' is-fresh' : ''), t('lab.guide.done')))
       body.push(list)
     }
+    // A opcional feita não ganha o "Feito" do passo: o anúncio diz só que ela foi feita.
+    const freshOptional = tasks.find(task => task.optional && fresh(task))
     tasks.forEach(task => { G.seen[task.text] = task.done })
     // O aviso: um ícone que não é lido e o texto.
     const warning = (className, text) => {
@@ -1077,11 +1204,12 @@
     // Feito: o Próximo dá um empurrãozinho.
     if (done && !wasDone && !force) replay(next, 'is-ready')
     const doButton = q('[data-act="do"]', card)
-    doButton.hidden = G.blocked || complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
+    doButton.hidden = G.blocked || complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing) || (!required.length && !missing)
     doButton.toggleAttribute('aria-busy', G.busy)
     if (G.busy) doButton.setAttribute('aria-disabled', 'true')
     else doButton.removeAttribute('aria-disabled')
     if (done && !wasDone && !force) live.textContent = t('lab.guide.done')
+    else if (freshOptional && !force) live.textContent = plain(t('lab.guide.optional') + ' ' + freshOptional.text + ' ' + t('lab.guide.task_done'))
   }
 
   // "Fazer por mim": clica nos mesmos controles que a pessoa clicaria. Devolve false se o guia mudou de tela
@@ -1163,7 +1291,7 @@
     if (kind === 'do' && !G.busy) {
       const s = step()
       if (!(await doStep(s))) return
-      live.textContent = s.tasks && s.tasks().every(task => task.done) ? t('lab.guide.done') : ''
+      live.textContent = s.tasks && s.tasks().every(task => task.done || task.optional) ? t('lab.guide.done') : ''
       // O botão some depois de feito: o foco vai para o Próximo, que continua o caminho.
       const next = q('[data-act="next"]', card)
       if (next && (!card.contains(document.activeElement) || control.hidden)) next.focus()
@@ -1617,6 +1745,7 @@
     if (!G.open) return
     frame = requestAnimationFrame(loop)
     keepFocus()
+    track()
     if (G.moving) return
     if (G.mode === 'step') {
       const els = currentTargets()
