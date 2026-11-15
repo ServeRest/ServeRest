@@ -3626,13 +3626,14 @@
     return { found: route.responses.find(response => response.status === String(record.status)) || null }
   }
 
-  // A descrição vem com "Na documentação:" na frente: sozinha, logo abaixo do status, ela era lida como a causa
-  // deste envio, e um status tem várias causas na mesma rota (um 400 de validação aparecia como "E-mail já
-  // cadastrado"). O corpo da resposta é que diz a causa.
+  // A descrição lista todas as causas que o status tem na rota, então à vista ela vai sozinha, curta para caber
+  // numa linha. "Na documentação:" fica só para o leitor de tela, que não vê a linha sob o status e ouviria a
+  // descrição como a causa deste envio; quem diz a causa é o corpo da resposta. O espaço depois dos dois-pontos é
+  // inquebrável: o Chrome tira o espaço comum do fim do texto escondido, e o leitor juntaria as duas partes.
   function simpleDocLine (record, doc) {
     if (!doc) return null
     if (!doc.found) return el('span', { class: 'res-doc', text: t('lab.simple.undocumented') })
-    return el('span', { class: 'res-doc' }, richInline(fillText('lab.simple.documented', { description: doc.found.description })))
+    return el('span', { class: 'res-doc' }, el('span', { class: 'sr-only', text: t('lab.simple.documented') + '\u00a0' }), richInline(doc.found.description))
   }
 
   // Headers da resposta, sempre à vista; sob o de etapas, de onde vem o desenho do fluxo.
