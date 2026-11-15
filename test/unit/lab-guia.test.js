@@ -11,6 +11,8 @@ const labDir = join(__dirname, '../../src/lab')
 const pagina = readFileSync(join(labDir, 'page.html'), 'utf8')
 const app = readFileSync(join(labDir, 'public/app.js'), 'utf8')
 const guia = readFileSync(join(labDir, 'public/guia.js'), 'utf8')
+const css = readFileSync(join(labDir, 'public/lab.css'), 'utf8')
+const cssDoGuia = css.slice(css.indexOf('/* Guia "Como usar"'))
 
 // Os textos entre aspas simples de um arquivo (sem os ${...} dos templates).
 const literais = fonte => [...fonte.matchAll(/(['`])((?:\\.|(?!\1)[^\\\n])*)\1/g)].map(match => match[2].replace(/\$\{[^}]*\}/g, ''))
@@ -84,6 +86,49 @@ describe('Guia "Como usar" (guia.js)', () => {
     })
   })
 
+  describe('Movimento e destaque', () => {
+    // O cartão some, a página rola e ele volta já no lugar: uma transição de CSS na posição faria o cartão
+    // correr atrás do destaque de novo.
+    it('nada do guia anima a posição do cartão ou do anel por CSS', () => {
+      expect(cssDoGuia).to.not.match(/transition/)
+    })
+
+    it('a piscada no título do fluxo saiu: o que clicar ganha um contorno parado', () => {
+      expect(guia + cssDoGuia).to.not.include('guide-attn')
+      expect(guia).to.match(/node\('div', 'guide-marker', \{ 'aria-hidden': 'true' \}\)/)
+      expect(guia).to.match(/node\('span', 'guide-arrow', \{ 'aria-hidden': 'true' \}\)/)
+    })
+
+    it('cada tarefa de ação diz o controle a clicar (target)', () => {
+      const tarefas = [...guia.matchAll(/\{ text: fill\('lab\.guide\.(task_[a-z]+|tour\.[a-z_]+)'[^\n]*/g)].map(match => match[0])
+      expect(tarefas.length).to.be.greaterThan(10)
+      tarefas.forEach(tarefa => expect(tarefa, tarefa).to.include('target:'))
+    })
+
+    it('com menos movimento pedido pelo sistema, nada do guia anima', () => {
+      expect(cssDoGuia).to.match(/@media \(prefers-reduced-motion: reduce\) \{ \.guide-card \*, \.guide-marker \{ animation: none !important; \} \}/)
+      expect(guia).to.match(/function animate \(ms, paintStep\) \{\n\s+return new Promise\(resolve => \{\n\s+if \(reduced\(\)\)/)
+    })
+
+    it('a camada escura tem um tom em cada tema', () => {
+      expect(cssDoGuia).to.include('--guide-dim: rgb(20 22 28 / 0.45)')
+      expect(cssDoGuia).to.include('--guide-dim: rgb(0 0 0 / 0.62)')
+    })
+  })
+
+  describe('Próximo', () => {
+    // Nenhum passo tem portão próprio: todos seguem a regra do Próximo (o primeiro clique mostra o que falta, o
+    // segundo faz a ação e segue).
+    it('não há mais portão especial num passo', () => {
+      expect(guia).to.not.match(/\bgate\b|gateText|run_gate/)
+      expect(ptBr['lab.guide.tour.run_gate']).to.equal(undefined)
+    })
+
+    it('o segundo clique faz a ação como o Fazer por mim e só segue com as tarefas feitas', () => {
+      expect(guia).to.match(/if \(!\(await doStep\(s\)\)\) return\n\s+try \{\n\s+await waitFor\(\(\) => !pendingTask\(s\), 2500\)/)
+    })
+  })
+
   describe('Textos', () => {
     const chaves = Object.keys(ptBr).filter(key => key.startsWith('lab.guide.'))
     const marcadores = texto => [...texto.matchAll(/\{([a-z_]+)\}/g)].map(match => match[1]).sort()
@@ -100,6 +145,17 @@ describe('Guia "Como usar" (guia.js)', () => {
 
     it('nenhum texto do guia passa de dois parágrafos curtos (240 caracteres)', () => {
       chaves.forEach(key => expect(ptBr[key].length, key).to.be.at.most(240))
+    })
+
+    it('tem as boas-vindas, o fim e a regra do Próximo nos três idiomas', () => {
+      ;['welcome_title', 'welcome_lead', 'welcome_text', 'welcome_pick', 'welcome_note', 'count', 'end_title', 'end_lead', 'close_guide', 'do_next', 'missing', 'wrong_route', 'learn.end_no_token']
+        .forEach(key => expect(ptBr['lab.guide.' + key], key).to.be.a('string').and.not.equal(''))
+      expect(ptBr['lab.guide.welcome_title']).to.equal('Boas-vindas ao ServeRest')
+      expect(ptBr['lab.guide.missing']).to.equal('Falta: {task}')
+    })
+
+    it('nenhum texto do guia usa travessão ou hífen como pontuação', () => {
+      ;[ptBr, en, es].forEach(lingua => chaves.forEach(key => expect(lingua[key], key).to.not.match(/ [-–—] |—/)))
     })
 
     it('o guia não monta endereço da MDN: os links dele são os da página, no idioma dela', () => {
