@@ -46,7 +46,8 @@ describe('Guia "Como usar" (guia.js)', () => {
       HOOKS.attributes.forEach(nome => expect(atributosDaPagina.has(nome), nome).to.equal(true))
     })
 
-    // Todo seletor de guia.js usa só o que está em HOOKS (os elementos do próprio guia, guide-*, ficam de fora):
+    // Todo seletor de guia.js usa só o que está em HOOKS (os elementos do próprio guia, guide-*, ficam de fora, e
+    // também o inert, que é o próprio guia que põe para isolar o destaque):
     // um seletor novo sem o gancho na lista quebra este teste, e o teste de cima passa a vigiar o nome.
     it('todo seletor de guia.js usa só ids, classes e atributos listados em HOOKS', () => {
       const codigo = guia.slice(guia.indexOf('module.exports'))
@@ -62,7 +63,7 @@ describe('Guia "Como usar" (guia.js)', () => {
       expect(ids.size, 'ids lidos').to.be.greaterThan(10)
       ;[...ids].filter(id => !proprios(id)).forEach(id => expect(HOOKS.ids, id).to.include(id))
       ;[...classes].filter(nome => !proprios(nome)).forEach(nome => expect(HOOKS.classes, nome).to.include(nome))
-      ;[...atributos].filter(nome => !proprios(nome) && nome !== 'data-guide' && nome !== 'data-act' && nome !== 'data-path').forEach(nome => expect(HOOKS.attributes, nome).to.include(nome))
+      ;[...atributos].filter(nome => !proprios(nome) && nome !== 'data-guide' && nome !== 'data-act' && nome !== 'data-path' && nome !== 'inert').forEach(nome => expect(HOOKS.attributes, nome).to.include(nome))
     })
 
     // Um clique em Executar ou um Ctrl + Enter que a página ignora (envio em andamento, Authorization inválido,
@@ -126,6 +127,52 @@ describe('Guia "Como usar" (guia.js)', () => {
 
     it('o segundo clique faz a ação como o Fazer por mim e só segue com as tarefas feitas', () => {
       expect(guia).to.match(/if \(!\(await doStep\(s\)\)\) return\n\s+try \{\n\s+await waitFor\(\(\) => !pendingTask\(s\), 2500\)/)
+    })
+  })
+
+  describe('Revisão do PR #581', () => {
+    const corpo = nome => { const inicio = guia.indexOf(nome); return guia.slice(inicio, guia.indexOf('\n  }\n', inicio)) }
+
+    // Um envio a caminho (a página solta o Executar antes do veredito do fluxo) nunca ganha um segundo envio do
+    // guia: a ação espera ele acabar e só então decide se ainda falta enviar.
+    it('Fazer por mim e o segundo Próximo esperam o envio a caminho antes de clicar em Executar', () => {
+      expect(guia).to.match(/const sendBusy = \(\) => P\.sending\(\) \|\| \(sent\(\) && P\.inFlight\(\)\)/)
+      expect(corpo('async function execute (key)')).to.match(/await settleSend\(\)[\s\S]*sendBusy\(\)\) return[\s\S]*\$\('run'\)\.click\(\)/)
+      expect(corpo('async function doStep (s)')).to.match(/await settleSend\(true\)\n\s+if \(s\.needs/)
+    })
+
+    it('o login quebrado é lido do que é verdade agora, nunca anotado ao desenhar o cartão', () => {
+      expect(guia).to.not.match(/G\.loginBroken\s*=/)
+      expect(corpo('function loginFailure ()')).to.not.match(/G\.[a-zA-Z]+ = /)
+      expect(guia).to.match(/const loginBroken = \(\) => !!G\.loginFailed && !\(G\.runToken && P\.tokenInUse\(\)\)/)
+    })
+
+    it('o aviso de que falta o passo anterior não depende de o passo já ter sido feito', () => {
+      expect(guia).to.match(/const warn = missing \? fill\('lab\.guide\.needs'\)/)
+      expect(guia).to.match(/const complete = G\.complete && !missing/)
+    })
+
+    it('um clique num caminho enquanto a tela troca não muda nada', () => {
+      expect(guia).to.match(/if \(picked\) \{\n(\s+\/\/[^\n]*\n)*\s+if \(G\.going \|\| G\.moving\) return\n\s+G\.path = /)
+    })
+
+    it('uma mudança de tamanho no meio de uma troca fica anotada e vale no fim dela', () => {
+      expect(corpo('async function relayout ()')).to.match(/if \(G\.moving \|\| G\.going\) \{\n\s+G\.resized = true/)
+      expect((guia.match(/afterTransition\(\)/g) || []).length).to.be.at.least(3)
+    })
+
+    it('o contorno só aparece num controle clicável, dentro do recorte, sem envio a caminho', () => {
+      expect(corpo('function paintMarker ()')).to.match(/!target\.closest\('\[inert\]'\)/)
+      expect(corpo('function paintMarker ()')).to.match(/sent\(\) && sendBusy\(\)/)
+      expect(corpo('function paintMarker ()')).to.match(/G\.holes\.some/)
+    })
+
+    it('com as tarefas feitas, uma troca de destaque não anuncia por cima do Feito', () => {
+      expect(corpo('function announceTarget (change)')).to.match(/s\.tasks && !pendingTask\(s\)/)
+    })
+
+    it('o foco sai de um controle que ficou inert ou sumiu e vai ao título do cartão', () => {
+      expect(corpo('function keepFocus ()')).to.match(/active === document\.body \|\| !active\.isConnected \|\| active\.closest\('\[inert\]'\)\) focusTitle\(\)/)
     })
   })
 

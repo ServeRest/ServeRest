@@ -199,11 +199,23 @@
     }
   }
 
+  // Um envio a caminho: a página ainda espera a resposta, ou o envio deste passo ainda está sendo desenhado
+  // (a página solta o Executar quando a resposta chega, antes do veredito do fluxo).
+  const sendBusy = () => P.sending() || (sent() && P.inFlight())
+
+  // Fazer por mim nunca envia por cima de um envio a caminho: espera ele acabar, e só então quem chamou decide
+  // se ainda falta enviar. Assim cada ação do passo sai uma vez só, seja qual for a ordem dos cliques.
+  async function settleSend (own) {
+    const busy = own ? () => sent() && P.inFlight() : sendBusy
+    if (busy()) await waitFor(() => !busy(), 40000)
+  }
+
   // Envia e volta assim que o envio termina, com ou sem veredito. Se a página recusou o envio (Authorization
-  // inválido, outro envio em andamento), nada saiu e não há o que esperar.
+  // inválido), nada saiu e não há o que esperar.
   async function execute (key) {
+    await settleSend()
     if (key && P.selected() !== key) await selectRoute(key)
-    if (!$('run') || P.sending()) return
+    if (!$('run') || sendBusy()) return
     const before = P.lastSend()
     $('run').click()
     const id = P.lastSend()
@@ -281,10 +293,18 @@
     if (failedSend()) return noFlow()
     if (!doneSend(LOGIN) || P.status() === '200') return ''
     if (visible($('body-restore'))) return fill('lab.guide.learn.token_edited', { status: statusLine(P.status()) })
-    G.loginBroken = true
     return fill('lab.guide.learn.token_shared', { status: statusLine(P.status()) })
   }
-  const noToken = () => G.loginBroken && !P.tokenInUse()
+  // Os fatos da volta do guia, anotados a cada leitura da página (nunca ao desenhar o cartão): um login com o
+  // corpo do exemplo que voltou sem token, e um token posto em uso nesta volta.
+  function observe () {
+    if (G.mode !== 'step' || G.path !== 'learn') return
+    if (doneSend(LOGIN) && P.status() !== '200' && !visible($('body-restore'))) G.loginFailed = true
+    if (G.ev.useToken && P.tokenInUse()) G.runToken = true
+  }
+  // O login quebrado vale enquanto for verdade: um token obtido nesta volta e em uso o desfaz.
+  const loginBroken = () => !!G.loginFailed && !(G.runToken && P.tokenInUse())
+  const noToken = () => loginBroken() && !P.tokenInUse()
   // Authorization vazio por edição da pessoa: o token da página não chega a esta rota até "Desfazer a edição".
   const emptyEdited = () => P.selected() === CART && !P.authValue() && visible($('auth-undo'))
 
@@ -325,6 +345,8 @@
         waiting: waiting(CART),
         tasks: () => [{ text: fill('lab.guide.task_run'), done: doneSend(CART), target: () => $('run') }],
         doIt: async () => {
+          // O envio da pessoa já terminou com o fluxo (doStep esperou por ele): não há o que reenviar.
+          if (doneSend(CART)) return
           await selectRoute(CART)
           await clearAuth()
           await execute(CART)
@@ -383,7 +405,7 @@
         paras: () => [fill('lab.guide.learn.token_p1')],
         warn: () => loginFailure() || (loginPicked() && !loginDone() ? wrongRoute(LOGIN) : ''),
         // O login voltou sem token no servidor compartilhado: o passo não tem como terminar e o Próximo segue.
-        stuck: () => G.loginBroken,
+        stuck: loginBroken,
         waiting: waiting(LOGIN),
         tasks: () => [
           { text: fill('lab.guide.task_route', { route: 'POST /login' }), done: loginPicked(), target: () => P.route(LOGIN) },
@@ -587,7 +609,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginFailed: false, runToken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
@@ -705,6 +727,8 @@
     paint(layers[1], [], 0)
     loop()
     G.doneSteps = {}
+    G.loginFailed = false
+    G.runToken = false
     if (!path) return showWelcome()
     G.path = path
     goTo(0)
@@ -731,7 +755,8 @@
     G.index = -1
     G.mode = null
     G.pos = null
-    G.loginBroken = false
+    G.loginFailed = false
+    G.runToken = false
     G.doneSteps = {}
     if ($('guide-open')) $('guide-open').focus()
   }
@@ -766,6 +791,8 @@
       item.inert = true
       marked.add(item)
     })
+    // O controle focado pode ter acabado de ficar inert: o foco vai ao cartão no mesmo instante.
+    if (G.open) keepFocus()
   }
 
   function release () {
@@ -868,7 +895,7 @@
       check.innerHTML = CHECK
       part('title').prepend(check)
       setBrand(true, fill('lab.guide.end_lead', { count: path.steps.length }))
-      part('body').replaceChildren(el('p', '', fill(G.loginBroken && path.endNoToken ? path.endNoToken : path.end)), pathCard(PATHS[path.offer]),
+      part('body').replaceChildren(el('p', '', fill(loginBroken() && path.endNoToken ? path.endNoToken : path.end)), pathCard(PATHS[path.offer]),
         el('p', 'guide-note', fill('lab.guide.where')))
       part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close_guide')))
       part('exit-hint').hidden = true
@@ -887,6 +914,7 @@
       await move(render, true)
     } finally {
       G.going = false
+      afterTransition()
     }
   }
 
@@ -953,15 +981,19 @@
       announceTarget()
     } finally {
       G.going = false
+      afterTransition()
     }
   }
 
   // Na troca de passo, sempre; na troca de destaque dentro dele, só quando o nome muda: o "Feito" que acabou
   // de ser anunciado não é atropelado por um "Em destaque" igual ao anterior.
+  // Nem quando as tarefas do passo já estão feitas: o destaque novo é de um controle que já não pede nada, e o
+  // "Feito" fica.
   function announceTarget (change) {
     if (G.mode !== 'step') return
-    const label = step().label()
-    if (change && label === G.label) return
+    const s = step()
+    const label = s.label()
+    if (change && (label === G.label || (s.tasks && !pendingTask(s)))) return
     G.label = label
     live.textContent = fill('lab.guide.highlight', { label })
   }
@@ -982,7 +1014,11 @@
     const missing = !!s.needs && !s.needs.test() && !G.busy
     const explain = !!s.explain && s.explain()
     // Voltando a um passo feito, as tarefas dele aparecem marcadas.
-    const tasks = (s.tasks && !G.pre && !explain ? s.tasks() : []).filter(task => task.text).map(task => G.complete ? { ...task, done: true } : task)
+    // Falta o que o passo anterior deixa na página: o aviso e o Fazer por mim aparecem mesmo num passo já feito,
+    // e o passo não se diz feito sobre uma página que não tem o que ele mostra.
+    const complete = G.complete && !missing
+    const tasks = (s.tasks && !G.pre && !explain ? s.tasks() : []).filter(task => task.text)
+      .map(task => missing ? { ...task, done: false } : complete ? { ...task, done: true } : task)
     const done = tasks.length > 0 && tasks.every(task => task.done)
     // Feito uma vez, o passo fica feito: fechar o balão ou o menu depois não desmarca a tarefa.
     if (done && !G.complete) {
@@ -992,7 +1028,7 @@
     const pending = pendingTask(s, tasks)
     if (!pending) G.blocked = false
     G.mark = pending && pending.target ? pending.target : null
-    const warn = G.complete ? '' : missing ? fill('lab.guide.needs') : (s.warn ? s.warn() : '')
+    const warn = missing ? fill('lab.guide.needs') : complete ? '' : (s.warn ? s.warn() : '')
     const wait = !done && s.waiting ? s.waiting() : ''
     const paras = s.paras().concat(G.pre && s.preText ? [fill(s.preText)] : []).filter(Boolean)
     const falta = G.blocked ? fill('lab.guide.missing', { task: pending.text }) : ''
@@ -1036,7 +1072,7 @@
     // Feito: o Próximo dá um empurrãozinho.
     if (done && !wasDone && !force) replay(next, 'is-ready')
     const doButton = q('[data-act="do"]', card)
-    doButton.hidden = G.blocked || G.complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
+    doButton.hidden = G.blocked || complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
     doButton.toggleAttribute('aria-busy', G.busy)
     if (G.busy) doButton.setAttribute('aria-disabled', 'true')
     else doButton.removeAttribute('aria-disabled')
@@ -1050,6 +1086,9 @@
     G.busy = true
     renderBody(true)
     try {
+      // Primeiro o envio deste passo termina; o que fazer é decidido depois, com a página já parada. Um envio de
+      // antes do passo não segura ações que não enviam (escolher a rota): execute espera por ele, se precisar.
+      await settleSend(true)
       if (s.needs && !s.needs.test()) await s.needs.fix()
       if (s.doIt) await s.doIt()
       if (s.prepare) s.prepare()
@@ -1071,8 +1110,11 @@
   async function onCardClick (event) {
     const picked = event.target.closest('.guide-path')
     if (picked) {
+      // Enquanto a tela troca, o clique não vale: nada muda (nem o caminho, nem o que já foi feito).
+      if (G.going || G.moving) return
       G.path = picked.getAttribute('data-path')
-      G.loginBroken = false
+      G.loginFailed = false
+      G.runToken = false
       G.doneSteps = {}
       return goTo(0)
     }
@@ -1085,6 +1127,7 @@
       if (G.mode !== 'step') return
       if (G.busy) return
       const s = step()
+      observe()
       const pending = pendingTask(s)
       if (!pending) return goTo(G.index + 1)
       // Primeiro clique sem a ação feita: não segue; mostra o que falta, e o foco fica no botão.
@@ -1167,6 +1210,7 @@
       // Quem esperava esta viagem segue; uma viagem que começou depois dela continua marcada.
       if (G.moving === moving) G.moving = null
       done()
+      afterTransition()
     }
   }
 
@@ -1371,9 +1415,13 @@
     try {
       target = G.mode === 'step' && G.mark ? G.mark() : null
     } catch (e) {}
-    const r = visible(target) ? target.getBoundingClientRect() : null
+    // Só sobre um controle clicável agora: dentro do recorte e fora do inert. Com o envio do passo a caminho, o
+    // passo diz "Enviada. Acompanhe o fluxo." e não há o que clicar.
+    const ok = visible(target) && !target.closest('[inert]') && !(G.mode === 'step' && sent() && sendBusy())
+    const r = ok ? target.getBoundingClientRect() : null
+    const inside = !!r && G.holes.some(h => (r.left + r.right) / 2 > h.left && (r.left + r.right) / 2 < h.right && (r.top + r.bottom) / 2 > h.top && (r.top + r.bottom) / 2 < h.bottom)
     const floor = narrow() ? card.getBoundingClientRect().top : window.innerHeight
-    marker.hidden = !r || r.bottom + 4 > floor || r.top < -4
+    marker.hidden = !inside || r.bottom + 4 > floor || r.top < -4
     if (!marker.hidden) Object.assign(marker.style, { left: r.left - 4 + 'px', top: r.top - 4 + 'px', width: r.width + 8 + 'px', height: r.height + 8 + 'px' })
   }
 
@@ -1540,7 +1588,7 @@
     if (!G.pos || narrow()) return
     const H = window.innerHeight
     const y = G.pos.sy === null ? G.pos.y : G.pos.y - (window.scrollY - G.pos.sy)
-    card.style.left = G.pos.x + 'px'
+    card.style.left = Math.round(Math.min(Math.max(16, G.pos.x), document.documentElement.clientWidth - card.offsetWidth - 16)) + 'px'
     card.style.top = Math.round(Math.min(Math.max(16, y), H - card.offsetHeight - 16)) + 'px'
   }
 
@@ -1552,9 +1600,17 @@
     document.body.style.paddingBottom = narrow() && G.mode === 'step' ? (card.offsetHeight + 24) + 'px' : ''
   }
 
+  // O foco nunca fica no body com o guia aberto: se o controle focado ficou inert (o destaque saiu dele) ou
+  // sumiu da página, ele vai para o título do cartão.
+  function keepFocus () {
+    const active = document.activeElement
+    if (!active || active === document.body || !active.isConnected || active.closest('[inert]')) focusTitle()
+  }
+
   function loop () {
     if (!G.open) return
     frame = requestAnimationFrame(loop)
+    keepFocus()
     if (G.moving) return
     if (G.mode === 'step') {
       const els = currentTargets()
@@ -1575,29 +1631,47 @@
     paintShield()
     paintMarker()
     setPadding()
+    // Voltou a ser computador sem posição (o telefone virou no meio de uma troca): o cartão ganha lugar já.
+    if (!narrow() && !G.pos && !G.going) placeCard(currentTargets())
     followCard()
     const now = performance.now()
     if (now - lastRender > 200) {
       lastRender = now
       if (G.mode === 'step') {
+        observe()
         renderBody(false)
         keepInBand(true)
       } else isolate(keepList())
     }
   }
 
-  // Mudou o tamanho da janela: o destaque volta à vista e o cartão escolhe o lado de novo, sem animação.
+  // Mudou o tamanho da janela: o destaque volta à vista e o cartão escolhe o lado de novo, sem animação. No meio
+  // de uma troca de tela, fica anotado e vale assim que ela termina (o telefone virado durante o fade-in).
+  async function relayout () {
+    if (!G.open) return
+    if (G.moving || G.going) {
+      G.resized = true
+      return
+    }
+    G.resized = false
+    setPadding()
+    const els = currentTargets()
+    if (els.length) await scrollToTarget(els, true)
+    if (G.moving || G.going || !G.open) {
+      G.resized = true
+      return
+    }
+    G.holes = holesFor(currentTargets())
+    placeCard(currentTargets())
+  }
+
+  function afterTransition () {
+    if (G.resized && !G.moving && !G.going) setTimeout(relayout)
+  }
+
   window.addEventListener('resize', () => {
     clearTimeout(G.resizeTimer)
-    G.resizeTimer = setTimeout(async () => {
-      if (!G.open || G.moving || G.going) return
-      setPadding()
-      const els = currentTargets()
-      if (els.length) await scrollToTarget(els, true)
-      if (G.moving || !G.open) return
-      G.holes = holesFor(currentTargets())
-      placeCard(currentTargets())
-    }, 150)
+    G.resizeTimer = setTimeout(relayout, 150)
   })
 
   /* ---------- Teclado: Esc fecha (o Tab já fica no cartão e no destaque, pelo inert) ---------- */
