@@ -492,7 +492,7 @@ describe('Página do lab: funções puras', () => {
           },
           {
             status: '415',
-            description: ptBr['components.responses.CharsetNaoSuportado.description'],
+            description: ptBr['components.responses.CorpoNaoSuportado.description'],
             example: { message: 'Unsupported charset', charset: 'latin9' }
           },
           {

@@ -1,4 +1,5 @@
 const { expect } = require('chai')
+const zlib = require('zlib')
 
 const documento = require('../../../docs/swagger.json')
 const ptBr = require('../../../src/swagger/translations/pt-BR')
@@ -38,13 +39,16 @@ const ID_CURTO = 'curto'
 const ID_MAL_CODIFICADO = '%E0%A4%A'
 // Acima dos 100 KB que o express.json aceita.
 const CORPO_GRANDE_DEMAIS = JSON.stringify({ email: 'a'.repeat(110 * 1024) })
+// Um a mais que os 1000 parâmetros que o express.urlencoded aceita.
+const FORMULARIO_COM_PARAMETROS_DEMAIS = Array.from({ length: 1001 }, (_, indice) => `p${indice}=1`).join('&')
 
 describe('Respostas documentadas dos erros comuns', () => {
+  let administrador
   let tokenDeAdministrador
   let tokenDeUsuarioExcluido
 
   before(async () => {
-    const administrador = await utils.cadastrarUsuario({ administrador: 'true' })
+    administrador = await utils.cadastrarUsuario({ administrador: 'true' })
     tokenDeAdministrador = (await utils.login(administrador.email, administrador.password)).authorization
     const excluido = await utils.cadastrarUsuario()
     tokenDeUsuarioExcluido = (await utils.login(excluido.email, excluido.password)).authorization
@@ -55,25 +59,30 @@ describe('Respostas documentadas dos erros comuns', () => {
   // envio e, quando o documento traz exemplo para o caso, o exemplo igual ao corpo real (true é o exemplo único).
   const casos = [
     { rota: 'POST /login', caso: 'corpo vazio', envio: () => request.post('/login').send({}), status: 400, causa: 'dados inválidos', exemplo: 'dadosInvalidos' },
-    { rota: 'POST /login', caso: 'JSON sem aspas', envio: () => request.post('/login').set('content-type', 'application/json').send('{"email": fulano}'), status: 400, causa: 'JSON ou dados inválidos', exemplo: 'jsonMalformado' },
-    { rota: 'POST /login', caso: 'charset latin9', envio: () => request.post('/login').set('content-type', 'application/json; charset=latin9').send('{"email":"fulano@qa.com","password":"teste"}'), status: 415, causa: 'Charset', exemplo: true },
+    { rota: 'POST /login', caso: 'JSON sem aspas', envio: () => request.post('/login').set('content-type', 'application/json').send('{"email": fulano}'), status: 400, causa: 'Corpo ou dados inválidos', exemplo: 'jsonMalformado' },
+    { rota: 'POST /login', caso: 'charset latin9', envio: () => request.post('/login').set('content-type', 'application/json; charset=latin9').send('{"email":"fulano@qa.com","password":"teste"}'), status: 415, causa: 'Charset', exemplo: 'charset' },
     { rota: 'POST /login', caso: 'corpo acima de 100 KB', envio: () => request.post('/login').set('content-type', 'application/json').send(CORPO_GRANDE_DEMAIS), status: 413, causa: '100 KB', exemplo: true },
+    { rota: 'POST /login', caso: 'formulário com 1001 parâmetros', envio: () => request.post('/login').type('form').send(FORMULARIO_COM_PARAMETROS_DEMAIS), status: 413, causa: '1000 parâmetros', exemplo: true },
+    { rota: 'POST /login', caso: 'Content-Encoding br', envio: () => request.post('/login').set('content-type', 'application/json').set('content-encoding', 'br').send('{}'), status: 415, causa: 'Content-Encoding', exemplo: 'contentEncoding' },
+    { rota: 'POST /login', caso: 'gzip no header e corpo sem compressão', envio: () => request.post('/login').set('content-type', 'application/json').set('content-encoding', 'gzip').send('{"email": "fulano@qa.com"}'), status: 400, causa: 'Corpo ou dados inválidos', exemplo: 'corpoComprimidoInvalido' },
+    { rota: 'POST /usuarios', caso: 'deflate no header e corpo sem compressão', envio: () => request.post('/usuarios').set('content-type', 'application/json').set('content-encoding', 'deflate').send('{"nome": "x"}'), status: 400, causa: 'Corpo ou dados inválidos' },
+    { rota: 'POST /usuarios', caso: 'gzip cortado no meio', envio: () => request.post('/usuarios').set('content-type', 'application/json').set('content-encoding', 'gzip').serialize(bytes => bytes).send(zlib.gzipSync('{"nome": "x"}').subarray(0, 12)), status: 400, causa: 'Corpo ou dados inválidos' },
     { rota: 'GET /usuarios', caso: 'email inválido no filtro', envio: () => request.get('/usuarios?email=nao-email'), status: 400, causa: 'Filtro inválido', exemplo: true },
     { rota: 'GET /usuarios', caso: 'filtro que a rota não tem', envio: () => request.get('/usuarios?foo=1'), status: 400, causa: 'Filtro inválido' },
     { rota: 'GET /produtos', caso: 'preco que não é número', envio: () => request.get('/produtos?preco=abc'), status: 400, causa: 'Filtro inválido', exemplo: true },
     { rota: 'GET /carrinhos', caso: 'precoTotal que não é número', envio: () => request.get('/carrinhos?precoTotal=abc'), status: 400, causa: 'Filtro inválido', exemplo: true },
     { rota: 'POST /usuarios', caso: 'nome vazio', envio: () => request.post('/usuarios').send({ nome: '' }), status: 400, causa: 'dados inválidos' },
-    { rota: 'POST /usuarios', caso: 'JSON sem aspas', envio: () => request.post('/usuarios').set('content-type', 'application/json').send('{"nome": x}'), status: 400, causa: 'JSON ou dados inválidos' },
-    { rota: 'PUT /usuarios/{_id}', caso: 'campos faltando', envio: () => request.put('/usuarios/0uxuPY0cbmQhpEz1').send({ nome: 'x' }), status: 400, causa: 'JSON, dados ou URL inválidos' },
+    { rota: 'POST /usuarios', caso: 'JSON sem aspas', envio: () => request.post('/usuarios').set('content-type', 'application/json').send('{"nome": x}'), status: 400, causa: 'Corpo ou dados inválidos' },
+    { rota: 'PUT /usuarios/{_id}', caso: 'campos faltando', envio: () => request.put('/usuarios/0uxuPY0cbmQhpEz1').send({ nome: 'x' }), status: 400, causa: 'Corpo, dados ou URL inválidos' },
     { rota: 'PUT /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.put(`/usuarios/${ID_MAL_CODIFICADO}`).send({}), status: 400, causa: 'URL inválid' },
     { rota: 'GET /usuarios/{_id}', caso: 'id curto', envio: () => request.get(`/usuarios/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
     { rota: 'DELETE /usuarios/{_id}', caso: 'id mal codificado', envio: () => request.del(`/usuarios/${ID_MAL_CODIFICADO}`), status: 400, causa: 'URL inválid' },
     { rota: 'GET /produtos/{_id}', caso: 'id curto', envio: () => request.get(`/produtos/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
     { rota: 'POST /produtos', caso: 'preço que não é número', envio: () => request.post('/produtos').set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 'abc', descricao: 'x', quantidade: 1 }), status: 400, causa: 'dados inválidos' },
     { rota: 'DELETE /produtos/{_id}', caso: 'id curto', envio: () => request.del(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador), status: 400, causa: 'ID inválido' },
-    { rota: 'PUT /produtos/{_id}', caso: 'id curto', envio: () => request.put(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 1, descricao: 'x', quantidade: 1 }), status: 400, causa: 'ID, JSON ou dados inválidos' },
+    { rota: 'PUT /produtos/{_id}', caso: 'id curto', envio: () => request.put(`/produtos/${ID_CURTO}`).set('authorization', tokenDeAdministrador).send({ nome: 'x', preco: 1, descricao: 'x', quantidade: 1 }), status: 400, causa: 'ID, corpo ou dados inválidos' },
     { rota: 'GET /carrinhos/{_id}', caso: 'id curto', envio: () => request.get(`/carrinhos/${ID_CURTO}`), status: 400, causa: 'ID inválido' },
-    { rota: 'POST /carrinhos', caso: 'JSON sem aspas, antes do token', envio: () => request.post('/carrinhos').set('content-type', 'application/json').send('{"produtos": [}'), status: 400, causa: 'JSON ou dados inválidos' },
+    { rota: 'POST /carrinhos', caso: 'JSON sem aspas, antes do token', envio: () => request.post('/carrinhos').set('content-type', 'application/json').send('{"produtos": [}'), status: 400, causa: 'Corpo ou dados inválidos' },
     { rota: 'POST /carrinhos', caso: 'produtos vazio', envio: () => request.post('/carrinhos').set('authorization', tokenDeAdministrador).send({ produtos: [] }), status: 400, causa: 'dados inválidos' },
     { rota: 'POST /carrinhos', caso: 'token de usuário excluído', envio: () => request.post('/carrinhos').set('authorization', tokenDeUsuarioExcluido).send({ produtos: [] }), status: 401, causa: 'usuário excluído' }
   ]
@@ -86,6 +95,13 @@ describe('Respostas documentadas dos erros comuns', () => {
       expect(ptBr[resposta.description]).to.include(causa)
       if (exemplo) expect(body).to.deep.equal(exemploDocumentado(resposta, exemplo === true ? undefined : exemplo))
     })
+  })
+
+  // O serialize mantém os bytes: com content-type JSON, o superagent transformaria o Buffer em JSON.
+  it('um corpo comprimido com gzip de verdade continua sendo lido', async () => {
+    const corpo = zlib.gzipSync(JSON.stringify({ email: administrador.email, password: administrador.password }))
+    const { body } = await request.post('/login').set('content-type', 'application/json').set('content-encoding', 'gzip').serialize(bytes => bytes).send(corpo).expect(200)
+    expect(body.message).to.equal('Login realizado com sucesso')
   })
 
   it('toda operação documenta o 429 do limite de requisições, com a mensagem que o servidor devolve', () => {

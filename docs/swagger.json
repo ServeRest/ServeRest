@@ -80,6 +80,12 @@
                                         "value": {
                                             "message": "Adicione aspas em todos os valores. Para mais informações acesse a issue https://github.com/ServeRest/ServeRest/issues/225"
                                         }
+                                    },
+                                    "corpoComprimidoInvalido": {
+                                        "summary": "paths.login.post.responses.400.examples.corpoComprimidoInvalido.summary",
+                                        "value": {
+                                            "message": "Corpo comprimido inválido. Envie o corpo de acordo com o header Content-Encoding ou remova o header."
+                                        }
                                     }
                                 }
                             }
@@ -99,7 +105,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -193,7 +199,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -358,7 +364,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -463,7 +469,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -652,7 +658,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -758,7 +764,7 @@
                         "$ref": "#/components/responses/CorpoGrandeDemais"
                     },
                     "415": {
-                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
                     },
                     "429": {
                         "$ref": "#/components/responses/LimiteDeRequisicoes"
@@ -1108,12 +1114,28 @@
                     }
                 }
             },
-            "CharsetNaoSuportado": {
-                "description": "components.responses.CharsetNaoSuportado.description",
+            "CorpoNaoSuportado": {
+                "description": "components.responses.CorpoNaoSuportado.description",
                 "content": {
                     "application/json": {
                         "schema": {
-                            "$ref": "#/components/schemas/charsetNaoSuportado"
+                            "$ref": "#/components/schemas/corpoNaoSuportado"
+                        },
+                        "examples": {
+                            "charset": {
+                                "summary": "components.responses.CorpoNaoSuportado.examples.charset.summary",
+                                "value": {
+                                    "message": "Unsupported charset",
+                                    "charset": "latin9"
+                                }
+                            },
+                            "contentEncoding": {
+                                "summary": "components.responses.CorpoNaoSuportado.examples.contentEncoding.summary",
+                                "value": {
+                                    "message": "Unsupported content encoding",
+                                    "encoding": "br"
+                                }
+                            }
                         }
                     }
                 }
@@ -1661,16 +1683,17 @@
                     }
                 }
             },
-            "charsetNaoSuportado": {
+            "corpoNaoSuportado": {
                 "type": "object",
                 "properties": {
                     "message": {
-                        "type": "string",
-                        "example": "Unsupported charset"
+                        "type": "string"
                     },
                     "charset": {
-                        "type": "string",
-                        "example": "latin9"
+                        "type": "string"
+                    },
+                    "encoding": {
+                        "type": "string"
                     }
                 }
             },
