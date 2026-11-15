@@ -56,6 +56,16 @@ describe('/ GET (página inicial)', () => {
     expect(frances.text).to.include(`<title>${ptBr['lab.page.title']}</title>`)
   })
 
+  it('descreve a página para os buscadores, em uma ou duas frases de até 160 caracteres, nos três idiomas', async () => {
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const descricao = textos['lab.page.description']
+      expect(descricao.length, lang).to.be.within(50, 160)
+      expect(text.split('<meta name="description"').length - 1, lang).to.equal(1)
+      expect(text, lang).to.include(`<meta name="description" content="${escaparHtml(descricao)}">`)
+    }
+  })
+
   it('o bloco lab-texts é JSON com os textos do fluxo e não contém <', async () => {
     const { text } = await request.get('/').query({ lang: 'en' }).expect(200)
     const bruto = blocoDeTextos(text)

@@ -215,6 +215,27 @@
   // Quando as frações somam menos de 1, a grade reparte só essa parte do resto, e o desenho para antes
   // do fim da coluna (etapas rápidas, o normal num servidor local). Aí elas crescem na mesma proporção
   // até somar pelo menos 1, arredondadas para cima.
+  // As larguras das etapas dentro do servidor, na barra da requisição inteira (Fluxo fechado): a que não
+  // rodou fica com min; as que rodaram dividem o resto pela raiz da duração, como flowColumns, nunca abaixo de
+  // min, e todas somam exatamente space. Em px, e não em fr: com o espaço justo, a grade com minmax(min, fr)
+  // deixava todas as etapas no mínimo e sobrava um vão depois da última.
+  function stageWidths (stages, space, min) {
+    const ran = stages.map(ranStage)
+    const none = !ran.some(Boolean)
+    const grow = stages.map((stage, index) => none ? 1 : ran[index] ? segmentGrow(stage) : 0)
+    const widths = stages.map(() => min)
+    const open = grow.map(value => value > 0)
+    for (;;) {
+      const fixed = widths.reduce((total, width, index) => total + (open[index] ? 0 : width), 0)
+      const weight = grow.reduce((total, value, index) => total + (open[index] ? value : 0), 0)
+      if (!weight) return widths
+      const unit = (space - fixed) / weight
+      const small = open.findIndex((isOpen, index) => isOpen && grow[index] * unit < min)
+      if (small === -1) return widths.map((width, index) => open[index] ? grow[index] * unit : width)
+      open[small] = false
+    }
+  }
+
   function flowColumns (model) {
     const total = model.stages.filter(ranStage).reduce((sum, stage) => sum + segmentGrow(stage), 0)
     const grow = stage => total < 1 ? Math.ceil(segmentGrow(stage) / total * 1000) / 1000 : segmentGrow(stage)
@@ -304,6 +325,10 @@
   // potência não troca a ordem: uma parte que levou mais tempo nunca fica mais estreita que outra. Em
   // produção a rede passa de 95% e a conexão vira uma linha; no localhost tudo já aparece e nada muda.
   // adjusted diz se a escala deixou de ser a real. Os números mostrados continuam os reais.
+  // A fatia mínima de cada parte com tempo: 3% da barra. A escala só se afasta da real o necessário para a parte
+  // mais fina chegar a ela (Q18).
+  const TIME_MIN_SHARE = 0.03
+
   function timeWeights (bar, minShare) {
     const times = [bar.conn, bar.half, bar.server, bar.half, bar.down].map(ms => ms > 0 ? ms : 0)
     const thinnest = power => {
@@ -684,29 +709,6 @@
     return curl + ' \\\n  ' + CURL_TIMES
   }
 
-  // O que difere entre o envio e o rascunho, parte a parte, na ordem do comando: a URL (a linha do início;
-  // o método e a rota são os mesmos), cada header pelo nome (o que está num lado só também conta) e o corpo,
-  // dizendo se o rascunho tem corpo. As mesmas partes de curlParts.
-  function sentDiffParts (sent, draft) {
-    const a = curlParts(sent)
-    const b = curlParts(draft)
-    const of = (list, kind) => list.find(part => part.kind === kind)
-    const header = (list, name) => list.find(part => part.kind === 'header' && part.name.toLowerCase() === name)
-    const out = []
-    if (of(a, 'start').text !== of(b, 'start').text) out.push({ kind: 'url' })
-    const names = []
-    a.concat(b).forEach(part => {
-      if (part.kind === 'header' && !names.includes(part.name.toLowerCase())) names.push(part.name.toLowerCase())
-    })
-    names.forEach(name => {
-      const one = header(a, name)
-      const two = header(b, name)
-      if (!one || !two || one.text !== two.text) out.push({ kind: 'header', name: (one || two).name })
-    })
-    if ((of(a, 'body') || {}).text !== (of(b, 'body') || {}).text) out.push({ kind: 'body', inDraft: !!of(b, 'body') })
-    return out
-  }
-
   // Reindenta um JSON com dois espaços sem converter nenhum valor: os caracteres originais ficam (1.0
   // continua 1.0, um inteiro de 20 dígitos não perde precisão, chaves repetidas continuam as duas). null
   // quando o texto não é JSON.
@@ -818,6 +820,14 @@
     } catch (e) {
       return null
     }
+  }
+
+  // O envio de POST /login cujo token é o valor que vai em Authorization: o mais recente, se dois logins
+  // devolveram o mesmo token. Sem valor, ou com um valor que não é o token de nenhum login, nenhum.
+  function tokenInUseId (records, sentValue) {
+    if (!sentValue) return null
+    const record = records.find(item => loginToken(item) === sentValue)
+    return record ? record.id : null
   }
 
   // A oferta do token sob a linha do status (D30): o botão (use) ou a frase de que ele já é o token da
@@ -984,17 +994,56 @@
     }
   }
 
-  // O convite para dar opinião, no Resultado vazio: só a partir da 3ª requisição no Histórico, numa sessão
-  // só por navegador. local é o valor guardado no localStorage (ausente, "shown", "closed" ou "answered") e
-  // session diz se esta aba já mostrou o convite. write pede para guardar "shown" e a marca da sessão.
+  // O convite para dar opinião, no Resultado vazio (R4 estendida). Aparece a partir do 3º envio do Histórico
+  // da aba, numa aba só por dia de uso (a primeira em que as condições valem). Depois de um dia em que
+  // apareceu, pula os 2 dias de uso seguintes; para depois de aparecer em 10 dias. "Responder" encerra de vez;
+  // "Agora não" tira só naquele dia. Dia de uso é um dia do calendário em que a página foi aberta: dias sem
+  // uso não contam. O estado vai em JSON no localStorage: days (dias em que apareceu), last (o último deles),
+  // seen (o último dia de uso), gap (dias de uso desde last), off (o dia do "Agora não") e answered.
   const FEEDBACK_MIN_COUNT = 3
+  const FEEDBACK_SKIP_DAYS = 2
+  const FEEDBACK_MAX_DAYS = 10
 
+  // O dia do calendário, no fuso de quem usa: "2026-11-14".
+  function dayKey (date) {
+    const pad = value => String(value).padStart(2, '0')
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+  }
+
+  // O valor guardado, com os valores antigos migrados: "answered" continua respondido; "shown" e "closed"
+  // recomeçam a contagem. Qualquer outra coisa é um estado novo.
+  function readInvite (raw) {
+    if (raw === 'answered') return { answered: true }
+    try {
+      const value = JSON.parse(raw)
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, off: value.off || null, answered: !!value.answered }
+      }
+    } catch (e) {}
+    return { days: 0, last: null, seen: null, gap: 0, off: null, answered: false }
+  }
+
+  // A página foi aberta hoje: o primeiro uso do dia conta mais um dia de uso desde o último convite.
+  function inviteVisit (state, today) {
+    if (state.seen === today) return state
+    return { ...state, seen: today, gap: state.last && state.last !== today ? (state.gap || 0) + 1 : state.gap || 0 }
+  }
+
+  // session é o dia em que esta aba mostrou o convite (sessionStorage). Devolve se aparece e, quando muda, o
+  // estado novo e o dia a guardar na aba.
   function feedbackInvite (input) {
-    const { count, local, session } = input || {}
-    if (!(count >= FEEDBACK_MIN_COUNT)) return { show: false, write: false }
-    if (local === null || local === undefined) return { show: true, write: true }
-    if (local === 'shown' && session) return { show: true, write: false }
-    return { show: false, write: false }
+    const { count, today, state = readInvite(null), session } = input || {}
+    const no = { show: false, state: null, session: null }
+    if (!(count >= FEEDBACK_MIN_COUNT) || state.answered || state.off === today) return no
+    if (state.last === today) return session === today ? { show: true, state: null, session: null } : no
+    if ((state.days || 0) >= FEEDBACK_MAX_DAYS) return no
+    if (state.last && (state.gap || 0) <= FEEDBACK_SKIP_DAYS) return no
+    return { show: true, state: { ...state, days: (state.days || 0) + 1, last: today, seen: today, gap: 0 }, session: today }
+  }
+
+  // "Responder" encerra o convite de vez; "Agora não" só naquele dia.
+  function inviteEnd (state, today, answered) {
+    return answered ? { ...state, answered: true } : { ...state, off: today }
   }
 
   // O ServeRest não tem login de verdade: /login, email e password são dados de exemplo. Estes atributos
@@ -1023,14 +1072,20 @@
     mdnMethodUrl,
     releaseNotice,
     feedbackInvite,
+    readInvite,
+    inviteVisit,
+    inviteEnd,
+    dayKey,
     segmentGrow,
     formatDuration,
     formatShare,
     timeWeights,
+    TIME_MIN_SHARE,
     parseStages,
     buildFlowModel,
     stepDelay,
     flowColumns,
+    stageWidths,
     resourceEntry,
     resourcePhases,
     timeBar,
@@ -1062,7 +1117,6 @@
     curlWithTimes,
     CURL_TIMES,
     CURL_TIME_VARS,
-    sentDiffParts,
     prettyJson,
     decodeJwtExp,
     tokenCaptionState,
@@ -1071,6 +1125,7 @@
     isOlderThanLatest,
     recordDiffersFromDraft,
     loginToken,
+    tokenInUseId,
     offerState,
     storedRecord,
     readStoredHistory,

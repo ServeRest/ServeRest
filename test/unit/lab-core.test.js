@@ -62,6 +62,26 @@ describe('Página do lab: funções puras', () => {
       expect(core.flowColumns(model)).to.equal('minmax(22px, 0.424fr) 22px minmax(22px, 1.187fr) minmax(22px, 0.566fr) minmax(22px, 1.449fr) minmax(22px, 1.010fr) 22px')
     })
 
+    it('stageWidths: com o espaço justo as etapas que rodaram dividem o que sobra e somam o espaço inteiro', () => {
+      // O caso do vão na barra fechada: 100,5 px de servidor para quatro etapas, uma pulada.
+      const stages = core.parseStages('body;st=ok;dur=0.15, rate_limit;st=skipped, schema;st=ok;dur=0.08, rules;st=failed;dur=0.19')
+      const widths = core.stageWidths(stages, 94.5, 22)
+      expect(widths[1]).to.equal(22)
+      expect(widths.every(width => width >= 22)).to.equal(true)
+      expect(widths.reduce((total, width) => total + width, 0)).to.be.closeTo(94.5, 1e-9)
+      expect(widths[3]).to.be.greaterThan(widths[0])
+    })
+
+    it('stageWidths: sem espaço para todas, cada etapa fica com o mínimo; sem etapa que rodou, dividem por igual', () => {
+      const stages = core.parseStages('body;st=ok;dur=5, schema;st=failed;dur=0.01, rules;st=not_run')
+      expect(core.stageWidths(stages, 60, 22)).to.deep.equal([22, 22, 22])
+      const largas = core.stageWidths(stages, 200, 22)
+      expect(largas[1]).to.equal(22)
+      expect(largas[2]).to.equal(22)
+      expect(largas[0]).to.be.closeTo(156, 1e-9)
+      expect(core.stageWidths(core.parseStages('rate_limit;st=skipped, write;st=not_run'), 100, 22)).to.deep.equal([50, 50])
+    })
+
     it('flowColumns: etapa que rodou sem duração usa a duração mínima do painel', () => {
       const model = core.buildFlowModel(core.parseStages('body;st=ok, auth;st=failed;reason=token_missing, write;st=not_run'), 401, textosDoFluxo)
       expect(core.flowColumns(model)).to.equal('minmax(22px, 0.500fr) minmax(22px, 0.500fr) 22px 22px')
@@ -209,8 +229,12 @@ describe('Página do lab: funções puras', () => {
       expect(core.timeWeights(local, 0)).to.deep.equal({ ...local, adjusted: false })
     })
 
+    it('a fatia mínima de cada parte é 3% da barra (Q18)', () => {
+      expect(core.TIME_MIN_SHARE).to.equal(0.03)
+    })
+
     it('timeWeights ajusta só o necessário em produção: a parte mais fina chega à fatia mínima, na mesma ordem', () => {
-      const pesos = core.timeWeights({ conn: 0.6, half: 82, server: 2.4, down: 3.6 }, 0.03)
+      const pesos = core.timeWeights({ conn: 0.6, half: 82, server: 2.4, down: 3.6 }, core.TIME_MIN_SHARE)
       const largura = pesos.conn + pesos.half * 2 + pesos.server + pesos.down
       expect(pesos.adjusted).to.equal(true)
       expect(pesos.conn / largura).to.be.within(0.03, 0.031)
@@ -845,6 +869,36 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  describe('tokenInUseId', () => {
+    const login = (id, authorization, extra = {}) => ({ id, error: null, status: 200, method: 'POST', path: '/login', bodyText: JSON.stringify({ message: 'Login realizado com sucesso', authorization }), ...extra })
+    const antigo = 'Bearer ' + jwt.sign({ email: 'fulano@qa.com', n: 1 }, 'segredo')
+    const novo = 'Bearer ' + jwt.sign({ email: 'fulano@qa.com', n: 2 }, 'segredo')
+    // A lista do Histórico: o mais recente primeiro.
+    const historico = [
+      { id: 5, error: null, status: 201, method: 'POST', path: '/produtos', bodyText: '{"_id":"abc"}' },
+      login(4, novo),
+      login(3, antigo, { status: 401 }),
+      login(2, antigo),
+      { id: 1, error: null, status: 200, method: 'GET', path: '/usuarios', bodyText: JSON.stringify({ authorization: novo }) }
+    ]
+
+    it('aponta o login cujo token é o valor enviado, o mais novo ou o mais antigo', () => {
+      expect(core.tokenInUseId(historico, novo)).to.equal(4)
+      expect(core.tokenInUseId(historico, antigo)).to.equal(2)
+    })
+
+    it('não aponta nenhum com valor vazio, sem valor ou com um valor que não é token de login', () => {
+      expect(core.tokenInUseId(historico, '')).to.equal(null)
+      expect(core.tokenInUseId(historico, null)).to.equal(null)
+      expect(core.tokenInUseId(historico, 'Bearer qualquer-coisa')).to.equal(null)
+      expect(core.tokenInUseId([], novo)).to.equal(null)
+    })
+
+    it('com dois logins do mesmo token, aponta só o mais recente', () => {
+      expect(core.tokenInUseId([login(9, novo), login(8, novo)], novo)).to.equal(9)
+    })
+  })
+
   describe('mdnStatusUrl', () => {
     const base = 'https://developer.mozilla.org/'
 
@@ -925,31 +979,87 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
-  describe('feedbackInvite', () => {
-    it('com menos de 3 envios no Histórico não aparece', () => {
-      expect(core.feedbackInvite({ count: 2, local: null, session: false })).to.deep.equal({ show: false, write: false })
-      expect(core.feedbackInvite({ count: 0, local: null, session: false })).to.deep.equal({ show: false, write: false })
-      expect(core.feedbackInvite(undefined)).to.deep.equal({ show: false, write: false })
-    })
-
-    it('na primeira vez aparece e pede para guardar "shown" e a marca da sessão', () => {
-      expect(core.feedbackInvite({ count: 3, local: null, session: false })).to.deep.equal({ show: true, write: true })
-      expect(core.feedbackInvite({ count: 7, local: undefined, session: false })).to.deep.equal({ show: true, write: true })
-    })
-
-    it('na mesma sessão continua aparecendo, sem escrever de novo', () => {
-      expect(core.feedbackInvite({ count: 4, local: 'shown', session: true })).to.deep.equal({ show: true, write: false })
-    })
-
-    it('numa sessão nova depois de "shown" não aparece mais', () => {
-      expect(core.feedbackInvite({ count: 4, local: 'shown', session: false })).to.deep.equal({ show: false, write: false })
-    })
-
-    it('depois de "closed" ou "answered" nunca aparece', () => {
-      ;['closed', 'answered'].forEach(local => {
-        expect(core.feedbackInvite({ count: 5, local, session: true }), local).to.deep.equal({ show: false, write: false })
-        expect(core.feedbackInvite({ count: 5, local, session: false }), local).to.deep.equal({ show: false, write: false })
+  describe('feedbackInvite (R4 estendida)', () => {
+    // Abre a página em cada dia da lista (um dia de uso cada) e diz em quais o convite apareceu.
+    const usar = (dias, { count = 3, inicio = core.readInvite(null) } = {}) => {
+      let estado = inicio
+      const vistos = []
+      dias.forEach(dia => {
+        estado = core.inviteVisit(estado, dia)
+        const decisao = core.feedbackInvite({ count, today: dia, state: estado, session: null })
+        if (decisao.state) estado = decisao.state
+        if (decisao.show) vistos.push(dia)
       })
+      return { vistos, estado }
+    }
+    const dias = n => Array.from({ length: n }, (_, i) => '2026-12-' + String(i + 1).padStart(2, '0'))
+
+    it('com menos de 3 envios no Histórico não aparece', () => {
+      expect(core.feedbackInvite({ count: 2, today: '2026-12-01', state: core.readInvite(null) }).show).to.equal(false)
+      expect(core.feedbackInvite(undefined).show).to.equal(false)
+    })
+
+    it('aparece no dia 1, pula os dias de uso 2 e 3 e volta no dia 4', () => {
+      expect(usar(dias(4)).vistos).to.deep.equal(['2026-12-01', '2026-12-04'])
+    })
+
+    it('dias sem uso não contam: depois de aparecer, só o 3º dia de uso seguinte o traz de volta', () => {
+      expect(usar(['2026-12-01', '2026-12-09', '2026-12-20', '2027-01-05', '2027-01-06']).vistos).to.deep.equal(['2026-12-01', '2027-01-05'])
+    })
+
+    it('aparece em no máximo 10 dias', () => {
+      const { vistos, estado } = usar(dias(31).concat(dias(31).map(dia => dia.replace('2026-12', '2027-01'))))
+      expect(vistos).to.have.length(10)
+      expect(estado.days).to.equal(10)
+    })
+
+    it('uma aba só por dia: a aba que mostrou continua mostrando; outra aba, no mesmo dia, não', () => {
+      const primeira = core.feedbackInvite({ count: 3, today: '2026-12-01', state: core.inviteVisit(core.readInvite(null), '2026-12-01'), session: null })
+      expect(primeira).to.include({ show: true, session: '2026-12-01' })
+      expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: primeira.state, session: '2026-12-01' }).show).to.equal(true)
+      expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: primeira.state, session: null }).show).to.equal(false)
+    })
+
+    it('respondido, nunca mais aparece', () => {
+      const { estado } = usar(['2026-12-01'])
+      const respondido = core.inviteEnd(estado, '2026-12-01', true)
+      expect(usar(dias(31).slice(1), { inicio: respondido }).vistos).to.deep.equal([])
+      expect(core.readInvite('answered').answered).to.equal(true)
+    })
+
+    it('"Agora não" tira só naquele dia: o resto do dia, em qualquer aba, não aparece, e a contagem segue', () => {
+      const { estado } = usar(['2026-12-01'])
+      const fechado = core.inviteEnd(estado, '2026-12-01', false)
+      expect(core.feedbackInvite({ count: 5, today: '2026-12-01', state: fechado, session: '2026-12-01' }).show).to.equal(false)
+      expect(usar(['2026-12-02', '2026-12-03', '2026-12-04'], { inicio: fechado }).vistos).to.deep.equal(['2026-12-04'])
+    })
+
+    it('com o que a versão anterior guardou ("shown" ou "closed", com ou sem a marca "1" da aba), aparece no dia', () => {
+      ;['shown', 'closed'].forEach(antigo => {
+        ;[null, '1'].forEach(marca => {
+          const estado = core.inviteVisit(core.readInvite(antigo), '2026-12-01')
+          const decisao = core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca })
+          expect(decisao, antigo + ' ' + marca).to.include({ show: true, session: '2026-12-01' })
+          expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: decisao.state, session: decisao.session }).show, antigo + ' ' + marca).to.equal(true)
+        })
+      })
+    })
+
+    it('com "answered" guardado pela versão anterior, nunca aparece, com ou sem a marca da aba', () => {
+      ;[null, '1'].forEach(marca => {
+        const estado = core.inviteVisit(core.readInvite('answered'), '2026-12-01')
+        expect(core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca }).show, String(marca)).to.equal(false)
+      })
+    })
+
+    it('migra os valores antigos: "shown" e "closed" recomeçam, e lixo vira estado novo', () => {
+      ;['shown', 'closed', '{x', null, '[]'].forEach(antigo => {
+        expect(usar(['2026-12-01'], { inicio: core.readInvite(antigo) }).vistos, String(antigo)).to.deep.equal(['2026-12-01'])
+      })
+    })
+
+    it('dayKey é o dia do calendário local', () => {
+      expect(core.dayKey(new Date(2026, 0, 5, 23, 59))).to.equal('2026-01-05')
     })
   })
 
@@ -977,30 +1087,6 @@ describe('Página do lab: funções puras', () => {
       expect(core.prettyJson('não é json')).to.equal(null)
       expect(core.prettyJson('{"a":')).to.equal(null)
       expect(core.prettyJson('')).to.equal(null)
-    })
-  })
-
-  describe('sentDiffParts', () => {
-    const pedido = (extra = {}) => ({ method: 'POST', url: 'http://localhost:3000/carrinhos', headers: [['Content-Type', 'application/json'], ['Authorization', 'Bearer abc']], body: '{"a":1}', ...extra })
-
-    it('nada difere entre dois pedidos iguais', () => {
-      expect(core.sentDiffParts(pedido(), pedido())).to.deep.equal([])
-    })
-
-    it('a URL, um header que mudou e um que está num lado só, na ordem do comando', () => {
-      const enviado = pedido({ url: 'http://localhost:3000/carrinhos?x=1' })
-      const rascunho = pedido({ headers: [['Content-Type', 'text/plain'], ['X-Extra', '1']] })
-      expect(core.sentDiffParts(enviado, rascunho)).to.deep.equal([
-        { kind: 'url' },
-        { kind: 'header', name: 'Content-Type' },
-        { kind: 'header', name: 'Authorization' },
-        { kind: 'header', name: 'X-Extra' }
-      ])
-    })
-
-    it('o corpo, dizendo se o rascunho tem corpo', () => {
-      expect(core.sentDiffParts(pedido(), pedido({ body: '{"a":2}' }))).to.deep.equal([{ kind: 'body', inDraft: true }])
-      expect(core.sentDiffParts(pedido(), pedido({ body: undefined }))).to.deep.equal([{ kind: 'body', inDraft: false }])
     })
   })
 

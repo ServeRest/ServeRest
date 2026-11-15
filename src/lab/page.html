@@ -6,13 +6,14 @@
 <script>{{script.legacy-links}}</script>
 <script>{{script.prefs-boot}}</script>
 <title>{{lab.page.title}}</title>
+<meta name="description" content="{{lab.page.description}}">
 <link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">
 <link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
 <script src="/lab/assets/core.js?v={{version}}" defer></script>
 <script src="/lab/assets/app.js?v={{version}}" defer></script>
 </head>
 <body data-1p-ignore>
-<!-- Ícones do Executar dividido e de "Ver em câmera lenta". O caracol, a seta e o visto são ícones do Lucide
+<!-- Ícones do Executar dividido e de "Rever em câmera lenta". O caracol, a seta e o visto são ícones do Lucide
      (licença ISC); as duas setas são as do logo do ServeRest, redesenhadas como vetor; a seta de abrir as etapas do Fluxo é a da direita. -->
 <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
   <symbol id="i-snail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"/><circle cx="10" cy="13" r="8"/><path d="M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"/><path d="M18 3 19.1 5.2"/><path d="M22 3 20.9 5.2"/></symbol>
@@ -68,9 +69,11 @@
 <main class="app wrap" id="app">
   <h1 class="sr-only">{{lab.page.heading}}</h1>
   <div class="side" id="side">
+    <!-- A contagem do Histórico tem o número para o leitor de tela e, escondida dele, a roda que gira cada
+         dígito (app.js, rodaSet); sem espaço entre as duas, o script as acha como primeiro e último filho. -->
     <div class="folder-tabs side-tabs" id="side-tabs" role="tablist" aria-label="{{lab.side.tabs}}">
       <button class="folder-tab side-tab" type="button" role="tab" id="side-tab-rotas" aria-controls="routes" aria-selected="true"><span class="tab-label">{{lab.routes.title}}</span> <span class="tab-count" id="side-count-rotas"></span></button>
-      <button class="folder-tab side-tab" type="button" role="tab" id="side-tab-historico" aria-controls="history" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.history.title}}</span> <span class="tab-count" id="side-count-historico" hidden><span class="count-num" id="hist-badge-num"></span></span><span class="sr-only" id="hist-badge-new"></span></button>
+      <button class="folder-tab side-tab" type="button" role="tab" id="side-tab-historico" aria-controls="history" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.history.title}}</span> <span class="tab-count" id="side-count-historico" hidden><span class="count-num" id="hist-badge-num"><span class="sr-only"></span><span class="odo" aria-hidden="true"></span></span></span><span class="sr-only" id="hist-badge-new"></span></button>
     </div>
     <section class="zone zone-routes" id="routes" aria-labelledby="routes-title">
       <div class="zone-head">
@@ -101,12 +104,13 @@
     <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2><span class="tag result-origin" id="result-origin" hidden></span><a class="result-edit" id="result-edit" href="#request-zone" hidden>{{lab.result.edit}}</a></div>
     <div class="result-empty" id="result-empty" tabindex="-1"></div>
     <p class="shown" id="shown" tabindex="-1" aria-describedby="result-origin" hidden></p>
-    <div class="shown-fill" id="shown-fill" hidden></div>
     <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
       <div class="band">
         <h3 class="band-title"><button class="flow-toggle" type="button" id="flow-title" aria-expanded="true" aria-controls="flow-body"></button></h3>
         <div class="band-tools flow-controls" id="flow-controls">
-          <button class="btn" type="button" id="replay" aria-disabled="true"></button>
+          <!-- Rever não envia: a descrição diz isso ao leitor de tela, que só ouviria o nome do botão. -->
+          <button class="btn" type="button" id="replay" aria-disabled="true" aria-describedby="replay-desc"></button>
+          <span id="replay-desc" hidden>{{lab.flow.replay_desc}}</span>
         </div>
       </div>
       <div class="band-body" id="flow-body"></div>
@@ -138,7 +142,7 @@
     <p class="hist-limit" id="hist-limit" hidden></p>
     <p class="hist-empty" id="hist-empty" tabindex="-1"></p>
     <div class="hist-scroll" id="hist-scroll" hidden>
-      <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span>{{lab.history.col_auth}}</span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_where}}</span></div>
+      <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span></span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_response}}</span><span class="num">{{lab.history.col_total}}</span></div>
       <ol class="history-list" id="history-body" aria-labelledby="hist-title"></ol>
     </div>
   </section>

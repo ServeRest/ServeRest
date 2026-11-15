@@ -309,7 +309,7 @@
     tabRecordId: null,
     // A aba de Corpo (JSON), JSON ou Schema: vale para a página inteira e não é guardada.
     bodyTab: 'json',
-    // O comando que "Copiar comando" de Será enviado copiou; a mensagem da cópia some quando ele muda.
+    // O comando que "Copiar comando" de Requisição a enviar copiou; a mensagem da cópia some quando ele muda.
     copiedDraft: null,
     // Coluna da esquerda: a aba escolhida (toda carga da página abre em Rotas) e a contagem do Histórico
     // que vai junto do próximo anúncio quando a aba Histórico está fechada.
@@ -323,6 +323,8 @@
     restoreShownId: null,
     // O envio cujo fluxo ainda anda: até o veredito, nenhum lugar da página mostra o status dele.
     pendingId: null,
+    // O envio de POST /login cujo token a rota escolhida envia agora em Authorization (o selo "token em uso").
+    tokenMark: null,
     // Cópia do que "Limpar" apagou, para "Desfazer"; some no próximo envio.
     undo: null,
     // O envio mostrado em Resultado acabou de chegar (live) ou é um envio anterior.
@@ -571,12 +573,19 @@
       contactUrl ? item(externalLink(contactUrl, fillText('lab.about.link_contact', { name: contact.name || '' }))) : null,
       form ? item(externalLink(form, t('lab.feedback.footer')), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
     ].filter(Boolean))
-    $('about-support').replaceChildren(
-      item(externalLink(ABOUT_URLS.author, t('lab.about.link_follow'))),
-      item(externalLink(ABOUT_URLS.repository, t('lab.about.link_star'))),
-      item(externalLink(ABOUT_URLS.fund, t('lab.about.link_fund'))),
-      item(externalLink(ABOUT_URLS.contribute, t('lab.about.link_contribute'))))
-    $('about-thanks').replaceChildren(...parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) }))
+    $('about-support').replaceChildren(...supportItems())
+    $('about-thanks').replaceChildren(...thanksParts())
+  }
+
+  // "Apoie o ServeRest" aparece no rodapé e no Sobre do Resultado vazio: os mesmos links e o mesmo
+  // agradecimento, feitos de novo para cada lugar.
+  function supportItems () {
+    return [[ABOUT_URLS.author, 'lab.about.link_follow'], [ABOUT_URLS.repository, 'lab.about.link_star'], [ABOUT_URLS.fund, 'lab.about.link_fund'], [ABOUT_URLS.contribute, 'lab.about.link_contribute']]
+      .map(([url, key]) => el('li', null, externalLink(url, t(key))))
+  }
+
+  function thanksParts () {
+    return parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) })
   }
 
   // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px). O
@@ -594,17 +603,24 @@
 
   // Sobre o ServeRest no Resultado vazio da primeira visita: a apresentação e os três links de quem vai
   // testar fora desta página, e o caminho para o rodapé.
+  // Depois de quem vai testar fora daqui, como apoiar o projeto, como no rodapé, e o convite para o
+  // formulário de opinião enquanto ele estiver aberto.
   function aboutBand () {
     const go = (key, linkKey, url) => el('li', null, parts(key, { link: externalLink(url, t(linkKey)) }))
+    const form = feedbackUrl()
     return el('section', { class: 'result-about', 'aria-labelledby': 'result-about-title' },
       el('div', { class: 'band' }, el('h3', { class: 'band-title', id: 'result-about-title', text: t('lab.about.title') })),
       el('div', { class: 'band-body about-body' },
         el('p', null, el('strong', { text: t('lab.about.intro') })),
         el('p', { class: 'about-go', text: t('lab.about.go_title') }),
-        el('ul', { class: 'go-list' },
+        el('ul', { class: 'go-list', role: 'list' },
           go('lab.about.go_postman', 'lab.about.go_postman_link', ABOUT_URLS.postman),
           go('lab.about.go_local', 'lab.about.go_local_link', ABOUT_URLS.repository),
           go('lab.about.go_load', 'lab.about.go_load_link', ABOUT_URLS.load)),
+        el('p', { class: 'about-go', text: t('lab.about.group_support') }),
+        el('ul', { class: 'go-list', role: 'list' }, supportItems()),
+        form ? el('p', null, parts('lab.about.feedback', { link: externalLink(form, t('lab.about.feedback_link')) })) : null,
+        el('p', { class: 'muted small' }, thanksParts()),
         el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link'), onclick: goToAbout }) }))))
   }
 
@@ -619,38 +635,70 @@
     about.focus({ preventScroll: true })
   }
 
-  // O convite para dar opinião, no Resultado vazio depois do 3º envio (core.feedbackInvite decide). A
-  // primeira vez guarda "shown" e a marca desta aba; Fechar e o link encerram o convite de vez.
+  // O convite para dar opinião, no Resultado vazio (core.feedbackInvite decide: a partir do 3º envio, uma aba
+  // por dia de uso, com dois dias de uso de folga entre um dia e outro, até 10 dias). O cartão diz o custo antes
+  // de pedir: 2 minutos, 6 perguntas, sem login. O estado fica em JSON no localStorage; o dia em que esta aba
+  // mostrou o convite, no sessionStorage.
+  const INVITE_ICONS = {
+    art: [['path', { d: 'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }], ['path', { d: 'M8.5 9.6l2.2 2.2 4.6-4.6', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }]],
+    time: [['circle', { cx: '8', cy: '8', r: '6.25', 'stroke-width': '1.5' }], ['path', { d: 'M8 4.5V8l2.5 1.5', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
+    questions: [['path', { d: 'M3 4h10M3 8h10M3 12h6', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
+    login: [['path', { d: 'M8 1.75l5 2v4c0 3.2-2.2 5.4-5 6.5-2.8-1.1-5-3.3-5-6.5v-4z', 'stroke-width': '1.5', 'stroke-linejoin': 'round' }]]
+  }
+
+  function inviteIcon (name, size, box) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    ;[['width', size], ['height', size], ['viewBox', box], ['aria-hidden', 'true'], ['fill', 'none'], ['stroke', 'currentColor']].forEach(([key, value]) => svg.setAttribute(key, value))
+    INVITE_ICONS[name].forEach(([tag, attrs]) => {
+      const shape = document.createElementNS('http://www.w3.org/2000/svg', tag)
+      Object.entries(attrs).forEach(([key, value]) => shape.setAttribute(key, value))
+      svg.append(shape)
+    })
+    return svg
+  }
+
+  function inviteState () {
+    return core.readInvite(readLocal(FEEDBACK_KEY))
+  }
+
+  // Cada abertura da página conta o dia de uso, para a folga entre um convite e outro.
+  function countUsageDay () {
+    const before = inviteState()
+    const after = core.inviteVisit(before, core.dayKey(new Date()))
+    if (after !== before) writeLocal(FEEDBACK_KEY, JSON.stringify(after))
+  }
+
   function feedbackInviteNode () {
     const form = feedbackUrl()
     if (!form) return null
-    const decision = core.feedbackInvite({ count: state.history.length, local: readLocal(FEEDBACK_KEY), session: !!readSession(FEEDBACK_SESSION_KEY) })
+    const today = core.dayKey(new Date())
+    const decision = core.feedbackInvite({ count: state.history.length, today, state: inviteState(), session: readSession(FEEDBACK_SESSION_KEY) })
     if (!decision.show) return null
-    if (decision.write) {
-      writeLocal(FEEDBACK_KEY, 'shown')
-      writeSession(FEEDBACK_SESSION_KEY, '1')
-    }
+    if (decision.state) writeLocal(FEEDBACK_KEY, JSON.stringify(decision.state))
+    if (decision.session) writeSession(FEEDBACK_SESSION_KEY, decision.session)
+    const promise = (icon, key) => el('span', null, inviteIcon(icon, '13', '0 0 16 16'), t(key))
     return el('section', { class: 'invite', id: 'invite', 'aria-labelledby': 'invite-title' },
+      el('span', { class: 'inv-art' }, inviteIcon('art', '26', '0 0 24 24')),
       el('p', { class: 'invite-title', id: 'invite-title', text: t('lab.feedback.invite_title') }),
-      el('p', { text: t('lab.feedback.invite_text') }),
+      el('p', { class: 'inv-promise' }, promise('time', 'lab.feedback.promise_time'), promise('questions', 'lab.feedback.promise_questions'), promise('login', 'lab.feedback.promise_login')),
       el('div', { class: 'invite-actions' },
-        externalLink(form, t('lab.feedback.invite_go'), { class: 'link-btn', onclick: () => endInvite('answered', false) }),
-        el('button', { type: 'button', class: 'btn btn-quiet', id: 'invite-close', text: t('lab.feedback.invite_close'), onclick: () => endInvite('closed', true) })),
-      el('p', { class: 'small muted', text: t('lab.feedback.invite_where') }))
+        externalLink(form, t('lab.feedback.invite_go'), { class: 'btn btn-primary inv-go', onclick: () => endInvite(true) }),
+        el('button', { type: 'button', class: 'btn btn-quiet', id: 'invite-close', text: t('lab.feedback.invite_close'), onclick: () => endInvite(false) })),
+      el('p', { class: 'invite-where', text: t('lab.feedback.invite_where') }))
   }
 
-  // Fechar e o link do formulário (que abre em outra aba) tiram o convite; o foco vai para a primeira linha
-  // do Resultado vazio, em vez de cair no body, e Fechar anuncia onde o link continua. O convite sai depois
-  // do clique, para o link abrir o formulário antes.
-  function endInvite (value, closed) {
-    writeLocal(FEEDBACK_KEY, value)
+  // "Responder" (o link abre o formulário em outra aba) encerra o convite de vez; "Agora não", só hoje. O
+  // cartão sai depois do clique, para o link abrir antes; o foco vai para a primeira linha do Resultado vazio,
+  // em vez de cair no body, e "Agora não" anuncia que o convite volta outro dia e onde o link continua.
+  function endInvite (answered) {
+    writeLocal(FEEDBACK_KEY, JSON.stringify(core.inviteEnd(inviteState(), core.dayKey(new Date()), answered)))
     setTimeout(() => {
       const invite = $('invite')
       if (!invite) return
       const first = $('result-empty-first')
       if (first) first.focus()
       invite.remove()
-      if (closed) announce(t('lab.feedback.closed'))
+      if (!answered) announce(t('lab.feedback.closed'))
     }, 0)
   }
 
@@ -1099,7 +1147,7 @@
 
   // A Requisição sem abas: o título, a descrição, a barra de endereço com a URL já resolvida, a linha do
   // atalho e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
-  // o documento traz o schema), Será enviado (o comando curl, refeito a cada edição) e Respostas possíveis,
+  // o documento traz o schema), Requisição a enviar (o comando curl, refeito a cada edição) e Respostas possíveis,
   // sempre à vista e por último.
   function renderRequest () {
     const box = $('request')
@@ -1298,7 +1346,7 @@
     ]
   }
 
-  // Será enviado: o comando curl do rascunho, sempre com o corpo inteiro, e sob ele a mensagem da cópia.
+  // Requisição a enviar: o comando curl do rascunho, sempre com o corpo inteiro, e sob ele a mensagem da cópia.
   function curlBlock () {
     return [
       el('pre', { class: 'code-page curl-pre', id: 'curl-pre' }),
@@ -1742,9 +1790,10 @@
     target.hitTimer = setTimeout(() => target.classList.remove('schema-hit'), 2000)
   }
 
-  // A cada mudança no rascunho: a URL da barra, o comando de Será enviado, o campo Authorization e a caixa
+  // A cada mudança no rascunho: a URL da barra, o comando de Requisição a enviar, o campo Authorization e a caixa
   // de Preencher.
   function refreshPreview () {
+    paintTokenMark()
     const route = state.selected
     if (!route || !$('curl-pre')) return
     const request = currentRequest(route)
@@ -2310,30 +2359,21 @@
     return stage.labelKey ? t(stage.labelKey) : stage.name
   }
 
-  function flowWhere (record) {
-    if (record.error) return { className: 'stopped', text: t('lab.history.no_response') }
-    if (record.stagesHeader === null) return { className: '', text: t('lab.history.no_header') }
-    const model = flowModelOf(record)
-    if (!model) return { className: '', text: t('lab.history.empty_header') }
-    if (model.summary === 'stopped') {
-      const stage = model.stages.find(item => item.name === model.failedStage)
-      return { className: 'stopped', text: fillText('lab.history.stopped_at', { stage: stageName(stage) }) }
-    }
-    if (model.summary === 'outside') return { className: '', text: t('lab.history.outside') }
-    return { className: '', text: t('lab.history.completed') }
-  }
-
   function addHistory (record) {
+    const wasFull = state.history.length >= MAX_HISTORY
     state.history.unshift(record)
     if (state.history.length > MAX_HISTORY) state.history.length = MAX_HISTORY
-    const closed = currentLayout() === 'abas' && state.sideTab !== 'historico'
+    const tabbed = currentLayout() === 'abas'
+    const closed = tabbed && state.sideTab !== 'historico'
     // Os novos nunca passam do total: a lista guarda só os últimos MAX_HISTORY envios.
     if (closed) state.unseen = Math.min(state.unseen + 1, state.history.length)
     insertEntry(record)
     paintRouteMarks()
-    // Com a aba fechada, a contagem sobe na hora em que o envio entra na lista: ela só diz que houve um
-    // envio, não como ele terminou, então não estraga o fluxo. Fica roxa até a aba ser aberta.
-    if (closed) paintHistBadge(true)
+    // A contagem da aba gira na hora em que o envio entra na lista, com a aba fechada ou aberta: ela só diz
+    // que houve um envio, não como ele terminou, então não estraga o fluxo. Com a aba fechada fica roxa até
+    // a aba ser aberta. No limite o número não muda: a roda das unidades tenta subir e trava.
+    paintHistBadge(tabbed)
+    if (tabbed && wasFull) rodaJam($('hist-badge-num'))
     // Com a aba Histórico fechada, a página não troca de aba sozinha: a contagem muda na aba e vai junto
     // do próximo anúncio (o do resultado), para um anúncio não apagar o outro.
     const count = state.history.length
@@ -2345,23 +2385,94 @@
   }
 
   // A contagem na aba Histórico: o total de envios, numa caixa que fica roxa cheia enquanto houver envios
-  // que chegaram com a aba fechada.
+  // que chegaram com a aba fechada. roll: um envio acabou de entrar, e os dígitos que mudam giram.
   function paintHistBadge (roll) {
     const badge = $('side-count-historico')
-    const num = $('hist-badge-num')
     const count = state.history.length
     badge.hidden = !count
-    num.textContent = count ? String(count) : ''
+    rodaSet($('hist-badge-num'), count ? String(count) : '', roll)
     const fresh = state.unseen > 0
     badge.classList.toggle('is-new', fresh)
     $('hist-badge-new').textContent = fresh ? ' ' + fillText(state.unseen === 1 ? 'lab.history.new_one' : 'lab.history.new', { count: state.unseen }) : ''
-    if (roll) playOnce(num, COUNT_ROLL, { duration: 450, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' })
   }
 
-  // A contagem sobe de baixo, e a entrada nova ganha um contorno roxo que se apaga. Só cor e posição.
+  // A contagem como roda: cada dígito é uma fita de números que sobe dentro de uma janela da altura de uma
+  // linha (1.25em, o line-height da caixa), e só gira o dígito que muda (de 9 para 10, a dezena entra
+  // girando do vazio). A fita fica escondida do leitor de tela; o número real fica no .sr-only, o primeiro
+  // filho de num, e o nome da aba continua "Histórico 10 (9 novos)". Com menos movimento, o número só troca.
+  const RODA_MS = 400
+  function rodaSet (num, text, roll) {
+    num.firstChild.textContent = text
+    const row = num.lastChild
+    while (row.children.length < text.length) row.prepend(el('span', { class: 'odo-d' }, el('span', { class: 'odo-s' })))
+    while (row.children.length > text.length) row.firstChild.remove()
+    Array.from(row.children).forEach((slot, index) => rodaTurn(slot.firstChild, text[index], roll))
+  }
+
+  // A fita tem uma linha por dígito e sobe da linha em que está até a última. Com envios seguidos, a fita
+  // que ainda gira continua do ponto em que está, com o dígito novo no fim: rola mais, sem salto.
+  function rodaTurn (strip, digit, roll) {
+    const lines = strip.textContent.split('\n')
+    if (lines[lines.length - 1] === digit) return
+    let at = 0
+    const running = strip.getAnimations ? strip.getAnimations()[0] : null
+    if (running) {
+      const shift = getComputedStyle(strip).transform
+      at = shift === 'none' ? 0 : -new DOMMatrixReadOnly(shift).m42 / (parseFloat(getComputedStyle(strip).fontSize) * 1.25)
+      running.cancel()
+    }
+    if (!roll || prefersReducedMotion() || !strip.animate) {
+      strip.textContent = digit
+      return
+    }
+    const passed = Math.max(0, Math.min(Math.floor(at + 0.01), lines.length - 1))
+    const kept = lines.slice(passed).concat(digit)
+    strip.textContent = kept.join('\n')
+    const turn = strip.animate([
+      { transform: 'translateY(' + (-(at - passed) * 1.25) + 'em)' },
+      { transform: 'translateY(' + (-(kept.length - 1) * 1.25) + 'em)' }
+    ], { duration: RODA_MS, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)', fill: 'forwards' })
+    turn.onfinish = () => {
+      strip.textContent = digit
+      turn.cancel()
+    }
+  }
+
+  // O tranco no limite, em 460 ms (1.25em é uma linha da fita): a unidade sobe acelerando até um batente a
+  // 40% do caminho até o próximo dígito (130 ms), bate e volta um pouco (150 ms), encosta de novo (170 ms),
+  // fica travada (até 270 ms) e volta com mola, passando um pouco do lugar (395 ms), até parar (460 ms).
+  const JAM_MS = 460
+  const RODA_JAM = [
+    { offset: 0, transform: 'translateY(0)', easing: 'cubic-bezier(0.5, 0, 1, 1)' },
+    { offset: 0.283, transform: 'translateY(-0.5em)', easing: 'ease-out' },
+    { offset: 0.326, transform: 'translateY(-0.4em)', easing: 'ease-in' },
+    { offset: 0.37, transform: 'translateY(-0.5em)' },
+    { offset: 0.587, transform: 'translateY(-0.5em)', easing: 'cubic-bezier(0.3, 0, 0.2, 1)' },
+    { offset: 0.859, transform: 'translateY(0.1em)', easing: 'ease-in-out' },
+    { offset: 1, transform: 'translateY(0)' }
+  ]
+
+  // No limite a contagem não muda: a unidade tenta subir para o próximo dígito (o ::after da fita) e trava,
+  // e a dezena fica parada. Um tranco por vez: até o tranco terminar (animation.finished), ou enquanto a
+  // fita ainda gira, um envio novo não recomeça o tranco nem entra na fila.
+  const jamming = new WeakSet()
+  function rodaJam (num) {
+    const slot = num.lastChild.lastElementChild
+    const strip = slot && slot.firstChild
+    if (!strip || !strip.animate || jamming.has(strip) || strip.getAnimations().length || prefersReducedMotion()) return
+    jamming.add(strip)
+    strip.dataset.next = String((Number(strip.textContent) + 1) % 10)
+    const jam = strip.animate(RODA_JAM, { duration: JAM_MS })
+    const done = () => {
+      jamming.delete(strip)
+      delete strip.dataset.next
+    }
+    jam.finished.then(done, done)
+  }
+
+  // A entrada nova ganha um contorno roxo que se apaga. Só cor e posição.
   // A contagem no limite tenta subir e bate no teto: um tranco curto para os lados.
   const COUNT_BUMP = [{ transform: 'translateX(0)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }]
-  const COUNT_ROLL = [{ transform: 'translateY(90%)', opacity: 0 }, { transform: 'none', opacity: 1 }]
   const ENTRY_ARRIVE = [{ boxShadow: 'inset 0 0 0 2px var(--accent)' }, { boxShadow: 'inset 0 0 0 2px transparent' }]
 
   // Os dois sinais são animações de script (Web Animations), que tocam uma vez só. Uma animação de CSS
@@ -2436,42 +2547,41 @@
 
   // Um envio novo entra no topo sem refazer a lista: as entradas que já estavam ficam, com o foco, e a
   // mais antiga sai quando a lista passa de MAX_HISTORY. Com a lista vazia
-  // (a frase de vazio à vista), ela é desenhada inteira.
+  // (a frase de vazio à vista), ela é desenhada inteira. A contagem da aba fica para addHistory: pintada
+  // aqui, ela já chegaria ao número novo e a roda não giraria.
   function insertEntry (record) {
     stopFlash()
     const list = $('history-body')
     if (!list.children.length) {
-      renderHistory()
+      renderHistory(true)
       return
     }
     const wasFull = list.children.length >= MAX_HISTORY
+    paintTokenMark()
     const item = entryItem(record)
     list.prepend(item)
     while (list.children.length > MAX_HISTORY) list.lastElementChild.remove()
-    paintHistoryFrame()
+    paintHistoryFrame(true)
     if (historyOnScreen()) openEntry(item)
     // Ao chegar ao limite, o aviso é anunciado uma vez; no limite, cada envio novo faz a contagem bater no teto.
     if (!wasFull && list.children.length >= MAX_HISTORY) state.limitNote = fillText('lab.history.limit_reached', { max: MAX_HISTORY })
     if (list.children.length >= MAX_HISTORY && historyOnScreen()) playOnce($('hist-count'), COUNT_BUMP, { duration: 420, easing: 'ease-in-out' })
   }
 
-  // Se o header Authorization foi junto: é a diferença mais comum entre duas tentativas.
-  function authSentText (record) {
-    return parts(record.authSent ? 'lab.history.auth_with' : 'lab.history.auth_without', { header: el('span', { class: 'auth-word', text: state.authHeader }) })
-  }
-
   // O Histórico é um painel próprio: uma lista vertical de envios, o mais recente primeiro. Escolher um
   // mostra o fluxo e a resposta dele sem enviar de novo (e seleciona a rota dele). A ordem dos filhos é
   // a das colunas da tabela; nas entradas estreitas o CSS só reposiciona a hora.
-  function renderHistory () {
+  function renderHistory (keepBadge) {
     const list = $('history-body')
     list.textContent = ''
-    paintHistoryFrame()
+    state.tokenMark = tokenInUse()
+    paintHistoryFrame(keepBadge)
     state.history.forEach(record => list.append(entryItem(record)))
   }
 
   // O que acompanha a lista: a contagem no título e na aba, Limpar, a frase de vazio e a de Histórico limpo.
-  function paintHistoryFrame () {
+  // keepBadge: um envio está entrando, e addHistory pinta a contagem da aba logo depois, girando.
+  function paintHistoryFrame (keepBadge) {
     const count = state.history.length
     // No limite, a contagem diz que parou de crescer, e uma linha explica que o mais antigo sai.
     const full = count >= MAX_HISTORY
@@ -2479,7 +2589,7 @@
     $('hist-count').classList.toggle('at-limit', full)
     $('hist-limit').textContent = fillText('lab.history.limit_note', { max: MAX_HISTORY })
     $('hist-limit').hidden = !full
-    paintHistBadge(false)
+    if (!keepBadge) paintHistBadge(false)
     $('hist-clear').hidden = !count
     $('hist-scroll').hidden = !count
     $('hist-empty').hidden = !!count
@@ -2497,26 +2607,82 @@
     }, entryParts(record)))
   }
 
-  // Os filhos de uma entrada. Enquanto o fluxo do envio não chega ao veredito, status e onde parou dão
-  // lugar a uma frase só: a entrada diz que o envio existe, não como terminou.
+  // Os filhos de uma entrada, na ordem das colunas da tabela: hora, método, path, cadeado, status, o que a
+  // resposta trouxe e o tempo total. O cadeado diz que o envio levou o header Authorization, com token
+  // válido ou não; sem o header ele não aparece (na tabela a coluna fica vazia). Ele e o path já se sabem
+  // no envio, então aparecem também enquanto o fluxo não chega ao veredito; o status, a resposta e o tempo
+  // ficam sob um esqueleto da mesma largura em todo envio, sobre um chip neutro (D29), e a frase de que o
+  // resultado aparece no fim do fluxo fica para o leitor de tela.
   function entryParts (record) {
-    // Rota pública: a célula de Authorization fica, vazia, para as colunas da tabela não mudarem (K8).
     const head = [
       el('time', { datetime: record.at.toISOString(), text: clock(record.at) }),
       methodBadge(record.method),
       el('span', { class: 'path', text: record.path }),
-      record.protected ? el('span', { class: 'auth-sent' }, authSentText(record)) : el('span', { class: 'auth-sent' })
+      record.authSent ? el('span', { class: 'tok' }, lockIcon(13), el('span', { class: 'sr-only', text: t('lab.history.sent_token') })) : el('span', { class: 'tok' })
     ]
-    // Pendente: o lugar do status fica guardado por uma cópia invisível, como no cabeçalho do Resultado, para
-    // a entrada ter a mesma altura antes e depois do veredito, mesmo sem a linha do Authorization.
     if (record.id === state.pendingId) {
-      // O esqueleto com brilho ocupa o lugar do status e da frase do resultado, como na Resposta; a frase fica
-      // para o leitor de tela, e a entrada tem a mesma altura antes e depois do veredito.
-      return head.concat(el('span', { class: 'chip-slot', 'aria-hidden': 'true' }, statusChip(record)),
-        el('span', { class: 'pending-note' }, el('span', { class: 'pending-skel', 'aria-hidden': 'true' }), el('span', { class: 'sr-only', text: t('lab.pending.short') })))
+      return head.concat(el('span', { class: 'chip-slot', 'aria-hidden': 'true' }, neutralChip()),
+        el('span', { class: 'pending-note' }, el('span', { class: 'sr-only', text: t('lab.pending.short') })),
+        el('span', { class: 'ms' }))
     }
-    const where = flowWhere(record)
-    return head.concat(statusChip(record), el('span', { class: 'where ' + where.className, text: where.text }))
+    return head.concat(entryChip(record), entryResponse(record), el('span', { class: 'ms', text: formatMs(record.ms) }))
+  }
+
+  // O status na entrada: o ✓/✗ e o código à vista; a frase ("Bad Request") fica para o leitor de tela, que
+  // ouve "400 Bad Request". Um envio sem resposta continua "falhou".
+  function entryChip (record) {
+    if (record.error) return statusChip(record)
+    return el('span', { class: 'chip ' + statusClass(record.status) }, el('span', { 'aria-hidden': 'true', text: statusGlyph(record.status) }),
+      el('span', { text: String(record.status) }), record.statusText ? [' ', el('span', { class: 'sr-only', text: record.statusText })] : null)
+  }
+
+  // Na resposta, só o que serve para a próxima requisição: o _id de um 201 (o recurso criado) ou, no login
+  // cujo token a rota escolhida envia agora em Authorization, o selo "token em uso". As mensagens da
+  // resposta ficam na Resposta.
+  function entryResponse (record) {
+    if (record.id === state.tokenMark) {
+      return el('span', { class: 'resp' }, el('span', { class: 'tok-badge' }, svgIcon(11, KEY_SHAPES), t('lab.history.token_in_use')))
+    }
+    const id = createdId(record)
+    return el('span', { class: 'resp' }, id ? [el('span', { class: 'lbl', text: '_id: ' }), el('span', { class: 'mono', text: id })] : null)
+  }
+
+  const KEY_SHAPES = [
+    ['circle', { cx: '5', cy: '8', r: '2.75', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5' }],
+    ['path', { d: 'M7.75 8H14.5M12.5 8v2.5M14.5 8v2', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.5' }]
+  ]
+
+  function createdId (record) {
+    if (record.error || record.status !== 201) return null
+    try {
+      const body = JSON.parse(record.bodyText)
+      return body && typeof body._id === 'string' ? body._id : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // O login cujo token a rota escolhida envia agora em Authorization: o token da página ou o valor que a
+  // pessoa digitou no campo dela, como a requisição o monta (core.authValueFor, sem os espaços das pontas).
+  // O token da página não fica guardado na sessão: depois de recarregar, o selo segue o que a rota enviaria.
+  function tokenInUse () {
+    const route = state.selected
+    const value = route ? core.authValueFor(draftFor(route), state.token) : (state.token || '')
+    return core.tokenInUseId(state.history, core.trimHeaderValue(value))
+  }
+
+  // Repinta o selo quando o valor muda (rota, campo, token da página, envio, Limpar, Desfazer): só as duas
+  // entradas que mudam, no lugar, para o foco ficar onde está.
+  function paintTokenMark () {
+    const id = tokenInUse()
+    if (id === state.tokenMark) return
+    const changed = [state.tokenMark, id]
+    state.tokenMark = id
+    changed.forEach(item => {
+      const record = item === null ? null : state.history.find(entry => entry.id === item)
+      const entry = record && document.querySelector('#history-body .entry[data-id="' + item + '"]')
+      if (entry) entry.replaceChildren(...entryParts(record))
+    })
   }
 
   // A entrada mostrada fica à vista dentro do painel; só a lista rola, nunca a página.
@@ -2632,8 +2798,7 @@
     paintResultTabs()
     if (!hasRecord) {
       unmountTime()
-      $('shown-fill').hidden = true
-      $('shown-fill').removeAttribute('data-state')
+      releaseResponseHeight()
       $('response').setAttribute('aria-busy', 'false')
       state.sentOutRecord = null
       state.tabRecordId = null
@@ -2718,6 +2883,98 @@
     keepEntryInView()
   }
 
+  /* ---------- Transições suaves ---------- */
+
+  // Quando o conteúdo do Resultado muda de altura ou um esqueleto vira valor, a troca anda em pouco tempo em
+  // vez de pular: o olho acompanha o que mudou. Nada aqui antecipa o veredito (D29): as trocas acontecem nos
+  // mesmos momentos de antes; só deixam de ser instantâneas. Com menos movimento, nada anima.
+  const SWAP_GROW_MS = 220
+  const SWAP_FADE_MS = 150
+  const swaps = new Map()
+  const growing = new WeakMap()
+
+  function motionOk () {
+    return !state.reduced && !!document.body.animate
+  }
+
+  // Guarda a altura (e, com crossfade, uma cópia do conteúdo) antes de quem chama trocar o conteúdo do nó.
+  // Depois do código síncrono (microtarefa), a altura anda até a nova e a cópia some sobre o conteúdo novo.
+  // Só a borda de baixo anda: o topo do conteúdo fica onde estava. Várias trocas no mesmo passo viram uma.
+  function smoothSwap (node, crossfade = true) {
+    if (!motionOk() || swaps.has(node) || !node.isConnected || !node.getClientRects().length) return
+    const entry = { from: node.getBoundingClientRect().height, ghost: null }
+    if (crossfade && node.children.length) entry.ghost = ghostOf(Array.from(node.children).filter(child => !child.classList.contains('swap-ghost')))
+    swaps.set(node, entry)
+    queueMicrotask(() => settleSwap(node))
+  }
+
+  // A cópia é só imagem: fora da árvore de acessibilidade, sem foco e sem ids repetidos.
+  function ghostOf (nodes) {
+    const ghost = el('div', { class: 'swap-ghost', 'aria-hidden': 'true' })
+    ghost.inert = true
+    nodes.forEach(node => ghost.append(node.cloneNode(true)))
+    ghost.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'))
+    return ghost
+  }
+
+  // Esqueleto e valor se cruzam; dois conteúdos reais sobrepostos (o modo normal, uma entrada do Histórico)
+  // seriam ruído, então trocam na hora e só a altura anda.
+  const SKELETON = ['.pv', '.wait-box', '.skel']
+
+  function settleSwap (node) {
+    const entry = swaps.get(node)
+    swaps.delete(node)
+    if (!entry || !node.isConnected) return
+    const fresh = Array.from(node.children).filter(child => !child.classList.contains('swap-ghost'))
+    const skeletal = entry.ghost && SKELETON.some(sel => entry.ghost.querySelector(sel) || fresh.some(child => child.matches(sel)))
+    if (skeletal && fresh.length) {
+      node.querySelectorAll(':scope > .swap-ghost').forEach(old => old.remove())
+      node.append(entry.ghost)
+      const out = entry.ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: SWAP_FADE_MS, easing: 'ease-out' })
+      out.onfinish = out.oncancel = () => entry.ghost.remove()
+      fresh.forEach(child => fadeIn(child))
+    }
+    const previous = growing.get(node)
+    if (previous) previous.cancel()
+    const to = node.getBoundingClientRect().height
+    if (Math.abs(to - entry.from) < 1) return
+    node.style.overflow = 'clip'
+    const grow = node.animate([{ height: entry.from + 'px' }, { height: to + 'px' }], { duration: SWAP_GROW_MS, easing: 'ease-out' })
+    growing.set(node, grow)
+    grow.onfinish = grow.oncancel = () => {
+      if (growing.get(node) !== grow) return
+      growing.delete(node)
+      node.style.overflow = ''
+    }
+  }
+
+  // Um valor que acabou de sair do esqueleto aparece em vez de surgir de uma vez.
+  function fadeIn (node, delay = 0) {
+    if (!node || !motionOk()) return
+    node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: SWAP_FADE_MS, delay, easing: 'ease-out', fill: 'backwards' })
+  }
+
+  // Com uma resposta na tela, o envio novo não encolhe a Resposta até o esqueleto para crescer de novo no
+  // veredito: a área guarda a altura da resposta anterior como mínima enquanto espera, e o veredito anda uma
+  // vez só, dessa altura até a da resposta nova. A altura guardada é a do envio anterior: não diz nada do
+  // novo (D29). Sem resposta anterior (primeiro envio, rota sem envios), o esqueleto vem com a altura dele.
+  // Da espera real para o esqueleto da câmera lenta a altura guardada continua: a área já não tem resposta,
+  // mas a mínima ainda é a dela. Uma altura que ainda anda vale pelo ponto de chegada.
+  function holdResponseHeight (area) {
+    if (!motionOk()) {
+      area.style.minHeight = ''
+      return
+    }
+    if (!area.querySelector(':scope > .res-line, :scope > .net-error')) return
+    const grow = growing.get(area)
+    const height = grow ? parseFloat(grow.effect.getKeyframes()[1].height) : area.getBoundingClientRect().height
+    area.style.minHeight = height + 'px'
+  }
+
+  function releaseResponseHeight () {
+    $('res-body-area').style.minHeight = ''
+  }
+
   /* ---------- Espera real pelo servidor ---------- */
 
   const wait = { interval: null, record: null, clickAt: 0, seconds: 0 }
@@ -2727,6 +2984,7 @@
   function stopWaiting () {
     clearInterval(wait.interval)
     if (wait.record) {
+      smoothSwap($('res-body-area'))
       $('flow-body').textContent = ''
       releaseFlowReserve()
       $('res-body-area').textContent = ''
@@ -2736,21 +2994,40 @@
     wait.record = null
   }
 
-  // O lugar do status guardado por uma cópia invisível, como no cabeçalho de um envio pendente.
-  function placeholderChip () {
-    return shownStatus(el('span', { class: 'chip ok' }, el('span', { text: '✓' }), '200 OK'), true, true)
+  // Sob o esqueleto do status (no cabeçalho do Resultado e na entrada do Histórico) vai um chip neutro e
+  // invisível, com o mesmo texto e a mesma largura em todo envio: ele só dá à linha a altura da do status. Uma
+  // cópia do status real diria pelo tamanho como o envio terminou (D29).
+  function neutralChip () {
+    return el('span', { class: 'chip chip-neutral' }, el('span', { text: '•' }), '000')
   }
 
-  // No cabeçalho do Resultado, "Status code" e o status, juntos. Até o veredito os dois ficam no lugar
-  // guardado e invisível, fora da árvore de acessibilidade (D29). Um envio que não chegou ao servidor não
-  // tem status code: fica só "falhou".
-  function shownStatus (chip, pending, labelled) {
-    const box = el('span', { class: 'shown-status' }, labelled ? [el('span', { class: 'status-label', text: t('lab.status.label') }), ' '] : null, chip)
-    if (pending) {
-      box.classList.add('chip-slot')
-      box.setAttribute('aria-hidden', 'true')
+  // O cabeçalho do Resultado: método, path e "Status code" com o status. Até o veredito o status dá lugar ao
+  // esqueleto, e o lugar inteiro sai da árvore de acessibilidade (D29). Num envio novo da mesma rota nada é
+  // refeito: "Status code" é o mesmo nos dois estados e fica parado, e só o valor cruza com o esqueleto, que
+  // fica na mesma célula, com a mesma largura (CSS). Um envio que não chegou ao servidor não tem status code:
+  // fica só "falhou".
+  function paintShown (record, pending) {
+    const box = $('shown')
+    const labelled = pending || !record.error
+    const key = [record.method, record.path, labelled].join(' ')
+    let status = box.querySelector(':scope > .shown-status')
+    if (!status || box.getAttribute('data-key') !== key) {
+      status = el('span', { class: 'shown-status' }, labelled ? [el('span', { class: 'status-label', text: t('lab.status.label') }), ' '] : null,
+        el('span', { class: 'status-value' }, el('span', { class: 'status-real' }), neutralChip()))
+      box.replaceChildren(
+        el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
+        methodBadge(record.method),
+        el('code', { class: 'shown-path', text: record.path }),
+        status)
+      box.setAttribute('data-key', key)
     }
-    return box
+    const real = status.querySelector('.status-real')
+    if (!pending) real.replaceChildren(statusChip(record))
+    status.classList.toggle('is-pending', pending)
+    // O status anterior sai da página quando acaba de sumir: até o veredito, o lugar só tem o esqueleto.
+    if (pending) afterTransitions(real, () => { if (status.classList.contains('is-pending')) real.replaceChildren() })
+    if (pending) status.setAttribute('aria-hidden', 'true')
+    else status.removeAttribute('aria-hidden')
   }
 
   // Passado 1 s sem resposta: o Resultado mostra este envio (método e path, com o lugar do status guardado),
@@ -2774,11 +3051,7 @@
     markCurrentEntry()
     resetResultTab(record)
     setResultMode(true)
-    $('shown').replaceChildren(
-      el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
-      methodBadge(record.method),
-      el('code', { class: 'shown-path', text: record.path }),
-      placeholderChip())
+    paintShown(record, true)
     paintOrigin(record, true)
     paintFill()
     setReplayReady(false)
@@ -2788,6 +3061,8 @@
     $('flow-body').append(el('p', { class: 'flow-note', text: t('lab.wait.flow') }))
     $('response').setAttribute('aria-busy', 'true')
     const area = $('res-body-area')
+    smoothSwap(area)
+    holdResponseHeight(area)
     area.textContent = ''
     area.append(waitView())
     alignSkeleton()
@@ -2838,26 +3113,34 @@
     const known = flowHeights[flowHeightKey(record)]
     body.style.minHeight = known ? known + 'px' : ''
     body.classList.toggle('flow-reserve', !known)
+    if (!known && !state.flowOpen) body.style.setProperty('--read-row-h', readRowHeight(body) + 'px')
+  }
+
+  // Fechado, sem altura medida desta rota, a reserva é a das partes fixas (CSS) mais a fileira da linha de
+  // leitura nesta largura: a frase mais longa dela, na coluna que sobra ao lado da marca "escala ajustada".
+  // Uma cópia invisível da fileira é medida e sai.
+  function readRowHeight (body) {
+    const longest = list => list.reduce((a, b) => b.length > a.length ? b : a, '')
+    const read = el('p', { class: 'fc-read' }, el('span', { class: 'fc-read-text' }))
+    read.setAttribute('data-reserve', longest([t('lab.flow.read.time_hint'), t('lab.flow.read.time_hint_stopped')]))
+    read.setAttribute('data-reserve-touch', t('lab.flow.read.time_hint_touch'))
+    const row = el('div', { class: 'fc-read-row', 'aria-hidden': 'true' }, read, el('span', { class: 'fc-scale', text: t('lab.time.adjusted_mark') }))
+    row.style.visibility = 'hidden'
+    body.append(row)
+    const height = row.getBoundingClientRect().height + parseFloat(getComputedStyle(row).marginTop)
+    row.remove()
+    return height
   }
 
   function releaseFlowReserve () {
     const body = $('flow-body')
     body.style.minHeight = ''
+    body.style.removeProperty('--read-row-h')
     body.classList.remove('flow-reserve')
   }
 
   function renderShown (record, live) {
-    const box = $('shown')
-    box.textContent = ''
-    append(box, [
-      el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
-      methodBadge(record.method),
-      el('code', { class: 'shown-path', text: record.path }),
-      // Até o veredito, o cabeçalho não mostra status: só método e path. O lugar do status fica guardado por
-      // uma cópia invisível (fora da árvore de acessibilidade), para o cabeçalho ter a mesma altura antes e
-      // depois e o fluxo não pular no veredito, em qualquer largura.
-      shownStatus(statusChip(record), record.id === state.pendingId, !record.error)
-    ])
+    paintShown(record, record.id === state.pendingId)
     paintOrigin(record, live)
     if (state.filledId !== record.id) state.filledId = null
     paintFill()
@@ -2866,11 +3149,10 @@
   /* ---------- Preencher a requisição com um envio ---------- */
 
   // Escolher um envio antigo não mexe no rascunho. Quando o que está na requisição é diferente do que este
-  // envio mandou (o comando curl dos dois não bate), a linha sob o cabeçalho diz isso e leva a Foi enviado,
-  // onde ficam o botão, a linha que diz o que ele não faz e a confirmação. Só redesenha quando o estado
-  // muda, para não tirar o foco do botão.
+  // envio mandou (o comando curl dos dois não bate), o topo de Foi enviado diz isso (paintSentDiff), e ali
+  // ficam o botão, a linha que diz o que ele não faz e a confirmação; no Resultado, só a marca na aba. Só
+  // redesenha quando o estado muda, para não tirar o foco do botão.
   function paintFill () {
-    const box = $('shown-fill')
     const record = state.history.find(item => item.id === state.shownId)
     const route = state.selected
     let mode = 'none'
@@ -2884,15 +3166,6 @@
       }
     }
     const key = mode + ':' + (record ? record.id : '')
-    if (box.getAttribute('data-state') !== key) {
-      box.setAttribute('data-state', key)
-      box.textContent = ''
-      box.hidden = mode !== 'differs'
-      if (mode === 'differs') {
-        append(box, [el('span', { class: 'fill-note', text: t('lab.fill.differs') }),
-          el('a', { class: 'fill-see', id: 'fill-see', href: '#sent-out', text: t('lab.fill.see_sent'), onclick: goToSentOut })])
-      }
-    }
     const inner = $('sent-fill')
     if (!inner || inner.getAttribute('data-state') === key) return
     inner.setAttribute('data-state', key)
@@ -2905,15 +3178,6 @@
     } else if (mode === 'done') {
       inner.append(el('p', { class: 'fill-done', id: 'fill-done', tabindex: '-1' }, el('span', { 'aria-hidden': 'true', text: '✓ ' }), fillText('lab.fill.done', { time: clock(record.at) }), state.fillAuthChanged ? ' ' + t('lab.fill.auth_changed') : ''))
     }
-  }
-
-  // O link sob o cabeçalho leva a Foi enviado: escolhe a aba, rola até as abas (sem animação com menos
-  // movimento) e leva o foco ao painel; o endereço não muda. O próximo Tab é Copiar comando.
-  function goToSentOut (event) {
-    if (event) event.preventDefault()
-    selectResultTab('enviado', false)
-    $('result-tabs').scrollIntoView({ block: 'start', behavior: state.reduced ? 'auto' : 'smooth' })
-    $('sent-out').focus({ preventScroll: true })
   }
 
   // Devolve à zona Requisição o que o envio mandou: parâmetros de caminho e de consulta, corpo e o
@@ -2985,7 +3249,7 @@
   // Depois de um envio o Resultado rola com a página (sem rolagem própria). Lado a lado: se o cabeçalho dele
   // ficou acima da janela (Ctrl + Enter de um editor rolado, ou o Resultado vazio, grudado no topo, deixou de
   // grudar), ele volta à vista e o foco fica onde está. Numa coluna só a página rola até a zona; com o foco
-  // em Executar, ele vai junto, para o título do Fluxo (o próximo Tab é "Ver em câmera lenta"), em vez de
+  // em Executar, ele vai junto, para o título do Fluxo (o próximo Tab é "Rever em câmera lenta"), em vez de
   // ficar longe da tela, onde Enter enviaria de novo.
   function revealFlow () {
     const behavior = state.reduced ? 'auto' : 'smooth'
@@ -3097,7 +3361,7 @@
     box.focus({ preventScroll: true })
   }
 
-  // O envio de Foi enviado é diferente do rascunho da mesma rota? A aba ganha a caixa "≠ Será enviado" e um
+  // O envio de Foi enviado é diferente do rascunho da mesma rota? A aba ganha a caixa "≠ Requisição a enviar" e um
   // nome que diz isso, e o painel começa pelo que difere. Nada é anunciado.
   function paintSentDiff () {
     const record = state.sentOutRecord
@@ -3108,33 +3372,16 @@
     $('res-tab-diff').hidden = !differs
     if (differs) $('res-tab-enviado').setAttribute('aria-label', t('lab.sent_out.tab_diff_name'))
     else $('res-tab-enviado').removeAttribute('aria-label')
-    paintDiffCaption(differs ? core.sentDiffParts(recordRequest(record), draft) : null)
+    paintDiffCaption(differs)
   }
 
-  // O topo de Foi enviado: "Diferente do que será enviado agora:" e uma lista com um item por parte, na ordem
-  // do comando; o item do corpo diz onde está o corpo de agora, quando o rascunho tem corpo. Uma frase
-  // inteira por item, sem juntar pedaços. Só é refeito quando a lista muda.
-  const DIFF_PART_KEYS = { url: 'lab.sent_out.part_url', header: 'lab.sent_out.part_header', body: 'lab.sent_out.part_body', body_where: 'lab.sent_out.part_body_where' }
-
-  function paintDiffCaption (list) {
+  // O topo de Foi enviado: uma frase só, dizendo que a requisição na tela está diferente deste envio, sem
+  // listar o que mudou; o comando logo abaixo já mostra o envio inteiro.
+  function paintDiffCaption (differs) {
     const box = $('sent-differs')
-    if (!box) return
-    const signature = list ? list.map(part => part.kind + ':' + (part.name || '') + ':' + (part.inDraft ? 1 : 0)).join(' ') : ''
-    if (box.getAttribute('data-parts') === signature && box.hidden === !list) return
-    box.setAttribute('data-parts', signature)
-    box.hidden = !list
-    box.textContent = ''
-    if (!list) return
-    if (!list.length) {
-      box.append(el('p', { text: t('lab.sent_out.differs') }))
-      return
-    }
-    const item = part => {
-      if (part.kind === 'header') return fillText(DIFF_PART_KEYS.header, { name: part.name })
-      if (part.kind === 'body' && part.inDraft) return fillText(DIFF_PART_KEYS.body_where, { section: t('lab.section.body') })
-      return t(DIFF_PART_KEYS[part.kind])
-    }
-    box.append(el('p', { text: t('lab.sent_out.differs_lead') }), el('ul', null, list.map(part => el('li', { text: item(part) }))))
+    if (!box || box.hidden === !differs) return
+    box.hidden = !differs
+    box.textContent = differs ? t('lab.sent_out.differs') : ''
   }
 
   /* ---------- Resposta ---------- */
@@ -3148,6 +3395,9 @@
     // Copiar corpo) some quando a área é refeita: o foco vai para o painel Resposta e não cai no body.
     const restore = area.contains(document.activeElement)
     if (restore) $('response').focus({ preventScroll: true })
+    smoothSwap(area)
+    if (record.id === state.pendingId) holdResponseHeight(area)
+    else releaseResponseHeight()
     area.textContent = ''
     state.offer = null
     if (record.id === state.pendingId) {
@@ -3223,20 +3473,33 @@
     $('result-tabs').scrollIntoView({ block: 'start', behavior: state.reduced ? 'auto' : 'smooth' })
   }
 
-  // O envio já tem resposta, mas o fluxo ainda está desenhando (câmera lenta): a frase que diz que o
-  // servidor já respondeu, o botão e o esqueleto da resposta com brilho. A mesma marcação em todo envio
-  // (D29). Sem câmera lenta o fluxo chega ao veredito no mesmo quadro e o esqueleto nem é criado; depois de
-  // uma espera real de 5 s ou mais o esqueleto já nasce parado (um brilho que volta logo depois de o
-  // servidor responder pareceria carregar de novo).
+  // O envio já tem resposta, mas o fluxo ainda está desenhando (câmera lenta). O esqueleto já tem a forma da
+  // resposta, no lugar dela: a linha do status e a da descrição, a linha do Corpo com "Mostrar a resposta
+  // agora" onde vai ficar Copiar corpo, o bloco do corpo com a frase de que o servidor já respondeu e os
+  // headers. Na troca, o corpo e o botão não andam. A mesma marcação em todo envio, sem cor de status e sem
+  // altura de corpo (D29). Depois de uma espera real de 5 s ou mais o brilho já nasce parado (um brilho que
+  // volta logo depois de o servidor responder pareceria carregar de novo).
   function pendingView (record) {
-    const button = el('button', { type: 'button', class: 'btn', id: 'show-now', text: t('lab.pending.show_now'), onclick: showNow })
-    const arrived = el('p', null, parts('lab.pending.arrived', { time: el('strong', { text: formatMs(record.ms) }) }))
-    return el('div', { class: 'wait-box' }, arrived, button, slowMotion() ? skeleton(record.ms >= COLD_AFTER * 1000) : null)
+    const bar = className => el('span', { class: 'skel-bar' + (className ? ' ' + className : '') })
+    const node = el('div', { class: 'pv' + (record.ms >= COLD_AFTER * 1000 ? ' is-still' : '') },
+      el('div', { class: 'res-line', 'aria-hidden': 'true' },
+        el('span', { class: 'status-link' }, el('span', { class: 'status-label', text: t('lab.status.label') }), ' ', el('span', { class: 'chip pv-chip' }, ' ', bar())),
+        el('span', { class: 'res-doc pv-doc' }, ' ', bar())),
+      el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }),
+        el('button', { type: 'button', class: 'btn', id: 'show-now', text: t('lab.pending.show_now'), onclick: showNow })),
+      el('div', { class: 'pv-block' }, el('p', { class: 'pv-msg' }, parts('lab.pending.arrived', { time: el('strong', { text: formatMs(record.ms) }) })),
+        ['w70', 'w55', 'w15'].map(width => bar(width))),
+      el('h4', { class: 'sub-label', text: t('lab.response.headers_plain') }),
+      el('div', { class: 'pv-rows', 'aria-hidden': 'true' }, [1, 2, 3].map(() => el('span', { class: 'skel-row' }))))
+    try {
+      node.style.setProperty('--skel-delay', -(document.timeline.currentTime % 1500) + 'ms')
+    } catch (e) {}
+    return node
   }
 
-  // O contorno de uma resposta (status, corpo e headers), igual em todo envio: um contorno do tamanho do
-  // corpo real diria como o envio terminou (D29). Fora da árvore de acessibilidade. O brilho começa na fase
-  // do relógio do documento, então uma caixa refeita continua o mesmo movimento.
+  // O contorno de uma resposta (status, corpo e headers) na espera real, igual em todo envio: um contorno do
+  // tamanho do corpo real diria como o envio terminou (D29). Fora da árvore de acessibilidade. O brilho
+  // começa na fase do relógio do documento, então uma caixa refeita continua o mesmo movimento.
   function skeleton (still) {
     const node = el('div', { class: 'skel' + (still ? ' is-still' : ''), 'aria-hidden': 'true' },
       el('span', { class: 'skel-status' }, el('span', { class: 'status-label', text: t('lab.status.label') }), el('span', { class: 'skel-bar skel-bar-status' })),
@@ -3252,11 +3515,12 @@
     return node
   }
 
-  // A barra do status vem depois de "Status code"; o brilho dela começa na borda esquerda do esqueleto, no
-  // mesmo x do das outras barras, para a onda continuar uma só.
+  // A barra do status vem depois de "Status code" (e, na câmera lenta, as do bloco do corpo e dos headers
+  // ficam em outras caixas): o brilho de cada uma começa na borda esquerda do esqueleto, no mesmo x do das
+  // outras barras, para a onda continuar uma só.
   function alignSkeleton () {
-    document.querySelectorAll('#res-body-area .skel-status .skel-bar').forEach(bar => {
-      const skel = bar.closest('.skel')
+    document.querySelectorAll('#res-body-area .skel-status .skel-bar, #res-body-area .pv .skel-bar, #res-body-area .pv .skel-row').forEach(bar => {
+      const skel = bar.closest('.skel, .pv')
       bar.style.setProperty('--skel-x', (skel.getBoundingClientRect().left - bar.getBoundingClientRect().left) + 'px')
     })
   }
@@ -3337,7 +3601,10 @@
 
   /* ---------- Fluxo ---------- */
 
-  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false }
+  // Fluxo fechado: bar é a barra com as partes (items), a da requisição inteira (one, com o tempo timeBar) ou
+  // a de "Todas as etapas"; read é a linha de leitura, readAt a parte que ela mostra (null: a frase de como
+  // usar a barra), barFocus a parte em que o teclado parou e barHover se o mouse está sobre a barra.
+  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false, bar: null, items: [], one: null, timeBar: null, read: null, readAt: null, readShown: null, readTimer: null, barFocus: null, barHover: false, morph: false, holdOne: null, barRunning: null, previous: null, columns: '', holdCols: null, holdStages: null, doneKey: '', oneWidened: false }
 
   function ran (stage) {
     return stage.st === 'ok' || stage.st === 'failed'
@@ -3445,14 +3712,17 @@
       originTag(record, flow.live))
     if (!model) return [context]
     const serverTotal = model.stages.reduce((total, stage) => total + (stage.dur || 0), 0)
-    if (!record.timing) return [context, timeLine(record.ms, serverTotal), null]
+    if (!record.timing) return [context, timeLine(record.ms, serverTotal), null, null]
     const bar = core.timeBar(record.ms, record.timing, serverTotal)
-    return [context, timeFigure(bar), miniTime(bar)]
+    return [context, timeFigure(bar), miniTime(bar), bar]
   }
 
-  // Com o Fluxo fechado, a barra de tempo some e o tempo total fica numa linha, abaixo de "Todas as etapas".
+  // Com o Fluxo fechado, a barra de tempo some e o tempo total sobe para a linha do veredito, à direita (numa
+  // zona estreita, para a última linha, sob a linha de leitura).
+  // Até o veredito o número dá lugar a uma barra do esqueleto, da mesma largura em todo envio (D29); o
+  // número ocupa essa largura também depois, para "Tempo total no navegador" não andar na troca.
   function miniTime (bar) {
-    return el('p', { class: 'flow-mini-time' }, t('lab.time.part.total') + ' ', el('b', { text: core.timeLabels(bar, language).total }))
+    return el('p', { class: 'flow-mini-time' }, t('lab.time.part.total') + ' ', el('b', {}, timeNumber(core.timeLabels(bar, language).total)))
   }
 
   function flowNote (record, content) {
@@ -3490,6 +3760,8 @@
     // e o anuncia, mesmo numa exibição quieta.
     flow.quiet = !!quiet && state.pendingId !== record.id
     flow.model = null
+    // As cores e os números das barras anteriores, para as novas partirem deles (fadeFromPrevious).
+    flow.previous = previousPaint()
     unmountTime()
     $('flow-body').textContent = ''
     releaseFlowReserve()
@@ -3517,12 +3789,22 @@
   function drawFlow (record, model, animate) {
     const body = $('flow-body')
     flow.model = model
+    try {
+      body.style.setProperty('--skel-delay', -(document.timeline.currentTime % 1500) + 'ms')
+    } catch (e) {}
     const stages = model.stages
     flow.end = stages.length + 1
     flow.active = animate ? nextActive(stages, 0) : flow.end
+    // Até o veredito as barras ficam com a geometria do envio anterior (nada do novo, D29); no veredito as
+    // partes andam até as larguras novas (releaseBars).
+    flow.morph = motionOk()
+    flow.holdOne = flow.morph ? barMemo.one : null
+    flow.holdStages = flow.morph ? heldStageShares(record, stages.length) : null
+    time.hold = flow.morph ? barMemo.tl : null
+    flow.barRunning = null
 
     // O veredito vem primeiro; a barra de tempo fica abaixo da cascata.
-    const [context, times, mini] = flowContext(record, model)
+    const [context, times, mini, timeBar] = flowContext(record, model)
     body.append(context)
     const summary = el('p', { class: 'flow-summary waiting' })
     const outside = el('div', { class: 'flow-outside', hidden: true })
@@ -3531,7 +3813,12 @@
     // Uma grade só (core.flowColumns): o resumo, cada linha e as linhas das colunas usam as mesmas
     // colunas, uma por etapa e a da resposta.
     const columns = stages.length + 1
-    body.style.setProperty('--wf-cols', core.flowColumns(model))
+    // Até o veredito, as colunas das etapas ficam com as larguras do envio anterior desta rota (ou iguais, no
+    // primeiro envio dela): as larguras novas dizem quais etapas rodaram (D29). releaseColumns as solta.
+    flow.columns = core.flowColumns(model)
+    flow.holdCols = flow.morph ? heldColumns(record, stages.length) : null
+    if (!flow.holdCols) barMemo.cols = { key: core.recordKey(record), n: stages.length, columns: flow.columns }
+    body.style.setProperty('--wf-cols', flow.holdCols || flow.columns)
     const cellsOf = className => {
       const cells = []
       for (let column = 0; column < columns; column++) {
@@ -3563,15 +3850,7 @@
       list.append(li)
       linkSummary(li, summaryBar.children[index], summarySeg)
       // Clicar no segmento do resumo abre a linha da etapa, como clicar na própria linha.
-      summaryBar.children[index].addEventListener('click', () => {
-        const item = flow.rows[index]
-        if (!state.flowOpen) {
-          setFlowOpen(true)
-          if (item && item.expandable) setExpanded(index, true)
-          return
-        }
-        if (item && item.expandable) setExpanded(index, item.details.hidden)
-      })
+      summaryBar.children[index].addEventListener('click', () => pickSegment(index))
       flow.rows.push({ stage, li, row: li.firstChild, details, isFailed, opensEarly, opensFinal, expandable: false, filled: null, track, seg, summarySeg, state: null })
     })
     const responseTrack = cellsOf('wf-track')
@@ -3581,6 +3860,7 @@
     const responseLi = el('li', { class: 'flow-stage flow-response' }, responseRow)
     list.append(responseLi)
     linkSummary(responseLi, summaryBar.children[stages.length], responseSummarySeg)
+    summaryBar.children[stages.length].addEventListener('click', () => pickSegment(stages.length))
     flow.responseRow = { li: responseLi, row: responseRow, track: responseTrack, seg: responseSeg, summarySeg: responseSummarySeg, state: null }
 
     // Linhas das colunas: uma camada só, sobre o resumo e a lista inteira.
@@ -3588,11 +3868,48 @@
     lines.firstChild.querySelectorAll('.wf-cell').forEach(cell => { cell.className = '' })
     // A dica vem antes do desenho de que fala: logo abaixo do veredito, antes das etapas.
     const hint = flowHint()
-    append(body, [summary, outside, hint, el('div', { class: 'wf' }, scale, list, lines), mini, times])
+    // Fechado, a barra é a da requisição inteira quando o envio tem as fases do tempo (oneBar); sem elas, a
+    // de "Todas as etapas", com uma parte por etapa e a da Resposta.
+    clearTimeout(flow.readTimer)
+    flow.timeBar = timeBar
+    flow.one = timeBar ? oneBar(timeBar) : null
+    flow.items = flow.one
+      ? Array.from(flow.one.querySelectorAll('.fc-oi')).map(node => node.hasAttribute('data-tpart') ? { kind: 'time', part: node.getAttribute('data-tpart'), node } : { kind: 'stage', index: Number(node.getAttribute('data-cell')), node })
+      : Array.from(summaryBar.children).map((node, index) => ({ kind: 'stage', index, node }))
+    flow.bar = flow.one ? flow.one.firstChild : summaryBar
+    // A linha de leitura da barra fechada, fora da árvore de acessibilidade: o nome de cada parte já diz o
+    // mesmo (paintBar).
+    const read = el('p', { class: 'fc-read', 'aria-hidden': 'true' }, el('span', { class: 'fc-read-text' }))
+    flow.read = read
+    flow.readAt = null
+    flow.readShown = null
+    flow.barFocus = null
+    flow.barHover = false
+    readReserve(read, stages)
+    // Com a barra da requisição inteira, a linha de leitura divide a fileira com a marca "escala ajustada", numa
+    // coluna da largura dela, guardada sempre: a altura reservada da leitura (readReserve) já é a da coluna
+    // mais estreita, e nada se move quando a marca aparece no veredito.
+    const readRow = flow.one ? el('div', { class: 'fc-read-row' }, read, scaleMark()) : read
+    append(body, [summary, outside, hint, el('div', { class: 'wf' }, scale, list, lines), flow.one, readRow, mini, times])
+    wireBar(flow.bar)
+    if (flow.one) watchOneBar()
     flow.hintEl = hint
     flow.summaryEl = summary
     flow.outsideEl = outside
-    if (times.classList.contains('tl')) mountTime(times)
+    // Presa até o veredito, a barra de tempo aberta já nasce neutra: o esqueleto dos rótulos é medido aberto.
+    const holding = flow.morph && flow.active < flow.end
+    if (times.classList.contains('tl')) {
+      if (holding) {
+        times.classList.add('tl-hold')
+        times.querySelector('.tl-draw').inert = true
+      }
+      mountTime(times)
+    }
+    if (holding) fadeFromPrevious()
+    // As colunas presas passam a px já no começo: de fr para px a transição não existe.
+    const summaryShown = flow.holdCols && visibleSummary()
+    if (summaryShown) body.style.setProperty('--wf-cols', measureColumns(summaryShown, flow.holdCols).map(width => width.toFixed(2) + 'px').join(' '))
+    flow.doneKey = ''
     paintFlow()
     // A altura da cascata antes do veredito, para a próxima espera real desta rota.
     const drawn = body.offsetHeight
@@ -3621,39 +3938,640 @@
     flow.rows.forEach((row, index) => {
       const stateName = stateAt(stages, index, flow.active)
       if (row.state === stateName) return
+      const wasRunning = row.state === 'running'
       row.state = stateName
       row.li.className = 'flow-stage flow-' + stateName
       const finished = stateName !== 'pending' && stateName !== 'running'
       const skipped = stateName === 'skip' || stateName === 'not_run'
       paintStageDetails(row, index, finished)
       // O status para leitor de tela só entra quando a etapa terminou.
-      row.row.replaceChildren(...[
+      setRow(row.row, row.track, [
         stageMark(stateName),
         finished ? srStatus(row.stage) : null,
-        boldReserved(codeOrLabel(row.stage.labelKey, row.stage.name, 'flow-name')),
-        row.track,
-        endColumn(rightColumn(row.stage, stateName), row.expandable)
-      ].filter(Boolean))
+        boldReserved(codeOrLabel(row.stage.labelKey, row.stage.name, 'flow-name'))
+      ].filter(Boolean), [endColumn(rightColumn(row.stage, stateName), row.expandable)])
+      if (wasRunning) fadeIn(row.row.querySelector('.flow-right'))
       // O segmento enche no resumo e na linha ao mesmo tempo, com a mesma duração.
       fillBoth(row, stateName, delayAt(stages, index))
       // Etapa que não rodou: o mesmo encaixe hachurado no resumo e na linha.
-      row.seg.classList.toggle('flow-seg-skip', skipped)
-      row.summarySeg.classList.toggle('flow-seg-skip', skipped)
+      segsOf(row).forEach(seg => seg.classList.toggle('flow-seg-skip', skipped))
       // Vermelho só quando a linha mostra ✗.
-      row.seg.classList.toggle('flow-seg-fail', stateName === 'fail')
-      row.summarySeg.classList.toggle('flow-seg-fail', stateName === 'fail')
+      segsOf(row).forEach(seg => seg.classList.toggle('flow-seg-fail', stateName === 'fail'))
     })
     const responseState = stateAt(stages, stages.length, flow.active)
     const response = flow.responseRow
-    if (response.state === responseState) return
-    response.state = responseState
-    response.li.className = 'flow-stage flow-response flow-' + responseState
-    let right
-    if (responseState === 'done') right = el('span', { class: 'flow-right flow-dur', text: flow.model.statusCode !== null ? String(flow.model.statusCode) : '' })
-    else right = el('span', { class: 'flow-right', text: responseState === 'running' ? t('ui.flow.running') : t('ui.flow.pending') })
-    const mark = responseState === 'running' ? stageMark('running') : markEl(responseState === 'done' ? '→' : '○')
-    response.row.replaceChildren(mark, boldReserved(el('span', { class: 'flow-name', text: t('ui.response') })), response.track, endColumn(right, false))
-    fillBoth(response, responseState, RESPONSE_DELAY)
+    if (response.state !== responseState) {
+      response.state = responseState
+      response.li.className = 'flow-stage flow-response flow-' + responseState
+      let right
+      if (responseState === 'done') right = el('span', { class: 'flow-right flow-dur', text: flow.model.statusCode !== null ? String(flow.model.statusCode) : '' })
+      else right = el('span', { class: 'flow-right', text: responseState === 'running' ? t('ui.flow.running') : t('ui.flow.pending') })
+      const mark = responseState === 'running' ? stageMark('running') : markEl(responseState === 'done' ? '→' : '○')
+      setRow(response.row, response.track, [mark, boldReserved(el('span', { class: 'flow-name', text: t('ui.response') }))], [endColumn(right, false)])
+      if (responseState === 'done' && flow.barRunning === true) fadeIn(right)
+      fillBoth(response, responseState, RESPONSE_DELAY)
+    }
+    if (flow.active < flow.end && (flow.holdCols || flow.holdStages)) stepColumns()
+    // A barra fechada e a linha de leitura seguem o estado de cada etapa a cada passo da câmera lenta.
+    paintBar()
+  }
+
+  // Refaz a linha sem tirar a trilha do lugar: tirada e posta de volta, ela perderia a transição das colunas e
+  // sairia do passo do resumo.
+  function setRow (row, track, before, after) {
+    if (track.parentNode !== row) {
+      row.replaceChildren(...before, track, ...after)
+      return
+    }
+    Array.from(row.childNodes).forEach(node => { if (node !== track) node.remove() })
+    track.before(...before)
+    track.after(...after)
+  }
+
+  /* ---------- Fluxo fechado: a barra e a linha de leitura ---------- */
+
+  // A barra da requisição inteira, com o Fluxo fechado: conexão | ida | servidor | volta | download, como a
+  // barra de tempo, e o servidor dividido nas etapas (a soma delas). Uma chave sob o servidor diz o tempo
+  // dele. Até o veredito as partes da rede ficam vazias e os tempos invisíveis, com o lugar guardado (D29).
+  const ONE_PARTS = { before: ['conn', 'outbound'], after: ['inbound', 'down'] }
+  // A geometria da última barra mostrada (frações da largura na fechada, pesos na de tempo, colunas das etapas
+  // no aberto): até o veredito, a barra do envio novo fica com ela.
+  const barMemo = { one: null, tl: null, cols: null, stages: null }
+
+  // Na barra fechada, as etapas dentro do servidor seguem a regra das colunas do aberto: até o veredito, as
+  // fatias do envio anterior desta rota, ou iguais; as larguras novas diriam quais etapas rodaram (D29).
+  function heldStageShares (record, n) {
+    const memo = barMemo.stages
+    if (memo && memo.key === core.recordKey(record) && memo.shares.length === n) return memo.shares
+    return Array(n).fill(1 / n)
+  }
+
+  // As fatias guardadas na largura de agora: nenhuma etapa abaixo do mínimo, e a soma enche o servidor.
+  function heldStageWidths (shares, space, min) {
+    const low = shares.map(share => share * space < min)
+    const pinned = low.filter(Boolean).length * min
+    const rest = shares.reduce((total, share, index) => total + (low[index] ? 0 : share), 0) || 1
+    return shares.map((share, index) => low[index] ? min : share / rest * (space - pinned))
+  }
+
+  // As colunas guardadas valem só para a mesma rota (as etapas são outras em outra rota); sem elas, todas as
+  // etapas com a mesma largura, e a da Resposta fixa como sempre.
+  function heldColumns (record, n) {
+    const memo = barMemo.cols
+    if (memo && memo.key === core.recordKey(record) && memo.n === n) return memo.columns
+    return Array(n).fill('1fr').concat(core.flowColumns({ stages: [] })).join(' ')
+  }
+
+  // As etapas que já terminaram na câmera lenta (✓, ✗ ou ignorada). As que não executaram só se resolvem no
+  // veredito: antes dele, a coluna estreita delas diria onde o envio vai parar (D29).
+  const STAGE_DONE = ['ok', 'fail', 'skip']
+
+  function stagesDone () {
+    return flow.rows.map(row => STAGE_DONE.includes(row.state))
+  }
+
+  // As larguras do conjunto quando só parte das etapas terminou. As que faltam ficam com a largura guardada; as
+  // que terminaram dividem o resto na proporção das larguras finais delas, nunca abaixo do mínimo. A largura
+  // final de cada uma, sozinha, diria quanto as outras vão ocupar (uma etapa que não vai rodar fica estreita):
+  // a proporção entre as que já terminaram só usa os tempos delas (D29). A soma é sempre a do todo, e cada uma
+  // chega à largura final no veredito.
+  function mixWidths (held, final, done, min) {
+    const space = held.reduce((total, width, index) => total + (done[index] ? width : 0), 0)
+    const ready = final.filter((width, index) => done[index])
+    const sum = ready.reduce((total, width) => total + width, 0) || 1
+    const shared = heldStageWidths(ready.map(width => width / sum), space, min)
+    let next = 0
+    return held.map((width, index) => done[index] ? shared[next++] : width)
+  }
+
+  // As colunas de uma regra na largura do resumo, medidas numa grade escondida igual a ele: medir no próprio
+  // resumo dispararia a transição.
+  function measureColumns (summary, rule) {
+    const probe = el('div', { class: 'wf-probe', 'aria-hidden': 'true' }, Array.from(summary.children).map(() => el('span')))
+    probe.style.width = summary.clientWidth + 'px'
+    probe.style.gridTemplateColumns = rule
+    summary.parentNode.append(probe)
+    const widths = getComputedStyle(probe).gridTemplateColumns.split(' ').map(parseFloat)
+    probe.remove()
+    return widths
+  }
+
+  function visibleSummary () {
+    const summary = $('flow-body').querySelector('.wf-summary')
+    return summary && summary.getClientRects().length ? summary : null
+  }
+
+  // A transição só existe entre listas em px com o mesmo número de colunas. O resumo, as linhas das etapas e as
+  // linhas das colunas herdam a mesma variável e andam juntos.
+  function moveColumns (widths) {
+    const body = $('flow-body')
+    body.classList.add('wf-morph')
+    body.style.setProperty('--wf-cols', widths.map(width => width.toFixed(2) + 'px').join(' '))
+  }
+
+  // Na câmera lenta, cada etapa que termina leva a coluna dela à largura final, e as que faltam dividem o resto
+  // com as fatias guardadas; a da Resposta é fixa. Fechado com a barra da requisição inteira, o mesmo vale para
+  // as etapas dentro do servidor (sizeOneBar).
+  function stepColumns () {
+    const done = stagesDone()
+    const key = done.join()
+    if (key === flow.doneKey) return
+    flow.doneKey = key
+    const summary = visibleSummary()
+    if (flow.holdCols && summary) moveColumns(mixWidths(measureColumns(summary, flow.holdCols), measureColumns(summary, flow.columns), done.concat(false), STAGE_MIN_PX))
+    if (flow.holdStages && flow.one && flow.one.getClientRects().length) {
+      flow.one.classList.add('bar-morph')
+      sizeOneBar()
+    }
+  }
+
+  // No veredito, as colunas andam de onde estão até as finais; no fim volta a regra em fr, que segue a largura
+  // da zona.
+  function releaseColumns () {
+    if (!flow.holdCols) return
+    const body = $('flow-body')
+    const final = flow.columns
+    const summary = visibleSummary()
+    flow.holdCols = null
+    barMemo.cols = { key: core.recordKey(flow.record), n: flow.model.stages.length, columns: final }
+    if (!summary) {
+      body.classList.remove('wf-morph')
+      body.style.setProperty('--wf-cols', final)
+      return
+    }
+    const from = getComputedStyle(summary).gridTemplateColumns
+    const to = measureColumns(summary, final)
+    body.style.setProperty('--wf-cols', from)
+    summary.getBoundingClientRect()
+    moveColumns(to)
+    const run = flow.run
+    afterTransitions(body.querySelector('.wf'), () => {
+      if (run !== flow.run) return
+      body.classList.remove('wf-morph')
+      body.style.setProperty('--wf-cols', final)
+    })
+  }
+
+  // As partes e os números das barras do Fluxo, cada um com uma chave que vale entre dois envios: a mesma
+  // parte da barra fechada, da barra de tempo e das etapas dentro do servidor, e o número de cada tempo.
+  const PAINT_PARTS = [
+    ['#flow-body > .fc-one .fc-onet', node => 'one:' + node.getAttribute('data-tpart'), node => node.firstChild],
+    ['#flow-body > .fc-one .fc-ostage', node => 'stage:' + node.getAttribute('data-cell'), node => node.firstChild],
+    ['#flow-body > .tl .tl-bar > .tl-seg', node => 'tl:' + node.getAttribute('data-part'), node => node]
+  ]
+  const PAINT_NUMBERS = [
+    ['#flow-body > .tl .tl-call', node => 'num:' + node.getAttribute('data-part')],
+    ['#flow-body > .tl .tl-dim-label', node => 'num:' + node.getAttribute('data-part')],
+    ['#flow-body > .fc-one .fc-bracket-label', () => 'num:c3'],
+    ['#flow-body > .flow-mini-time', () => 'num:mini']
+  ]
+
+  // A cor de cada parte à vista (a do preenchimento, numa etapa cheia) e o número de cada tempo.
+  function previousPaint () {
+    const paint = { colors: {}, numbers: {} }
+    PAINT_PARTS.forEach(([selector, key, colored]) => document.querySelectorAll(selector).forEach(node => {
+      if (!node.getClientRects().length) return
+      const target = colored(node)
+      const fill = target.querySelector && target.querySelector('.flow-fill')
+      paint.colors[key(node)] = getComputedStyle(fill || target).backgroundColor
+    }))
+    PAINT_NUMBERS.forEach(([selector, key]) => document.querySelectorAll(selector).forEach(node => {
+      const real = node.querySelector('.num-real')
+      if (real && node.getClientRects().length) paint.numbers[key(node)] = real.textContent
+    }))
+    return paint
+  }
+
+  // No começo da câmera lenta, as barras novas têm a geometria das anteriores e partem do desenho delas, nos
+  // mesmos nós: cada parte vai da cor anterior à neutra, e cada número anterior some enquanto o esqueleto
+  // aparece; nunca há uma segunda barra nem um segundo rótulo. O número novo volta ao lugar, escondido, quando
+  // o anterior acaba de sumir (D29).
+  function fadeFromPrevious () {
+    const paint = flow.previous
+    flow.previous = null
+    if (!paint || !motionOk()) return
+    PAINT_PARTS.forEach(([selector, key, colored]) => document.querySelectorAll(selector).forEach(node => {
+      const from = paint.colors[key(node)]
+      if (from && node.getClientRects().length) colored(node).animate([{ backgroundColor: from }, {}], { duration: 200, easing: 'ease-out' })
+    }))
+    PAINT_NUMBERS.forEach(([selector, key]) => document.querySelectorAll(selector).forEach(node => {
+      const real = node.querySelector('.num-real')
+      const old = paint.numbers[key(node)]
+      if (!real || old === undefined || !node.getClientRects().length) return
+      real.dataset.fresh = real.textContent
+      real.textContent = old
+      const out = real.animate([{ opacity: 1, visibility: 'visible' }, { opacity: 0, visibility: 'visible' }], { duration: SWAP_FADE_MS, easing: 'ease-out' })
+      out.onfinish = out.oncancel = () => restoreNumber(real)
+      fadeIn(real.parentNode.querySelector('.num-skel'))
+    }))
+  }
+
+  function restoreNumber (real) {
+    if (real.dataset.fresh === undefined) return
+    real.textContent = real.dataset.fresh
+    delete real.dataset.fresh
+  }
+
+  // Quando as transições do nó acabam (ou são canceladas): tira a classe que as liga, ou chama a função.
+  function afterTransitions (node, done) {
+    const anims = node.getAnimations ? node.getAnimations({ subtree: true }).filter(anim => anim.transitionProperty) : []
+    Promise.allSettled(anims.map(anim => anim.finished)).then(typeof done === 'function' ? done : () => node.classList.remove(done))
+  }
+
+  // No veredito: solta as barras presas na geometria anterior e as partes andam até as larguras novas.
+  function releaseBars () {
+    // Um número anterior que ainda sumia dá lugar ao novo antes de qualquer coisa aparecer.
+    $('flow-body').querySelectorAll('.num-real').forEach(real => {
+      real.getAnimations().forEach(anim => anim.cancel())
+      restoreNumber(real)
+    })
+    releaseColumns()
+    if ((flow.holdOne || flow.holdStages) && flow.one) {
+      const box = flow.one
+      flow.holdOne = null
+      flow.holdStages = null
+      // O navegador precisa ver as larguras antigas antes das novas, ou não há de onde a transição partir.
+      box.firstChild.getBoundingClientRect()
+      box.classList.add('bar-morph')
+      sizeOneBar()
+      afterTransitions(box, 'bar-morph')
+    }
+    flow.holdOne = null
+    flow.holdStages = null
+    const fig = time.fig
+    if (fig && (time.hold || fig.classList.contains('tl-hold'))) {
+      // Os rótulos saem dos pesos (segmentBoxes), não da medida: o desenho preso é visto uma vez, a transição
+      // liga, e o final entra; partes, rótulos, marcas e cotas andam juntos para o mesmo lugar.
+      fig.getBoundingClientRect()
+      fig.classList.add('tl-morph')
+      fig.classList.remove('tl-hold')
+      fig.querySelector('.tl-draw').inert = false
+      time.hold = null
+      layoutTime(fig)
+      afterTransitions(fig, 'tl-morph')
+    }
+    time.hold = null
+  }
+
+  const STAGE_MIN_PX = 22
+
+  function oneBar (bar) {
+    const part = name => el('span', { class: 'fc-oi fc-onet ' + TIME_KIND[name], 'data-tpart': name }, el('span', { class: 'fc-ns' }))
+    // As colunas das etapas dentro do servidor saem em px de sizeOneBar (core.stageWidths).
+    const server = el('span', { class: 'fc-srv' })
+    flow.rows.forEach((row, index) => {
+      row.oneSeg = el('span', { class: 'flow-seg' })
+      server.append(el('span', { class: 'fc-oi fc-ostage', 'data-cell': String(index) }, row.oneSeg))
+    })
+    const line = el('div', { class: 'fc-one-bar' }, ONE_PARTS.before.map(part), server, ONE_PARTS.after.map(part))
+    const label = el('span', { class: 'fc-bracket-label' }, timeName('server', bar) + ' ',
+      el('b', { class: 'fc-bracket-time' }, timeNumber(core.timeLabels(bar, language).server)))
+    const box = el('div', { class: 'fc-one' }, line, el('div', { class: 'fc-bracket', 'aria-hidden': 'true' }, el('span', { class: 'fc-bracket-line' }), label))
+    line.querySelectorAll('.fc-oi').forEach((node, index) => node.addEventListener('click', () => pickItem(index)))
+    return box
+  }
+
+  // A marca do servidor desenhado maior: discreta, no canto direito da linha de leitura. O mouse e o foco do
+  // teclado mostram a explicação, que o leitor de tela ouve pela descrição.
+  function scaleMark () {
+    return el('button', { type: 'button', class: 'fc-scale', id: 'fc-scale', 'aria-describedby': 'fc-scale-desc', 'data-tip': t('lab.flow.read.widened') },
+      t('lab.time.adjusted_mark'),
+      el('span', { class: 'sr-only', id: 'fc-scale-desc', text: t('lab.flow.read.widened') }))
+  }
+
+  function paintScaleMark () {
+    const mark = $('fc-scale')
+    if (mark) mark.classList.toggle('is-on', flow.active >= flow.end && !!flow.oneWidened)
+  }
+
+  // As larguras da barra da requisição seguem a escala da barra de tempo (core.timeWeights, cada parte com
+  // pelo menos core.TIME_MIN_SHARE da barra). O servidor precisa de STAGE_MIN_PX por etapa; quando a escala lhe dá menos, ele
+  // cresce, as outras partes dividem o resto na proporção delas, e a chave diz que saiu de escala.
+  let oneObserver = null
+  function watchOneBar () {
+    if (window.ResizeObserver) {
+      if (!oneObserver) oneObserver = new ResizeObserver(() => sizeOneBar())
+      oneObserver.disconnect()
+      oneObserver.observe(flow.bar)
+    }
+    sizeOneBar()
+  }
+
+  function sizeOneBar () {
+    const box = flow.one
+    if (!box || !box.isConnected) return
+    const line = box.firstChild
+    const width = line.clientWidth
+    if (!width) return
+    const bar = flow.timeBar
+    const n = flow.model.stages.length
+    const avail = width - 4 * 2
+    const weights = core.timeWeights(bar, core.TIME_MIN_SHARE)
+    const w = { conn: weights.conn, outbound: weights.half, server: weights.server, inbound: weights.half, down: weights.down }
+    const sum = Object.values(w).reduce((total, value) => total + value, 0) || 1
+    const px = {}
+    Object.keys(w).forEach(name => { px[name] = w[name] / sum * avail })
+    const need = n * STAGE_MIN_PX + (n - 1) * 2
+    // Quando o servidor cresce além da escala para as etapas caberem, a marca "escala ajustada" aparece no canto
+    // direito da linha de leitura; só no veredito, porque diz algo do tempo novo (D29).
+    flow.oneWidened = px.server < need
+    if (px.server < need) {
+      const rest = (sum - w.server) || 1
+      px.server = need
+      ONE_PARTS.before.concat(ONE_PARTS.after).forEach(name => { px[name] = w[name] / rest * (avail - need) })
+    }
+    if (flow.holdOne && flow.holdOne.n === n) Object.keys(px).forEach(name => { px[name] = flow.holdOne[name] * avail })
+    else if (!flow.holdOne) {
+      barMemo.one = { n }
+      Object.keys(px).forEach(name => { barMemo.one[name] = px[name] / avail })
+    }
+    line.querySelectorAll('.fc-onet').forEach(node => { node.style.flex = '0 0 ' + px[node.getAttribute('data-tpart')].toFixed(2) + 'px' })
+    const server = line.querySelector('.fc-srv')
+    server.style.flex = '0 0 ' + px.server.toFixed(2) + 'px'
+    const space = px.server - (n - 1) * 2
+    const finalWidths = core.stageWidths(flow.model.stages, space, STAGE_MIN_PX)
+    const stageWidths = flow.holdStages ? mixWidths(heldStageWidths(flow.holdStages, space, STAGE_MIN_PX), finalWidths, stagesDone(), STAGE_MIN_PX) : finalWidths
+    if (!flow.holdStages) barMemo.stages = { key: core.recordKey(flow.record), shares: stageWidths.map(width => width / space) }
+    server.style.gridTemplateColumns = stageWidths.map(value => value.toFixed(2) + 'px').join(' ')
+    const left = px.conn + px.outbound + 4
+    const bracket = box.querySelector('.fc-bracket-line')
+    bracket.style.left = left + 'px'
+    bracket.style.width = px.server + 'px'
+    const label = box.querySelector('.fc-bracket-label')
+    const labelWidth = label.offsetWidth
+    label.style.left = Math.max(0, Math.min(width - labelWidth, left + px.server / 2 - labelWidth / 2)) + 'px'
+    paintScaleMark()
+  }
+
+  // Fechado, a barra é o caminho até as etapas (e, na da requisição inteira, até os balões do tempo): uma
+  // parada do Tab só, as setas andam entre as partes e Enter abre o Fluxo naquela parte. A linha de leitura
+  // mostra a parte sob o mouse ou com o foco, e fica nela enquanto o mouse estiver em qualquer ponto da barra,
+  // vãos entre as partes incluídos: ela passa de uma parte direto para a outra. Só volta à frase de como usar
+  // a barra quando o mouse e o foco saem da barra inteira, depois de 150 ms (sair e voltar logo não pisca).
+  const READ_SETTLE_MS = 150
+
+  function wireBar (bar) {
+    const indexOf = target => {
+      const node = target && target.closest ? target.closest('.wf-cell, .fc-oi') : null
+      return node ? flow.items.findIndex(item => item.node === node) : -1
+    }
+    bar.addEventListener('mouseover', event => {
+      flow.barHover = true
+      clearTimeout(flow.readTimer)
+      const index = indexOf(event.target)
+      if (index !== -1) showRead(index)
+    })
+    bar.addEventListener('mouseleave', () => {
+      flow.barHover = false
+      settleRead()
+    })
+    bar.addEventListener('focusin', event => {
+      const index = indexOf(event.target)
+      if (state.flowOpen || index === -1) return
+      clearTimeout(flow.readTimer)
+      flow.barFocus = index
+      flow.readAt = index
+      paintBar()
+    })
+    bar.addEventListener('focusout', event => { if (!bar.contains(event.relatedTarget)) settleRead() })
+    const moves = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
+    bar.addEventListener('keydown', event => {
+      const index = flow.items.findIndex(item => item.node === event.target)
+      if (state.flowOpen || index === -1) return
+      const last = flow.items.length - 1
+      let next = null
+      if (Object.prototype.hasOwnProperty.call(moves, event.key)) next = Math.max(0, Math.min(last, index + moves[event.key]))
+      else if (event.key === 'Home') next = 0
+      else if (event.key === 'End') next = last
+      if (next !== null) {
+        event.preventDefault()
+        flow.barFocus = next
+        paintBar()
+        flow.items[next].node.focus()
+        return
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault()
+        pickItem(index)
+      }
+    })
+  }
+
+  // O mouse e o foco saíram da barra: passados READ_SETTLE_MS sem voltarem, a linha mostra a parte com o foco
+  // do teclado, se houver, ou a frase de como usar a barra.
+  function settleRead () {
+    clearTimeout(flow.readTimer)
+    flow.readTimer = setTimeout(() => {
+      if (flow.barHover) return
+      const active = document.activeElement
+      const index = flow.items.findIndex(item => item.node === active)
+      showRead(index !== -1 && active.matches(':focus-visible') ? index : null)
+    }, READ_SETTLE_MS)
+  }
+
+  // Uma parte da barra fechada escolhida (clique ou Enter): a etapa abre como em pickSegment; uma parte do
+  // tempo abre o Fluxo com o balão dela na barra de tempo, só depois do veredito (antes ela não tem tempo).
+  function pickItem (index) {
+    const item = flow.items[index]
+    if (!item) return
+    if (item.kind === 'stage') {
+      pickSegment(item.index)
+      return
+    }
+    if (state.flowOpen || flow.active < flow.end || !time.fig) return
+    const fromBar = flow.bar.contains(document.activeElement)
+    setFlowOpen(true)
+    layoutTime(time.fig)
+    const button = time.fig.querySelector('.tl-seg[data-part="' + item.part + '"]')
+    if (!button) return
+    if (fromBar) button.focus({ preventScroll: true })
+    if (time.current !== button) button.click()
+  }
+
+  // Um clique num segmento do resumo, ou uma etapa escolhida na barra fechada. Fechado, abre o Fluxo naquela
+  // etapa, já com a linha dela aberta quando ela tem o que mostrar; o foco que estava na barra vai para essa
+  // linha (ou para o título). Aberto, abre ou fecha a linha da etapa, e a parte da Resposta não faz nada.
+  function pickSegment (index) {
+    const item = flow.rows[index]
+    if (state.flowOpen) {
+      if (item && item.expandable) setExpanded(index, item.details.hidden)
+      return
+    }
+    const fromBar = !!flow.bar && flow.bar.contains(document.activeElement)
+    setFlowOpen(true)
+    if (item && item.expandable) setExpanded(index, true)
+    if (!fromBar) return
+    const target = item && item.expandable ? item.row : $('flow-title')
+    target.focus({ preventScroll: true })
+    target.scrollIntoView({ block: 'nearest', behavior: state.reduced ? 'auto' : 'smooth' })
+  }
+
+  // Fechado, a barra deixa de ser só desenho: um toolbar em que cada parte é um botão com o nome acessível
+  // do que a linha de leitura mostra. Aberto, a acessibilidade volta a ser a de sempre: a barra de "Todas as
+  // etapas" fora da árvore, e as etapas nas linhas da cascata (a da requisição inteira nem aparece).
+  function paintBar () {
+    const bar = flow.bar
+    if (!flow.model || !bar || !bar.isConnected) return
+    const open = state.flowOpen
+    const running = flow.active < flow.end
+    // Até o veredito, os tempos dão lugar às barras do esqueleto e as partes da rede ficam vazias (D29). O
+    // brilho segue o relógio do documento, como o da Resposta, e já nasce parado depois de uma espera real
+    // de 5 s ou mais.
+    if (!running) releaseBars()
+    paintScaleMark()
+    flow.barRunning = running
+    $('flow-body').classList.toggle('is-running', running)
+    $('flow-body').classList.toggle('skel-still', flow.record.ms >= COLD_AFTER * 1000)
+    if (flow.one) {
+      flow.one.classList.toggle('is-wait', running)
+      flow.one.querySelectorAll('.fc-onet').forEach(node => node.classList.toggle('is-wait', running))
+    } else if (open) {
+      bar.parentNode.setAttribute('aria-hidden', 'true')
+      bar.setAttribute('aria-hidden', 'true')
+      bar.parentNode.firstChild.removeAttribute('aria-hidden')
+    } else {
+      bar.parentNode.removeAttribute('aria-hidden')
+      bar.removeAttribute('aria-hidden')
+      bar.parentNode.firstChild.setAttribute('aria-hidden', 'true')
+    }
+    if (open) {
+      bar.removeAttribute('role')
+      bar.removeAttribute('aria-label')
+    } else {
+      bar.setAttribute('role', 'toolbar')
+      bar.setAttribute('aria-label', t(flow.one ? 'lab.flow.read.request_bar' : 'lab.flow.read.bar'))
+    }
+    const stop = barStop()
+    flow.items.forEach((item, index) => {
+      if (open) {
+        ['role', 'tabindex', 'aria-label'].forEach(name => item.node.removeAttribute(name))
+        return
+      }
+      item.node.setAttribute('role', 'button')
+      item.node.setAttribute('tabindex', index === stop ? '0' : '-1')
+      item.node.setAttribute('aria-label', itemInfo(index).spoken)
+    })
+    paintRead()
+  }
+
+  // A parada do Tab na barra fechada: a parte em que o teclado parou; senão, depois do veredito, a etapa que
+  // parou, e antes dele a primeira parte (a parada não adianta onde o envio vai parar, D29).
+  function barStop () {
+    if (flow.barFocus !== null) return flow.barFocus
+    if (flow.active < flow.end || flow.model.summary !== 'stopped') return 0
+    const failed = flow.model.stages.findIndex(stage => stage.name === flow.model.failedStage && stage.st === 'failed')
+    const index = flow.items.findIndex(item => item.kind === 'stage' && item.index === failed)
+    return index === -1 ? 0 : index
+  }
+
+  const READ_WORDS = { ok: 'ui.flow.status.ok', fail: 'ui.flow.status.failed', skip: 'ui.flow.status_short.skipped', pending: 'ui.flow.pending', running: 'ui.flow.running' }
+
+  function itemInfo (index) {
+    const item = flow.items[index]
+    return item.kind === 'time' ? timeInfo(item.part) : segmentInfo(item.index)
+  }
+
+  // O que uma parte da barra diz agora: o nome, a situação do momento (na câmera lenta, aguardando ou
+  // executando; nada adianta como o envio termina, D29) e a duração, só de uma etapa que já terminou.
+  // spoken é a mesma informação numa frase, para o nome acessível da parte.
+  function segmentInfo (index) {
+    const stages = flow.model.stages
+    const stateName = stateAt(stages, index, flow.active)
+    if (index >= stages.length) {
+      const name = t('ui.response')
+      if (stateName === 'done') return { name, state: stateName, word: statusLine(flow.record), spoken: name + ', ' + statusLine(flow.record), dur: '' }
+      const word = stateName === 'running' ? capitalized(t('ui.flow.running')) : t('lab.flow.read.response_pending')
+      return { name, state: stateName, word, spoken: name + ', ' + word.toLowerCase(), dur: '' }
+    }
+    const stage = stages[index]
+    const name = stageName(stage)
+    let word
+    if (READ_WORDS[stateName]) word = capitalized(t(READ_WORDS[stateName]))
+    else word = stage.statusKey ? t(stage.statusKey) : String(stage.st)
+    const dur = (stateName === 'ok' || stateName === 'fail') && stage.dur !== undefined ? core.formatDuration(stage.dur, language) + ' ms' : ''
+    const said = stateName === 'skip' ? t('ui.flow.status.skipped') : word
+    return { name, state: stateName, word, spoken: name + ', ' + said.toLowerCase() + (dur ? ', ' + dur : ''), dur }
+  }
+
+  // Uma parte do tempo na barra da requisição inteira: o nome, o tempo e a fatia do total, só no veredito;
+  // antes dele, que o tempo aparece no fim do fluxo.
+  function timeInfo (part) {
+    const bar = flow.timeBar
+    const name = capitalized(timeName(part, bar))
+    // A ida e a volta têm um nome curto, para a linha de leitura caber numa linha numa zona estreita.
+    const short = SHORT_NAMES[part] ? capitalized(t(SHORT_NAMES[part])) : name
+    if (flow.active < flow.end) {
+      const later = t('lab.flow.read.time_later')
+      return { time: true, part, name, short, wait: true, word: later, spoken: name + ', ' + later.toLowerCase() }
+    }
+    const value = timeValue(part, core.timeLabels(bar, language))
+    const percent = core.formatShare(bar[TIME_AMOUNT[part]], bar.total, language)
+    const share = percent ? fillText('lab.flow.read.share', { percent }) : ''
+    return { time: true, part, name, short, value, share, spoken: name + ', ' + value + (percent ? ', ' + fillText('lab.time.share', { percent }) : '') }
+  }
+
+  const SHORT_NAMES = { outbound: 'lab.time.part.outbound_short', inbound: 'lab.time.part.inbound_short' }
+
+  function showRead (index) {
+    flow.readAt = state.flowOpen ? null : index
+    paintRead()
+  }
+
+  // A linha de leitura sob a barra fechada. Parada, diz como usar a barra (no toque e numa zona estreita, o
+  // CSS mostra a frase de tocar); com o mouse ou o foco do teclado numa parte, o que ela diz agora. Na troca
+  // de uma parte para outra o texto novo aparece num esmaecer curto, sem movimento com menos movimento.
+  function paintRead () {
+    const text = flow.read && flow.read.firstChild
+    if (!text || !flow.model) return
+    const index = flow.readAt
+    if (index === null) {
+      const stopped = flow.active >= flow.end && flow.model.summary === 'stopped'
+      const keys = flow.one ? ['lab.flow.read.time_hint', 'lab.flow.read.time_hint_stopped', 'lab.flow.read.time_hint_touch'] : ['lab.flow.read.hint', 'lab.flow.read.hint_stopped', 'lab.flow.read.hint_touch']
+      text.className = 'fc-read-text'
+      text.replaceChildren(el('span', { class: 'fc-hint', text: t(stopped ? keys[1] : keys[0]) }), el('span', { class: 'fc-hint-touch', text: t(keys[2]) }))
+    } else {
+      const info = itemInfo(index)
+      if (info.time) {
+        text.className = 'fc-read-text is-time'
+        text.replaceChildren(...[el('span', { class: 'fc-swatch ' + TIME_KIND[info.part] + (info.wait ? ' is-wait' : '') }), el('span', { class: 'fc-name' }, el('span', { class: 'fc-long', text: info.name }), el('span', { class: 'fc-short', text: info.short })),
+          info.wait ? el('span', { class: 'fc-word', text: info.word }) : el('span', { class: 'fc-dur', text: info.value }),
+          info.share ? el('span', { class: 'fc-share', text: info.share }) : null].filter(Boolean))
+      } else {
+        text.className = 'fc-read-text is-stage fc-' + info.state
+        text.replaceChildren(...[el('span', { class: 'fc-name', text: info.name }), info.state === 'done' ? markEl('→') : stageMark(info.state),
+          el('span', { class: 'fc-word', text: info.word }), info.dur ? el('span', { class: 'fc-dur', text: info.dur }) : null].filter(Boolean))
+      }
+    }
+    if (flow.readShown !== index && text.animate && !prefersReducedMotion()) {
+      text.getAnimations().forEach(animation => animation.cancel())
+      text.animate([{ opacity: 0.3 }, { opacity: 1 }], { duration: 110, easing: 'ease-out' })
+    }
+    flow.readShown = index
+  }
+
+  // A linha de leitura guarda desde o começo a altura do texto mais longo que ela pode mostrar, numa cópia
+  // invisível (o CSS lê data-reserve, ou data-reserve-touch no toque): nada abaixo dela anda quando o mouse
+  // passa pela barra. Cada etapa entra com a situação mais longa de todas, e a Resposta sem o status, para a
+  // altura não adiantar como o envio termina (D29); as partes do tempo entram com o tempo e a fatia.
+  function readReserve (read, stages) {
+    const longest = list => list.reduce((a, b) => b.length > a.length ? b : a, '')
+    const word = longest(['ui.flow.status.ok', 'ui.flow.status.failed', 'ui.flow.status_short.skipped', 'ui.flow.status.not_run', 'ui.flow.pending', 'ui.flow.running'].map(t))
+    const dur = core.formatDuration(999.99, language) + ' ms'
+    let lines = stages.map(stage => stageName(stage) + '  ' + word + '  ' + dur)
+    if (flow.one) {
+      const bar = flow.timeBar
+      const labels = core.timeLabels(bar, language)
+      // Na zona estreita (data-reserve-touch) a ida e a volta usam o nome curto, como a linha de leitura.
+      const timeLines = short => ONE_PARTS.before.concat(ONE_PARTS.after).map(part => '■ ' + (short && SHORT_NAMES[part] ? t(SHORT_NAMES[part]) : timeName(part, bar)) + '  ' +
+        longest([t('lab.flow.read.time_later'), timeValue(part, labels) + '  ' + fillText('lab.flow.read.share', { percent: '100,0%' })]))
+      const hints = ['lab.flow.read.time_hint', 'lab.flow.read.time_hint_stopped', 'lab.flow.read.time_hint_touch']
+      read.setAttribute('data-reserve', longest(lines.concat(timeLines(false), t(hints[0]), t(hints[1]))))
+      read.setAttribute('data-reserve-touch', longest(lines.concat(timeLines(true), t(hints[2]))))
+      return
+    }
+    lines = lines.concat(t('ui.response') + '  ' + longest([t('lab.flow.read.response_pending'), t('ui.flow.running')]))
+    read.setAttribute('data-reserve', longest(lines.concat(t('lab.flow.read.hint'), t('lab.flow.read.hint_stopped'))))
+    read.setAttribute('data-reserve-touch', longest(lines.concat(t('lab.flow.read.hint_touch'))))
   }
 
   // A linha da etapa e o que ela abre seguem o estado da etapa. Aguardando ou executando: só a descrição
@@ -3711,8 +4629,13 @@
     return el('span', { class: 'flow-end' }, right, expandable ? icon('i-seta', 'flow-caret') : el('span', { class: 'flow-caret', 'aria-hidden': 'true' }))
   }
 
+  // Os segmentos de uma etapa: o da linha, o de "Todas as etapas" e, com a barra da requisição inteira, o dela.
+  function segsOf (row) {
+    return [row.seg, row.summarySeg, row.oneSeg].filter(Boolean)
+  }
+
   function fillBoth (row, stateName, delay) {
-    [row.seg, row.summarySeg].forEach(seg => {
+    segsOf(row).forEach(seg => {
       const fill = fillEl(stateName, delay)
       seg.replaceChildren(...(fill ? [fill] : []))
     })
@@ -3783,10 +4706,11 @@
       spoken = fillText('lab.announce.completed', { status: statusLine(record) })
     }
     setReplayReady(true)
+    if (animated) fadeIn(summary)
     flowAnnounce(spoken)
   }
 
-  // "Ver em câmera lenta" é o único controle da faixa do Fluxo: fica disponível a partir do veredito de todo
+  // "Rever em câmera lenta" é o único controle da faixa do Fluxo: fica disponível a partir do veredito de todo
   // envio e sempre redesenha o fluxo em câmera lenta, qualquer que tenha sido o modo do envio. "Menos
   // movimento" ligado ou desligado com a página aberta vale na hora: ligado no meio da câmera lenta, o fluxo
   // vai direto ao veredito, e o segmento do modo some ou volta junto.
@@ -3811,15 +4735,35 @@
     })
   }
 
-  // O Fluxo fechado mostra o veredito, "Todas as etapas" e o tempo total; o resto volta ao abrir. A escolha
-  // fica guardada neste navegador e nunca muda sozinha: só o título, um segmento de "Todas as etapas" e "Ver
-  // em câmera lenta" (que abre) a trocam.
+  // O Fluxo fechado mostra o veredito com o tempo total, a barra da requisição inteira (ou a de "Todas as
+  // etapas", sem as fases do tempo) e a linha de leitura dela; o status sai do cabeçalho do Resultado e fica
+  // só na Resposta (CSS). O resto volta ao abrir. A escolha fica guardada neste navegador e nunca muda
+  // sozinha: só o título, uma parte da barra e "Rever em câmera lenta" (que abre) a trocam.
   function setFlowOpen (open, save = true) {
+    // O que aparece só no estado novo (as etapas, a barra de tempo, as dicas) surge e fica cortado pela altura
+    // que anda; o que existe nos dois estados (o veredito, o tempo total) não pisca nem se move.
+    const animate = save && open !== state.flowOpen
+    const shownParts = () => flowParts().filter(node => node.getClientRects().length)
+    const before = animate ? new Set(shownParts()) : null
+    if (animate) smoothSwap($('flow'), false)
     state.flowOpen = open
     $('flow').classList.toggle('is-collapsed', !open)
     $('flow-title').setAttribute('aria-expanded', open ? 'true' : 'false')
     if (!open) closeTimePop(false)
     if (save) writeLocal(FLOW_OPEN_KEY, open ? 'true' : 'false')
+    clearTimeout(flow.readTimer)
+    flow.readAt = null
+    flow.barFocus = null
+    paintBar()
+    if (animate) shownParts().filter(node => !before.has(node)).forEach(node => fadeIn(node))
+  }
+
+  // As partes do Fluxo que só um dos estados mostra. O veredito, o tempo total e as barras ficam de fora: eles
+  // existem aberto e fechado, e um fade neles faria o texto piscar.
+  const FLOW_PARTS = '#flow-body > .flow-hint, #flow-body > .wf > .flow-stages, #flow-body > .wf > .wf-lines, #flow-body > .tl, #flow-body > .fc-read, #flow-body > .fc-read-row'
+
+  function flowParts () {
+    return Array.from(document.querySelectorAll(FLOW_PARTS))
   }
 
   // O botão de rever a animação nunca fica desabilitado de verdade: com aria-disabled ele mantém o foco, o
@@ -3835,7 +4779,7 @@
   // servidor (a soma das etapas, no verde de "Todas as etapas"), volta ao navegador e download, com o TTFB e
   // o total marcados embaixo. Cada parte e cada marca abre um balão que diz o que ela mede.
 
-  const time = { fig: null, pop: null, current: null, observer: null, onServerPop: null, front: new Map() }
+  const time = { fig: null, pop: null, current: null, observer: null, onServerPop: null, front: new Map(), hold: null }
 
   // Partes da barra de tempo em primeiro plano. Cada motivo (balão aberto, mouse ou foco do teclado na cota do
   // TTFB) liga um conjunto de partes; enquanto algum estiver ligado, as outras partes
@@ -3862,7 +4806,6 @@
 
   // O que cada balão diz: o que a parte é, o que a faz crescer, a nota da ida e da volta (o navegador só
   // mede a soma das duas), o que fazer com ela num teste e o link de referência.
-  const TIME_MIN_PX = 12
 
   const TIME_POPS = {
     conn: { note: 'lab.time.conn.how', tip: 'lab.time.conn.tip', links: [{ key: 'connection', text: 'lab.time.conn.link_mdn' }, { key: 'overview', text: 'lab.time.conn.link_http' }, { key: 'conn', text: 'lab.time.conn.link' }] },
@@ -3906,6 +4849,15 @@
   }
 
   // A ida e a volta são metades estimadas da rede: o número delas vem com "cerca de".
+  // Um tempo com o número trocável: até o veredito, só o número dá lugar a uma barra do esqueleto de largura
+  // fixa, e o nome e "ms" continuam escritos (D29). Os dois ficam na mesma célula, de largura fixa, e se cruzam
+  // no veredito (CSS); a largura do rótulo não muda na troca.
+  function timeNumber (text) {
+    const number = text.replace(/ ms$/, '')
+    return [el('span', { class: 'num-slot' }, el('span', { class: 'num-real', text: number }), el('span', { class: 'skel-bar num-skel', 'aria-hidden': 'true' })),
+      number === text ? '' : ' ms']
+  }
+
   function timeValue (part, labels) {
     const value = { conn: labels.conn, outbound: labels.half, server: labels.server, inbound: labels.half, down: labels.down, ttfb: labels.ttfb, total: labels.total }[part]
     return part === 'outbound' || part === 'inbound' ? fillText('lab.time.about', { time: value }) : value
@@ -3934,7 +4886,7 @@
     segs[1].setAttribute('data-short', t('lab.time.part.outbound_short'))
     segs[3].setAttribute('data-long', t('lab.time.part.inbound'))
     segs[3].setAttribute('data-short', t('lab.time.part.inbound_short'))
-    const label = part => [el('span', { class: 'tl-term', text: timeName(part, bar) }), ' ', el('b', { text: timeValue(part, labels) })]
+    const label = part => [el('span', { class: 'tl-term', text: timeName(part, bar) }), ' ', el('b', {}, timeNumber(timeValue(part, labels)))]
     const call = (index, part, extra) => [
       el('span', { class: 'tl-tick', 'data-for': String(index) }),
       el('span', { class: 'tl-call' + extra, 'data-for': String(index), 'data-part': part }, label(part))
@@ -3952,7 +4904,10 @@
       ttfb: labels.ttfb
     })
     const fig = el('figure', { class: 'tl' },
-      el('p', { class: 'flow-hint tl-hint', text: t('lab.time.hint') }),
+      // A marca discreta da escala ajustada fica ao lado da dica; o mouse vê a explicação no title, e o leitor
+      // de tela a ouve inteira, logo depois da marca.
+      el('p', { class: 'flow-hint tl-hint' }, t('lab.time.hint'), ' ',
+        el('span', { class: 'tl-scale', title: t('lab.time.adjusted') }, t('lab.time.adjusted_mark'), el('span', { class: 'sr-only', text: ': ' + t('lab.time.adjusted') }))),
       el('p', { class: 'sr-only', text: summary }),
       el('div', { class: 'tl-draw' },
         el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), call(2, 'server', ' server'), call(4, 'down', '')),
@@ -3960,7 +4915,7 @@
         el('div', { class: 'tl-dims' }, dim('ttfb', '1', '3', '0', ''), dim('total', '0', '4', '1', ' total'))),
       el('div', { class: 'tl-pop', id: 'tl-pop', role: 'region', 'aria-labelledby': 'tl-pop-title', hidden: true }))
 
-    const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels, fig.classList.contains('tl-adjusted')))
+    const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels))
     fig.querySelectorAll('button[data-part]').forEach(button => button.addEventListener('click', () => toggle(button)))
     // Os rótulos acima da barra são alvos maiores para as partes finas: agem como o botão da parte.
     fig.querySelectorAll('.tl-call').forEach(call => call.addEventListener('click', () => {
@@ -3981,7 +4936,7 @@
     return parts(key, values).map(piece => typeof piece === 'string' ? piece : piece.cloneNode(true))
   }
 
-  function timePopContent (part, bar, labels, adjusted) {
+  function timePopContent (part, bar, labels) {
     const pop = TIME_POPS[part]
     const values = {
       time: num(labels.net),
@@ -4010,7 +4965,6 @@
       part === 'conn' && core.protocolName(bar.details && bar.details.protocol) ? el('p', null, popText('lab.time.conn.protocol_note', values)) : null,
       pop.note ? el('p', { class: 'note' }, popText(pop.note, values)) : null,
       part === 'total' ? el('p', null, el('button', { type: 'button', class: 'btn btn-quiet', text: fillText('lab.time.total.go_sent', { tab: t('lab.sent_out.title') }), onclick: goToCurlTimes })) : null,
-      part === 'total' && adjusted ? el('p', { class: 'note', text: t('lab.time.adjusted') }) : null,
       el('p', { class: 'tip' }, el('b', { text: t('lab.time.tip_label') }), ' ', popText(pop.tip, values)),
       links.map(({ spec, link }) => el('p', { class: 'pop-link' },
         externalLink(link.url, popText(spec.text, { name: el('span', { lang: 'en', text: spec.name || '' }) }), link.english ? { hreflang: 'en' } : null),
@@ -4110,16 +5064,63 @@
     const width = bar.clientWidth
     if (!width) return
     const segs = Array.from(bar.children).filter(node => node.classList.contains('tl-seg'))
-    // Toda parte com tempo precisa de pelo menos TIME_MIN_PX para aparecer; a escala só sai da real se faltar.
+    // Toda parte com tempo fica com pelo menos core.TIME_MIN_SHARE da barra; a escala só sai da real se faltar.
+    // Quando sai, a marca "escala ajustada" aparece ao lado da dica (CSS).
     const ms = segs.map(node => Number(node.getAttribute('data-ms')))
-    const weights = core.timeWeights({ conn: ms[0], half: ms[1], server: ms[2], down: ms[4] }, Math.min(0.2, TIME_MIN_PX / width))
-    ;[weights.conn, weights.half, weights.server, weights.half, weights.down].forEach((weight, index) => segs[index].style.setProperty('--g', weight.toFixed(4)))
+    const weights = core.timeWeights({ conn: ms[0], half: ms[1], server: ms[2], down: ms[4] }, core.TIME_MIN_SHARE)
+    const g = [weights.conn, weights.half, weights.server, weights.half, weights.down].map(weight => weight.toFixed(4))
+    if (!time.hold) barMemo.tl = g
     fig.classList.toggle('tl-adjusted', weights.adjusted)
-    const box = bar.getBoundingClientRect()
-    const seg = index => {
-      const rect = segs[index].getBoundingClientRect()
-      return { left: rect.left - box.left, right: rect.right - box.left }
+    // Os rótulos ficam sobre as partes como estão desenhadas: presas na geometria anterior até o veredito
+    // (D29). A fileira de rótulos guarda a altura que as duas geometrias pedem, para nada abaixo dela pular no
+    // veredito; o piso fica no desenho até o próximo envio.
+    const rows = placeTimeLabels(fig, segs, width, g)
+    if (time.hold) {
+      fig.rowsFloor = Math.max(fig.rowsFloor || 0, rows)
+      fig.rowsFloor = Math.max(fig.rowsFloor, placeTimeLabels(fig, segs, width, time.hold))
     }
+    // As partes recebem a largura em px da mesma conta dos rótulos: na transição, partes e rótulos andam em px
+    // com a mesma curva e ficam juntos (entre dois pesos de flex-grow, o caminho em px seria outro).
+    const drawn = time.hold || g
+    segmentBoxes(segs, drawn, width).forEach((box, index) => {
+      segs[index].style.setProperty('--g', drawn[index])
+      segs[index].style.flex = '0 0 ' + box.width.toFixed(2) + 'px'
+    })
+    fig.querySelector('.tl-calls').style.setProperty('--calls-h', (26 + Math.max(rows, fig.rowsFloor || 0) * 20) + 'px')
+  }
+
+  // Onde cada parte fica quando a barra chega aos pesos dados: a conta do flex (base 0, os pesos dividem a
+  // largura menos os vãos, e nenhuma parte fica abaixo da largura mínima dela). Os rótulos saem dessa conta, e
+  // não da medida: no meio da transição das larguras, ou antes de ela começar, a medida daria o desenho de
+  // partida, e os rótulos ficariam lá.
+  function segmentBoxes (segs, weights, width) {
+    const gap = parseFloat(getComputedStyle(segs[0].parentNode).columnGap) || 0
+    const mins = segs.map(seg => parseFloat(getComputedStyle(seg).minWidth) || 0)
+    const grow = weights.map(Number)
+    const space = width - gap * (segs.length - 1)
+    const frozen = grow.map(() => false)
+    let sizes
+    for (;;) {
+      const free = space - mins.reduce((total, min, index) => total + (frozen[index] ? min : 0), 0)
+      const sum = grow.reduce((total, value, index) => total + (frozen[index] ? 0 : value), 0) || 1
+      sizes = grow.map((value, index) => frozen[index] ? mins[index] : value / sum * free)
+      const small = sizes.findIndex((size, index) => !frozen[index] && size < mins[index])
+      if (small === -1) break
+      frozen[small] = true
+    }
+    let x = 0
+    return sizes.map(size => {
+      const box = { left: x, right: x + size, width: size }
+      x += size + gap
+      return box
+    })
+  }
+
+  // Põe os rótulos acima e as cotas abaixo das partes como elas ficam com os pesos dados e diz quantas
+  // fileiras extras os rótulos de cima pediram.
+  function placeTimeLabels (fig, segs, width, weights) {
+    const boxes = segmentBoxes(segs, weights, width)
+    const seg = index => boxes[index]
     // O nome longo onde cabe ("ida até o servidor"), o curto onde não cabe, nada numa fatia fina. A ida e a
     // volta usam o mesmo tamanho, para "ida" nunca ficar ao lado de "volta ao navegador".
     const nets = segs.filter(node => node.classList.contains('net'))
@@ -4129,7 +5130,7 @@
       node.replaceChildren(term)
       return choices(node).findIndex(text => {
         term.textContent = text
-        return term.offsetWidth <= node.clientWidth - 8
+        return term.offsetWidth <= boxes[segs.indexOf(node)].width - 8
       })
     }))
     nets.forEach(node => { node.firstChild.textContent = choices(node)[level] })
@@ -4152,7 +5153,6 @@
       tick.style.left = Math.round(center) + 'px'
       tick.style.height = (6 + row * 20) + 'px'
     })
-    fig.querySelector('.tl-calls').style.setProperty('--calls-h', (26 + maxRow * 20) + 'px')
     fig.querySelectorAll('.tl-dim, .tl-dim-label').forEach(node => {
       const from = seg(Number(node.getAttribute('data-from'))).left
       const to = seg(Number(node.getAttribute('data-to'))).right
@@ -4167,6 +5167,7 @@
         node.style.top = (top + 4) + 'px'
       }
     })
+    return maxRow
   }
 
   // Depois de a barra entrar na página: o desenho segue a largura da barra e o tamanho do texto (a cota do
@@ -4266,6 +5267,7 @@
     setupTopbar()
     paintNotice()
     paintFeedbackPill()
+    countUsageDay()
     renderAbout(null)
     setupFlowControls()
     setupTime()
