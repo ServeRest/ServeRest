@@ -585,7 +585,7 @@
 
   /* ---------- Estado e elementos do guia ---------- */
 
-  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, blocked: false, complete: false, mark: null, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
+  const G = { open: false, path: null, index: -1, mode: null, ev: { routes: {} }, sendAt: 0, entry: {}, pre: false, busy: false, sig: '', targetKey: null, loginBroken: false, blocked: false, complete: false, mark: null, seen: {}, doneSteps: {}, moving: null, moveId: 0, going: false, front: 0, holes: [], pos: null, nextKey: null, keyFrames: 0 }
   let shield, marker, arrow, card, live
   let frame = 0
   let lastRender = 0
@@ -632,7 +632,7 @@
     layers.push(layer(), layer())
     shield = node('div', 'guide-shield')
     card = node('div', 'guide-card', { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'guide-title', 'aria-describedby': 'guide-body' })
-    const close = button('btn', 'close', t('lab.guide.close') + ' ')
+    const close = button('guide-close', 'close', t('lab.guide.close') + ' ')
     close.id = 'guide-close'
     close.append(el('span', '', '×'))
     close.lastChild.setAttribute('aria-hidden', 'true')
@@ -642,7 +642,6 @@
     head.append(kicker, close)
     const progress = el('div', 'guide-progress')
     progress.setAttribute('aria-hidden', 'true')
-    progress.append(el('span'))
     const title = el('h2', 'guide-title')
     title.id = 'guide-title'
     title.tabIndex = -1
@@ -789,10 +788,24 @@
     return item
   }
 
-  function setHead (kicker, progress, title) {
+  // O cabeçalho numa linha ("Passo 7 de 9 · caminho") e o progresso em segmentos, um por passo.
+  function setHead (kicker, done, total, title) {
     part('kicker').replaceChildren(...kicker)
-    q('.guide-progress span', card).style.width = progress + '%'
+    part('progress').replaceChildren(...Array.from({ length: total }, (_, i) => el('i', i < done ? 'is-on' : '')))
+    part('progress').hidden = !total
     part('title').textContent = title
+  }
+
+  const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.5l2.3 2.3L9.5 3.5"/></svg>'
+
+  // Um botão com a seta ao lado do texto ("← Voltar", "Próximo →"); a seta não é lida.
+  function arrowButton (className, act, text, before) {
+    const item = button(className, act)
+    const label = el('span', 'guide-label', text)
+    const mark = el('span', '', before ? '←' : '→')
+    mark.setAttribute('aria-hidden', 'true')
+    item.append(...(before ? [mark, label] : [label, mark]))
+    return item
   }
 
   // Abrir, trocar de caminho ou voltar dele: a tela de escolha, sem destaque.
@@ -802,7 +815,7 @@
       G.path = null
       G.index = -1
       G.sig = ''
-      setHead([t('lab.guide.open')], 0, t('lab.guide.choose_title'))
+      setHead([t('lab.guide.open')], 0, 0, t('lab.guide.choose_title'))
       const list = el('div')
       list.append(choice(LEARN), choice(TOUR))
       part('body').replaceChildren(el('p', '', t('lab.guide.choose_intro')), list)
@@ -816,11 +829,11 @@
       const path = PATHS[G.path]
       G.mode = 'end'
       G.sig = ''
-      setHead([t(path.name)], 100, t('lab.guide.end_title'))
+      setHead([t(path.name)], 0, 0, t('lab.guide.end_title'))
       const list = el('div')
       list.append(choice(PATHS[path.offer]))
       part('body').replaceChildren(...path.end.map(key => el('p', '', fill(key))), list)
-      part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close')))
+      part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn btn-primary', 'close', t('lab.guide.close')))
       part('exit-hint').hidden = true
     })
   }
@@ -892,9 +905,10 @@
           } catch (e) {}
         }
         const n = index + 1
-        setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), el('span', '', t(PATHS[G.path].name))], (n / steps.length) * 100, t(s.title))
-        part('foot').replaceChildren(button('btn', 'back', t('lab.guide.back')), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
-          button('btn btn-primary', 'next', t('lab.guide.next')))
+        setHead([el('b', '', fill('lab.guide.step', { n, total: steps.length })), ' · ' + t(PATHS[G.path].name)], n, steps.length, t(s.title))
+        part('foot').replaceChildren(arrowButton('btn guide-quiet', 'back', t('lab.guide.back'), true), el('span', 'guide-grow'), button('btn guide-do', 'do', t('lab.guide.do')),
+          arrowButton('btn btn-primary', 'next', t('lab.guide.next')))
+        G.seen = {}
         renderBody(true)
       }, true)
       if (started !== generation || !G.open) return
@@ -944,25 +958,39 @@
     const wasDone = !!G.sig && JSON.parse(G.sig)[4]
     G.sig = sig
     const body = paras.map(text => el('p', '', text))
+    // A tarefa que acabou de ficar feita marca com um pulo; o "Feito" entra esmaecendo, dentro da caixa.
+    const fresh = task => task.done && G.seen[task.text] === false
     if (tasks.length) {
       const list = el('ul', 'guide-tasks')
       tasks.forEach(task => {
-        const item = el('li', task.done ? 'is-done' : task === pending && G.blocked ? 'is-now is-missing' : task === pending ? 'is-now' : '')
-        const mark = el('span', 'guide-mark', task.done ? '✓' : '')
+        const item = el('li', [task.done ? 'is-done' : task === pending ? 'is-now' : '', task === pending && G.blocked ? 'is-missing' : '', fresh(task) && !reduced() ? 'is-pop' : ''].join(' ').trim())
+        const mark = el('span', 'guide-mark')
+        mark.innerHTML = CHECK
         mark.setAttribute('aria-hidden', 'true')
         item.append(mark, el('span', '', task.text), el('span', 'sr-only', task.done ? ' ' + t('lab.guide.task_done') : ''))
         list.append(item)
       })
+      if (done) list.append(el('li', 'guide-done' + (!force && !wasDone ? ' is-fresh' : ''), t('lab.guide.done')))
       body.push(list)
     }
-    if (falta) body.push(el('p', 'guide-warn guide-missing', falta))
-    if (warn) body.push(el('p', 'guide-warn', warn))
+    tasks.forEach(task => { G.seen[task.text] = task.done })
+    // O aviso: um ícone que não é lido e o texto.
+    const warning = (className, text) => {
+      const item = el('p', className)
+      item.append(el('span', '', '!'), el('span', '', text))
+      item.firstChild.setAttribute('aria-hidden', 'true')
+      return item
+    }
+    if (falta) body.push(warning('guide-warn guide-missing', falta))
+    if (warn) body.push(warning('guide-warn', warn))
     if (wait) body.push(el('p', 'guide-wait', wait))
-    if (done) body.push(el('p', 'guide-done', t('lab.guide.done')))
     part('body').replaceChildren(...body)
     keepInBand()
     // Na segunda vez, o Próximo faz a tarefa que falta e segue: o rótulo diz isso, e o "Fazer por mim" sai.
-    q('[data-act="next"]', card).textContent = t(G.blocked ? 'lab.guide.do_next' : 'lab.guide.next')
+    const next = q('[data-act="next"]', card)
+    q('.guide-label', next).textContent = t(G.blocked ? 'lab.guide.do_next' : 'lab.guide.next')
+    // Feito: o Próximo dá um empurrãozinho.
+    if (done && !wasDone && !force) replay(next, 'is-ready')
     const doButton = q('[data-act="do"]', card)
     doButton.hidden = G.blocked || G.complete || (G.pre && !missing) || (explain && !missing) || !(s.doIt || missing) || (done && !missing)
     doButton.toggleAttribute('aria-busy', G.busy)
@@ -1417,11 +1445,11 @@
     const ch = card.offsetHeight
     const m = 16
     const gap = 14
-    card.classList.toggle('is-docked', narrow() && G.mode === 'step')
+    setPadding()
     if (narrow()) {
       G.pos = null
       card.style.left = ''
-      card.style.top = G.mode === 'step' ? '' : Math.max(12, (H - ch) / 2) + 'px'
+      card.style.top = ''
       paintArrow()
       return [0, 4]
     }
@@ -1469,10 +1497,11 @@
   }
 
   // No telefone, a página ganha embaixo a altura da folha, para o fim dela poder subir acima do cartão.
+  // No telefone o cartão é sempre uma folha presa embaixo (mais alta nas boas-vindas e no fim).
   function setPadding () {
-    const docked = narrow() && G.mode === 'step'
-    card.classList.toggle('is-docked', docked)
-    document.body.style.paddingBottom = docked ? (card.offsetHeight + 24) + 'px' : ''
+    card.classList.toggle('is-docked', narrow())
+    card.classList.toggle('is-tall', G.mode !== 'step')
+    document.body.style.paddingBottom = narrow() && G.mode === 'step' ? (card.offsetHeight + 24) + 'px' : ''
   }
 
   function loop () {
