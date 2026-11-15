@@ -589,12 +589,14 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-path { flex: 1 1 0; min-width: 0; display: block; margin-top: calc(0.40625rem - 4px); padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .req-base { color: var(--graphite); font-weight: 400; }
 .req-bar.no-base .req-base { display: none; }
-/* Duas linhas só quando a largura deixa menos de 12 caracteres para o caminho ao lado do Executar mais largo
+/* Duas linhas só quando a largura deixa menos de 8 caracteres para o caminho ao lado do Executar mais largo
    dos três idiomas ("Executando", durante o envio): selo e caminho em cima, o Executar embaixo, à direita, perto
-   do atalho. A conta (selo DELETE, os respiros, 12 caracteres da fonte do caminho, Executando e o botão do modo,
-   mais os 20 px de respiro da zona de cada lado) foi medida com o texto normal e o maior: 15,3rem + 194 px. Ela
-   depende só da largura e do tamanho do texto, nunca da rota: numa largura, todas as rotas têm a mesma forma. */
-@container req (width < calc(15.5rem + 194px)) {
+   do atalho. A conta (selo DELETE, os respiros, a fonte do caminho, Executando e o botão do modo, mais os 20 px
+   de respiro da zona de cada lado) foi medida com o texto normal e o maior: 9rem + 194 px sem o caminho, e
+   0,525rem por caractere; 13rem deixa 7,6 caracteres. Com 8, a Requisição de 1200 px de página (406 px, com as
+   colunas iguais abaixo de 1440 px) já fica numa linha. A forma depende só da largura e do tamanho do texto,
+   nunca da rota: numa largura, todas as rotas têm a mesma forma. */
+@container req (width < calc(13rem + 194px)) {
   .req-bar { flex-wrap: wrap; row-gap: 6px; }
   .req-bar .run-split { flex-basis: 100%; justify-content: flex-end; }
 }
@@ -1443,6 +1445,12 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
      janela, gruda pela base (--res-h, a altura dele, vem do script). Depois de um envio ele termina no
      próprio conteúdo e rola com a página, sem rolagem própria. */
   .zone-result:has(> #result-empty:not([hidden])) { position: sticky; top: min(16px, calc(100vh - var(--res-h, 0px) - 16px)); }
+}
+/* Abaixo de 1440 px de página, Requisição e Resultado dividem a largura ao meio: com 5 para 6, a Requisição de
+   um notebook de 1280 px (1265 px de página, com a barra de rolagem) não tinha espaço para a barra de endereço
+   numa linha. */
+@container page (68.75rem <= width < 1440px) {
+  .app { grid-template-columns: clamp(19.5rem, 19vw, 23rem) minmax(0, 1fr) minmax(0, 1fr); }
 }
 /* A largura máxima do recipiente depende só da janela, em px, para a barra do topo e o conteúdo e em todo
    tamanho de texto: 1800 px abaixo de 2184 px de janela, 2184 px a partir dela. Assim a barra e o conteúdo

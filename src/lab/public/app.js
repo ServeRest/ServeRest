@@ -1317,7 +1317,7 @@
           // já vem com os parâmetros preenchidos (paintResolvedUrl, a cada edição).
           el('code', { class: 'req-path', id: 'req-path', title: baseUrl + route.path },
             el('span', { class: 'req-base', text: baseUrl }),
-            el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text', text: route.path }))),
+            el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text' }, pathNodes(route.path)))),
           runControl())),
       el('div', { class: 'req-hint' },
         methodLink(route.method),
@@ -1966,11 +1966,17 @@
 
   // A barra mostra a URL já resolvida: os parâmetros de path preenchidos e a query no fim. Um parâmetro de
   // path vazio fica {nome}, como no comando.
+  // O caminho quebra primeiro depois de / e de -; dentro de uma palavra, só quando um trecho não cabe na linha.
+  function pathNodes (path) {
+    return path.split(/(?<=[/-])/).map((part, index) => index ? [el('wbr'), part] : part)
+  }
+
   function paintResolvedUrl (request) {
     const text = $('req-route-text')
     const path = $('req-path')
     if (!text || !path) return
-    text.textContent = request.url.slice(baseUrl.length)
+    text.replaceChildren()
+    append(text, pathNodes(request.url.slice(baseUrl.length)))
     path.title = request.url
     fitReqBar(true)
   }
@@ -2013,7 +2019,9 @@
       copy.style.width = path.offsetWidth + 'px'
       copy.querySelector('.req-base').style.display = 'none'
       state.routes.forEach(route => {
-        copy.querySelector('.req-route').textContent = route.path
+        // O caminho como a rota intocada o mostra: em GET, já com o valor documentado no parâmetro de caminho.
+        const shown = core.buildRequest(route, freshDraft(route), { baseUrl, authValue: '' }).url.slice(baseUrl.length)
+        copy.querySelector('.req-route').replaceChildren(...pathNodes(shown).flat())
         reserve = Math.max(reserve, copy.offsetHeight)
       })
     }
