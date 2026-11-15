@@ -1279,8 +1279,8 @@
       el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
-  // A Requisição sem abas: o título, a descrição, a barra de endereço com a URL já resolvida, a linha do
-  // atalho e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
+  // A Requisição sem abas: o título, a barra de endereço com a URL já resolvida, a linha do atalho, a
+  // descrição da rota e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
   // o documento traz o schema), Requisição a enviar (o comando curl, refeito a cada edição) e Respostas possíveis,
   // sempre à vista e por último.
   function renderRequest () {
@@ -1304,7 +1304,6 @@
     // O título da rota abre a zona; o grupo e a descrição dele ficam na lista de rotas.
     append(box, [
       el('h3', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
-      route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
       el('div', { class: 'req-bar-wrap' },
         el('div', { class: 'req-bar' },
           methodBadge(route.method),
@@ -1317,6 +1316,9 @@
       el('div', { class: 'req-hint' },
         methodLink(route.method),
         el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) }))),
+      // A descrição vem depois da barra: com uma a cinco linhas conforme a rota, antes dela empurrava o método,
+      // a URL e o Executar para uma altura diferente em cada rota.
+      route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
       reqSection('params', t('lab.section.params'), null, paramsContent(route, draft)),
       route.body ? reqSection('body', t('lab.section.body'), null, bodyContent(route, draft)) : null,
       reqSection('sent', t('lab.sent.title'), draftCopyButton(), curlBlock()),

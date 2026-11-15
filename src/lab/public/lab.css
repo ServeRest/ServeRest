@@ -561,7 +561,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .request:focus { outline: none; }
 .request:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .req-title { font-size: 1.5625rem; line-height: 1.15; text-wrap: balance; }
-.req-desc { margin-top: var(--space-m); display: flex; flex-direction: column; gap: var(--space-s); max-width: 72ch; }
+.req-desc { margin-top: var(--space-l); display: flex; flex-direction: column; gap: var(--space-s); max-width: 72ch; }
 .req-desc code { font-size: 0.78125rem; font-weight: 600; background: var(--well); padding: 1px 4px; border-radius: 2px; }
 /* Link da rota na documentação: no fim da linha do título da zona, discreto (grafite, sem sublinhado em
    repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
@@ -762,7 +762,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .band-body { padding: var(--space-m) 16px var(--space-xl); }
 /* Na Requisição a seção sai do respiro de #request para a faixa ir de borda a borda. */
 .req-section { margin: 0 calc(-1 * var(--req-x)); }
-.req-hint + .req-section, .req-bar-wrap + .req-section { margin-top: var(--space-xl); }
+.req-hint + .req-section, .req-bar-wrap + .req-section, .req-desc + .req-section { margin-top: var(--space-xl); }
 .req-section > .band, .req-section > .band-body { padding-left: var(--req-x); padding-right: var(--req-x); }
 .req-section:last-child > .band-body { padding-bottom: 0; }
 .captions { margin-top: var(--space-s); display: flex; flex-direction: column; gap: var(--space-xs); }
