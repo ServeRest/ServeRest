@@ -494,10 +494,11 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
 .head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
 .head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); }
-/* Barra de endereço: sempre uma linha. Selo, URL e Executar na largura natural. Se a URL não cabe, a base
-   sai primeiro (ela está inteira em Requisição a enviar e no title); se nem o caminho cabe, ele perde o começo,
-   com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. O invólucro dá
-   à barra o respiro de cima e de baixo. */
+/* Barra de endereço: selo, URL e Executar numa linha, na largura natural. Se a URL não cabe, a base sai
+   primeiro (ela está inteira em Requisição a enviar e no title, .no-base); se nem o caminho cabe ao lado do
+   Executar, selo e caminho ficam numa linha própria, o caminho quebra onde precisar e o Executar desce para a
+   linha de baixo (.is-stacked). Nenhum caractere do caminho fica escondido: quem decide é fitReqBar (app.js),
+   que mede a barra. O invólucro dá à barra o respiro de cima e de baixo. */
 .req-bar-wrap { margin: calc(var(--space-xl) - 8px) calc(-1 * var(--req-x)) 0; padding: 8px var(--req-x); background: var(--surface); }
 .req-bar {
   --m: var(--ink);
@@ -510,11 +511,19 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-bar:has(.m-patch) { --m: var(--m-patch); }
 .req-bar:has(.m-delete) { --m: var(--m-delete); }
 .req-bar .method { flex: none; font-size: 0.75rem; padding: 7px 6px 6px; }
-/* Uma linha visível: o caminho vem primeiro na linha (order) e a base à esquerda dele (row-reverse); se as
-   duas não cabem, a base quebra para a segunda linha, que fica escondida. A leitura segue a ordem do DOM. */
-.req-path { flex: 1 1 auto; min-width: 0; display: flex; flex-flow: row-reverse wrap; justify-content: flex-end; align-content: flex-start; height: calc(1.5em + 8px); overflow: hidden; padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
-.req-base { flex: none; color: var(--graphite); font-weight: 400; }
-.req-route { order: -1; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+.req-path { flex: 1 1 auto; min-width: 0; display: block; overflow: hidden; padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+.req-base { color: var(--graphite); font-weight: 400; }
+.req-bar.no-base .req-base { display: none; }
+/* A medida de fitReqBar: cada parte na largura natural, numa linha. */
+.req-bar.is-measure { flex-wrap: nowrap; }
+.req-bar.is-measure .req-path { flex: none; overflow: visible; }
+.req-bar.is-measure .req-base { display: inline; }
+/* Duas linhas: o selo alinhado com a primeira linha do caminho e o Executar sozinho embaixo, à direita, perto
+   do atalho. */
+.req-bar.is-stacked { flex-wrap: wrap; align-items: flex-start; row-gap: 6px; }
+.req-bar.is-stacked .method { margin-top: 3px; }
+.req-bar.is-stacked .req-path { flex: 1 1 0; overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+.req-bar.is-stacked .run-split { flex-basis: 100%; justify-content: flex-end; }
 .req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
 /* Executar dividido: a parte principal envia no modo em uso; o segmento da direita mostra, em branco, o
    ícone do modo (as setas do ServeRest: normal; o caracol: câmera lenta) e a seta pequena de menu, sempre
@@ -886,8 +895,10 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 /* O status no cabeçalho ocupa sempre a largura do mais longo ("✗ 500 Internal Server Error"), antes e
    depois do veredito: o cabeçalho quebra as linhas do mesmo jeito nos dois, e a altura não muda na troca.
    Pendente, o esqueleto tem a mesma largura em todo envio, e a margem completa o lugar (D29). */
-.shown .status-value .chip { min-width: 16em; }
-.shown .status-value .chip-neutral { min-width: 0; margin-right: 8em; }
+/* Numa zona mais estreita que esse lugar (320 px com o texto maior), o lugar é a largura da zona e o status
+   quebra dentro dele, em vez de passar da tela; o esqueleto completa o mesmo lugar. */
+.shown .status-value .chip { min-width: min(16em, 100cqw - 32px); white-space: normal; }
+.shown .status-value .chip-neutral { min-width: 0; margin-right: calc(min(16em, 100cqw - 32px) - 8em); }
 /* "Status code" escrito antes do status, no cabeçalho do Resultado (texto, sem link) e na linha da Resposta
    (link para a página do status na MDN). Até o veredito, o rótulo e o status ficam juntos no lugar guardado
    e invisível (D29). */
@@ -980,6 +991,12 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    ou não conforme o status e a rota, e o corpo mudava de lugar entre um envio e outro. Assim o esqueleto da
    câmera lenta guarda as mesmas duas linhas sem saber qual descrição vem (D29). */
 .res-line > .res-doc { flex-basis: 100%; }
+/* Numa zona estreita (telefone) a descrição quebra com frequência: a linha guarda duas linhas, na resposta e no
+   esqueleto (o .pv-doc também é .res-doc), e o corpo e "Copiar corpo" ficam no mesmo lugar. Mais larga, ela
+   cabe numa linha quase sempre, e a reserva é de uma. */
+@container result (max-width: 30rem) {
+  .res-line > .res-doc { min-height: 3em; }
+}
 .res-doc code { font-size: 0.78125rem; }
 .sub-label { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 600; color: var(--ink); margin: var(--space-l) 0 var(--space-xs); }
 /* "Copiar corpo" fica na linha do subtítulo Corpo, ao lado do que copia. */
@@ -987,6 +1004,13 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .sub-row > .sub-label { margin: 0; }
 #copy-body { min-width: 7.5rem; }
 .res-body pre { max-height: 30rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* O corpo maior que a caixa (bodyBlock): o esmaecer no corte, por fora da caixa que rola (assim o anel de foco
+   dela não é cortado), some no fim da rolagem; "Mostrar tudo" tira o limite. */
+.res-body-wrap { position: relative; }
+.res-body:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.body-fade { position: absolute; left: 1px; right: 1px; bottom: 1px; height: 3.5rem; border-radius: 0 0 4px 4px; background: linear-gradient(to bottom, transparent, var(--code-bg) 85%); pointer-events: none; }
+.res-body.is-full pre { max-height: none; }
+.body-more { margin-top: var(--space-s); }
 .res-headers .caption { margin-top: 2px; font-family: var(--font-ui); }
 /* Uma caixa tracejada no lugar da resposta, na espera real (a câmera lenta usa o esqueleto no lugar, .pv). */
 .wait-box { min-height: 6.75rem; padding: 12px 16px; border: 1px dashed var(--control); border-radius: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-s); }
@@ -1208,7 +1232,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .tl-call.is-open.server, .tl-call.is-open.server b { color: var(--ok); }
 .tl-dims { position: relative; height: 56px; }
 .tl-dim { position: absolute; height: 7px; border: 1px solid var(--control); border-top: 0; }
-.tl-dim-label { position: absolute; transform: translateX(-50%); min-height: 24px; margin: 0; border: 0; border-radius: 3px; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
+/* A cota cabe na largura da barra: mais longa que ela (espanhol, 320 px com o texto maior), quebra em duas
+   linhas, e a fileira das cotas cresce (placeTimeLabels). */
+.tl-dim-label { position: absolute; transform: translateX(-50%); width: max-content; max-width: 100%; min-height: 24px; margin: 0; border: 0; border-radius: 3px; text-align: center; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
 .tl-dim-label b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
 .tl-dim-label.total { font-size: 0.8125rem; }
 .tl-dim-label.total b { font-weight: 600; }
@@ -1438,9 +1464,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .fc-read::after { content: attr(data-reserve-touch) / ""; }
 }
 
-/* Resultado muito estreito (320 px com o texto maior): os headers da resposta empilham o nome sobre o
-   valor; lado a lado, o nome mais longo deixava o valor sem largura. */
-@container result (max-width: 20rem) {
+/* Resultado estreito (telefone, ou texto maior em três colunas): os headers da resposta empilham o nome sobre
+   o valor; lado a lado, até uns 500 px de Resultado, o nome mais longo levava quase toda a largura e o valor
+   quebrava no meio das palavras ("max- / age=15552000;"). */
+@container result (max-width: 30rem) {
   .res-headers { grid-template-columns: minmax(0, 1fr); }
   .res-headers dt { padding-bottom: 0; border-bottom: 0; overflow-wrap: anywhere; }
   .res-headers dd { padding-top: 0; }
