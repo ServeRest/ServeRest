@@ -203,7 +203,8 @@
     return Math.min(1700, Math.max(420, stage.dur * 480))
   }
 
-  const FIXED_COLUMN = '22px'
+  // 24 px: o alvo mínimo da WCAG 2.5.8 para cada parte da barra de "Todas as etapas", clicável no Fluxo fechado.
+  const FIXED_COLUMN = '24px'
 
   function ranStage (stage) {
     return stage.st === 'ok' || stage.st === 'failed'
