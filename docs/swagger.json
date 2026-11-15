@@ -60,6 +60,31 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "paths.login.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "examples": {
+                                    "dadosInvalidos": {
+                                        "summary": "paths.login.post.responses.400.examples.dadosInvalidos.summary",
+                                        "value": {
+                                            "email": "email é obrigatório",
+                                            "password": "password é obrigatório"
+                                        }
+                                    },
+                                    "jsonMalformado": {
+                                        "summary": "paths.login.post.responses.400.examples.jsonMalformado.summary",
+                                        "value": {
+                                            "message": "Adicione aspas em todos os valores. Para mais informações acesse a issue https://github.com/ServeRest/ServeRest/issues/225"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "paths.login.post.responses.401.description",
                         "content": {
@@ -69,6 +94,15 @@
                                 }
                             }
                         }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -106,6 +140,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.usuarios.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "email": "email deve ser um email válido"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -138,6 +188,15 @@
                                 }
                             }
                         }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -187,6 +246,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -234,6 +296,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -288,6 +353,15 @@
                                 }
                             }
                         }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -325,6 +399,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.produtos.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "preco": "preco deve ser um número"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -368,6 +458,15 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -417,6 +516,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -476,6 +578,9 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -542,6 +647,15 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -577,6 +691,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.carrinhos.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "precoTotal": "precoTotal deve ser um número"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -623,6 +753,15 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CharsetNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -672,6 +811,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -707,6 +849,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -742,6 +887,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -946,6 +1094,36 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/rotaParaAdministradores"
+                        }
+                    }
+                }
+            },
+            "CorpoGrandeDemais": {
+                "description": "components.responses.CorpoGrandeDemais.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/corpoGrandeDemais"
+                        }
+                    }
+                }
+            },
+            "CharsetNaoSuportado": {
+                "description": "components.responses.CharsetNaoSuportado.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/charsetNaoSuportado"
+                        }
+                    }
+                }
+            },
+            "LimiteDeRequisicoes": {
+                "description": "components.responses.LimiteDeRequisicoes.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/limiteDeRequisicoes"
                         }
                     }
                 }
@@ -1465,6 +1643,43 @@
                     "message": {
                         "type": "string",
                         "example": "Rota exclusiva para administradores"
+                    }
+                }
+            },
+            "mensagensDeErro": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
+            },
+            "corpoGrandeDemais": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Payload too large"
+                    }
+                }
+            },
+            "charsetNaoSuportado": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Unsupported charset"
+                    },
+                    "charset": {
+                        "type": "string",
+                        "example": "latin9"
+                    }
+                }
+            },
+            "limiteDeRequisicoes": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga"
                     }
                 }
             }

@@ -484,6 +484,21 @@ describe('Página do lab: funções puras', () => {
             status: '401',
             description: ptBr['components.responses.TokenInvalido.description'],
             example: { message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' }
+          },
+          {
+            status: '413',
+            description: ptBr['components.responses.CorpoGrandeDemais.description'],
+            example: { message: 'Payload too large' }
+          },
+          {
+            status: '415',
+            description: ptBr['components.responses.CharsetNaoSuportado.description'],
+            example: { message: 'Unsupported charset', charset: 'latin9' }
+          },
+          {
+            status: '429',
+            description: ptBr['components.responses.LimiteDeRequisicoes.description'],
+            example: { message: 'Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga' }
           }
         ])
       })
