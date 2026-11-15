@@ -1158,8 +1158,9 @@
     const warn = missing ? fill('lab.guide.needs') : complete ? '' : (s.warn ? s.warn() : '')
     const wait = !done && s.waiting ? s.waiting() : ''
     const paras = s.paras().concat(G.pre && s.preText ? [fill(s.preText)] : []).filter(Boolean)
-    const falta = G.blocked ? fill('lab.guide.missing', { task: pending.text }) : ''
-    const sig = JSON.stringify([paras, tasks, warn, wait, done, G.busy, falta])
+    // Bloqueado, o Próximo realça a própria tarefa que falta (uma linha "Falta" repetiria o texto logo acima); o
+    // "Falta: <tarefa>" fica só no anúncio do leitor de tela.
+    const sig = JSON.stringify([paras, tasks, warn, wait, done, G.busy, G.blocked])
     isolate(keepList())
     if (!force && sig === G.sig) return
     const wasDone = !!G.sig && JSON.parse(G.sig)[4]
@@ -1193,7 +1194,6 @@
       item.firstChild.setAttribute('aria-hidden', 'true')
       return item
     }
-    if (falta) body.push(warning('guide-warn guide-missing', falta))
     if (warn) body.push(warning('guide-warn', warn))
     if (wait) body.push(el('p', 'guide-wait', wait))
     part('body').replaceChildren(...body)
@@ -1264,7 +1264,8 @@
       observe()
       const pending = pendingTask(s)
       if (!pending) return goTo(G.index + 1)
-      // Primeiro clique sem a ação feita: não segue; mostra o que falta, e o foco fica no botão.
+      // Primeiro clique sem a ação feita: não segue; realça a tarefa que falta e anuncia "Falta: <tarefa>", e o
+      // foco fica no botão.
       if (!G.blocked) {
         G.blocked = true
         renderBody(true)

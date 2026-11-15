@@ -125,6 +125,15 @@ describe('Guia "Como usar" (guia.js)', () => {
       expect(ptBr['lab.guide.tour.run_gate']).to.equal(undefined)
     })
 
+    // A tarefa que falta, realçada, já diz o que falta: uma linha "Falta" logo abaixo repetiria o texto. O leitor
+    // de tela continua ouvindo "Falta: <tarefa>".
+    it('bloqueado, realça a tarefa que falta e anuncia "Falta", sem a linha repetida no cartão', () => {
+      expect(guia).to.not.include('guide-missing')
+      expect(guia).to.match(/task === pending && G\.blocked \? 'is-missing' : ''/)
+      expect(guia).to.match(/G\.blocked = true\n\s+renderBody\(true\)\n\s+live\.textContent = plain\(fill\('lab\.guide\.missing', \{ task: pending\.text \}\)\)/)
+      expect(cssDoGuia).to.include('.guide-tasks .is-missing {')
+    })
+
     it('o segundo clique faz a ação como o Fazer por mim e só segue com as tarefas feitas', () => {
       expect(guia).to.match(/if \(!\(await doStep\(s\)\)\) return\n\s+try \{\n\s+await waitFor\(\(\) => !pendingTask\(s\), 2500\)/)
     })
