@@ -171,7 +171,11 @@ describe('Guia "Como usar" (guia.js)', () => {
 
     it('Rever em câmera lenta é uma tarefa opcional, que só conta quando a página redesenha', () => {
       expect(tour).to.match(/\{ text: fill\('lab\.guide\.tour\.flow_replay'\), optional: true, done: !!G\.ev\.replay, target: \(\) => \$\('replay'\) \}/)
-      expect(guia).to.match(/if \(target\.closest\('#replay'\) && P\.replayReady\(\)\) G\.ev\.replay = true/)
+      expect(guia).to.match(/if \(target\.closest\('#replay'\) && P\.replayReady\(\)\) \{\n\s+G\.ev\.replay = true/)
+      // O replay vale para o registro mostrado, não para o passo: o passo seguinte não pede de novo o envio.
+      expect(guia).to.match(/G\.replayed = \(P\.shown\(\) \|\| \{\}\)\.id \|\| 0/)
+      expect(guia).to.match(/const flowReady = \(\) => P\.ready\(\) \|\| \(!!G\.replayed && !!P\.shown\(\) && P\.shown\(\)\.id === G\.replayed && !P\.sending\(\)\)/)
+      expect(guia).not.to.match(/G\.ev\.replay && !!P\.shown/)
     })
 
     it('o passo da barra de tempo só pede para abrir o fluxo quando ele chegou fechado', () => {
@@ -218,9 +222,22 @@ describe('Guia "Como usar" (guia.js)', () => {
     // Só volta o que um passo pediu para mudar: uma mudança da pessoa em outro passo fica.
     it('só devolve o que um passo (owns) mudou, e pelos controles de verdade', () => {
       expect(corpo('function restore ()')).to.match(/P\.flowOpen\(\) === G\.owned\.flow && G\.owned\.flow !== o\.flow[^\n]*\$\('flow-title'\)\.click\(\)/)
-      expect(corpo('function restore ()')).to.match(/P\.mode\(\) === G\.owned\.mode && G\.owned\.mode !== o\.mode && !chooseMode\(o\.mode\)/)
+      expect(corpo('function restore ()')).to.match(/P\.mode\(\) === G\.owned\.mode && G\.owned\.mode !== o\.mode && \(pageBusy\(\) \|\| !chooseMode\(o\.mode\)\)/)
       expect((guia.match(/owns: \['flow'\]/g) || []).length).to.equal(5)
       expect((guia.match(/owns: \['mode'\]/g) || []).length).to.equal(1)
+    })
+
+    // O modo normal leva o desenho direto ao veredito: a devolução espera a página parar. Cada estado volta uma
+    // vez só, e depois do fechar o que a pessoa faz na página fica.
+    it('devolve cada estado uma vez só, sem cortar um desenho em câmera lenta', () => {
+      expect(guia).to.match(/const pageBusy = \(\) => P\.sending\(\) \|\| \(!!P\.shown\(\) && !P\.verdict\(\)\)/)
+      expect(corpo('function restore ()')).to.match(/\$\('flow-title'\)\.click\(\)\n\s+delete G\.owned\.flow/)
+      expect(corpo('function restore ()')).to.match(/return false\n\s+delete G\.owned\.mode/)
+      expect(guia).to.match(/if \(!G\.open && event\.target\.closest\('#run-menu \[data-mode\]'\)\) delete G\.owned\.mode/)
+    })
+
+    it('anuncia "Feito" depois do Fazer por mim só quando o cartão mostra o Feito', () => {
+      expect(guia).to.match(/live\.textContent = q\('\.guide-done', card\) \? t\('lab\.guide\.done'\) : ''/)
     })
   })
 
