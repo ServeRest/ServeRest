@@ -118,16 +118,18 @@
       <h2 class="zone-title" id="request-zone-title">{{lab.request.title}}</h2>
       <a class="head-doc-link" id="doc-link" target="_blank" rel="noopener" hidden></a>
     </div>
-    <section class="request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
+    <section class="request" id="request" tabindex="-1"></section>
   </section>
 
   <!-- Resultado: a origem do envio mostrado no fim da linha do título e, numa coluna só, o link de volta à
-       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. -->
+       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. Só as quatro zonas são
+       regiões nomeadas: as partes de dentro (a Requisição da rota, o Fluxo) não têm nome de região, para a lista
+       de marcos do leitor de tela ficar curta. -->
   <section class="zone zone-result" id="result" aria-labelledby="result-title">
     <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2><span class="tag result-origin" id="result-origin" hidden></span><a class="result-edit" id="result-edit" href="#request-zone" hidden>{{lab.result.edit}}</a></div>
     <div class="result-empty" id="result-empty" tabindex="-1"></div>
     <p class="shown" id="shown" tabindex="-1" aria-describedby="result-origin" hidden></p>
-    <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
+    <section class="flow" id="flow" hidden>
       <div class="band">
         <h3 class="band-title"><button class="flow-toggle" type="button" id="flow-title" aria-expanded="true" aria-controls="flow-body"></button></h3>
         <div class="band-tools flow-controls" id="flow-controls">

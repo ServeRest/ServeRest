@@ -609,7 +609,7 @@
   function aboutBand () {
     const go = (key, linkKey, url) => el('li', null, parts(key, { link: externalLink(url, t(linkKey)) }))
     const form = feedbackUrl()
-    return el('section', { class: 'result-about', 'aria-labelledby': 'result-about-title' },
+    return el('section', { class: 'result-about' },
       el('div', { class: 'band' }, el('h3', { class: 'band-title', id: 'result-about-title', text: t('lab.about.title') })),
       el('div', { class: 'band-body about-body' },
         el('p', null, el('strong', { text: t('lab.about.intro') })),
@@ -679,7 +679,7 @@
     if (decision.state) writeLocal(FEEDBACK_KEY, JSON.stringify(decision.state))
     if (decision.session) writeSession(FEEDBACK_SESSION_KEY, decision.session)
     const promise = (icon, key) => el('span', null, inviteIcon(icon, '13', '0 0 16 16'), t(key))
-    return el('section', { class: 'invite', id: 'invite', 'aria-labelledby': 'invite-title' },
+    return el('section', { class: 'invite', id: 'invite' },
       el('span', { class: 'inv-art' }, inviteIcon('art', '26', '0 0 24 24')),
       el('p', { class: 'invite-title', id: 'invite-title', text: t('lab.feedback.invite_title') }),
       el('p', { class: 'inv-promise' }, promise('time', 'lab.feedback.promise_time'), promise('questions', 'lab.feedback.promise_questions'), promise('login', 'lab.feedback.promise_login')),
@@ -738,7 +738,7 @@
   // nunca ficam juntos) e some de vez quando o guia abre ou em "Agora não".
   function guideInviteNode () {
     if (readLocal(GUIDE_KEY)) return null
-    return el('section', { class: 'invite', id: 'guide-invite', 'aria-labelledby': 'guide-invite-title' },
+    return el('section', { class: 'invite', id: 'guide-invite' },
       el('p', { class: 'invite-title', id: 'guide-invite-title', text: t('lab.guide.invite_lead') }),
       el('p', { text: t('lab.guide.invite_text') }),
       el('div', { class: 'invite-actions' },
@@ -906,7 +906,9 @@
       })
       // A descrição do grupo fica sob o nome dele, como o Swagger UI mostra a descrição de cada tag.
       const description = tagDescription(tag)
-      const name = tag || t('lab.routes.untagged')
+      // O nome do grupo é a tag do Swagger, em português em todo idioma (como no Swagger UI): fora do pt-BR ele
+      // leva lang, para o leitor de tela não o pronunciar em inglês ou espanhol.
+      const name = tag ? el('span', { lang: language === 'pt-BR' ? null : 'pt-BR', text: tag }) : t('lab.routes.untagged')
       const count = el('span', { text: String(items.length) })
       const desc = description ? el('p', { class: 'group-desc', text: description }) : null
       list.append(el('div', { class: 'group' }, el('h3', null, name, count), desc, ul))
@@ -1248,7 +1250,8 @@
   // Uma seção da Requisição: a faixa (título h4 e, à direita, os controles da seção) e o conteúdo.
   function reqSection (id, title, tools, content) {
     const titleId = 'sec-' + id + '-title'
-    return el('section', { class: 'req-section', id: 'sec-' + id, 'aria-labelledby': titleId },
+    // Sem aria-labelledby: um nome faria de cada seção uma região na lista de marcos, que fica só com as zonas.
+    return el('section', { class: 'req-section', id: 'sec-' + id },
       el('div', { class: 'band' },
         el('h4', { class: 'band-title', id: titleId, text: title }),
         tools ? el('div', { class: 'band-tools' }, tools) : null),
@@ -1379,7 +1382,8 @@
     const slow = state.mode === 'lenta'
     const name = fillText('lab.run.mode', { mode: t(slow ? 'lab.run.mode_slow' : 'lab.run.mode_normal') })
     button.replaceChildren(icon(slow ? 'i-snail' : 'i-setas'), icon('i-chev', 'ico-chev'))
-    button.setAttribute('aria-label', name)
+    // O title é o nome (o botão só tem ícones) e mostra o modo ao passar o mouse; um aria-label igual faria o
+    // leitor de tela ouvir o nome e, de novo, a descrição.
     button.setAttribute('title', name)
     button.hidden = state.reduced
     if (state.reduced) closeRunMenu(false)
@@ -3770,7 +3774,7 @@
   // Fluxo fechado: bar é a barra com as partes (items), a da requisição inteira (one, com o tempo timeBar) ou
   // a de "Todas as etapas"; read é a linha de leitura, readAt a parte que ela mostra (null: a frase de como
   // usar a barra), barFocus a parte em que o teclado parou e barHover se o mouse está sobre a barra.
-  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false, bar: null, items: [], one: null, timeBar: null, read: null, readAt: null, readShown: null, readTimer: null, barFocus: null, barHover: false, morph: false, holdOne: null, barRunning: null, previous: null, columns: '', holdCols: null, holdStages: null, doneKey: '', oneWidened: false }
+  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false, bar: null, items: [], one: null, timeBar: null, read: null, readAt: null, readShown: null, readTimer: null, barFocus: null, barHover: false, morph: false, holdOne: null, barRunning: null, previous: null, columns: '', holdCols: null, holdStages: null, doneKey: '', oneWidened: false, oneClamped: false }
 
   function ran (stage) {
     return stage.st === 'ok' || stage.st === 'failed'
@@ -4380,7 +4384,9 @@
     time.hold = null
   }
 
-  const STAGE_MIN_PX = 22
+  // 24 px: o alvo mínimo da WCAG 2.5.8, para cada parte da barra fechada e da barra de tempo.
+  const STAGE_MIN_PX = 24
+  const PART_MIN_PX = 24
 
   function oneBar (bar) {
     const part = name => el('span', { class: 'fc-oi fc-onet ' + TIME_KIND[name], 'data-tpart': name }, el('span', { class: 'fc-ns' }))
@@ -4398,17 +4404,19 @@
     return box
   }
 
-  // A marca do servidor desenhado maior: discreta, no canto direito da linha de leitura. O mouse e o foco do
-  // teclado mostram a explicação, que o leitor de tela ouve pela descrição.
+  // A marca da barra desenhada fora da escala: discreta, no canto direito da linha de leitura. Ela abre o balão
+  // com a explicação (scaleButton): o servidor maior para as etapas caberem, as partes no tamanho mínimo, ou os
+  // dois.
   function scaleMark () {
-    return el('button', { type: 'button', class: 'fc-scale', id: 'fc-scale', 'aria-describedby': 'fc-scale-desc', 'data-tip': t('lab.flow.read.widened') },
-      t('lab.time.adjusted_mark'),
-      el('span', { class: 'sr-only', id: 'fc-scale-desc', text: t('lab.flow.read.widened') }))
+    return scaleButton('fc-scale', 'fc-scale', () => [flow.oneWidened && 'lab.flow.read.widened', flow.oneClamped && 'lab.time.adjusted'].filter(Boolean))
   }
 
   function paintScaleMark () {
     const mark = $('fc-scale')
-    if (mark) mark.classList.toggle('is-on', flow.active >= flow.end && !!flow.oneWidened)
+    if (!mark) return
+    const on = flow.active >= flow.end && !!(flow.oneWidened || flow.oneClamped)
+    mark.classList.toggle('is-on', on)
+    if (!on && scalePop.mark === mark) closeScalePop(false)
   }
 
   // As larguras da barra da requisição seguem a escala da barra de tempo (core.timeWeights, cada parte com
@@ -4435,18 +4443,25 @@
     const avail = width - 4 * 2
     const weights = core.timeWeights(bar, core.TIME_MIN_SHARE)
     const w = { conn: weights.conn, outbound: weights.half, server: weights.server, inbound: weights.half, down: weights.down }
-    const sum = Object.values(w).reduce((total, value) => total + value, 0) || 1
-    const px = {}
-    Object.keys(w).forEach(name => { px[name] = w[name] / sum * avail })
     const need = n * STAGE_MIN_PX + (n - 1) * 2
-    // Quando o servidor cresce além da escala para as etapas caberem, a marca "escala ajustada" aparece no canto
-    // direito da linha de leitura; só no veredito, porque diz algo do tempo novo (D29).
-    flow.oneWidened = px.server < need
-    if (px.server < need) {
-      const rest = (sum - w.server) || 1
-      px.server = need
-      ONE_PARTS.before.concat(ONE_PARTS.after).forEach(name => { px[name] = w[name] / rest * (avail - need) })
+    // Cada parte é um alvo de toque de pelo menos PART_MIN_PX, e o servidor precisa de STAGE_MIN_PX por etapa: a
+    // conta do flex, em que a parte abaixo do mínimo fica nele e as outras dividem o resto na proporção delas.
+    // Quando alguma parte saiu da escala assim, a marca "escala ajustada" aparece no canto direito da linha de
+    // leitura; só no veredito, porque diz algo do tempo novo (D29).
+    const names = Object.keys(w)
+    const mins = { conn: PART_MIN_PX, outbound: PART_MIN_PX, server: need, inbound: PART_MIN_PX, down: PART_MIN_PX }
+    const frozen = {}
+    const px = {}
+    for (;;) {
+      const fixed = names.reduce((total, name) => total + (frozen[name] ? mins[name] : 0), 0)
+      const weight = names.reduce((total, name) => total + (frozen[name] ? 0 : w[name]), 0) || 1
+      names.forEach(name => { px[name] = frozen[name] ? mins[name] : w[name] / weight * (avail - fixed) })
+      const small = names.find(name => !frozen[name] && px[name] < mins[name])
+      if (!small) break
+      frozen[small] = true
     }
+    flow.oneWidened = !!frozen.server
+    flow.oneClamped = names.some(name => name !== 'server' && frozen[name])
     if (flow.holdOne && flow.holdOne.n === n) Object.keys(px).forEach(name => { px[name] = flow.holdOne[name] * avail })
     else if (!flow.holdOne) {
       barMemo.one = { n }
@@ -4468,6 +4483,7 @@
     const labelWidth = label.offsetWidth
     label.style.left = Math.max(0, Math.min(width - labelWidth, left + px.server / 2 - labelWidth / 2)) + 'px'
     paintScaleMark()
+    placeScalePop()
   }
 
   // Fechado, a barra é o caminho até as etapas (e, na da requisição inteira, até os balões do tempo): uma
@@ -4915,6 +4931,8 @@
     const shownParts = () => flowParts().filter(node => node.getClientRects().length)
     const before = animate ? new Set(shownParts()) : null
     if (animate) smoothSwap($('flow'), false)
+    // A marca de um estado some no outro: o balão dela fecha junto.
+    closeScalePop(false)
     state.flowOpen = open
     $('flow').classList.toggle('is-collapsed', !open)
     $('flow-title').setAttribute('aria-expanded', open ? 'true' : 'false')
@@ -5060,6 +5078,13 @@
       el('span', { class: 'tl-tick', 'data-for': String(index) }),
       el('span', { class: 'tl-call' + extra, 'data-for': String(index), 'data-part': part }, label(part))
     ]
+    // A ida e a volta ganham rótulo acima da barra, com o nome curto, só quando o nome não cabe dentro da parte
+    // (placeTimeLabels): aí a parte é estreita, e o rótulo é o alvo maior dela, como o das outras.
+    const netCall = (index, part) => [
+      el('span', { class: 'tl-tick', 'data-for': String(index), hidden: true }),
+      el('span', { class: 'tl-call net', 'data-for': String(index), 'data-part': part, hidden: true },
+        el('span', { class: 'tl-term', text: t(SHORT_NAMES[part]) }), ' ', el('b', {}, timeNumber(timeValue(part, labels))))
+    ]
     const dim = (part, from, to, top, extra) => [
       el('span', { class: 'tl-dim', 'data-from': from, 'data-to': to, 'data-top': top, 'aria-hidden': 'true' }),
       el('button', { type: 'button', class: 'tl-dim-label' + extra, 'data-part': part, 'data-from': from, 'data-to': to, 'data-top': top, ...trigger }, label(part))
@@ -5073,16 +5098,16 @@
       ttfb: labels.ttfb
     })
     const fig = el('figure', { class: 'tl' },
-      // A marca discreta da escala ajustada fica ao lado da dica; o mouse vê a explicação no title, e o leitor
-      // de tela a ouve inteira, logo depois da marca.
-      el('p', { class: 'flow-hint tl-hint' }, t('lab.time.hint'), ' ',
-        el('span', { class: 'tl-scale', title: t('lab.time.adjusted') }, t('lab.time.adjusted_mark'), el('span', { class: 'sr-only', text: ': ' + t('lab.time.adjusted') }))),
+      // A marca discreta da escala ajustada fica ao lado da dica; ela abre o balão com a explicação
+      // (scaleButton), acima dela, longe da barra.
+      el('p', { class: 'flow-hint tl-hint' }, t('lab.time.hint'), ' ', scaleButton('tl-scale', null, () => ['lab.time.adjusted'])),
       el('p', { class: 'sr-only', text: summary }),
       el('div', { class: 'tl-draw' },
-        el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), call(2, 'server', ' server'), call(4, 'down', '')),
+        el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), netCall(1, 'outbound'), call(2, 'server', ' server'), netCall(3, 'inbound'), call(4, 'down', '')),
         el('div', { class: 'tl-bar' }, segs),
         el('div', { class: 'tl-dims' }, dim('ttfb', '1', '3', '0', ''), dim('total', '0', '4', '1', ' total'))),
-      el('div', { class: 'tl-pop', id: 'tl-pop', role: 'region', 'aria-labelledby': 'tl-pop-title', hidden: true }))
+      // Um grupo nomeado, e não uma região: o balão não entra na lista de marcos da página.
+      el('div', { class: 'tl-pop', id: 'tl-pop', role: 'group', 'aria-labelledby': 'tl-pop-title', hidden: true }))
 
     const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels))
     fig.querySelectorAll('button[data-part]').forEach(button => button.addEventListener('click', () => toggle(button)))
@@ -5227,6 +5252,70 @@
     pop.style.setProperty('--notch', Math.max(14, Math.min(width - 14, center - left)) + 'px')
   }
 
+  // A marca "escala ajustada" (Fluxo fechado e barra de tempo aberta) é um botão que abre um balão como os do
+  // tempo: clique, toque, Enter ou Espaço abrem e fecham; Esc fecha e devolve o foco; um clique fora ou o foco
+  // saindo fecham (setupTime). O balão entra logo depois da marca na ordem do Tab e abre do lado oposto ao da
+  // barra que ele explica, para não cobri-la: sob a marca do Fluxo fechado (a barra fica acima dela) e acima da
+  // marca da barra de tempo (a barra fica abaixo). reasons diz quais frases ele mostra agora.
+  const scalePop = { node: null, mark: null }
+
+  function scaleButton (className, id, reasons) {
+    const button = el('button', { type: 'button', class: className, id, 'aria-expanded': 'false', 'aria-controls': 'scale-pop' }, t('lab.time.adjusted_mark'))
+    button.addEventListener('click', () => {
+      if (scalePop.mark === button) closeScalePop(false)
+      else openScalePop(button, reasons())
+    })
+    return button
+  }
+
+  function openScalePop (mark, keys) {
+    closeScalePop(false)
+    const pop = el('div', { class: 'scale-pop', id: 'scale-pop', role: 'group', 'aria-labelledby': 'scale-pop-title' },
+      el('p', { class: 'rel-title', id: 'scale-pop-title', text: capitalized(t('lab.time.adjusted_mark')) }),
+      keys.map(key => el('p', { text: t(key) })),
+      el('div', { class: 'rel-actions' }, el('button', { type: 'button', class: 'btn', text: t('lab.time.close'), onclick: () => closeScalePop(true) })))
+    ;(mark.closest('.fc-read-row, .tl-hint') || mark).after(pop)
+    scalePop.node = pop
+    scalePop.mark = mark
+    mark.setAttribute('aria-expanded', 'true')
+    placeScalePop()
+    const box = pop.getBoundingClientRect()
+    const shift = box.top < 12 ? box.top - 12 : box.bottom + 12 > window.innerHeight ? box.bottom + 12 - window.innerHeight : 0
+    if (shift) window.scrollBy({ top: shift, behavior: state.reduced ? 'auto' : 'smooth' })
+  }
+
+  function closeScalePop (refocus) {
+    const { node, mark } = scalePop
+    if (!node) return
+    scalePop.node = null
+    scalePop.mark = null
+    node.remove()
+    if (mark.isConnected) {
+      mark.setAttribute('aria-expanded', 'false')
+      if (refocus) mark.focus()
+    }
+  }
+
+  function placeScalePop () {
+    const { node: pop, mark } = scalePop
+    if (!pop || !pop.offsetParent) return
+    const area = $('flow-body').getBoundingClientRect()
+    const anchor = mark.getBoundingClientRect()
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const width = Math.min(20 * rem, area.width - 24)
+    pop.style.width = width + 'px'
+    const center = anchor.left + anchor.width / 2
+    const left = Math.max(area.left + 12, Math.min(area.right - 12 - width, center - width / 2))
+    const origin = pop.offsetParent.getBoundingClientRect()
+    const above = mark.classList.contains('tl-scale')
+    pop.classList.toggle('is-above', above)
+    pop.style.left = (left - origin.left) + 'px'
+    // Sob a marca do Fluxo fechado, o balão abre depois da fileira inteira, para não cobrir a linha de leitura.
+    const below = (mark.closest('.fc-read-row') || mark).getBoundingClientRect().bottom
+    pop.style.top = (above ? anchor.top - 10 - pop.offsetHeight - origin.top : below + 10 - origin.top) + 'px'
+    pop.style.setProperty('--notch', Math.max(14, Math.min(width - 14, center - left)) + 'px')
+  }
+
   // Os rótulos e as cotas seguem a posição real das partes (cada parte tem uma largura mínima).
   function layoutTime (fig) {
     const bar = fig.querySelector('.tl-bar')
@@ -5239,7 +5328,8 @@
     const weights = core.timeWeights({ conn: ms[0], half: ms[1], server: ms[2], down: ms[4] }, core.TIME_MIN_SHARE)
     const g = [weights.conn, weights.half, weights.server, weights.half, weights.down].map(weight => weight.toFixed(4))
     if (!time.hold) barMemo.tl = g
-    fig.classList.toggle('tl-adjusted', weights.adjusted)
+    // Uma parte que ficou na largura mínima (o alvo de toque, CSS) também tira o desenho da escala.
+    fig.classList.toggle('tl-adjusted', weights.adjusted || segmentBoxes(segs, g, width).clamped)
     // Os rótulos ficam sobre as partes como estão desenhadas: presas na geometria anterior até o veredito
     // (D29). A fileira de rótulos guarda a altura que as duas geometrias pedem, para nada abaixo dela pular no
     // veredito; o piso fica no desenho até o próximo envio.
@@ -5278,11 +5368,13 @@
       frozen[small] = true
     }
     let x = 0
-    return sizes.map(size => {
+    const boxes = sizes.map(size => {
       const box = { left: x, right: x + size, width: size }
       x += size + gap
       return box
     })
+    boxes.clamped = frozen.some(Boolean)
+    return boxes
   }
 
   // Põe os rótulos acima e as cotas abaixo das partes como elas ficam com os pesos dados e diz quantas
@@ -5303,10 +5395,14 @@
       })
     }))
     nets.forEach(node => { node.firstChild.textContent = choices(node)[level] })
+    fig.querySelectorAll('.tl-call.net').forEach(call => {
+      call.hidden = level < 2
+      fig.querySelector('.tl-tick[data-for="' + call.getAttribute('data-for') + '"]').hidden = level < 2
+    })
     // Os rótulos acima da barra sobem uma fileira quando encostariam no vizinho.
     const rows = []
     let maxRow = 0
-    fig.querySelectorAll('.tl-call').forEach(call => {
+    fig.querySelectorAll('.tl-call:not([hidden])').forEach(call => {
       const index = call.getAttribute('data-for')
       const s = seg(Number(index))
       const center = (s.left + s.right) / 2
@@ -5395,6 +5491,7 @@
 
   function unmountTime () {
     closeTimePop(false)
+    closeScalePop(false)
     time.onServerPop = null
     time.front.clear()
     if (time.observer) time.observer.disconnect()
@@ -5405,6 +5502,7 @@
   // Um clique fora fecha o balão; Esc fecha e devolve o foco à parte.
   function setupTime () {
     document.addEventListener('pointerdown', event => {
+      if (scalePop.node && !scalePop.node.contains(event.target) && !scalePop.mark.contains(event.target)) closeScalePop(false)
       const button = time.current
       if (!button) return
       const call = time.fig.querySelector('.tl-call[data-part="' + button.getAttribute('data-part') + '"]')
@@ -5412,16 +5510,24 @@
       closeTimePop(false)
     })
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && time.current) {
+      if (event.key === 'Escape' && scalePop.node) {
+        event.preventDefault()
+        closeScalePop(true)
+      } else if (event.key === 'Escape' && time.current) {
         event.preventDefault()
         closeTimePop(true)
       }
+    })
+    // O foco que sai da marca e do balão dela fecha o balão (Tab, Shift + Tab, outro controle).
+    document.addEventListener('focusin', event => {
+      if (scalePop.node && !scalePop.node.contains(event.target) && event.target !== scalePop.mark) closeScalePop(false)
     })
     if (window.ResizeObserver) {
       time.observer = new ResizeObserver(() => {
         if (!time.fig) return
         layoutTime(time.fig)
         placeTimePop()
+        placeScalePop()
       })
     }
   }
