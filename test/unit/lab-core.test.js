@@ -1152,7 +1152,8 @@ describe('Página do lab: funções puras', () => {
       drafts: { 'post /usuarios': { body: '{}', params: { 'query:nome': 'Ana' }, auth: '' } },
       scrollY: 312.5,
       sideTab: 'historico',
-      resultTab: 'enviado'
+      resultTab: 'enviado',
+      routesCollapsed: true
     }, extra)
     const ler = (extra, outras = {}) => core.readHandoff(JSON.stringify(passagem(extra)), Object.assign({}, opcoes, outras))
 
@@ -1170,6 +1171,19 @@ describe('Página do lab: funções puras', () => {
       estranho.params['query:outro'] = 'x'
       estranho.params['query:nome'] = undefined
       expect(core.draftChanges(estranho, novo())).to.equal(null)
+    })
+
+    it('draftChanges leva a hora do envio que preencheu o corpo e o Authorization, e ela volta como Date', () => {
+      const envio = new Date('2026-11-15T11:59:00.000Z')
+      const preenchido = Object.assign(novo(), { body: '{}', bodyFrom: envio, auth: '', authFrom: envio })
+      const mudancas = core.draftChanges(preenchido, novo())
+      expect(mudancas).to.deep.equal({ body: '{}', bodyFrom: envio.getTime(), auth: '', authFrom: envio.getTime() })
+      // O corpo de volta ao exemplo não leva a hora: a legenda é a do exemplo.
+      expect(core.draftChanges(Object.assign(novo(), { bodyFrom: envio }), novo())).to.equal(null)
+      const lido = ler({ drafts: { 'post /carrinhos': mudancas } })
+      expect(lido.drafts['post /carrinhos'].bodyFrom.toISOString()).to.equal(envio.toISOString())
+      expect(lido.drafts['post /carrinhos'].authFrom.toISOString()).to.equal(envio.toISOString())
+      expect(ler().routesCollapsed).to.equal(true)
     })
 
     it('ida e volta: as horas do token voltam como Date e o resto igual', () => {
@@ -1213,9 +1227,21 @@ describe('Página do lab: funções puras', () => {
         { scrollY: -1 },
         { scrollY: '10' },
         { sideTab: 'outra' },
-        { resultTab: 'curl' }
+        { resultTab: 'curl' },
+        { routesCollapsed: undefined },
+        { routesCollapsed: 'sim' },
+        { drafts: { 'post /usuarios': { body: '{}', bodyFrom: 'ontem' } } },
+        { drafts: { 'post /usuarios': { auth: '', authFrom: null } } }
       ]
       quebrados.forEach(campo => expect(ler(campo), JSON.stringify(campo)).to.equal(null))
+    })
+  })
+
+  // O Safari 16.0 a 16.3 não lê lookbehind; um erro de leitura para o arquivo inteiro, e a página não funciona.
+  it('nenhum arquivo da página usa lookbehind numa expressão regular', () => {
+    const pasta = join(__dirname, '../../src/lab/public')
+    readdirSync(pasta).filter(nome => nome.endsWith('.js')).forEach(nome => {
+      expect(readFileSync(join(pasta, nome), 'utf8'), nome).not.to.match(/\(\?<[=!]/)
     })
   })
 

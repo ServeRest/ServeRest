@@ -1981,7 +1981,8 @@
   // path vazio fica {nome}, como no comando.
   // O caminho quebra primeiro depois de / e de -; dentro de uma palavra, só quando um trecho não cabe na linha.
   function pathNodes (path) {
-    return path.split(/(?<=[/-])/).map((part, index) => index ? [el('wbr'), part] : part)
+    // Sem lookbehind: o Safari 16.0 a 16.3 não sabe ler essa sintaxe, e um erro de leitura para o script inteiro.
+    return (path.match(/[^/-]*[/-]|[^/-]+$/g) || [path]).map((part, index) => index ? [el('wbr'), part] : part)
   }
 
   function paintResolvedUrl (request) {
@@ -2575,7 +2576,9 @@
         if (changes) drafts[route.key] = changes
       })
       const time = date => date ? date.getTime() : null
-      writeSession(HANDOFF_KEY, JSON.stringify({ v: 1, at: Date.now(), to, token: state.token, tokenAt: time(state.tokenAt), tokenExp: time(state.tokenExp), drafts, scrollY: window.scrollY, sideTab: state.sideTab, resultTab: state.resultTab }))
+      // A lista de rotas fechada (pilha) muda a altura acima da rolagem: ela vai junto para a rolagem cair no lugar.
+      const routesCollapsed = $('routes').classList.contains('collapsed')
+      writeSession(HANDOFF_KEY, JSON.stringify({ v: 1, at: Date.now(), to, token: state.token, tokenAt: time(state.tokenAt), tokenExp: time(state.tokenExp), drafts, scrollY: window.scrollY, sideTab: state.sideTab, resultTab: state.resultTab, routesCollapsed }))
     }, true)
     window.addEventListener('pageshow', event => event.persisted && discardStored(HANDOFF_KEY))
   }
@@ -2585,6 +2588,13 @@
     discardStored(HANDOFF_KEY)
     const handoff = raw && core.readHandoff(raw, { now: Date.now(), language, maxAge: 10000 })
     if (handoff) Object.assign(state, { token: handoff.token, tokenAt: handoff.tokenAt, tokenExp: handoff.tokenExp, handoff })
+    // prefs-boot.js reservou a altura só com uma conferência curta: uma passagem que não vale a solta já.
+    else releaseHandoffScroll()
+  }
+
+  function releaseHandoffScroll () {
+    document.documentElement.style.minHeight = ''
+    document.documentElement.style.overflowAnchor = ''
   }
 
   // buildRequest só lê o que a rota tem.
@@ -2596,12 +2606,28 @@
     })
   }
 
+  // A lista de rotas como estava, e a rolagem salva sobre a altura reservada (prefs-boot.js já a pôs antes da
+  // primeira pintura; aqui ela vale de novo depois que a lista fecha). Sem a reserva, a página ainda sem as rotas
+  // é curta demais e a rolagem só caberia depois que elas chegassem, num pulo. A ancoragem de rolagem fica
+  // desligada enquanto o conteúdo entra, para não mover a página atrás do que está chegando.
+  function placeHandoff () {
+    const handoff = state.handoff
+    if (!handoff) return
+    if (handoff.routesCollapsed && isNarrow()) setRoutesCollapsed(true)
+    if (!handoff.scrollY) return
+    const root = document.documentElement
+    root.style.minHeight = Math.ceil(handoff.scrollY + window.innerHeight) + 'px'
+    root.style.overflowAnchor = 'none'
+    window.scrollTo(0, handoff.scrollY)
+  }
+
   function finishHandoff () {
     const handoff = state.handoff
     state.handoff = null
     if (!handoff) return
     if (state.shownId !== null) selectResultTab(handoff.resultTab, false)
     window.scrollTo(0, handoff.scrollY)
+    releaseHandoffScroll()
   }
 
   // Depois de carregar as rotas: o envio que estava à vista volta ao Resultado, se é da rota escolhida (a do
@@ -5737,6 +5763,7 @@
     setupView()
     setupSide()
     if (state.handoff) selectSideTab(state.handoff.sideTab, false)
+    placeHandoff()
     // O CSS precisa da altura do Resultado para grudá-lo pela base quando ele, vazio, é mais alto que a janela.
     if (window.ResizeObserver) {
       new ResizeObserver(() => document.documentElement.style.setProperty('--res-h', $('result').offsetHeight + 'px')).observe($('result'))
