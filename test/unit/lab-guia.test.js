@@ -184,8 +184,10 @@ describe('Guia "Como usar" (guia.js)', () => {
     it('antes do envio, mostra o Authorization preenchido e Executar em recortes próprios', () => {
       expect(guia).to.match(/if \(authShown\(\)\) return \[\$\('auth-group'\), q\('#request \.req-bar'\)\]/)
       expect(guia).to.match(/separate: authShown,/)
-      expect(guia).to.match(/authShown\(\) \? \$\('auth-group'\) : null/)
+      expect(guia).to.match(/return narrow\(\) \? \[\$\('run-split'\), \$\('auth-input'\)\] : \$\('auth-group'\)/)
       expect(guia).to.match(/if \(authShown\(\)\) out\.push\(fill\('lab\.guide\.learn\.again_auth'\)\)/)
+      // Passo 3 com valor em Authorization: no telefone, a rolagem vai primeiro aos botões que tiram o valor.
+      expect(guia).to.match(/anchor: \(\) => narrow\(\) && P\.authValue\(\) && !sent\(\) \? \$\('auth-group'\) : null/)
       ;[ptBr, en, es].forEach(lingua => expect(lingua['lab.guide.learn.again_auth']).to.include('`Authorization`').and.include('header').and.include('token'))
     })
   })
