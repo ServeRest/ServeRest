@@ -1226,8 +1226,8 @@
       el('div', { class: 'req-bar-wrap' },
         el('div', { class: 'req-bar' },
           methodBadge(route.method),
-          // A base e o caminho: a base sai quando não cabe; o title guarda a URL inteira. O caminho já vem com
-          // os parâmetros preenchidos (paintResolvedUrl, a cada edição).
+          // A base e o caminho: a base sai quando não cabe (fitReqBar); o title guarda a URL inteira. O caminho
+          // já vem com os parâmetros preenchidos (paintResolvedUrl, a cada edição).
           el('code', { class: 'req-path', id: 'req-path', title: baseUrl + route.path },
             el('span', { class: 'req-base', text: baseUrl }),
             el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text', text: route.path }))),
@@ -1346,6 +1346,12 @@
     const button = $('run-mode')
     if (!menu || button.getAttribute('aria-disabled') === 'true') return
     menu.hidden = false
+    // O menu abre alinhado à direita do botão; numa tela estreita ele encolhe para não passar da margem da
+    // página (o respiro do recipiente), em vez de encostar na borda da janela.
+    menu.style.maxWidth = ''
+    const gutter = parseFloat(getComputedStyle($('app')).paddingLeft) || 0
+    const box = menu.getBoundingClientRect()
+    if (box.left < gutter) menu.style.maxWidth = (box.right - gutter) + 'px'
     button.setAttribute('aria-expanded', 'true')
     const checked = menu.querySelector('[aria-checked="true"]') || menu.querySelector('[role="menuitemradio"]')
     checked.focus()
@@ -1875,6 +1881,48 @@
     if (!text || !path) return
     text.textContent = request.url.slice(baseUrl.length)
     path.title = request.url
+    fitReqBar(true)
+  }
+
+  // A barra de endereço mostra sempre o caminho inteiro. Mede, numa linha, o selo, a base, o caminho e o
+  // Executar: cabendo tudo, a URL inteira; senão a base sai; e se nem o caminho cabe ao lado do Executar, selo e
+  // caminho ganham uma linha própria (com a base, se couber nela) e o caminho quebra onde precisar. Refeita
+  // quando o caminho, a largura da barra ou o tamanho do texto mudam (o observador fica em init).
+  const reqFit = { key: '' }
+  function fitReqBar (force) {
+    const bar = document.querySelector('#request .req-bar')
+    if (!bar) return
+    const text = $('req-route-text')
+    const key = [bar.clientWidth, text.textContent, document.documentElement.getAttribute('data-text')].join('|')
+    if (!force && key === reqFit.key) return
+    reqFit.key = key
+    bar.classList.remove('no-base', 'is-stacked')
+    bar.classList.add('is-measure')
+    const width = node => node.getBoundingClientRect().width
+    const style = getComputedStyle(bar)
+    const gap = parseFloat(style.columnGap) || 0
+    const avail = bar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    const path = $('req-path')
+    const pad = parseFloat(getComputedStyle(path).paddingLeft) + parseFloat(getComputedStyle(path).paddingRight)
+    const method = width(bar.querySelector('.method'))
+    const base = width(path.querySelector('.req-base'))
+    const route = width(path.querySelector('.req-route'))
+    // O Executar com o texto mais largo dos dois ("Executando", durante o envio): a barra não muda de forma ao
+    // enviar.
+    const probe = el('button', { type: 'button', class: 'btn btn-primary', 'aria-hidden': 'true', tabindex: '-1' }, el('span', { class: 'spin' }), ' ', t('lab.actions.executing'))
+    bar.append(probe)
+    const run = width($('run-split')) - width($('run')) + Math.max(width($('run')), width(probe))
+    probe.remove()
+    bar.classList.remove('is-measure')
+    // 1 px de folga: as larguras medidas são fracionárias.
+    const row = avail - method - gap - pad + 1
+    if (base + route + gap + run <= row) return
+    if (route + gap + run <= row) {
+      bar.classList.add('no-base')
+      return
+    }
+    bar.classList.add('is-stacked')
+    if (base + route > row) bar.classList.add('no-base')
   }
 
   function tokenValues () {
@@ -3507,7 +3555,7 @@
     append(area, [
       el('div', { class: 'res-line' }, statusLink(record), simpleDocLine(record, documentedResponse(record))),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }), copy),
-      empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : el('div', { class: 'code res-body' }, pre),
+      empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : bodyBlock(pre, shownText.split('\n').length),
       empty ? null : el('p', { class: 'copy-msg', id: 'body-copy-msg' }),
       // A oferta do token fica logo abaixo do corpo, onde o token aparece: assim a linha do status, o
       // "Copiar corpo" e o corpo ficam no mesmo lugar em toda rota, com ou sem token.
@@ -3517,6 +3565,46 @@
       responseHeaders(record.headers)
     ])
     if (restore) keepResponseInView(false)
+  }
+
+  // O corpo fica numa caixa de 30 rem que rola, no bloco escuro. Quando ele passa dela, a caixa vira uma região
+  // nomeada que recebe o foco do teclado (para rolar com as setas em todo navegador, não só nos que já fazem isso
+  // sozinhos), um esmaecer marca o corte, e "Mostrar tudo (N linhas)", sob a caixa, abre o corpo inteiro na
+  // página; "Mostrar menos" volta à caixa. O botão fica depois do corpo: o topo do corpo não anda na troca do
+  // esqueleto para a resposta. A medida se refaz quando a caixa muda de tamanho (aba trocada, janela, texto).
+  let bodyObserver = null
+  function bodyBlock (pre, lines) {
+    const box = el('div', { class: 'code res-body' }, pre)
+    const fade = el('span', { class: 'body-fade', 'aria-hidden': 'true', hidden: true })
+    const more = el('button', { type: 'button', class: 'btn btn-quiet body-more', 'aria-expanded': 'false', hidden: true })
+    const paint = () => {
+      const full = box.classList.contains('is-full')
+      const cut = !full && box.scrollHeight > box.clientHeight + 1
+      if (cut) {
+        box.setAttribute('tabindex', '0')
+        box.setAttribute('role', 'region')
+        box.setAttribute('aria-label', t('lab.response.body_region'))
+      } else ['tabindex', 'role', 'aria-label'].forEach(name => box.removeAttribute(name))
+      fade.hidden = !cut || box.scrollTop + box.clientHeight >= box.scrollHeight - 2
+      more.hidden = !cut && !full
+      more.textContent = full ? t('lab.response.body_less') : fillText('lab.response.body_all', { count: lines })
+      more.setAttribute('aria-expanded', String(full))
+    }
+    more.addEventListener('click', () => {
+      const full = !box.classList.contains('is-full')
+      box.classList.toggle('is-full', full)
+      box.scrollTop = 0
+      paint()
+      // Voltando à caixa, o botão sobe junto com o fim dela: a página rola até ele, para ele não sumir da janela.
+      if (!full && more.getBoundingClientRect().top < 0) more.scrollIntoView({ block: 'center', behavior: state.reduced ? 'auto' : 'smooth' })
+    })
+    box.addEventListener('scroll', () => { fade.hidden = box.scrollTop + box.clientHeight >= box.scrollHeight - 2 || !box.hasAttribute('tabindex') }, { passive: true })
+    box.paintCut = paint
+    if (window.ResizeObserver) {
+      if (!bodyObserver) bodyObserver = new ResizeObserver(entries => entries.forEach(entry => entry.target.paintCut && entry.target.paintCut()))
+      bodyObserver.observe(box)
+    }
+    return [el('div', { class: 'res-body-wrap' }, box, fade), more]
   }
 
   // "Status code ✗ 401 Unauthorized ↗": um link só, para a página do status na MDN, numa aba nova. O nome
@@ -5234,6 +5322,8 @@
       tick.style.left = Math.round(center) + 'px'
       tick.style.height = (6 + row * 20) + 'px'
     })
+    // A fileira das cotas tem 56 px; uma cota que quebrou em duas linhas a faz crescer até caber.
+    let dimsBottom = 56
     fig.querySelectorAll('.tl-dim, .tl-dim-label').forEach(node => {
       const from = seg(Number(node.getAttribute('data-from'))).left
       const to = seg(Number(node.getAttribute('data-to'))).right
@@ -5246,8 +5336,10 @@
         const w = node.offsetWidth
         node.style.left = Math.max(w / 2, Math.min(width - w / 2, (from + to) / 2)) + 'px'
         node.style.top = (top + 4) + 'px'
+        dimsBottom = Math.max(dimsBottom, top + 4 + node.offsetHeight)
       }
     })
+    fig.querySelector('.tl-dims').style.height = dimsBottom + 'px'
     return maxRow
   }
 
@@ -5358,7 +5450,12 @@
     // O CSS precisa da altura do Resultado para grudá-lo pela base quando ele, vazio, é mais alto que a janela.
     if (window.ResizeObserver) {
       new ResizeObserver(() => document.documentElement.style.setProperty('--res-h', $('result').offsetHeight + 'px')).observe($('result'))
+      // A barra de endereço decide de novo a forma quando a zona muda de largura ou o texto de tamanho.
+      new ResizeObserver(() => fitReqBar(false)).observe($('request'))
     }
+    try {
+      document.fonts.ready.then(() => fitReqBar(true))
+    } catch (e) {}
     renderHistory()
     renderResultEmpty(null)
     const filter = $('filter')
