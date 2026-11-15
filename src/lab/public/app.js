@@ -927,6 +927,14 @@
       if (seq !== state.loadSeq) return
       state.specError = (error && error.message) || String(error)
       state.routes = []
+      // Sem as rotas a página fica curta: a altura reservada para a troca de idioma deixaria a pessoa numa
+      // área em branco, com o aviso do erro e o botão de tentar de novo fora da tela. A rolagem salva deixa
+      // de valer, para uma nova tentativa não puxar a página de volta.
+      if (state.handoff && state.handoff.scrollY) {
+        state.handoff.scrollY = 0
+        releaseHandoffScroll()
+        window.scrollTo(0, 0)
+      }
       renderRoutes()
       renderRequest()
       announce(t('lab.routes.error'))
