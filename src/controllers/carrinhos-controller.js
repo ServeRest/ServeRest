@@ -18,7 +18,11 @@ exports.getOne = async (req, res) => {
 }
 
 exports.post = async (req, res) => {
+  const { etapas } = res.locals
+  etapas.regras('single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock')
+
   const { idUsuario, possuiCarrinho } = await service.usuarioJaPossuiCarrinho(req.headers.authorization)
+  etapas.regra('single_cart', !possuiCarrinho)
   if (possuiCarrinho) {
     return res.status(400).send({ message: constant.LIMIT_JUST_ONE_CART })
   }
@@ -26,14 +30,26 @@ exports.post = async (req, res) => {
   const { produtos } = req.body
 
   const idProdutosDuplicados = service.extrairProdutosDuplicados(produtos)
+  etapas.regra('no_duplicate_product', !idProdutosDuplicados.length)
   if (idProdutosDuplicados.length) {
     return res.status(400).send({ message: constant.CART_WITH_DUPLICATE_PRODUCT, idProdutosDuplicados })
   }
 
   const { produtosComPrecoUnitario, error } = await service.getProdutosComPrecoUnitarioOuErro(produtos)
   if (error) {
+    // As duas regras são avaliadas item a item e param no primeiro item que falha.
+    if (error.message === constant.PRODUCT_NOT_FOUND) {
+      etapas.regra('product_exists', false, { item: error.index })
+    } else {
+      etapas.regra('product_exists', true)
+      etapas.regra('enough_stock', false, { item: error.index })
+    }
     return res.status(error.statusCode).send({ message: error.message, item: error.item })
   }
+  etapas.regra('product_exists', true)
+  etapas.regra('enough_stock', true)
+
+  etapas.abrir('write')
   const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
   const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
 

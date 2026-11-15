@@ -1,11 +1,59 @@
 const { expect } = require('chai')
 
-describe('/ GET', () => {
-  it('A página principal está retornando status code 200 - #202', async () => {
-    await request.get('/').expect(200)
+describe('/swagger GET', () => {
+  it('A página do Swagger está retornando status code 200 - #202', async () => {
+    await request.get('/swagger').expect(200)
   })
   it('retorna 200 quando lang é válido', async () => {
-    await request.get('/').query({ lang: 'en' }).expect(200)
+    await request.get('/swagger').query({ lang: 'en' }).expect(200)
+  })
+  it('não traz o painel de fluxo, que fica só na página inicial', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.not.include('serverestFlowPanelPlugin')
+    expect(text).to.not.include('serverest-flow')
+  })
+  it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.not.include('release-toast')
+    expect(text).to.not.include('api.github.com')
+  })
+  // Com o escopo da raiz, o worker controlava também a página inicial e entrava nas chamadas dela à API.
+  it('registra o service worker só em /swagger, depois de tirar o registro antigo da raiz', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.include("navigator.serviceWorker.register('/swagger-sw.js', { scope: '/swagger' })")
+    expect(text).to.include('regs.filter(r => r.scope === rootScope).map(r => r.unregister())')
+    expect(text.match(/serviceWorker\.register\(/g)).to.have.length(1)
+  })
+  it('inclui o script que tira gerenciador de senha e corretor dos campos', async () => {
+    const { text } = await request.get('/swagger').expect(200)
+    expect(text).to.include("'data-bwignore': ''")
+    expect(text).to.include("document.body.setAttribute('data-1p-ignore', '')")
+  })
+  it('redireciona /swagger/ e /SWAGGER/ para /swagger mantendo a query', async () => {
+    const casos = {
+      '/swagger/': '/swagger',
+      '/swagger/?lang=en': '/swagger?lang=en',
+      '/SWAGGER/': '/swagger'
+    }
+    for (const [origem, destino] of Object.entries(casos)) {
+      const res = await request.get(origem).expect(302)
+      expect(res.headers.location, origem).to.equal(destino)
+    }
+  })
+})
+
+describe('/swagger-ui-init.js GET', () => {
+  it('mantém o plugin padrão DownloadUrl, que busca o documento, e não registra o painel de fluxo', async () => {
+    await request.get('/swagger').expect(200)
+    const { text } = await request.get('/swagger-ui-init.js').expect(200)
+    expect(text).to.include('SwaggerUIBundle.plugins.DownloadUrl')
+    expect(text).to.not.include('serverestFlowPanelPlugin')
+  })
+  it('não traz o aviso de versão nova nem consulta a API do GitHub pelo navegador', async () => {
+    await request.get('/swagger').expect(200)
+    const { text } = await request.get('/swagger-ui-init.js').expect(200)
+    expect(text).to.not.include('release-toast')
+    expect(text).to.not.include('api.github.com')
   })
 })
 

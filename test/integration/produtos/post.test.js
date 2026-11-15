@@ -139,6 +139,105 @@ describe(rotaProdutos + ' POST', () => {
     })
   })
 
+  // O serviço tira os espaços em volta de nome e imagem antes de gravar; só espaços viraria "".
+  describe('Texto só com espaços', () => {
+    it('Bad request - nome só com espaços não é aceito', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), nome: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        nome: 'nome não pode ficar em branco'
+      })
+    })
+
+    it('Bad request - imagem só com espaços não é aceita', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), imagem: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        imagem: 'imagem não pode ficar em branco'
+      })
+    })
+
+    it('Nome e imagem com espaços em volta do texto são aceitos e gravados sem esses espaços', async () => {
+      const produto = utils.dadosProduto()
+
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...produto, nome: `  ${produto.nome}  `, imagem: `  ${produto.imagem}  ` })
+        .set('authorization', authorizationAdministrador)
+        .expect(201)
+
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.deepEqual(produtoGravado, { ...produto, _id: body._id })
+    })
+  })
+
+  describe('Número enviado como string', () => {
+    it('Bad request - preco como string numérica não é aceito', async () => {
+      const produto = { ...utils.dadosProduto(), preco: '470' }
+
+      const { body } = await request
+        .post(rotaProdutos)
+        .send(produto)
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        preco: 'preco deve ser um número'
+      })
+    })
+
+    it('Bad request - preco como string em notação científica não é aceito', async () => {
+      const produto = { ...utils.dadosProduto(), preco: '4e2' }
+
+      const { body } = await request
+        .post(rotaProdutos)
+        .send(produto)
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        preco: 'preco deve ser um número'
+      })
+    })
+
+    it('Bad request - quantidade como string numérica não é aceita', async () => {
+      const produto = { ...utils.dadosProduto(), quantidade: '5' }
+
+      const { body } = await request
+        .post(rotaProdutos)
+        .send(produto)
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        quantidade: 'quantidade deve ser um número'
+      })
+    })
+
+    // O contrato declara só application/json; num formulário todo valor chega como texto.
+    it('Bad request - corpo em application/x-www-form-urlencoded não é aceito', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .type('form')
+        .send(utils.dadosProduto())
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        preco: 'preco deve ser um número',
+        quantidade: 'quantidade deve ser um número'
+      })
+    })
+  })
+
   describe('Number.MAX_SAFE_INTEGER', () => {
     it('Deve retornar erro 400 ao enviar número inteiro maior que Number.MAX_SAFE_INTEGER', async () => {
       let produto = utils.dadosProduto()

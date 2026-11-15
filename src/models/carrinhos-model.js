@@ -22,8 +22,8 @@ exports.schemaPost = {
     produtos: Joi.array().items(
       Joi.object({
         idProduto: Joi.string().required(),
-        quantidade: Joi.number().positive().integer().required()
-      }).required()
-    ).required()
+        quantidade: Joi.number().strict().positive().integer().required()
+      })
+    ).min(1).required()
   })
 }

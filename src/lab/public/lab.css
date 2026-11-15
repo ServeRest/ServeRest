@@ -1,0 +1,1468 @@
+/* Página inicial: a identidade do Swagger (barra preta, faixa roxa, cores de método) em três zonas,
+   Rotas, Requisição e Resultado, com o Histórico como aba da coluna da esquerda ou como quarta coluna
+   em janelas muito largas. O layout vem da largura da página (consultas de recipiente em rem), nunca
+   de uma escolha. Tamanhos de texto em rem: o tamanho do texto escolhido muda só a fonte da raiz. A barra
+   do topo é a exceção: em px, ela fica igual em todo tamanho de texto. Código que se lê ou copia fica no
+   bloco escuro; o editor do corpo, no fundo cinza. */
+
+/* Fontes locais, sem pedido a outro domínio: o subconjunto latino dos pacotes Fontsource, sem
+   alteração, com a licença (OFL.txt) de cada família ao lado. Os símbolos de status (✓ ✗ → ○ ▶ ↗ ♥)
+   ficam fora do subconjunto e vêm das fontes do sistema. Se um arquivo mudar, ele muda de nome: o
+   CSS não tem versão no conteúdo. */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/open-sans-latin-400-italic.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Source Code Pro";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("fonts/source-code-pro-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/titillium-web-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/titillium-web-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Titillium Web";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/titillium-web-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  /* Ritmo vertical: uma escala só, em rem (cresce com o tamanho do texto). Dentro de uma seção, os
+     passos pequenos; entre seções, os grandes. */
+  --space-xs: 0.25rem;  /* um rótulo e a sua legenda; linhas de uma mesma legenda */
+  --space-s: 0.5rem;    /* título de seção e a primeira linha; o respiro de cada linha de tabela */
+  --space-m: 0.75rem;   /* partes de uma seção: título e descrição, barra e Copiar como curl */
+  --space-l: 1rem;      /* abas e painel; tabela e a nota do token; acima do campo Authorization */
+  --space-xl: 1.5rem;   /* entre seções; o topo e o fim da zona */
+  --space-2xl: 2rem;    /* antes das abas, a maior divisão da zona */
+  /* Barra superior: igual nos dois esquemas. */
+  --bar-bg: #000000;
+  --bar-fg: #ffffff;
+  --bar-muted: #b9bcc4;
+  --bar-notice: #d7b4ff;
+  /* Marca */
+  --purple: #7900e2;
+  --purple-deep: #5e00b0;
+  --on-purple: #ffffff;
+  /* Roxo usado como texto, seleção e foco: no escuro ele clareia para manter o contraste. */
+  --accent: #7900e2;
+  --accent-strong: #5e00b0;
+  --accent-tint: #f1e6fc;
+  --focus: #7900e2;
+  /* Texto sobre o roxo cheio (a contagem com envios novos). */
+  --on-accent: #ffffff;
+  /* Aba de pasta não escolhida: cinza já em repouso, um degrau mais escura ao passar o mouse. A escolhida
+     tem o fundo do painel e, nos dois cantos de baixo, uma curva côncava de --flare px (cabe no vão de 4 px
+     entre as abas). */
+  --tab-idle: #e4e7eb;
+  --tab-idle-hover: #d8dce1;
+  --flare: 5px;
+  /* No bloco escuro, as opções do curl (-X, -H, -d). */
+  --code-flag: #d3b5ff;
+  /* O fundo do editor do corpo, o código que o aluno escreve (os outros campos continuam brancos). */
+  --editor-bg: #f6f7f9;
+  /* Faixa de título de seção: um degrau abaixo da zona, entre duas linhas. */
+  --band: #f2f3f5;
+  /* A barra de rolagem fina da lista de Rotas, num cinza discreto. */
+  --scroll-thumb: #b9bdc5;
+  /* O esqueleto da resposta e o brilho que passa por ele. */
+  --skel: var(--seg-idle);
+  --skel-shine: #ffffff;
+  /* Largura da quarta coluna (Histórico): a maior largura da coluna da esquerda. */
+  --hist-w: 23rem;
+  /* Superfícies: a página fica um degrau abaixo das zonas. */
+  --canvas: #eceef1;
+  --surface: #ffffff;
+  --input-bg: #ffffff;
+  --well: #f2f3f5;
+  --hover: #f2f3f5;
+  --ink: #3b4151;
+  --graphite: #5d6270;
+  /* Uma cor de borda só: zonas, regras e linhas das colunas. */
+  --border: #d6d9de;
+  /* A borda dos controles passa de 3:1 também sobre o cinza das faixas (#f2f3f5). */
+  --control: #878b95;
+  --ok: #156b2f;
+  --ok-tint: #e8f5ec;
+  --fail: #c4231c;
+  --fail-tint: #fdeeed;
+  --warn: #8a5300;
+  --warn-tint: #fff3d6;
+  /* Cores de método do Swagger, exatas, com letra preta no selo. */
+  --m-get: #61affe;
+  --m-post: #49cc90;
+  --m-put: #fca130;
+  --m-patch: #50e3c2;
+  --m-delete: #f93e3e;
+  --on-method: #000000;
+  --route-tint: 7%;
+  --route-tint-delete: 4.5%;
+  --route-hover: 13%;
+  --bar-tint: 10%;
+  --seg-idle: #d6d9de;
+  --seg-response: #000000;
+  /* Bloco escuro de resposta do Swagger */
+  --code-bg: #333333;
+  --code-fg: #ffffff;
+  --json-key: #ffffff;
+  --json-str: #a2fca2;
+  --json-num: #fcc28c;
+  --json-lit: #d3b5ff;
+  /* As cores da marca nas logos do rodapé e nas setas do Resultado vazio. */
+  --logo-ink: #282828;
+  --logo-accent: #7900e2;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  --font-head: "Titillium Web", sans-serif;
+  --font-ui: "Open Sans", sans-serif;
+  --font-code: "Source Code Pro", ui-monospace, monospace;
+  color-scheme: light;
+}
+/* Escuro: derivado do claro, não invertido. A página é a superfície mais funda, as zonas um degrau
+   acima; roxo, verde, vermelho e âmbar clareiam para passar de 4,5:1; o bloco de código fica abaixo
+   da zona. */
+:root[data-theme="dark"] {
+  --logo-ink: #e4e6eb;
+  --logo-accent: #c39bff;
+  --shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --accent: #c39bff;
+  --accent-strong: #d8bdff;
+  --accent-tint: #2e2245;
+  --focus: #c39bff;
+  --on-accent: #111215;
+  --tab-idle: #30343c;
+  --tab-idle-hover: #3b4049;
+  --editor-bg: #30343c;
+  --band: #24272d;
+  --scroll-thumb: #4b505a;
+  --skel-shine: #575d69;
+  --canvas: #111215;
+  --surface: #1b1d22;
+  --input-bg: #131418;
+  --well: #25282e;
+  --hover: #262930;
+  --ink: #e4e6eb;
+  --graphite: #a8adb8;
+  --border: #363a43;
+  --control: #7a808c;
+  --ok: #6dd391;
+  --ok-tint: #16281d;
+  --fail: #ff8b82;
+  --fail-tint: #3a1f20;
+  --warn: #f1b55a;
+  --warn-tint: #352a12;
+  --route-tint: 9%;
+  --route-tint-delete: 7%;
+  --route-hover: 16%;
+  --bar-tint: 13%;
+  --seg-idle: #3d414b;
+  --seg-response: #e4e6eb;
+  --code-bg: #0d0e11;
+  --code-fg: #eceef2;
+  --json-key: #eceef2;
+  color-scheme: dark;
+}
+/* Tamanho do texto: só a raiz muda; tudo o que é texto está em rem ou em. */
+html { font-size: 100%; -webkit-text-size-adjust: 100%; }
+html[data-text="grande"] { font-size: 112.5%; }
+html[data-text="maior"] { font-size: 125%; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--font-ui); font-size: 0.875rem; line-height: 1.5; container: page / inline-size; }
+[hidden] { display: none !important; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.2; font-weight: 600; font-family: var(--font-head); }
+p { margin: 0; }
+code, pre, kbd { font-family: var(--font-code); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+/* Dois estilos de link. 1) Link no texto corrido (cards, Sobre, avisos): roxo e sublinhado, com a seta ↗
+   quando abre outra aba. 2) Rótulo que também é link (método, status, Ver no Swagger, headers, rótulos da
+   barra de tempos, links da barra do topo): fica na cor do rótulo, com sublinhado pontilhado; com o mouse ou
+   o foco, o sublinhado fica cheio e a seta aparece. */
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
+.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a, .docs-link, .version-link { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.docs-link, .version-link { text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.res-headers dt a, .res-headers dt a:hover { color: inherit; }
+.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible, .docs-link:hover, .docs-link:focus-visible, .version-link:hover, .version-link:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.method-link > span[aria-hidden="true"], .status-link > span[aria-hidden="true"], .head-doc-link > span[aria-hidden="true"], .res-headers dt a > span[aria-hidden="true"] { visibility: hidden; }
+.method-link:hover > span[aria-hidden="true"], .method-link:focus-visible > span[aria-hidden="true"], .status-link:hover > span[aria-hidden="true"], .status-link:focus-visible > span[aria-hidden="true"], .head-doc-link:hover > span[aria-hidden="true"], .head-doc-link:focus-visible > span[aria-hidden="true"], .res-headers dt a:hover > span[aria-hidden="true"], .res-headers dt a:focus-visible > span[aria-hidden="true"] { visibility: visible; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip-link { position: absolute; left: 16px; top: -48px; background: var(--surface); color: var(--ink); padding: 8px 12px; z-index: 20; }
+.skip-link:focus { top: 8px; }
+/* O link de pular aparece sobre a barra preta: o anel branco, como o dos controles da barra (o roxo
+   fica abaixo de 3:1 contra o preto). */
+.skip-link:focus-visible { outline-color: var(--bar-fg); }
+.copy-buffer { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.grow { flex: 1; }
+.muted { color: var(--graphite); }
+.small { font-size: 0.8125rem; }
+.nowrap { white-space: nowrap; font-size: 0.92em; }
+
+/* O conteúdo fica num recipiente centrado, como o do Swagger UI: até 1800 px, 20 px de cada lado (a partir
+   de 2184 px de janela o limite passa a 2184 px, mais abaixo). A barra preta e a faixa roxa ocupam a janela
+   inteira; o conteúdo dela usa o mesmo recipiente. */
+.wrap { width: 100%; max-width: 1800px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+
+/* Barra superior: a mesma do Swagger, nos dois esquemas */
+.topbar { background: var(--bar-bg); color: var(--bar-fg); border-bottom: 20px solid var(--purple); }
+.topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
+.topbar :focus-visible { outline-color: var(--bar-fg); }
+.brand { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
+/* A logo completa (a arte da marca, recortada) como máscara: branca na barra. O PNG fica no dobro da maior
+   altura mostrada, 88 px; a proporção e as divisas do degradê do Sobre seguem as da arte de 4005 x 1536. */
+.logo { display: block; flex: none; height: 44px; aspect-ratio: 4005 / 1536; background-color: var(--bar-fg); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
+/* Os textos da barra em px, como os botões: a barra fica igual nos três tamanhos de texto, e A− e A+ não
+   saem de baixo do ponteiro em nenhuma largura. */
+.version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
+.version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
+.version-link { position: relative; color: inherit; }
+.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); }
+.docs-link { position: relative; }
+.version-link .hover-arrow, .docs-link .hover-arrow { position: absolute; left: 100%; margin-left: 2px; visibility: hidden; text-decoration: none; }
+.version-link:hover .hover-arrow, .version-link:focus-visible .hover-arrow, .docs-link:hover .hover-arrow, .docs-link:focus-visible .hover-arrow { visibility: visible; }
+/* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
+.version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
+.version-notice:hover { color: var(--bar-fg); }
+/* Com o número da versão, o aviso é um botão sublinhado, com um ponto enquanto o painel dessa versão não
+   foi aberto; o painel abre logo abaixo, nas cores da página (segue o tema mesmo sobre a barra preta). */
+button.version-notice { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-family: inherit; line-height: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+button.version-notice[aria-expanded="true"] { color: var(--bar-fg); }
+.version-notice .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 20; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; }
+.rel-pop[hidden] { display: none; }
+.rel-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+.rel-pop .code-page { padding: 6px 10px; }
+.rel-pop a { color: var(--accent); }
+.rel-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.topbar .rel-pop :focus-visible { outline-color: var(--focus); }
+/* O selo de opinião, depois da versão: só com espaço na barra (regra de 1024 px abaixo). */
+.pill-hdr { position: relative; isolation: isolate; overflow: hidden; display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
+.pill-hdr:hover { color: var(--bar-fg); border-color: var(--bar-fg); }
+/* Para o selo ser notado, uma faixa de luz o atravessa da esquerda para a direita duas vezes e para de vez.
+   Movimento que começa sozinho e passa de 5 s precisaria de um botão de pausa (WCAG 2.2.2): tudo termina
+   5 s depois de o selo aparecer (1 s de espera, 1,6 s por passada, 0,8 s entre elas). A faixa fica atrás do
+   texto, e no pico clareia o fundo só até manter 7:1 de contraste; parada, ela fica fora do selo. Uma
+   animação de CSS recomeçaria quando o selo volta a aparecer depois de um display: none (janela estreitada
+   abaixo de 1024 px e alargada de novo): app.js põe .shine-done quando ela termina ou é interrompida. */
+.pill-hdr::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.2) 50%, transparent 75%); transform: translateX(-100%); animation: pillShine 4s ease-in-out 1s; }
+.pill-hdr.shine-done::after { animation: none; display: none; }
+@keyframes pillShine {
+  0% { transform: translateX(-100%); }
+  40% { transform: translateX(100%); animation-timing-function: steps(1, end); }
+  60% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) { .pill-hdr::after { animation: none; display: none; } }
+.docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
+.docs-link:hover { color: var(--bar-fg); }
+
+/* O seletor de idioma do Swagger (src/swagger/styles/language-switcher.css), sem position fixed: a cápsula
+   branca com as três bandeiras, no começo da barra. A bandeira do idioma da página fica maior; depois de
+   trocar de idioma, a cápsula brilha na cor da bandeira escolhida por 1 s. */
+.lang-switcher { display: flex; flex: none; gap: 6px; background: rgba(255, 255, 255, 0.92); border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 8px; box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5); transition: box-shadow 1.5s ease-out; }
+.lang-switcher.lang-switcher--glow { transition: box-shadow 0.15s ease-out; }
+.lang-switcher__button { border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; opacity: 0.6; display: inline-flex; align-items: center; justify-content: center; color: #000; text-decoration: none; }
+.lang-switcher__flag { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+.lang-switcher__button:hover { opacity: 1; transform: translateY(-2px); }
+.lang-switcher__button.is-active { opacity: 1; transform: scale(1.3); }
+.lang-switcher[data-glow-lang='pt-BR'].lang-switcher--glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
+.lang-switcher[data-glow-lang='en'].lang-switcher--glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
+.lang-switcher[data-glow-lang='es'].lang-switcher--glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
+/* O anel branco da barra some na cápsula branca: dentro dela, anel preto. */
+.topbar .lang-switcher__button:focus-visible { opacity: 1; outline: 2px solid #000000; outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .lang-switcher, .lang-switcher.lang-switcher--glow { transition: none; } }
+
+/* No fim da barra, o link da documentação e os dois pares de botões: tamanho do texto (A− e A+) e tema
+   (claro e escuro). Sem caixa: cada botão é só o texto ou o ícone, com um fundo escuro ao passar o mouse;
+   os pares ficam a 10 px um do outro. O tema em uso fica branco e sublinhado (uma barra de 2 px, forma além
+   da cor); o outro, cinza claro (11,4:1 no preto). O anel de foco é o branco da barra (21:1), rente ao
+   botão. Tudo em px, para a barra não crescer com o texto. */
+.bar-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 20px; margin-left: auto; }
+.view { display: flex; align-items: center; gap: 10px; flex: none; }
+.seg { display: inline-flex; }
+.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 4px; background: none; color: #ffffff; font: 600 14px/1 "Open Sans", sans-serif; cursor: pointer; }
+.seg-btn:hover { background: #2f3238; }
+.topbar .seg-btn:focus-visible { z-index: 1; outline-offset: 0; }
+.seg-btn[data-theme-choice] { color: var(--bar-muted); }
+.seg-btn[data-theme-choice]:hover { color: #ffffff; }
+/* O estado vem da raiz (gravada antes da primeira pintura): o botão já nasce marcado, sem piscar. */
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"], :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"] { color: #ffffff; }
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 2px; border-radius: 1px; background: currentColor; }
+:root[data-text="normal"] #text-down, :root[data-text="maior"] #text-up { color: #80848c; background: none; cursor: not-allowed; }
+@media (forced-colors: active) { :root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { background: CanvasText; } }
+.seg-btn .a-s { font-size: 12px; }
+.seg-btn .a-l { font-size: 17px; }
+.seg-btn svg { display: block; }
+
+/* Controles */
+.input { width: 100%; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 4px 8px; min-height: 2rem; font-size: 0.875rem; }
+.input::placeholder { color: var(--graphite); opacity: 1; }
+.params .input::placeholder { font-style: italic; }
+.input.mono { font-family: var(--font-code); font-size: 0.78125rem; }
+.input[aria-invalid="true"] { border-color: var(--fail); box-shadow: inset 0 0 0 1px var(--fail); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--control); background: var(--surface); border-radius: 4px; padding: 4px 12px; min-height: 2rem; font-size: 0.8125rem; font-weight: 600; }
+.btn:hover { border-color: var(--ink); }
+.btn[disabled] { color: var(--graphite); border-color: var(--border); cursor: not-allowed; }
+.btn-primary { background: var(--purple); border-color: var(--purple); color: var(--on-purple); font-weight: 700; padding: 6px 22px; }
+.btn-primary:hover { background: var(--purple-deep); border-color: var(--purple-deep); }
+.btn-primary[disabled] { background: var(--purple-deep); border-color: var(--purple-deep); color: var(--on-purple); }
+/* Durante o envio Executar não fica disabled (o foco cairia no body): fica com aria-disabled e o desenho
+   indisponível de "Rever em câmera lenta"; o clique e Ctrl + Enter não enviam de novo. */
+.btn[aria-disabled="true"] { color: var(--graphite); border-color: var(--border); cursor: not-allowed; }
+.btn[aria-disabled="true"]:hover { border-color: var(--border); }
+.btn-primary[aria-disabled="true"], .btn-primary[aria-disabled="true"]:hover { background: var(--surface); border-color: var(--border); color: var(--graphite); }
+/* Botão discreto: letra grafite, sem fundo, e uma borda de 1 px já em repouso, na cor da borda dos
+   controles (3:1 contra a zona; a borda das zonas, mais clara, não chega a 3:1); mais escura ao passar o
+   mouse e com o foco. */
+.btn-quiet { border-color: var(--control); background: none; color: var(--graphite); padding: 2px 8px; min-height: 1.75rem; font-size: 0.8125rem; }
+.btn-quiet:hover, .btn-quiet:focus-visible { color: var(--ink); border-color: var(--ink); }
+.spin { box-sizing: border-box; display: inline-block; width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3px; padding: 0 4px; background: var(--surface); }
+
+.method { display: inline-block; min-width: 5.2em; text-align: center; font-family: var(--font-ui); font-size: 0.6875rem; font-weight: 700; line-height: 1; padding: 5px 4px 4px; border-radius: 3px; color: var(--on-method); }
+.m-get { background: var(--m-get); }
+.m-post { background: var(--m-post); }
+.m-put { background: var(--m-put); }
+.m-patch { background: var(--m-patch); }
+.m-delete { background: var(--m-delete); }
+.chip { display: inline-flex; align-items: baseline; gap: 5px; font-family: var(--font-code); font-weight: 700; white-space: nowrap; color: var(--graphite); }
+.chip.ok { color: var(--ok); }
+.chip.fail { color: var(--fail); }
+.chip.warn { color: var(--warn); }
+.tag { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.tag.origin-older { color: var(--ink); font-weight: 600; }
+
+/* Três zonas sobre o fundo da página: Rotas (o que existe), Requisição (o que envio) e Resultado
+   (o que aconteceu). Superfícies chapadas, uma borda, 4 px de raio, um vão entre elas. */
+.app {
+  --layout: abas;
+  display: grid; align-items: start;
+  grid-template-columns: clamp(19.5rem, 19vw, 23rem) minmax(0, 5fr) minmax(0, 6fr);
+  gap: 16px;
+  padding-top: 16px; padding-bottom: 16px;
+}
+/* Até app.js (com defer) escrever o layout na raiz, as zonas ficam invisíveis: antes dele não há abas
+   e o Histórico ainda está fora da coluna da esquerda, e a página pularia uns 47 px quando ele roda. */
+:root:not([data-layout]) .app { visibility: hidden; }
+.zone { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+.zone-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 2.875rem; padding: 6px 16px; border-bottom: 1px solid var(--border); }
+.zone-title { font-size: 1.375rem; font-weight: 600; }
+.zone-routes { position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden; }
+.zone-routes .zone-head { padding: 6px 12px; }
+.routes-toggle { display: none; }
+
+/* Abas da coluna da esquerda (só com três zonas: com quatro, o Histórico tem coluna própria, e uma barra
+   com uma aba só não seria aba). Abas de pasta sobre um fundo cinza, na letra da interface (não na dos
+   títulos das zonas). A escolhida tem borda dos três lados, faixa roxa em cima e o fundo do painel, e
+   cobre a linha de baixo: aba e painel viram uma peça só. A largura não muda ao escolher. */
+/* Abas de pasta: a faixa cinza com a linha embaixo e as abas que se apoiam nela. A não escolhida fica
+   visível em repouso (fundo cinza, letra tinta); a escolhida tem borda dos três lados, faixa roxa em cima e o
+   fundo do painel, cobre a linha de baixo e encontra essa linha numa curva côncava, como a aba de uma pasta
+   de verdade. A altura mínima deixa todas as abas com a mesma altura, com ou sem a caixa da contagem. */
+.folder-tabs { display: flex; flex: none; align-items: flex-end; gap: 4px; min-height: 2.875rem; padding: 6px 8px 0; border-bottom: 1px solid var(--border); background: var(--well); }
+.folder-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 2.4375rem; margin-bottom: -1px; padding: 6px 14px 8px; border: 1px solid transparent; border-top-width: 3px; border-bottom: 0; border-radius: 4px 4px 0 0; background: var(--tab-idle); font-family: var(--font-ui); font-size: 0.875rem; font-weight: 600; line-height: 1.2; color: var(--ink); white-space: nowrap; cursor: pointer; }
+.folder-tab:hover { background: var(--tab-idle-hover); }
+.folder-tab[aria-selected="true"], .folder-tab[aria-selected="true"]:hover { position: relative; padding-bottom: 9px; color: var(--ink); background: var(--surface); border-color: var(--border); border-top-color: var(--accent); }
+.folder-tab:focus-visible { outline-offset: -2px; }
+/* A curva: nos dois cantos de baixo, por fora da aba, um quadrado de --flare px desenha um quarto de anel na
+   cor da borda (o centro no canto de cima do quadrado; o raio de fora toca a linha, o de dentro a borda da
+   aba), e entre a curva e a aba fica o fundo do painel. */
+.folder-tab[aria-selected="true"]::before, .folder-tab[aria-selected="true"]::after { content: ""; position: absolute; bottom: 0; width: var(--flare); height: var(--flare); pointer-events: none; }
+.folder-tab[aria-selected="true"]::before { left: calc(-1 * var(--flare)); background: radial-gradient(circle at 0 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
+.folder-tab[aria-selected="true"]::after { right: calc(-1 * var(--flare)); background: radial-gradient(circle at 100% 0, transparent calc(var(--flare) - 1.4px), var(--border) calc(var(--flare) - 0.8px), var(--border) calc(var(--flare) - 0.2px), var(--surface) calc(var(--flare) + 0.4px)); }
+/* Rotas e Histórico usam as abas de pasta só no layout com abas (mais abaixo). */
+.side-tabs { display: none; }
+/* Contagem: o número numa caixa de raio 3 px, como os selos de método, e não solto ao lado do nome. Com
+   envios que chegaram com a aba fechada, a caixa fica roxa cheia até a aba ser aberta: muda o fundo
+   inteiro, não só o tom. A cada envio, assim que ele entra na lista (isso só diz que houve um envio), os
+   dígitos que mudam giram para cima, com a aba fechada ou aberta; no limite, a unidade tenta girar e trava.
+   Com menos movimento pedido pelo sistema, o número só troca. */
+.tab-count { display: inline-block; min-width: 1.75em; padding: 2px 6px; overflow: hidden; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; line-height: 1.25; text-align: center; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.tab-count:empty { display: none; }
+.tab-count.is-new { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* As abas Resposta e Foi enviado ficam entre duas linhas, como uma faixa. Em telas estreitas o nome da aba
+   pode quebrar, para "Foi enviado" e a caixa "≠ Requisição a enviar" caberem em 320 px. */
+.result-tabs { border-top: 1px solid var(--border); }
+.result-tabs .folder-tab { white-space: normal; text-align: left; flex-wrap: wrap; row-gap: 2px; }
+/* A caixa da contagem nunca encolhe (ela cortaria o texto); sem lugar, ela desce para baixo do nome. */
+.result-tabs .tab-count { flex: none; }
+/* A caixa "≠ Requisição a enviar": o desenho da contagem, com borda grafite; nunca roxa (roxo é "novo" no
+   Histórico). Quando a aba é mais estreita que a caixa, ela quebra entre as palavras. */
+.tab-count.tab-diff { border-color: var(--graphite); }
+.result-tabs .tab-diff { flex: 0 1 auto; overflow: visible; white-space: normal; }
+#result .result-panel:focus { outline: none; }
+#result .result-panel:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+/* O movimento é uma animação de script (rodaSet e rodaJam, em app.js): ela não recomeça quando a lista de
+   abas volta. Cada dígito é uma janela da altura de uma linha (1.25em, o line-height da caixa), com uma fita
+   de dígitos que sobe dentro dela; no tranco do limite, o dígito seguinte aparece embaixo da fita. */
+.count-num { display: inline-block; }
+.odo { display: inline-flex; vertical-align: top; }
+.odo-d { height: 1.25em; overflow: hidden; }
+.odo-s { display: block; white-space: pre; }
+.odo-s[data-next]::after { content: attr(data-next); display: block; }
+.zone-request { container: req / inline-size; }
+.zone-result { container: result / inline-size; }
+
+/* Rotas: as linhas de operação do Swagger, sem contorno; selo, tinta, cadeado e a marca do último envio. */
+.filter { position: relative; display: block; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.filter .input { padding-left: 28px; font-size: 0.8125rem; }
+.filter svg { position: absolute; left: 21px; top: 50%; transform: translateY(-50%); color: var(--graphite); }
+.route-list { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+.group h3 { position: sticky; top: 0; z-index: 1; display: flex; gap: 6px; align-items: baseline; font-size: 0.9375rem; padding: 5px 12px 3px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.group h3 span { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
+/* A descrição do grupo (tags[].description) sob o nome, como no Swagger: uma linha discreta que rola com
+   a lista (o nome continua grudado no topo) e pode quebrar, nunca cortada. */
+.group-desc { padding: 6px 12px 0; font-size: 0.75rem; line-height: 1.4; color: var(--graphite); overflow-wrap: break-word; }
+.group ul { list-style: none; margin: 0; padding: 5px 8px 8px; display: flex; flex-direction: column; gap: 4px; }
+.route {
+  --m: var(--ink);
+  --tint: var(--route-tint);
+  position: relative; width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto 13px; gap: 0 8px; align-items: center; text-align: left;
+  border: 0; border-radius: 4px;
+  background: color-mix(in srgb, var(--m) var(--tint), var(--surface));
+  padding: 4px 8px 4px 9px; min-height: 0;
+  scroll-margin-top: 2.5rem; scroll-margin-bottom: 8px;
+}
+.route:has(.m-get) { --m: var(--m-get); }
+.route:has(.m-post) { --m: var(--m-post); }
+.route:has(.m-put) { --m: var(--m-put); }
+.route:has(.m-patch) { --m: var(--m-patch); }
+.route:has(.m-delete) { --m: var(--m-delete); --tint: var(--route-tint-delete); }
+.route:hover { background: color-mix(in srgb, var(--m) var(--route-hover), var(--surface)); }
+.route:focus-visible { outline-offset: 2px; }
+.route[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; border-radius: 4px 0 0 4px; background: var(--accent); }
+.route[aria-current="true"] .path { font-weight: 700; }
+.route .method { grid-column: 1; grid-row: 1; min-width: 4.8em; }
+.route .path { grid-column: 2 / 5; grid-row: 1; font-family: var(--font-code); font-size: 0.78125rem; font-weight: 500; line-height: 1.3; overflow-wrap: break-word; min-width: 0; }
+.route .sum { grid-column: 2; grid-row: 2; min-width: 0; font-size: 0.8125rem; line-height: 1.3; color: var(--graphite); }
+/* Marca do último envio desta rota: símbolo e código, nunca só cor. */
+/* A marca fica embaixo do selo do método, no espaço que a coluna dele já tem vazio na segunda linha ("✓ 200"
+   cabe no selo). Assim ela não guarda largura na linha do resumo e, quando aparece, nenhuma linha muda de
+   altura. Pode quebrar ("✗ / falhou"), para nunca alargar a coluna do selo. */
+.route .last { grid-column: 1; grid-row: 2; justify-self: center; text-align: center; white-space: normal; font-family: var(--font-code); font-weight: 700; font-size: 0.75rem; line-height: 1.3; }
+.route .lock { grid-column: 4; grid-row: 2; color: var(--ink); display: inline-flex; }
+.empty { color: var(--graphite); font-size: 0.8125rem; padding: 10px 12px; }
+.error-box { margin: 10px 12px; background: var(--fail-tint); padding: 10px 12px; font-size: 0.8125rem; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; overflow-wrap: anywhere; }
+
+/* Requisição: o título da rota abre a zona. Seções (título, barra, Requisição a enviar, token, abas) separadas
+   pelos passos grandes da escala; o que fica dentro de uma seção, pelos pequenos. */
+.zone-request { --req-x: 20px; }
+.request { padding: var(--space-xl) var(--req-x); }
+/* O título da zona alinha com o conteúdo dela. */
+.zone-request .zone-head { padding-left: var(--req-x); padding-right: var(--req-x); }
+.request:focus { outline: none; }
+.request:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.req-title { font-size: 1.5625rem; line-height: 1.15; text-wrap: balance; }
+.req-desc { margin-top: var(--space-m); display: flex; flex-direction: column; gap: var(--space-s); max-width: 72ch; }
+.req-desc code { font-size: 0.78125rem; font-weight: 600; background: var(--well); padding: 1px 4px; border-radius: 2px; }
+/* Link da rota na documentação: no fim da linha do título da zona, discreto (grafite, sem sublinhado em
+   repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
+.head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
+.head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); }
+/* Barra de endereço: sempre uma linha. Selo, URL e Executar na largura natural. Se a URL não cabe, a base
+   sai primeiro (ela está inteira em Requisição a enviar e no title); se nem o caminho cabe, ele perde o começo,
+   com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. O invólucro dá
+   à barra o respiro de cima e de baixo. */
+.req-bar-wrap { margin: calc(var(--space-xl) - 8px) calc(-1 * var(--req-x)) 0; padding: 8px var(--req-x); background: var(--surface); }
+.req-bar {
+  --m: var(--ink);
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--m) 60%, var(--surface)); border-radius: 4px; background: color-mix(in srgb, var(--m) var(--bar-tint), var(--surface));
+}
+.req-bar:has(.m-get) { --m: var(--m-get); }
+.req-bar:has(.m-post) { --m: var(--m-post); }
+.req-bar:has(.m-put) { --m: var(--m-put); }
+.req-bar:has(.m-patch) { --m: var(--m-patch); }
+.req-bar:has(.m-delete) { --m: var(--m-delete); }
+.req-bar .method { flex: none; font-size: 0.75rem; padding: 7px 6px 6px; }
+/* Uma linha visível: o caminho vem primeiro na linha (order) e a base à esquerda dele (row-reverse); se as
+   duas não cabem, a base quebra para a segunda linha, que fica escondida. A leitura segue a ordem do DOM. */
+.req-path { flex: 1 1 auto; min-width: 0; display: flex; flex-flow: row-reverse wrap; justify-content: flex-end; align-content: flex-start; height: calc(1.5em + 8px); overflow: hidden; padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+.req-base { flex: none; color: var(--graphite); font-weight: 400; }
+.req-route { order: -1; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+.req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
+/* Executar dividido: a parte principal envia no modo em uso; o segmento da direita mostra, em branco, o
+   ícone do modo (as setas do ServeRest: normal; o caracol: câmera lenta) e a seta pequena de menu, sempre
+   os dois, e abre o menu do modo. Durante o envio os dois ficam com o desenho indisponível. */
+.ico { display: block; flex: none; width: 16px; height: 16px; }
+.run-split { position: relative; display: inline-flex; flex: none; align-self: center; }
+.run-split .btn-primary { border-radius: 4px 0 0 4px; }
+.run-split:has(> .run-mode[hidden]) .btn-primary { border-radius: 4px; }
+.run-mode { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 2.25rem; min-height: 2.125rem; padding: 0 8px; border: 1px solid var(--purple); border-left-color: rgba(255, 255, 255, 0.45); border-radius: 0 4px 4px 0; background: var(--purple); color: var(--on-purple); }
+.run-mode:hover { background: var(--purple-deep); border-color: var(--purple-deep); border-left-color: rgba(255, 255, 255, 0.45); }
+.run-mode .ico-chev { width: 12px; height: 12px; }
+.run-split .btn-primary:focus-visible, .run-mode:focus-visible { position: relative; z-index: 1; }
+.run-mode[aria-disabled="true"], .run-mode[aria-disabled="true"]:hover { background: var(--surface); border-color: var(--border); color: var(--graphite); cursor: not-allowed; }
+/* O menu do modo: dois itens de rádio, o marcado com o visto roxo; abre sob o botão, alinhado à direita. */
+.run-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: 19.5rem; max-width: calc(100vw - 32px); margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1px solid var(--control); border-radius: 4px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
+:root[data-theme="dark"] .run-menu { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55); }
+.run-menu button { width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 8px; align-items: start; padding: 8px 10px; border: 0; border-radius: 3px; background: transparent; color: var(--ink); text-align: left; font-size: 0.875rem; line-height: 1.4; }
+.run-menu button:hover, .run-menu button:focus-visible { background: var(--well); outline-offset: -2px; }
+.run-menu .ico-check { width: 16px; height: 16px; margin-top: 2px; color: var(--accent); visibility: hidden; }
+.run-menu button[aria-checked="true"] .ico-check { visibility: visible; }
+.run-menu .run-item-label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.run-menu .run-item-label .ico { color: var(--graphite); }
+.run-menu .run-item-sub { grid-column: 2; font-size: 0.8125rem; color: var(--graphite); }
+/* O atalho fica sozinho numa linha sob a barra, à direita, perto de Executar. */
+.kbd-hint { font-size: 0.8125rem; color: var(--graphite); }
+/* A linha sob a barra de endereço: o link do método à esquerda e o atalho à direita (em tela de toque o
+   atalho some e a linha fica só com o link). */
+.req-hint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-top: var(--space-xs); }
+.req-hint .kbd-hint { margin-left: auto; }
+@media (pointer: coarse) { .kbd-hint { display: none; } }
+.method-link { font-size: 0.8125rem; color: var(--graphite); }
+.method-link:hover, .method-link:focus-visible { color: var(--ink); }
+.method-link .m-name { font-family: var(--font-code); font-weight: 600; }
+.copy-msg { font-size: 0.8125rem; color: var(--ok); }
+.copy-msg:empty { display: none; }
+.copy-msg.fail { color: var(--fail); }
+
+/* Faixa de seção: um componente só para todo título de seção da Requisição. Ocupa a largura interna da zona
+   de ponta a ponta, com o texto alinhado ao respiro da zona; o título à esquerda e os controles da seção à
+   direita, que quebram dentro da faixa quando falta espaço. Sem raio, sombra nem estado de passar o mouse:
+   não é um botão. */
+.band { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-height: 2.75rem; padding: 6px 16px; background: var(--band); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.band-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.2; }
+/* O título do Fluxo é o botão que o abre e fecha, com a mesma seta das etapas. Fechado, ficam o veredito
+   com o tempo total, a barra de "Todas as etapas" e a linha de leitura dela; a dica, as etapas e a barra de
+   tempo somem. */
+.flow-toggle { display: inline-flex; align-items: center; gap: 8px; margin: -4px 0 -4px -6px; padding: 4px 6px; border: 0; border-radius: 3px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.flow-toggle:hover .flow-toggle-text { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.flow-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+.flow-toggle-ico { flex: none; width: 12px; height: 8px; color: var(--graphite); transition: transform 0.15s; }
+.flow-toggle[aria-expanded="true"] .flow-toggle-ico { transform: rotate(90deg); }
+.flow.is-collapsed .stages-hint, .flow.is-collapsed .flow-stages, .flow.is-collapsed .wf-lines, .flow.is-collapsed .tl { display: none; }
+.flow-mini-time { display: none; margin: 8px 0 0; font-size: 0.8125rem; color: var(--graphite); }
+.flow-mini-time b { font-family: var(--font-code); font-weight: 600; color: var(--ink); }
+/* Fechado, o veredito fica no lugar que tem com o Fluxo aberto e o tempo total sobe para a linha dele, à
+   direita; o resto ocupa a largura toda, uma linha por parte. Numa zona estreita o tempo vai para o fim. */
+.flow.is-collapsed > .band-body:has(> .flow-summary) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; align-items: start; }
+.flow.is-collapsed > .band-body > * { grid-column: 1 / -1; }
+.flow.is-collapsed .flow-summary { grid-column: 1; grid-row: 1; }
+/* Alinhadas pelo topo, não pela linha de base: pela base, o "Percorrendo as etapas…" menor da câmera lenta
+   deixava a linha 1 px mais alta que no veredito. Os 3 px põem o tempo na altura do texto do veredito. */
+.flow.is-collapsed .flow-mini-time { display: block; grid-column: 2; grid-row: 1; margin: 3px 0 0; white-space: nowrap; }
+/* Sem o rótulo "Todas as etapas", a barra usa a largura toda. */
+.flow.is-collapsed .wf { margin-top: 6px; }
+.flow.is-collapsed .wf-label { display: none; }
+.flow.is-collapsed .wf-scale { grid-template-columns: minmax(0, 1fr); padding: 0; }
+.flow.is-collapsed .wf-scale .wf-summary { grid-column: 1; grid-row: 1; }
+.flow.is-collapsed .wf-summary .flow-seg { left: 0; right: 4px; }
+.flow.is-collapsed .wf-summary .wf-cell { cursor: pointer; }
+.flow.is-collapsed .wf-summary .wf-cell:focus { outline: none; }
+.flow.is-collapsed .wf-summary .wf-cell:focus-visible .flow-seg { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* A linha de leitura, só com o Fluxo fechado: parada, diz como usar a barra; com o mouse ou o foco numa
+   parte, a etapa, a situação e o tempo. A altura é a do texto mais longo que ela pode mostrar (data-reserve,
+   numa cópia invisível na mesma célula), então nada abaixo dela anda. */
+.fc-read { display: none; }
+.flow.is-collapsed .fc-read { display: grid; margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.4; color: var(--graphite); }
+/* A linha de leitura e, no canto direito, a marca "escala ajustada", numa coluna da largura dela que existe
+   sempre: a leitura guarda a altura da frase mais longa nessa coluna mais estreita, e a marca, visível só quando
+   o servidor cresceu além da escala e depois do veredito, não mexe em nada. A explicação aparece com o mouse e
+   o foco. */
+.fc-read-row { display: none; }
+.flow.is-collapsed .fc-read-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: start; margin-top: 6px; }
+.flow.is-collapsed .fc-read-row > .fc-read { margin: 0; }
+.fc-scale { position: relative; visibility: hidden; margin: 1px 0 0; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; background: none; color: var(--graphite); font-size: 0.6875rem; line-height: 1.3; white-space: nowrap; cursor: help; }
+.fc-scale.is-on { visibility: visible; }
+.fc-scale:focus { outline: none; }
+.fc-scale:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.fc-scale.is-on:hover::after, .fc-scale.is-on:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(18rem, 80vw); padding: 6px 8px; border: 1px solid var(--control); border-radius: 4px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink); font-size: 0.75rem; line-height: 1.4; white-space: normal; text-align: left; }
+.fc-read > .fc-read-text, .fc-read::after { grid-area: 1 / 1; }
+.fc-read::after { content: attr(data-reserve) / ""; visibility: hidden; pointer-events: none; user-select: none; }
+.fc-read-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.fc-read-text .fc-name { font-weight: 700; color: var(--ink); }
+.fc-read-text.is-stage .flow-mark { min-width: 0.9rem; }
+.fc-read .flow-spinner { display: inline-block; margin: 0 2px 0 0; vertical-align: -1px; }
+.fc-ok .flow-mark { color: var(--ok); }
+.fc-fail .flow-mark, .fc-fail .fc-word { color: var(--fail); font-weight: 600; }
+.fc-running .fc-word { color: var(--accent); }
+/* A fonte do código alinhada pela linha de base passaria a linha 1 px da altura guardada: line-height 1. */
+.fc-dur { font-family: var(--font-code); line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.fc-fail .fc-dur { color: var(--fail); }
+/* A barra da requisição inteira (com as fases do tempo), no lugar da de "Todas as etapas": conexão, ida,
+   servidor (as etapas, com a largura mínima de cada uma), volta e download, nas cores da barra de tempo, e
+   uma chave sob o servidor com o tempo dele ("fora de escala" quando ele precisou crescer para caber as
+   etapas). Até o veredito as partes da rede ficam vazias e os tempos invisíveis, no lugar deles (D29). */
+.fc-one { display: none; }
+.flow.is-collapsed .fc-one { display: block; margin-top: 6px; }
+.flow.is-collapsed > .band-body:has(> .fc-one) > .wf { display: none; }
+.fc-one-bar { display: flex; gap: 2px; height: 30px; }
+.fc-oi { position: relative; min-width: 0; cursor: pointer; }
+.fc-oi:focus { outline: none; }
+.fc-ns { position: absolute; left: 0; right: 0; top: 50%; height: 16px; margin-top: -8px; background: var(--seg-idle); }
+.fc-onet.conn .fc-ns { background: var(--graphite); }
+.fc-onet.down .fc-ns { background: var(--seg-response); }
+.fc-onet.is-wait .fc-ns { background: var(--well); box-shadow: inset 0 0 0 1px var(--border); }
+.fc-srv { display: grid; column-gap: 2px; min-width: 0; }
+.fc-one .flow-seg { left: 0; right: 0; height: 16px; margin-top: -8px; background-color: var(--seg-idle); }
+.fc-one .flow-seg.flow-seg-skip { background-color: var(--well); }
+.fc-oi:hover > .fc-ns, .fc-oi:hover > .flow-seg, .fc-oi:focus-visible > .fc-ns, .fc-oi:focus-visible > .flow-seg { z-index: 1; outline: 2px solid var(--focus); outline-offset: 2px; }
+.fc-bracket { position: relative; height: 22px; }
+.fc-bracket-line { position: absolute; top: 0; height: 6px; border: 1px solid var(--ok); border-top: 0; }
+.fc-bracket-label { position: absolute; top: 6px; font-size: 0.75rem; line-height: 1.3; font-weight: 600; color: var(--ok); white-space: nowrap; }
+.fc-bracket-time { font-family: var(--font-code); font-weight: 600; }
+/* Até o veredito, o rótulo do servidor e o número do tempo total dão lugar a barras do esqueleto, de largura
+   fixa e igual em todo envio (D29); "Tempo total no navegador" continua escrito. O número ocupa a mesma
+   largura da barra, para o rótulo não andar na troca. */
+/* .fc-bracket na frente: a regra geral de .skel-bar (display: block, position: relative) vem depois e
+   deixava a barra à vista, empurrada, depois do veredito. */
+/* Os tempos: até o veredito, só o número dá lugar a uma barra do esqueleto de largura fixa, na mesma célula e
+   com a mesma largura em todo envio (D29); o nome e "ms" ficam escritos. No veredito os dois se cruzam. */
+.num-slot { display: inline-grid; min-width: 4ch; justify-items: end; align-items: center; }
+.num-slot > * { grid-area: 1 / 1; transition: opacity 0.15s ease-out, visibility 0.15s; }
+.num-slot > .num-skel { width: 100%; height: 0.7em; opacity: 0; visibility: hidden; }
+.band-body.is-running .num-real { opacity: 0; visibility: hidden; }
+.band-body.is-running .tl > .sr-only { display: none; }
+.band-body.is-running .num-slot > .num-skel { opacity: 1; visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .num-slot > * { transition: none; } }
+.skel-still .skel-bar::after { animation: none; display: none; }
+/* Na linha de leitura, uma parte do tempo vem com um quadrado na cor dela, o tempo e a fatia do total. */
+.fc-swatch { flex: none; align-self: center; width: 10px; height: 10px; background: var(--seg-idle); }
+.fc-swatch.conn { background: var(--graphite); }
+.fc-swatch.down { background: var(--seg-response); }
+.fc-swatch.is-wait { background: var(--well); box-shadow: inset 0 0 0 1px var(--border); }
+.fc-read-text .fc-share { color: var(--graphite); }
+/* A ida e a volta pelo nome curto só numa zona estreita, onde o longo quebraria a linha. */
+.fc-short { display: none; }
+/* Numa tela de toque não há passar por cima: a frase parada diz que tocar abre a etapa. */
+.fc-hint-touch { display: none; }
+@media (pointer: coarse) {
+  .fc-hint { display: none; }
+  .fc-hint-touch { display: inline; }
+  .fc-read::after { content: attr(data-reserve-touch) / ""; }
+}
+/* Fechado, o status sai do cabeçalho do Resultado, na espera e depois do veredito: o cabeçalho fica com uma
+   linha só, da mesma altura antes e depois, e o status fica na Resposta, junto do corpo. */
+.zone-result:has(> .flow.is-collapsed) .shown-status { display: none; }
+@media (prefers-reduced-motion: reduce) { .flow-toggle-ico { transition: none; } }
+.band-tools { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.band-body { padding: var(--space-m) 16px var(--space-xl); }
+/* Na Requisição a seção sai do respiro de #request para a faixa ir de borda a borda. */
+.req-section { margin: 0 calc(-1 * var(--req-x)); }
+.req-hint + .req-section, .req-bar-wrap + .req-section { margin-top: var(--space-xl); }
+.req-section > .band, .req-section > .band-body { padding-left: var(--req-x); padding-right: var(--req-x); }
+.req-section:last-child > .band-body { padding-bottom: 0; }
+.captions { margin-top: var(--space-s); display: flex; flex-direction: column; gap: var(--space-xs); }
+.captions:not(:has(> :not(:empty))) { display: none; }
+/* Botões de copiar: texto visível, nunca desabilitados nem só ao passar o mouse; a largura mínima é a do
+   rótulo de repouso, então "Copiado" não move nada. */
+.btn-copy { min-height: 2rem; min-width: 8.75rem; }
+.link-btn { display: inline; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-btn:hover { color: var(--accent-strong); }
+
+/* Código que o aluno lê ou copia (o comando curl de Requisição a enviar e os exemplos de Respostas possíveis) fica
+   no bloco escuro; o editor do corpo, que o aluno escreve, é cinza. Sem rolagem própria e sem foco; as cores
+   do JSON são as do corpo da resposta. */
+.code-page { margin: 0; background: var(--code-bg); color: var(--code-fg); border: 0; border-radius: 4px; padding: 10px 12px; font-family: var(--font-code); font-size: 0.78125rem; font-weight: 500; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.code ::selection, .code-page ::selection { background: #7a3fd1; color: #ffffff; }
+/* No escuro o bloco fica só 1,14:1 contra a zona; uma borda de 1 px (sombra interna, que não muda a altura)
+   marca a beirada. No claro o bloco já contrasta e fica sem borda. */
+:root[data-theme="dark"] .code-page, :root[data-theme="dark"] .code { box-shadow: inset 0 0 0 1px var(--border); }
+/* Cada parte do comando numa linha; o que quebra por falta de largura fica recuado (recuo pendente), e o
+   " \" do fim nunca vai sozinho para a linha de baixo: o último caractere vai junto, e a URL quebra só nos
+   <wbr>. */
+.curl-part { display: block; padding-left: 4ch; text-indent: -4ch; }
+.curl-cont { white-space: pre; }
+.curl-tail { white-space: nowrap; }
+.curl-flag { color: var(--accent); font-weight: 600; }
+.code-page .curl-flag { color: var(--code-flag); }
+.curl-method, .curl-hname { font-weight: 600; }
+
+.auth-caption { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--graphite); overflow-wrap: break-word; }
+.auth-absent { color: var(--warn); font-weight: 600; }
+.auth-expired { color: var(--warn); font-weight: 600; }
+.auth-error { font-family: var(--font-ui); font-size: 0.8125rem; color: var(--fail); font-weight: 700; }
+.auth-error:empty { display: none; }
+.auth-actions { display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--font-ui); }
+.auth-actions:not(:has(button:not([hidden]))) { display: none; }
+.auth-public { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--graphite); }
+.params + .auth-public, .params-none + .auth-public { margin-top: var(--space-m); }
+.params-none { font-size: 0.8125rem; color: var(--graphite); }
+
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.params { border-top: 1px solid var(--border); }
+/* Linha de parâmetro: 3 rem com a borda (campo de 2 rem e meio rem de cada lado), rótulo centrado no campo. */
+.params .field { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-xs) 12px; align-items: center; padding: var(--space-s) 0; border-bottom: 1px solid var(--border); }
+.params .param-help { grid-column: 2; }
+/* A linha do header Authorization, na mesma grade: à esquerda o cadeado, o nome e o tipo; à direita o
+   campo, a legenda, o erro e as ações. */
+.auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 2; }
+.auth-row .param-label .lock { align-self: center; color: var(--ink); }
+.params .auth-row { padding-bottom: var(--space-m); }
+.param-label { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; font-size: 0.78125rem; }
+.param-label code { font-size: 0.78125rem; font-weight: 600; }
+.req-mark { font-size: 0.71875rem; color: var(--fail); }
+.param-help { font-size: 0.8125rem; color: var(--graphite); }
+/* O tipo e o lugar do parâmetro numa linha só, "string (query)": o tipo na letra do código e o lugar em
+   itálico, na letra da interface. Duas linhas deixavam cada parâmetro mais alto sem dizer mais; numa zona
+   estreita, a quebra fica entre os dois, nunca dentro de um. */
+.param-type { font-family: var(--font-code); font-size: 0.75rem; color: var(--graphite); align-self: start; }
+.param-type-name, .param-in { white-space: nowrap; }
+.param-in { font-family: var(--font-ui); font-size: 0.75rem; font-style: italic; color: var(--graphite); }
+/* Abaixo do editor, como no campo Authorization: a legenda diz de onde vem o corpo, e "Restaurar exemplo"
+   só aparece quando há o que restaurar. */
+.body-state { margin-top: var(--space-s); font-size: 0.8125rem; color: var(--graphite); }
+.body-actions { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: var(--space-s); }
+.body-actions:not(:has(button:not([hidden]))) { display: none; }
+.editor { width: 100%; resize: vertical; min-height: 8rem; border: 1px solid var(--control); border-radius: 4px; background: var(--editor-bg); padding: 10px 12px; font-family: var(--font-code); font-size: 0.78125rem; line-height: 1.6; tab-size: 2; }
+.json-note { font-size: 0.8125rem; color: var(--warn); margin-top: var(--space-s); }
+.json-note:empty { display: none; }
+/* O schema do corpo (os campos, o tipo e a regra de cada um), lido do documento OpenAPI, nas abas JSON e
+   Schema, como no Swagger. É texto da interface, não código: nem o bloco escuro nem o cinza do editor. A
+   coluna da regra começa no mesmo x dos campos de Parâmetros. */
+.schema-intro, .schema-unknown { font-size: 0.8125rem; color: var(--graphite); }
+.schema-intro { margin: 0 0 var(--space-s); }
+.schema-unknown { margin: var(--space-s) 0 0; }
+.schema-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 0.8125rem; }
+.schema-table .schema-col-field { width: calc(11rem + 12px); }
+.schema-table thead th { padding: 0 12px 6px 0; border-bottom: 1px solid var(--border); text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.schema-table tbody th, .schema-table tbody td { padding: var(--space-s) 12px var(--space-s) 0; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; font-weight: 400; }
+.schema-table tbody td { padding-right: 0; color: var(--ink); overflow-wrap: anywhere; }
+.schema-table tbody th .param-type { display: block; margin-top: 3px; }
+.schema-table td code { font-size: 0.78125rem; background: var(--well); padding: 1px 4px; border-radius: 2px; }
+.schema-items tr:not(.schema-group) > th { padding-left: 1rem; }
+.schema-table .schema-group > th { padding: var(--space-s) 0 2px; color: var(--graphite); border-bottom: 0; font-weight: 400; }
+.schema-table .schema-group code { font-size: 0.78125rem; font-weight: 600; }
+.opt-mark { font-size: 0.71875rem; font-style: italic; font-weight: 400; color: var(--graphite); }
+.schema-table th[tabindex]:focus, .schema-unknown:focus { outline: none; }
+.schema-table th[tabindex]:focus-visible, .schema-unknown:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.schema-table tr.schema-hit > * { background: var(--accent-tint); }
+/* A faixa das abas JSON e Schema começa a primeira aba --flare px para dentro, para a curva da esquerda ter a
+   linha onde se apoiar. */
+.body-tabs { margin: 0 0 var(--space-m); padding-left: var(--flare); padding-right: 0; background: none; }
+.flow-schema-go { align-self: flex-start; margin-top: 4px; }
+.sent { display: grid; grid-template-columns: max-content minmax(0, 1fr); margin: 0; font-size: 0.78125rem; border-top: 1px solid var(--border); }
+.sent dt, .sent dd { padding: 5px 0; border-bottom: 1px solid var(--border); }
+.sent dt { color: var(--graphite); font-family: var(--font-code); padding-right: 18px; }
+.sent dd { margin: 0; font-family: var(--font-code); overflow-wrap: anywhere; min-width: 0; }
+.code { background: var(--code-bg); color: var(--code-fg); border-radius: 4px; overflow: auto; }
+.code pre { margin: 0; padding: 10px 12px; font-size: 0.78125rem; font-weight: 500; line-height: 1.6; white-space: pre; }
+
+/* Respostas possíveis: o que a documentação promete, para o aluno saber o que verificar. Como a tabela do
+   Swagger: cabeçalho Status code e Descrição, uma linha por resposta, o exemplo sob a descrição, duas colunas
+   em toda largura. A primeira coluna cabe "Status code" numa linha. */
+.doc-cols, .doc-responses > li { display: grid; grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 12px; }
+.doc-cols { padding-bottom: 6px; border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.doc-responses { list-style: none; margin: 0; padding: 0; }
+.doc-responses > li { row-gap: var(--space-s); padding: 12px 0; }
+.doc-responses > li + li { border-top: 1px solid var(--border); }
+.doc-code { font-family: var(--font-code); font-weight: 600; font-size: 0.875rem; }
+.doc-desc { align-self: center; }
+.doc-desc code { font-size: 0.78125rem; background: var(--well); padding: 1px 4px; border-radius: 2px; }
+.doc-example, .doc-none { grid-column: 2; }
+.doc-none { font-size: 0.8125rem; color: var(--graphite); }
+.doc-intro { font-size: 0.8125rem; color: var(--graphite); margin-bottom: var(--space-m); }
+.doc-example > summary { cursor: pointer; font-size: 0.8125rem; font-weight: 600; width: max-content; max-width: 100%; }
+.doc-example[open] > summary { margin-bottom: var(--space-s); }
+
+/* Histórico: a quarta zona. Uma lista vertical de envios, o mais recente primeiro, que rola só para
+   baixo e só dentro do painel. A mesma marcação vira entrada de três linhas (painel estreito), de duas
+   (médio) ou linha de tabela com cabeçalho (largo): quem decide é a largura do próprio painel. */
+.zone-history { container: hist / inline-size; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.zone-history .zone-head { flex: none; }
+.hist-clear { margin-left: auto; }
+/* Depois de Limpar (P3): "Histórico limpo." e Desfazer, até o próximo envio. */
+.hist-cleared { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: var(--space-m) 16px 0; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+.hist-limit { margin: 0; padding: 6px 16px 0; font-size: 0.75rem; color: var(--graphite); }
+#hist-count.at-limit { display: inline-block; color: var(--accent); font-weight: 600; }
+.hist-empty { padding: var(--space-m) 16px var(--space-l); font-size: 0.8125rem; color: var(--graphite); max-width: 62ch; }
+.hist-empty:focus { outline: none; }
+.hist-empty:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+/* Sem ancoragem de rolagem: o navegador não compensa a rolagem enquanto o lugar da entrada nova abre no topo. */
+.hist-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; overflow-anchor: none; }
+.hist-cols { display: none; }
+.history-list { list-style: none; margin: 0; padding: 0; }
+/* Separadores leves: os cartões já se separam pelo respiro. */
+.history-list > li { border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent); }
+/* O cartão de um envio, em duas linhas. Na primeira, o método, o path, um cadeado quando o envio levou o
+   header Authorization e a hora. Na segunda, o ✓/✗ e o código do status, o _id só num 201 (ou o selo "token
+   em uso" no login do token que a rota escolhida envia) e o tempo total. O pseudo-elemento é a quebra entre
+   as linhas, e order põe a hora na primeira linha sem mudar a ordem de leitura (hora, método, path, cadeado,
+   status, resposta, tempo). Tudo o que depende do resultado fica numa linha só e cortado, nunca quebrado: o
+   cartão tem a mesma altura antes e depois do veredito. */
+.entry { position: relative; width: 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px 8px; padding: 7px 14px 8px 11px; border: 0; border-left: 5px solid transparent; background: none; text-align: left; font-size: 0.75rem; line-height: 1.45; color: var(--ink); }
+.entry::before { content: ""; flex-basis: 100%; height: 0; order: 4; }
+.entry:hover { background: var(--hover); }
+.entry:focus-visible { outline-offset: -2px; }
+/* A entrada mostrada em Resultado: barra à esquerda (como a rota escolhida), fundo e caminho sublinhado. */
+.entry[aria-current="true"] { border-left-color: var(--accent); background: var(--accent-tint); }
+.entry[aria-current="true"] .path { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.entry .method { order: 1; align-self: center; font-size: 0.6875rem; min-width: 4.4em; padding: 3px 3px 2px; }
+.entry .m-get { --mc: var(--m-get); }
+.entry .m-post { --mc: var(--m-post); }
+.entry .m-put { --mc: var(--m-put); }
+.entry .m-patch { --mc: var(--m-patch); }
+.entry .m-delete { --mc: var(--m-delete); }
+/* O cadeado logo depois do path, só quando o envio levou o header: sem lugar guardado. */
+.entry .tok { order: 2; display: inline-flex; align-items: center; justify-content: center; flex: none; align-self: center; color: var(--graphite); }
+.entry .tok:empty { display: none; }
+.entry .tok svg { display: block; }
+.entry .path { order: 2; min-width: 0; font-family: var(--font-code); font-size: 0.75rem; font-weight: 600; overflow-wrap: anywhere; }
+.entry time { order: 3; margin-left: auto; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.entry .chip, .entry .chip-slot { order: 5; font-size: 0.75rem; }
+/* Só o ✓/✗ e o código levam cor; a frase do status fica para o leitor de tela ("400 Bad Request"). */
+.entry .chip { gap: 4px; font-weight: 600; }
+/* Um texto cortado numa linha tem flex-basis 0: com flex-wrap, um item da largura do texto iria para uma
+   linha nova em vez de encolher, e o cartão ganharia uma linha. */
+.entry .resp, .entry .pending-note { order: 5; flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry .resp .lbl { font-size: 0.6875rem; color: var(--graphite); }
+/* A fonte do código em 11 px tem métricas mais altas que a Open Sans: line-height 1 não deixa a linha crescer. */
+.entry .resp .mono { font-family: var(--font-code); font-size: 0.6875rem; font-weight: 600; line-height: 1; }
+.entry .ms { order: 6; flex: none; margin-left: auto; font-size: 0.6875rem; color: var(--graphite); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* O selo do login cujo token a rota escolhida envia agora em Authorization. */
+.entry .tok-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 1px; padding: 1px 5px; border: 1px solid var(--accent); border-radius: 3px; font-size: 0.6875rem; font-weight: 600; line-height: 1; color: var(--accent); vertical-align: top; }
+.entry .tok-badge svg { flex: none; }
+/* Pendente: o status, o _id e o tempo ficam sob um esqueleto da mesma largura em todo envio. Por baixo dele
+   vai um chip neutro ("•000"), invisível, só para a linha ter a altura da do status (D29); o cabeçalho do
+   Resultado usa o mesmo chip. */
+.chip-neutral { width: 8em; }
+/* Painel largo: linhas de tabela com colunas alinhadas e uma linha de cabeçalho fixa no topo. */
+@container hist (min-width: 56rem) {
+  .hist-cols, .entry { display: grid; grid-template-columns: 5rem 4.75rem minmax(9rem, 1fr) 13px 4rem minmax(14rem, 1.6fr) 4.5rem; column-gap: 16px; }
+  .hist-cols { position: sticky; top: 0; z-index: 1; align-items: end; padding: 6px 16px 5px 21px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+  .entry { align-items: center; min-height: 2.375rem; padding: 6px 16px 6px 16px; font-size: 0.8125rem; }
+  .entry::before { display: none; }
+  .zone-history .entry > * { order: 0; margin: 0; }
+  .entry .method { justify-self: start; }
+  .entry .path, .entry .chip { font-size: 0.8125rem; }
+  .entry .resp, .entry .pending-note { display: block; }
+  .entry .ms, .hist-cols .num { text-align: right; }
+  /* Na tabela a coluna do cadeado existe em toda linha, vazia sem o header. */
+  .entry .tok:empty { display: block; }
+}
+
+.shown { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: var(--space-m) 16px; }
+.shown:focus { outline: none; }
+.shown:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+#result { scroll-margin-top: 16px; }
+/* A origem do resultado mostrado fica no fim da linha do título "Resultado", como "Ver no Swagger" no título
+   da Requisição: a linha do envio (método, path, status) cabe numa linha só, e a altura do cabeçalho não
+   muda com o tamanho do texto da origem. */
+.result-origin { margin-left: auto; text-align: right; }
+/* Numa coluna só, um link no cabeçalho do Resultado volta para a barra de endereço. */
+.result-edit { font-size: 0.8125rem; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.result-edit:hover { color: var(--accent-strong); }
+:root:not([data-layout="pilha"]) .result-edit { display: none; }
+.req-path:focus { outline: none; }
+.req-path:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.shown-path { font-family: var(--font-code); font-size: 0.9375rem; font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.shown .chip { font-size: 0.9375rem; }
+/* O status no cabeçalho ocupa sempre a largura do mais longo ("✗ 500 Internal Server Error"), antes e
+   depois do veredito: o cabeçalho quebra as linhas do mesmo jeito nos dois, e a altura não muda na troca.
+   Pendente, o esqueleto tem a mesma largura em todo envio, e a margem completa o lugar (D29). */
+.shown .status-value .chip { min-width: 16em; }
+.shown .status-value .chip-neutral { min-width: 0; margin-right: 8em; }
+/* "Status code" escrito antes do status, no cabeçalho do Resultado (texto, sem link) e na linha da Resposta
+   (link para a página do status na MDN). Até o veredito, o rótulo e o status ficam juntos no lugar guardado
+   e invisível (D29). */
+.shown-status { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.status-label { font-family: var(--font-ui); font-size: 0.75rem; font-weight: 600; color: var(--graphite); }
+.status-link { display: inline-flex; align-items: baseline; gap: 8px; color: inherit; text-decoration: none; }
+.status-link:hover { color: inherit; }
+.status-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+.shown .method { align-self: center; }
+/* Envio cujo fluxo ainda não chegou ao veredito: no cabeçalho do Resultado e na entrada do Histórico, o
+   lugar do status fica guardado, invisível, com o esqueleto com brilho por cima (no cabeçalho, "Status
+   code" continua escrito); na entrada, a frase de que o resultado aparece no fim do fluxo fica só para o
+   leitor de tela. Nada mostra o resultado antes do fluxo. */
+.chip-slot { visibility: hidden; }
+.chip-slot .status-label { visibility: visible; }
+.chip-slot .chip { position: relative; }
+.chip-slot .chip::after { visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; animation: skelSweep 1.5s ease-in-out infinite; }
+.chip-slot .chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; }
+@keyframes skelSweep { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .chip-slot .chip::after { animation: none; } }
+/* No cabeçalho, o status e o esqueleto dividem a mesma célula: um some enquanto o outro aparece, e o lugar
+   nunca fica vazio nem muda de largura. "Status code" fica fora da célula, parado. */
+.status-value { display: inline-grid; align-items: baseline; }
+.status-value > * { grid-area: 1 / 1; transition: opacity 0.15s ease-out, visibility 0.15s; }
+.status-value > .chip-neutral { position: relative; visibility: hidden; opacity: 0; }
+.status-value > .chip-neutral::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; animation: skelSweep 1.5s ease-in-out infinite; }
+.is-pending > .status-value > .chip-neutral { opacity: 1; }
+.is-pending > .status-value > .status-real { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .status-value > * { transition: none; } .status-value > .chip-neutral::after { animation: none; } }
+.fill-done { color: var(--ok); font-weight: 600; }
+.fill-done:focus { outline: none; }
+.fill-done:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* D31: o que o botão faz e o que ele não faz. */
+.fill-hint { flex-basis: 100%; color: var(--graphite); }
+.sent-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: var(--space-xs); font-size: 0.8125rem; }
+/* Foi enviado: a primeira linha do painel tem só o Copiar comando, à direita (a hora já está no cabeçalho
+   do Resultado); depois, o que difere do rascunho, numa frase e numa lista. */
+.sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: var(--space-s); }
+.sent-times { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ink); cursor: pointer; }
+.curl-times-list { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 2px 0 4px; font-size: 0.8125rem; }
+.curl-times-list dt { font-family: var(--font-code); color: var(--ink); }
+.curl-times-list dd { margin: 0; color: var(--graphite); }
+.sent-differs { margin-bottom: var(--space-s); font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.caption { font-size: 0.8125rem; color: var(--graphite); }
+.result-empty-lines { padding: var(--space-xl) 16px; display: flex; flex-direction: column; gap: var(--space-m); max-width: 64ch; }
+.result-empty-head { display: flex; align-items: center; gap: 12px; }
+/* As setas da marca abrem o Resultado vazio (decorativas): a seta de cima no roxo, a de baixo na tinta. As
+   duas máscaras vão aqui como data URI, com os bytes da arte original: cada uma custava um pedido a mais. */
+.setas { --setas-p: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABgCAYAAAA3pmEwAAAGwElEQVR4AeydV4gsRRSG14hZVEygiJhAfFAwYMSIGMGcELOIom8mBHMCQTCiD4oJA4qioKAIiigKgooKZhETRjDn9H2wve7dnZnt6enuqu57LuefU1vT3VX11z9V1dXVdZecyuffUmRlD/AU+BB8DN4Ax4NlQFjLDOQgjiUo82rgEvAY2AtsCNYHW4DrwcEgrGUGUovD1mJnyvwgOB+sAObaykRcDhQQLqwtBlKKwxbjJAp6P9gdjMrLRnx/OAhrkYFRFdJUNhTFBlz8DnALWBcYhxtqfn8o3+pxYW0w0LY4TG9fCvYAOAaMU9mbcvygbofosCYYsLKauO6ga1qxl/KFwtgO73gDV9pW5MiVQFhLDLQhDtPYjPLcBc4FVjJubLOVyeKWduycd/QEK67JrC/PxY8FjwJvR5fGh3WEgSbFYbdxNTw46LTl8JfPn2FdYaAJcdj0bw8Bz4EzwXIgrIMM1C0OhXEGPNwHdgDRWkBCV61OcawJCQ+Da4HzGLiwLjNQhzgcZO4DCU+A/UC0FpDQB5tUHD7v8LnHnZCxNQhhQEJfrKo4FMF6kODY4my8XcoUPqxHDFQRh7OUR8PBM2BvUOUanBaWOwPjVqzCuIZC3Qw2BmE9ZqCsOBx0bgUPL4LTwCqgbVuVBJ8Er2aGl8mPyw6cAV6dcG+sjDicAnfuwilwV2alKrwzrpuT+JaZwYH4EeTJ8ddD+J2AYzJct20hcThf8QhFvBK4bA8XNoSBZYnfDSiSbfCdt2HicKbT1VnOXTjo9HF75wvbUgG8izuHtFzeiOuuDRLHOhTnQuAvwGacYNiYDOzI8S6Sxi1gGX89Vxyu1byX/J4H1gJh1RiQu02qnZrPWYU47EbsPp4la/ab3p0QDKvIgLx2/s7FQgifiTgFbn9ZkY84bQ4Dnb9jURhrUCjXdq6NDwsGZhhQHK4CTzl/MZOZCOTFgOI4gSx1vgmkDGE1M6A4Oj+qrpmTuNw0A4rj3+lwXi5yk5wBxfFJ8lxEBrJkQHH4Blq0HllWT9pMKY7bycI7ICwYWIQBxfEpMVeBH0FYMDDDgOL4m7/uAW6e8gM+uhhICJuaUhzy8A8fN4HDgKu9/JtgWEUG/IH9VPHcbE4rxFFk6GkCrmq6DW+LggurwIBd9PsVzpvwlHpPnysOWwzHIKeSzCnAMC5sTAZc5/rRmOdkd/hccczOoPtpHEmEi3qjFYGIkmZ3cgPHfgM6baPEoSBeoHR2M1fgfwFhoxlwQH8yh7hlpq0wwe7aKHEUpfqewGXgRODmsakKbbpfkIfPMoMzzO+RJycTd532f+I7b2XEYSH/4sPC74/3HY3f8G2bzbVPkA8g4ZwgJ3uSJ3cwcqxBsB9WVhxFad8i4GD1Anzbvw4F+ibpWgE54XXy5FbcbfNBss3auOIwNz/z4R4c7lPu215WGlFhfWOgijgKDp4ncBS4FfwBMrbIWhUGJhGHs4AfkOhZwLfuv8aH9YiBScRR0OBdhK9MHkiE2zL0ru+lXIul1SEOiVMgLxGwm/G92u8Ih3WcgbrEUdDwJQFfczgO7/yIXQ/BsC4yULc45MBWxBnCbfnDbRt+xYd1kIEmxFHQ8C4Bp5IvwqeYNCPZsEkYaFIc5utbPtwmahe8YrFVIRjWAQZmFvs0nVcny5zydsXZ7xUTc/wSE24VyatyWtMtx+w82XK4F7rT7w5cZ39XJqyo4slwGaZqOqZNcZhlH2nfTeAg4DMJlwUQLGU+v/DhW6mD46DJGWhbHObY7sF1qj7NdMvKsnMij3NyjFkgoS1LIY6ibK6D8H9uOp0IB664oWaL4/s1Qw+IL+pnIKU4LI1zIO495vaMPsgbdMvrWMOnwJ97QqA9BlKLoyjp2wQOAa4TeQXvwNM7EweuCuNG4sJaZiAXcVjsr/i4DrjFpRvRupen/mLiFup2OKQ1W2wSykkcku7di89kXJP5GhGuGY21IhCRwnITRwoOIs0hDIQ4hhAT0f+/KxtcBAPzGIiWYx4lEVEwEOIomAg/j4EQxzxKIqJgoE5xFNcM3xMGQhw9qcgmihHiaILVnlwzxNGTimyiGCGOJljtyTVDHD2pyCaKEeJogtWeXDPEkbgic04+xJFz7STOW4gjcQXknHyII+faSZy3EEfiCsg5+RBHzrWTOG8hjsQVkHPyIY6caydx3rIVR2JeInkYCHFAQthgBkIcg3mJWBgIcUBC2GAGQhyDeYlYGAhxQELYYAZCHIN5iVgYCHFAQm+s5oKEOGomtE+XC3H0qTZrLkuIo2ZC+3S5EEefarPmsoQ4aia0T5f7DwAA//+Y6Z8FAAAABklEQVQDAIvvKdDsEYD2AAAAAElFTkSuQmCC"); --setas-d: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABgCAYAAAA3pmEwAAAGt0lEQVR4AeydZ8gkNRzG9zx7Byt6J2IXRFQQFEUUBEFBURRPsftBsYIg2BuI7ZuiiO0QOXsBK2LFigX0gwhyFkTBhopdLHf3e5b3XW5vN+/uzM5OMplH/o+ZmUzyT548byaTyeZW6/g/MxBgwOIIEOPLnY7FYRUEGbA4gtQ4wuKwBoIMWBxBahxhcVgDQQYsjiA14Yi2xFgcbWnpEvW0OEqQ1pYkFkdbWrpEPS2OEqS1JYnF0ZaWLlFPi6MEaW1JYnG0paVL1LNScZTw7yQJM2BxJNw4sYtmccRugYT9WxwJN07solkcsVsgYf8WR8KNE7toFkfsFkjYv8URu3ES9m9xJNw4sYtmccRugYT9WxwJN07solkcsVsgYf8WR8KNE7toFkfsFkjYv8WRcOPELlq64ojNjP37h9TWQJgB9xxhblofY3G0XgJhAiyOMDetj7E44klgTVxvCfYAO4KNwHyQjFkccZpiE9xeBT4E7wGFLxOeDzYHSZjFEacZzsHtBWALsDpYF+wFrgWPgV1ACas2icVRLZ/j5LYVN0kYaxGuamtzYX/wBjgOrAOimcVRP/Wn4XJDMJfpsXMbN9wAFoIoZnHUS7v4PmxMlxtz31ngabAvmAdqNRW2Voctd7Y+9d8GjGt6e9mdm58AJ4JRPQ63VGcWR3VcjpOTBp7Dxhqj0mrgegc33QJ2ArWYxVELzT0nejMp+3iQqE4gp6fA3mDqZnFMneJKHai91HO8Rq4XAg1cCaZjcjadnJPKNbvC6JX3amp1F5BYCKo3i6N6TuvKUXMgR+DsXXA4qLwtK8+QQtrqY0DjF32TuReXVwANXAmqMYujGh5j56I5kUsoxANgH1BJu1aSCYWxxWdgDYpwEHgSHAkmbtuJM6AQtrQY2Izi3A9uBtsDPXoIipvFUZyzJqTQWpEzKKgeM/qQx2FxsziKc9aUFJpw02TZSxRYX4HXIyxiWa4+17NX3y/0TWJP2EgJu1EeNRpBbSY+tE5E0++7FvGaW88hIdwHAS8Cfc3UVHNKWEy59PGNoFbTpNkiPIqTYwnHEmgu4tBfhyr9KhVXqDWZWgexNecpQWtGY3Euv9vBxz3gcqD5EYKwKUE4thkxqoNmCDWVXOsn7WbQM1BKfRm+lKsPgf2AlgUQDJqIHbzarCubUtxzQYzuGreNNAniEEr+IDgJDLUcxLEtNdNYg8BWkIEF3H8n0GBVx3166DvhpibaDhR6A2Arx4B6kdNJqsfMwYQ9y0EcepyUngXsMTH+QY53Sgdap/oIlTsb6DzLeQ7qZivBgP7ANKC/jrRacTa/qxBObGZglgE9oi/mZIHFAQu2AQZ25sqpFgcs2AYY0CNmkcUxwIsvzDCw0OKYYcLBAAPzLI4BTnxhhoGlVYpjJk8HGTCwnDostjhgwTbAwEdcWWJxwIKtj4HvONPPHH7MQRzqAqmPrQIGviaPk8EzYFkO4vhJFQG28gz8R9JXwIHgefAvyOLbylIq8j2wlWNA3F1P0uPBZ6BnOfQcX1CbN4GtOAMfk0R7j11D+C3osxzE8Rs1uhHoeUnQLItU2j/xq8fHoYTa4rL7GOG4z3IQhyqkvTz1F6Dn5j+6YAQZ+IoY/a5WP5n8kuOg5SIOvbFoe8ajqalEolVN73OszV9Tgrrx/ylXLNP8hbZtuJUC/AXmtFzEMVtJvbk8zol+o6Ffe2ltaUrQot5fKF/d9isObwda7fUBod5OCOa23MQxd23bGfsp1daWldom6neOxzaLY2yqGnfjMkqsQae2ZdCv7gsJg7RZzHOoHkY/Az9wehPQ+EtvcRqTcVrM3HMU4yv1uyUCDcQ1BX4Zhf0ZlLZkxVG6Ru1NKGHom4jmLp6DhrEGndwXNIsjSE2jIjRfoT04jqLUeqQQTG4Wx+QcxsxBvcVbFEBjC81dDJ3pJL6UWRylaEsi0d+UQnuhH0D4NqhUGOTntxWR0DCot/iEMp8JLgJTm3F1zwG7DTINMjUDrClw7WA0cgp8krpZHJOwVzytun795RdP2en8QSL9y03aT0M9hya5uDQ9szimx+2wnDVLKQyLC13TY+MdIrWdldZ26nM7p0Os4ksWR8WEjshODauVayNu60Wrl1nCmYTxLOHUewt89Mzi6FFRy4Ea+1E8KSQImuK/IVaDzlMINY+haxzWZxZHfVzPenqYg761mpyvbOodtDpLyw7uJqJ2UeCzaxZHl4Za/6fvHfruoeWNqzrWY0ebpxxDxOtA4w2COGZxxOFdr6Pn4Vors7Rs73OOXwDaMvNKQgkoWo+B/66tAAAA//83HPJ/AAAABklEQVQDAIDv+rjSbHhBAAAAAElFTkSuQmCC"); position: relative; display: block; flex: none; height: 32px; width: calc(32px * 135 / 96); }
+.setas > span { position: absolute; inset: 0; -webkit-mask: var(--setas-p) 0 0 / 100% 100% no-repeat; mask: var(--setas-p) 0 0 / 100% 100% no-repeat; background: var(--logo-accent); }
+.setas > .setas-d { -webkit-mask-image: var(--setas-d); mask-image: var(--setas-d); background: var(--logo-ink); }
+/* Sobre o ServeRest no Resultado vazio, só na primeira visita desta aba. */
+.about-body { display: flex; flex-direction: column; gap: var(--space-s); }
+.about-body > p, .go-list { max-width: 64ch; }
+.about-body strong { font-weight: 600; }
+.about-go { font-weight: 600; margin-top: var(--space-xs); }
+.go-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+.go-list li::marker { color: var(--graphite); }
+/* O convite para dar opinião (V3): um cartão centrado acima do Sobre, com o ícone, o título, o custo antes do
+   pedido (2 minutos, 6 perguntas, sem login; cada item quebra inteiro) e as duas ações. */
+.invite { box-sizing: border-box; display: grid; justify-items: center; gap: 8px; width: min(52ch, calc(100% - 28px)); margin: 0 auto var(--space-xl); padding: 20px 22px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 1px 0 var(--border); text-align: center; }
+.inv-art { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
+.invite-title { font-family: var(--font-head); font-size: 1.1875rem; font-weight: 600; line-height: 1.25; }
+.inv-promise { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; font-size: 0.8125rem; color: var(--graphite); }
+.inv-promise > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.inv-promise svg { flex: none; color: var(--accent); }
+.invite-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-top: 6px; }
+.invite .inv-go { text-decoration: none; }
+.invite-where { font-size: 0.75rem; color: var(--graphite); }
+/* O Resultado vazio fica centrado na zona, com as linhas numa medida de leitura: as setas com a frase da rota,
+   como seguir, a nota do Histórico, o convite e o Sobre. */
+#result-empty .result-empty-lines { align-items: center; text-align: center; max-width: none; }
+#result-empty .result-empty-lines > p, #result-empty .about-body > p, #result-empty .go-list { max-width: 60ch; }
+#result-empty .result-empty-head { justify-content: center; }
+#result-empty .result-about .band { justify-content: center; text-align: center; }
+#result-empty .about-body { align-items: center; text-align: center; }
+/* Sem marcadores no Sobre centrado: cada item numa linha própria, com um respiro entre eles. role="list" (no
+   script) mantém a lista para o leitor de tela, que alguns navegadores esquecem com list-style: none. */
+#result-empty .go-list { padding-left: 0; list-style: none; gap: 8px; }
+.link-btn { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
+.link-btn:hover { background: var(--accent-tint); color: var(--accent-strong); }
+.result-route { font-weight: 600; }
+.result-route code { font-size: 0.875rem; }
+
+/* Resposta */
+.res-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.res-line .chip { font-size: 1rem; }
+.res-doc { font-size: 0.8125rem; color: var(--graphite); overflow-wrap: break-word; }
+/* A descrição da documentação fica sempre na linha de baixo, em toda largura: ao lado do status ela quebrava
+   ou não conforme o status e a rota, e o corpo mudava de lugar entre um envio e outro. Assim o esqueleto da
+   câmera lenta guarda as mesmas duas linhas sem saber qual descrição vem (D29). */
+.res-line > .res-doc { flex-basis: 100%; }
+.res-doc code { font-size: 0.78125rem; }
+.sub-label { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 600; color: var(--ink); margin: var(--space-l) 0 var(--space-xs); }
+/* "Copiar corpo" fica na linha do subtítulo Corpo, ao lado do que copia. */
+.sub-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: var(--space-l) 0 var(--space-xs); }
+.sub-row > .sub-label { margin: 0; }
+#copy-body { min-width: 7.5rem; }
+.res-body pre { max-height: 30rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.res-headers .caption { margin-top: 2px; font-family: var(--font-ui); }
+/* Uma caixa tracejada no lugar da resposta, na espera real (a câmera lenta usa o esqueleto no lugar, .pv). */
+.wait-box { min-height: 6.75rem; padding: 12px 16px; border: 1px dashed var(--control); border-radius: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-s); }
+.wait-line { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.wait-ring { flex: none; box-sizing: border-box; width: 12px; height: 12px; border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+/* Na espera real os círculos (o da Resposta e o do Executar) param aos 5 s (WCAG 2.2.2); o contador e a
+   frase do servidor iniciando seguem dizendo que a espera continua. */
+.wait-ring.is-still, .spin.is-still { animation: none; }
+.wait-cold { font-size: 0.8125rem; color: var(--graphite); }
+/* A frase do servidor iniciando tem o lugar guardado desde o começo da espera, invisível. */
+.wait-cold.is-off { visibility: hidden; }
+/* O esqueleto de uma resposta (status, corpo e headers), igual em todo envio, com um brilho que passa da
+   esquerda para a direita. Aparece na espera real, dentro da caixa tracejada; aos 5 s dela o brilho para
+   (.is-still). Todo esqueleto passa o brilho na fase do relógio
+   do documento (--skel-delay), e uma onda só atravessa o esqueleto inteiro: o brilho de cada barra tem a
+   largura do esqueleto (100cqw: o .skel é o recipiente) e começa na borda esquerda dele. */
+.skel { container-type: inline-size; align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.skel-bar, .skel-row, .skel-block > span { position: relative; overflow: hidden; display: block; height: 0.75rem; background: var(--skel); }
+.skel-bar::after, .skel-row::after, .skel-block > span::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 100cqw; background: linear-gradient(90deg, transparent 0%, var(--skel-shine) 50%, transparent 100%); transform: translateX(-100%); animation: skelShine 1.5s ease-in-out infinite; animation-delay: var(--skel-delay, 0ms); }
+/* As barras do bloco começam 13 px para dentro (12 px de respiro e 1 px de borda do bloco). */
+.skel-block > span::after { left: -13px; }
+@keyframes skelShine { to { transform: translateX(100%); } }
+.skel.is-still .skel-bar::after, .skel.is-still .skel-row::after, .skel.is-still .skel-block > span::after { animation: none; display: none; }
+.skel-row { align-self: stretch; }
+/* A primeira linha tem a forma da linha da Resposta: "Status code" escrito e, no lugar do status, a barra.
+   O brilho dela começa na borda esquerda do esqueleto (--skel-x, medido pelo script). */
+.skel-status { display: flex; align-items: center; gap: 8px; }
+.skel-bar-status { width: 8rem; }
+.skel-status .skel-bar::after { left: var(--skel-x, 0px); }
+.skel-label { margin-top: var(--space-xs); font-size: 0.8125rem; color: var(--graphite); }
+.skel-block { align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; background: var(--well); border: 1px solid var(--border); border-radius: 4px; }
+.skel-block > .w20 { width: 20%; }
+.skel-block > .w70 { width: 70%; }
+.skel-block > .w55 { width: 55%; }
+.skel-block > .w15 { width: 15%; }
+/* Câmera lenta: o servidor já respondeu e o fluxo ainda desenha. O esqueleto fica no lugar da resposta, com a
+   forma dela e sem caixa: a linha do status (o .res-line e o .chip de verdade, com uma barra no lugar do
+   status e outra na linha da descrição), a linha do Corpo com "Mostrar a resposta agora" onde fica Copiar
+   corpo, o bloco do corpo (a mesma caixa do bloco escuro, clara e com borda) com a frase e três barras, e
+   os headers. Uma onda de brilho só atravessa tudo: o .pv é o recipiente e cada barra começa na borda
+   esquerda dele (--skel-x). Sem cor de status e sem altura de corpo (D29). */
+.pv { container-type: inline-size; }
+.pv-chip, .pv-doc { position: relative; display: inline-block; }
+.pv-chip { width: 8rem; }
+.pv-chip > .skel-bar, .pv-doc > .skel-bar { position: absolute; left: 0; top: 50%; margin-top: -0.375rem; }
+.pv-chip > .skel-bar { right: 0; }
+.pv-doc > .skel-bar { width: 9rem; max-width: 60%; }
+.pv .skel-bar::after, .pv .skel-row::after { left: var(--skel-x, 0px); }
+.pv-block { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; background: var(--well); border: 1px solid var(--border); border-radius: 4px; }
+.pv-block > .w70 { width: 70%; }
+.pv-block > .w55 { width: 55%; }
+.pv-block > .w15 { width: 15%; }
+.pv-msg { font-size: 0.8125rem; color: var(--ink); }
+.pv-msg strong { font-weight: 700; }
+.pv-rows { display: grid; gap: 6px; }
+.pv.is-still .skel-bar::after, .pv.is-still .skel-row::after { animation: none; display: none; }
+/* Durante a espera real, o Fluxo guarda a altura da cascata que vai chegar: a do último desenho da mesma
+   rota na mesma largura, ou esta, a de uma cascata de cinco etapas com a barra de tempo embaixo. */
+.flow-reserve { min-height: 35.8125rem; }
+/* Fechado, o Fluxo guarda só a altura do veredito com o tempo total, da barra da requisição com a chave do
+   servidor e da fileira da linha de leitura; a fileira é medida nesta largura (readRowHeight), e o valor
+   padrão é o de uma linha. */
+.flow.is-collapsed .flow-reserve { min-height: calc(7.7775rem + var(--read-row-h, 1.5125rem)); }
+.j-key { color: var(--json-key); }
+.j-str { color: var(--json-str); }
+.j-num { color: var(--json-num); }
+.j-lit { color: var(--json-lit); }
+/* A oferta do token (K3): logo abaixo do corpo, para não empurrar o corpo só no login. */
+.token-offer { margin-top: 8px; }
+.btn-token { border-color: var(--accent); color: var(--accent); }
+.btn-token:hover { border-color: var(--accent-strong); color: var(--accent-strong); background: var(--accent-tint); }
+.token-done { color: var(--ok); font-weight: 600; }
+.token-done:focus { outline: none; }
+.token-done:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.net-error { border-left: 3px solid var(--fail); padding: 4px 0 4px 12px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
+
+/* Fluxo: cascata de tempos, como a aba Timing do navegador. A faixa tem só "Rever em câmera lenta" (com o
+   caracol); o modo de execução está no Executar. */
+.flow { --wf: 1rem 9.125rem minmax(0, 1fr) 6.5rem; }
+.flow-controls { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
+#replay .ico { color: currentColor; }
+.flow-context { display: none; }
+/* A linha que fica no lugar da barra de tempo quando o envio não tem as fases da Resource Timing. */
+.flow-times { margin-top: 10px; font-size: 0.8125rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.flow-times b { font-family: var(--font-code); font-weight: 400; color: var(--ink); white-space: nowrap; }
+.flow-times b.total { font-weight: 600; }
+/* A linha do resumo tem desde o começo a altura da linha do veredito. A dica das etapas vem logo abaixo. */
+.flow-summary { min-height: calc(1.1875rem * 1.6); margin: 0; font-family: var(--font-head); font-size: 1.1875rem; font-weight: 700; line-height: 1.2; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.flow-summary.stopped .flow-summary-stage { color: var(--fail); }
+.flow-summary.completed { color: var(--ok); }
+.flow-summary.outside { color: var(--warn); }
+.flow-summary.waiting { color: var(--graphite); font-family: var(--font-ui); font-weight: 400; font-size: 0.84375rem; }
+.flow-outside { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; border-left: 3px solid var(--warn); padding-left: 10px; }
+
+.wf { position: relative; }
+.wf-scale { display: grid; grid-template-columns: var(--wf); column-gap: 8px; padding: 0 4px; }
+.flow-stages, .flow-rules { list-style: none; margin: 0; padding: 0; }
+.flow-stages { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.flow-row { --row-bg: var(--surface); position: relative; width: 100%; display: grid; grid-template-columns: var(--wf); column-gap: 8px; align-items: center; min-height: 2.25rem; padding: 4px; border: 0; background: none; text-align: left; }
+button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
+.flow-row:focus-visible { outline-offset: -2px; }
+.wf-summary, .wf-track, .wf-lines-cols { grid-column: 3; display: grid; grid-template-columns: var(--wf-cols, 1fr); }
+.wf-summary { height: 30px; }
+.wf-label { grid-column: 2; align-self: center; font-size: 0.8125rem; color: var(--graphite); line-height: 1.2; }
+.wf-track { align-self: stretch; min-height: 24px; }
+.wf-cell { position: relative; min-width: 0; }
+.wf-lines { position: absolute; inset: 0; z-index: 1; pointer-events: none; display: grid; grid-template-columns: var(--wf); grid-template-rows: minmax(0, 1fr); column-gap: 8px; padding: 0 4px; }
+.wf-lines-cols { grid-row: 1; }
+.wf-lines-cols > span { border-left: 1px solid var(--border); }
+.wf-lines-cols > span:last-child { border-right: 1px solid var(--border); }
+.flow-seg { position: absolute; left: 2px; right: 2px; top: 50%; height: 12px; margin-top: -6px; display: block; }
+.wf-summary .flow-seg { height: 16px; margin-top: -8px; background: var(--seg-idle); }
+.wf-summary .wf-cell-stage { cursor: pointer; }
+.flow-seg.flow-seg-skip { background-color: var(--well); background-image: repeating-linear-gradient(135deg, var(--control) 0 1.5px, transparent 1.5px 5px); }
+/* Ligação entre resumo e etapa: contorno roxo no segmento e no bloco inteiro da etapa (linha e explicação). */
+.wf-summary .flow-seg.linked { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* O contorno vai numa camada por cima da etapa inteira: a explicação aberta tem fundo próprio e cobriria um
+   contorno desenhado para dentro. */
+.flow-stage.linked { position: relative; z-index: 3; }
+.flow-stage.linked::after { content: ''; position: absolute; inset: 0; border: 1px solid var(--focus); pointer-events: none; z-index: 4; }
+.flow-fill { display: block; width: 0; height: 100%; background: var(--ok); }
+.flow-seg-fail .flow-fill { background: var(--fail); }
+.flow-seg-response .flow-fill { background: var(--seg-response); }
+.flow-fill-full { width: 100%; }
+/* A etapa que está rodando enche em roxo; só fica verde ou vermelha quando a linha dela mostra ✓ ou ✗
+   (flow-seg-fail entra só no estado fail). */
+.flow-fill-running { background: var(--accent); animation: flowFill linear forwards; }
+@keyframes flowFill { from { width: 0; } to { width: 100%; } }
+.flow-mark { font-weight: 700; text-align: center; color: var(--graphite); }
+.flow-row > .flow-mark { grid-column: 1; }
+.flow-ok > .flow-row .flow-mark { color: var(--ok); }
+.flow-fail > .flow-row { --row-bg: var(--fail-tint); background: var(--fail-tint); }
+.flow-fail > .flow-row .flow-mark, .flow-fail > .flow-row .flow-name { color: var(--fail); }
+.flow-done > .flow-row .flow-mark { color: var(--ink); }
+.flow-spinner { box-sizing: border-box; width: 12px; height: 12px; margin: 0 auto; border: 2px solid var(--accent); border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.flow-name { grid-column: 2; font-weight: 600; }
+/* O nome da etapa guarda o lugar da versão em negrito: uma cópia invisível, fora da árvore de
+   acessibilidade, na mesma célula do texto. A coluna do nome (9,125 rem, a largura de "Limite de
+   requisições" em negrito) é fixa: todo nome cabe numa linha, e as linhas têm a mesma altura desde o começo. */
+.flow-name { display: inline-grid; }
+.flow-name > .flow-name-text, .flow-name::after { grid-area: 1 / 1; }
+.flow-name > .flow-name-text { align-self: center; }
+.flow-name::after { content: attr(data-text) / ""; font-weight: 600; visibility: hidden; pointer-events: none; user-select: none; }
+.flow-pending > .flow-row .flow-name, .flow-skip > .flow-row .flow-name, .flow-not_run > .flow-row .flow-name { color: var(--graphite); font-weight: 400; }
+.flow-end { grid-column: 4; display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+.flow-right { color: var(--graphite); font-size: 0.8125rem; text-align: right; line-height: 1.3; }
+.flow-running > .flow-row .flow-right { color: var(--accent); }
+.flow-dur { font-family: var(--font-code); color: var(--ink); font-variant-numeric: tabular-nums; }
+.flow-fail > .flow-row .flow-dur { color: var(--fail); }
+.flow-caret { flex: none; width: 12px; height: 8px; color: var(--graphite); transition: transform 0.15s; }
+.flow-row[aria-expanded="true"] .flow-caret { transform: rotate(90deg); }
+.flow-details { position: relative; z-index: 2; background: var(--surface); display: flex; flex-direction: column; gap: 10px; padding: 2px 16px 14px calc(4px + 1rem + 8px); }
+.flow-fail > .flow-details { background: var(--fail-tint); }
+.flow-description { color: var(--graphite); }
+.flow-rules { display: flex; flex-direction: column; gap: 4px; }
+.flow-rule { display: grid; grid-template-columns: 1.2rem 1fr; gap: 4px; }
+.flow-rule-body { display: flex; flex-direction: column; }
+.flow-rule-ok .flow-mark { color: var(--ok); }
+.flow-rule-fail { color: var(--fail); font-weight: 600; }
+.flow-rule-fail .flow-mark { color: var(--fail); }
+.flow-rule-skip { color: var(--graphite); }
+.flow-item { display: inline-flex; flex-wrap: wrap; gap: 4px; font-size: 0.8125rem; }
+.flow-item-value { font-family: var(--font-code); }
+.flow-block { display: flex; flex-direction: column; gap: 2px; max-width: 64ch; }
+.flow-block-title { font-weight: 700; }
+.flow-why .flow-block-title { color: var(--fail); }
+.flow-how .flow-block-title { color: var(--ok); }
+.flow-skip .flow-block-title { color: var(--graphite); }
+.flow-hint { margin-top: 6px; font-size: 0.8125rem; color: var(--graphite); }
+/* A dica e a cópia invisível da frase mais longa dividem a mesma célula (flowHint). */
+.flow-hint { display: grid; }
+.flow-hint > .flow-hint-text, .flow-hint::after { grid-area: 1 / 1; }
+.flow-hint::after { content: attr(data-reserve) / ""; visibility: hidden; pointer-events: none; user-select: none; }
+.flow-hint.stages-hint { margin: 0 0 10px; }
+.flow-note { color: var(--graphite); }
+.flow-note.strong { margin-top: 10px; color: var(--ink); border-left: 3px solid var(--warn); padding-left: 10px; }
+
+/* Tempo da requisição: a barra em escala sob o fluxo, com as partes da aba Timing do DevTools. Os rótulos
+   acima e as cotas abaixo são posicionados pelo script (layoutTime), a partir das partes de verdade. */
+.flow .band-body { position: relative; }
+.tl { margin: 16px 0 0; }
+.tl .num { font-family: var(--font-code); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.flow-hint.tl-hint { display: block; margin: 0 0 2px; }
+/* "escala ajustada": só quando a escala saiu da real, ao lado da dica, discreta. Até o veredito ela não
+   aparece: diria algo dos tempos novos antes da hora (D29). */
+.tl-scale { display: none; margin-left: 4px; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; font-size: 0.6875rem; white-space: nowrap; cursor: help; }
+.tl.tl-adjusted .tl-scale { display: inline-block; }
+.band-body.is-running .tl-scale { visibility: hidden; }
+.tl-draw { position: relative; }
+.tl-calls { position: relative; height: var(--calls-h, 26px); }
+.tl-tick { position: absolute; bottom: 0; width: 1px; background: var(--control); }
+.tl-bar { position: relative; display: flex; gap: 2px; height: 20px; }
+/* Cada parte da barra é um botão com o visual de segmento. */
+.tl-seg { position: relative; flex: var(--g) 1 0; min-width: 3px; display: grid; place-items: center; overflow: hidden; margin: 0; padding: 0; border: 0; border-radius: 0; font-size: 0.75rem; line-height: 1; white-space: nowrap; cursor: pointer; }
+.tl-seg.net { background: var(--seg-idle); color: var(--ink); }
+.tl-seg.conn { background: var(--graphite); }
+.tl-seg.server { background: var(--ok); min-width: 5px; }
+.tl-seg.down { background: var(--seg-response); }
+/* As partes finas ganham uma área de toque maior e invisível (3 a 5 px não é um alvo). */
+.tl-seg.conn, .tl-seg.server, .tl-seg.down { overflow: visible; z-index: 1; }
+.tl-seg.conn::after, .tl-seg.server::after, .tl-seg.down::after { content: ""; position: absolute; inset: -6px -7px; }
+/* Ao passar o mouse, a parte muda um pouco de cor, como o botão Executar, sem contorno. A mistura com --ink
+   escurece no tema claro e clareia no escuro; o download, que já é a cor mais forte, mistura com --graphite. */
+.tl-seg.net:hover { background: color-mix(in srgb, var(--seg-idle) 82%, var(--ink)); }
+.tl-seg.conn:hover { background: color-mix(in srgb, var(--graphite) 78%, var(--ink)); }
+.tl-seg.server:hover { background: color-mix(in srgb, var(--ok) 80%, var(--ink)); }
+.tl-seg.down:hover { background: color-mix(in srgb, var(--seg-response) 70%, var(--graphite)); }
+.tl-seg[aria-expanded="true"], .tl-seg[aria-expanded="true"]:hover { outline: none; z-index: 2; }
+.tl-seg[aria-expanded="true"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* O que abre uma explicação tem sublinhado pontilhado, contínuo ao passar o mouse e enquanto está aberto. */
+.tl-term { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tl-seg.net .tl-term { text-decoration-color: var(--graphite); }
+.tl-call { position: absolute; bottom: 0; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 6px 0 7px; cursor: pointer; }
+.tl-call b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
+.tl-call.server { color: var(--ok); font-weight: 600; }
+.tl-call.server b { color: var(--ok); }
+.tl-call:hover .tl-term, .tl-call.is-open .tl-term, .tl-dim-label:hover .tl-term, .tl-dim-label[aria-expanded="true"] .tl-term, .tl-seg:hover .tl-term, .tl-seg[aria-expanded="true"] .tl-term { text-decoration-style: solid; text-decoration-color: currentColor; }
+.tl-call.is-open { color: var(--accent); }
+.tl-call.is-open.server, .tl-call.is-open.server b { color: var(--ok); }
+.tl-dims { position: relative; height: 56px; }
+.tl-dim { position: absolute; height: 7px; border: 1px solid var(--control); border-top: 0; }
+.tl-dim-label { position: absolute; transform: translateX(-50%); min-height: 24px; margin: 0; border: 0; border-radius: 3px; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
+.tl-dim-label b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
+.tl-dim-label.total { font-size: 0.8125rem; }
+.tl-dim-label.total b { font-weight: 600; }
+.tl-dim-label[aria-expanded="true"] { color: var(--accent); outline: 2px solid var(--focus); outline-offset: 0; }
+/* O balão de cada parte: o visual do painel do aviso de versão (.rel-pop), com uma ponta para a parte. */
+.tl-pop { position: absolute; z-index: 20; width: min(24rem, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; font-weight: 400; white-space: normal; text-align: left; }
+.tl-pop[hidden] { display: none; }
+.tl-pop::before { content: ""; position: absolute; top: -6px; left: var(--notch, 24px); width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--control); border-top: 1px solid var(--control); transform: translateX(-50%) rotate(45deg); }
+.tl-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+/* O tempo da parte em destaque, a fatia dela no total ao lado e uma barrinha cheia até essa fatia. */
+.tl-pop-stats { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 4px 0 0; }
+.tl-pop-ms { font-family: var(--font-code); font-size: 1rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-pop-ms .num { font-family: inherit; }
+.tl-pop-pct { font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
+.tl-pop-pct b { font-family: var(--font-code); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tl-pop-meter { flex: 1 0 100%; display: block; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.tl-pop-meter .fill { display: block; height: 100%; min-width: 2px; background: var(--graphite); }
+.tl-pop-meter .fill.net { background: var(--control); }
+.tl-pop-meter .fill.server { background: var(--ok); }
+.tl-pop-meter .fill.down { background: var(--seg-response); }
+.tl-pop-facts { margin: 4px 0 0; font-family: var(--font-code); font-size: 0.75rem; color: var(--graphite); font-variant-numeric: tabular-nums; }
+/* A conexão em tabela: a etapa, o tempo dela e o que ela faz. */
+.tl-pop-grid { display: grid; grid-template-columns: auto auto 1fr; gap: 2px 12px; margin: 2px 0 0; font-size: 0.8125rem; line-height: 1.4; }
+.tl-pop-grid dt { font-family: var(--font-code); font-weight: 600; color: var(--ink); }
+.tl-pop-grid dd { margin: 0; }
+.tl-pop-grid .v { font-family: var(--font-code); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-pop-grid .d { color: var(--graphite); }
+.tl-pop .note { color: var(--graphite); border-left: 3px solid var(--seg-idle); padding-left: 8px; }
+.tl-pop .tip b { font-weight: 700; }
+.tl-pop .pop-link { color: var(--graphite); }
+.tl-pop a { color: var(--accent); }
+.tl-pop code { font-family: var(--font-code); font-size: 0.92em; white-space: nowrap; }
+/* A ligação entre a fatia do servidor e "Todas as etapas": passar o mouse numa contorna a outra. */
+.wf-scale { position: relative; }
+/* O servidor em destaque na barra de tempo traz as barras das etapas para o primeiro plano: crescem, sobem e
+   ganham sombra; o resto do fluxo vai para o segundo plano. Crescem quase tudo para cima e um pouco para baixo e
+   para os lados, como algo que se aproxima de quem olha. */
+.wf-summary .wf-cell-stage .flow-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out; }
+.wf .flow-stages, .wf .wf-lines, .wf-summary .flow-seg-response { transition: opacity 0.18s ease-out; }
+.wf-forward .wf-summary .wf-cell-stage .flow-seg { z-index: 1; transform: translateY(-3px) scale(1.03, 1.5); box-shadow: 0 6px 10px -2px rgb(0 0 0 / 0.4); }
+.wf-forward .flow-stages, .wf-forward .wf-lines, .wf-forward .wf-summary .flow-seg-response { opacity: 0.35; }
+/* Partes da barra de tempo em primeiro plano (balão aberto, TTFB): ficam mais altas sem
+   esticar o texto de dentro, sobem e ganham sombra; as outras partes vão para o segundo plano. */
+.tl-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }
+.tl-focus .tl-seg:not(.tl-front) { opacity: 0.35; }
+.tl-seg.tl-front { z-index: 3; margin: -4px 0 -1px; transform: scale(1.03); box-shadow: 0 10px 18px -4px rgb(0 0 0 / 0.55); }
+/* Ida e volta são largas: 3% para os lados viraria até 10 px por cima das partes finas vizinhas. Elas crescem 1%,
+   e as partes finas (conexão, servidor, download) ficam sempre por cima, na frente ou não: o TTFB em primeiro
+   plano não esconde o servidor entre a ida e a volta. */
+.tl-seg.net.tl-front { transform: scale(1.01); }
+.tl-seg.conn, .tl-seg.server, .tl-seg.down { z-index: 4; }
+.tl-seg.conn.tl-front, .tl-seg.server.tl-front, .tl-seg.down.tl-front { z-index: 5; }
+@media (prefers-reduced-motion: reduce) {
+  .wf-summary .wf-cell-stage .flow-seg, .wf .flow-stages, .wf .wf-lines, .wf-summary .flow-seg-response, .tl-seg { transition: none; }
+}
+
+/* Sobre o ServeRest: a introdução da documentação, numa faixa discreta no fim da página. */
+/* O rodapé, sempre à vista: a marca com a apresentação e três grupos de links com título. */
+.about { padding-top: 20px; padding-bottom: 36px; }
+:root:not([data-layout]) .about { visibility: hidden; }
+.about-inner { border-top: 1px solid var(--border); padding-top: 18px; display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr)); gap: 20px 28px; font-size: 0.8125rem; }
+.foot-brand { display: flex; flex-direction: column; gap: 10px; }
+.foot-brand p { max-width: 36ch; }
+.foot-h { font-family: var(--font-head); font-size: 1rem; font-weight: 600; line-height: 1.25; margin-bottom: 8px; }
+.foot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.foot-sub { display: block; color: var(--graphite); font-size: 0.75rem; }
+.foot-note { margin-top: 10px; color: var(--graphite); max-width: 40ch; }
+/* A logo completa em duas cores: as letras na cor do texto e o S e o T (com as setas) no roxo da marca. As
+   divisas do degradê foram medidas nesta arte e só valem com a máscara em 100% 100%. */
+.about-logo { --about-logo-h: 32px; display: block; flex: none; height: var(--about-logo-h); width: calc(var(--about-logo-h) * 4005 / 1536); background: linear-gradient(90deg, var(--logo-accent) 14.53%, var(--logo-ink) 14.53% 82.40%, var(--logo-accent) 82.40%); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
+@media (forced-colors: active) { .logo, .about-logo, .setas > span { forced-color-adjust: none; background: CanvasText; } }
+/* Itálico só para anotar um valor: aqui, a nota no lugar de um corpo de resposta vazio, fora do bloco escuro. */
+.empty-body { font-style: italic; font-weight: 400; color: var(--graphite); font-size: 0.8125rem; padding: 10px 12px; border: 1px dashed var(--control); border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-fill-running, .flow-spinner, .spin, .wait-ring { animation: none; }
+  /* Com menos movimento o esqueleto fica parado, sem brilho. */
+  .skel-bar::after, .skel-row::after, .skel-block > span::after { animation: none; display: none; }
+  .flow-fill-running { width: 100%; }
+  .flow-caret { transition: none; }
+}
+
+/* Três zonas (a partir de 68,75 rem): a coluna da esquerda é um recipiente só (.side), grudado no topo,
+   com a altura da janela. Com abas, o script põe o Histórico dentro dele, logo depois das Rotas, para o
+   teclado seguir a tela; a aba escolhida tem a altura toda e só uma lista rola. Requisição e Resultado
+   terminam no próprio conteúdo, sem branco embaixo. */
+@container page (min-width: 68.75rem) {
+  .app { --layout: abas; --rail: calc(100vh - 32px); }
+  .side { grid-column: 1; grid-row: 1; align-self: start; position: sticky; top: 16px; height: var(--rail); min-height: 0; display: flex; flex-direction: column; }
+  .zone-request { grid-column: 2; grid-row: 1; align-self: start; }
+  .zone-result { grid-column: 3; grid-row: 1; align-self: start; }
+  .side .zone-routes { position: static; flex: 1 1 0; max-height: none; min-height: 0; }
+  .side .zone-history { min-height: 0; }
+  /* O Resultado acompanha a rolagem só enquanto está vazio, grudado no topo; quando ele é mais alto que a
+     janela, gruda pela base (--res-h, a altura dele, vem do script). Depois de um envio ele termina no
+     próprio conteúdo e rola com a página, sem rolagem própria. */
+  .zone-result:has(> #result-empty:not([hidden])) { position: sticky; top: min(16px, calc(100vh - var(--res-h, 0px) - 16px)); }
+}
+/* A largura máxima do recipiente depende só da janela, em px, para a barra do topo e o conteúdo e em todo
+   tamanho de texto: 1800 px abaixo de 2184 px de janela, 2184 px a partir dela. Assim a barra e o conteúdo
+   têm sempre as mesmas bordas, e A− e A+ não saem de baixo do ponteiro. */
+@container page (min-width: 2184px) {
+  .wrap { max-width: 2184px; }
+}
+/* Quarta coluna: a partir de 136,5 rem (2184 px com o texto normal) o Histórico é a quarta coluna, à direita
+   do Resultado. A conta fecha em 2184 px: 1800 das três zonas + 16 de vão + 23 rem de coluna; com o texto
+   normal as três zonas ficam como numa janela de 1800 px. Com texto maior a coluna só entra quando cabe (o
+   limite é em rem), e as três zonas cedem a largura dela. */
+@container page (min-width: 136.5rem) {
+  .app { --layout: quatro; grid-template-columns: clamp(19.5rem, 19vw, 23rem) minmax(0, 5fr) minmax(0, 6fr) var(--hist-w); }
+}
+/* Quatro zonas: o Histórico é uma zona como as outras, com título, à direita do Resultado, grudado no topo;
+   ele termina na própria lista, até a altura da janela (aí a lista rola dentro dele). As Rotas voltam a ter
+   o próprio título. */
+:root[data-layout="quatro"] .zone-history { grid-column: 4; grid-row: 1; align-self: start; position: sticky; top: 16px; height: auto; max-height: var(--rail); }
+
+/* Abas: um painel só, com as abas no topo; os títulos das zonas ficam só para o leitor de tela. Do
+   cabeçalho do Histórico sobra uma linha baixa com a contagem e Limpar, e só quando há envios. */
+:root[data-layout="abas"] .side { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+:root[data-layout="abas"] .side-tabs { display: flex; }
+:root[data-layout="abas"] .side .zone { flex: 1 1 0; border: 0; border-radius: 0; }
+:root[data-layout="abas"] .side .zone.side-off { display: none; }
+:root[data-layout="abas"] .side .zone:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+:root[data-layout="abas"] .side .zone-routes .zone-head,
+:root[data-layout="abas"] .side .zone-history .zone-title,
+:root[data-layout="abas"] .side .zone-history .zone-head:not(:has(.hist-clear:not([hidden]))) { position: absolute; width: 1px; height: 1px; min-height: 0; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:root[data-layout="abas"] .side .zone-history .zone-head { min-height: 2.25rem; padding: 2px 8px 2px 16px; }
+/* Com a aba Histórico escolhida, o painel termina na própria lista (até a altura da janela, e aí a lista rola
+   dentro dele), em vez de guardar a altura das Rotas com branco embaixo. As abas não se movem. */
+:root[data-layout="abas"] .side:has(> .zone-routes.side-off) { height: auto; max-height: var(--rail); }
+:root[data-layout="abas"] .side:has(> .zone-routes.side-off) > .zone-history { flex: 0 1 auto; }
+
+/* Abaixo de 1100 px (em rem: com texto maior, a troca vem antes) as zonas viram uma coluna: Rotas no
+   topo, e o Histórico logo depois de Resultado (o script o devolve para lá), sem abas. A consulta usa
+   "width <" para não deixar, em larguras fracionárias com zoom, um intervalo sem layout nenhum. */
+@container page (width < 68.75rem) {
+  .app { --layout: pilha; grid-template-columns: minmax(0, 1fr); gap: 12px; padding-top: 12px; }
+  .side { display: contents; }
+  .zone-routes { position: static; max-height: none; }
+  .hist-scroll { max-height: 60vh; }
+  .routes-toggle { display: inline-flex; margin-left: auto; }
+  .zone-routes.collapsed .filter, .zone-routes.collapsed .route-list { display: none; }
+  .zone-routes.collapsed .zone-head { border-bottom: 0; }
+  .route-list { max-height: 60vh; }
+  .shown { scroll-margin-top: 8px; }
+  .zone-request { --req-x: 16px; }
+  .zone-routes .zone-head, .filter, .group h3, .group-desc, .group ul { padding-left: 16px; padding-right: 16px; }
+  .filter svg { left: 25px; }
+  .about-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Abaixo de 1024 px a barra fica justa numa linha só: em 768 px, com o link da documentação e a versão em
+   inglês ou espanhol (um pouco mais longos), ela quebrava para duas linhas. O vão entre o link e A− passa
+   a 12 px, o mesmo da regra de 760 px; os vãos entre o seletor de idioma, a logo e a versão também, porque
+   a logo completa é 4 px mais larga que o SVG de antes. */
+@container page (max-width: 1023px) {
+  .bar-end { column-gap: 12px; }
+  .topbar-inner { column-gap: 12px; }
+  .brand { column-gap: 12px; }
+}
+/* O selo de opinião só cabe na barra a partir de 1024 px (em px, para não depender do tamanho do texto);
+   abaixo disso fica fora da tela e da ordem do Tab. */
+@container page (min-width: 1024px) {
+  .pill-hdr:not([hidden]) { display: inline-flex; }
+}
+/* A barra do topo e o respiro lateral do recipiente mudam numa largura em px (760 px, os 47,5 rem do texto
+   normal), nunca com o tamanho do texto: a barra é a mesma nos três tamanhos em toda largura, e as bordas
+   dela seguem as do conteúdo. O resto da página continua mudando em rem (abaixo). */
+@container page (max-width: 760px) {
+  .wrap { padding-left: 12px; padding-right: 12px; }
+  .topbar-inner { gap: 6px 10px; }
+  .docs-link { font-size: 13px; }
+  .bar-end { gap: 8px 12px; }
+  .logo { height: 34px; }
+  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo. Sem aviso,
+     a marca é só o logo. */
+  .brand { position: static; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .version-box { display: contents; }
+  .version { display: none; }
+  .rel-pop { left: 12px; }
+}
+@container page (max-width: 47.5rem) {
+  .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
+  .zone-head { padding: 6px 14px; }
+  .zone-request { --req-x: 14px; }
+  .params .field { grid-template-columns: minmax(0, 1fr); }
+  .params .param-help, .auth-row > .auth-caption, .auth-row > .auth-error, .auth-row > .auth-actions { grid-column: 1; }
+  .shown, .zone-result .band, .zone-result .band-body, .result-empty-lines, .hist-empty, .hist-cleared { padding-left: 14px; padding-right: 14px; }
+  .about-inner { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
+   a regra entraria também em 390 px, e os botões encolheriam debaixo do dedo. */
+@container page (max-width: 384px) {
+  .wrap { padding-left: 10px; padding-right: 10px; }
+  .rel-pop { left: 10px; }
+  .bar-end { gap: 8px; }
+  .view { gap: 6px; }
+  .seg-btn { width: 32px; }
+}
+
+/* Zona Resultado estreita (telefone, ou texto maior em três colunas): a trilha desce para baixo do
+   nome e usa a largura toda; o eixo continua o mesmo para todas as etapas. */
+@container result (max-width: 30rem) {
+  .flow { --wf: 1rem minmax(0, 1fr) 7rem; }
+  .wf-summary, .wf-lines-cols { grid-column: 2 / 4; }
+  .wf-label { grid-column: 2 / 4; grid-row: 1; justify-self: start; position: relative; z-index: 2; background: var(--surface); padding: 4px 6px 2px 0; }
+  .wf-scale .wf-summary { grid-row: 2; }
+  .flow-row { row-gap: 2px; padding: 6px 4px 4px; min-height: 0; }
+  .flow-row > .flow-mark, .flow-name { grid-row: 1; }
+  .flow-end { grid-column: 3; grid-row: 1; }
+  .wf-track { grid-column: 2 / 4; grid-row: 2; height: 20px; min-height: 0; }
+  .flow-name, .flow-end { position: relative; z-index: 2; background: var(--row-bg); }
+  .flow-name { justify-self: start; padding-right: 6px; }
+  .flow-end { justify-self: end; padding-left: 6px; }
+  .flow-details { padding: 2px 10px 14px 10px; }
+  /* A cascata de cinco etapas e a barra de tempo numa zona estreita (a dica guarda duas linhas). */
+  .flow-reserve { min-height: 48.625rem; }
+  .flow.is-collapsed .flow-reserve { min-height: calc(9.3675rem + var(--read-row-h, 1.5125rem)); }
+  .flow.is-collapsed > .band-body:has(> .flow-summary) { grid-template-columns: minmax(0, 1fr); }
+  .flow.is-collapsed .flow-mini-time { grid-column: 1; grid-row: auto; margin-top: 6px; }
+  /* Numa zona estreita (telefone), a frase parada é a do toque, e a ida e a volta vão pelo nome curto. */
+  .fc-long { display: none; }
+  .fc-short { display: inline; }
+  .fc-hint { display: none; }
+  .fc-hint-touch { display: inline; }
+  .fc-read::after { content: attr(data-reserve-touch) / ""; }
+}
+
+/* Resultado muito estreito (320 px com o texto maior): os headers da resposta empilham o nome sobre o
+   valor; lado a lado, o nome mais longo deixava o valor sem largura. */
+@container result (max-width: 20rem) {
+  .res-headers { grid-template-columns: minmax(0, 1fr); }
+  .res-headers dt { padding-bottom: 0; border-bottom: 0; overflow-wrap: anywhere; }
+  .res-headers dd { padding-top: 0; }
+}
+
+/* Transições suaves (app.js, smoothSwap): a cópia do conteúdo anterior some por cima do novo, no mesmo lugar. */
+#res-body-area { position: relative; }
+.swap-ghost { position: absolute; top: 0; left: 0; right: 0; padding: inherit; box-sizing: border-box; pointer-events: none; }
+/* No veredito, as partes das barras andam da geometria do envio anterior até a nova; a classe só existe
+   durante essa ida, para o redimensionar da janela não animar. */
+.fc-one.bar-morph .fc-onet { transition: flex-basis 0.3s ease-out; }
+.fc-one.bar-morph .fc-srv { transition: flex-basis 0.3s ease-out, grid-template-columns 0.3s ease-out; }
+.fc-one.bar-morph .fc-bracket-line { transition: left 0.3s ease-out, width 0.3s ease-out; }
+.fc-one.bar-morph .fc-bracket-label { transition: left 0.3s ease-out; }
+.fc-one.bar-morph .fc-ns { transition: background-color 0.3s ease-out, box-shadow 0.3s ease-out; }
+/* Até o veredito, a barra de tempo aberta fica neutra, como o esqueleto: as partes sem cor; os nomes ficam e só
+   os números dão lugar ao esqueleto (.num-slot). */
+.tl.tl-hold .tl-seg, .tl.tl-hold .tl-seg:hover { background: var(--well); box-shadow: inset 0 0 0 1px var(--border); }
+.tl.tl-morph .tl-call, .tl.tl-morph .tl-dim-label { transition: left 0.3s ease-out, bottom 0.3s ease-out; }
+.tl.tl-morph .tl-tick, .tl.tl-morph .tl-dim { transition: left 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out; }
+/* As colunas das etapas no aberto: o resumo, as linhas e as linhas das colunas andam com a mesma variável. A
+   grade escondida só mede as colunas de uma regra. */
+.wf-morph .wf-summary, .wf-morph .wf-track, .wf-morph .wf-lines-cols { transition: grid-template-columns 0.3s ease-out; }
+.wf-probe { position: absolute; left: 0; top: 0; display: grid; visibility: hidden; pointer-events: none; }
+.tl.tl-morph .tl-seg { transition: flex-basis 0.3s ease-out, background-color 0.3s ease-out, box-shadow 0.3s ease-out, color 0.3s ease-out, transform 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }

@@ -24,6 +24,7 @@ const limiteGlobal = new RateLimiterMemory({
 
 module.exports = async (req, res, next) => {
   if (aplicacaoExecutandoLocalmente() || ehAmbienteDeTestes) {
+    res.locals.etapas?.ignorar()
     return next()
   }
 

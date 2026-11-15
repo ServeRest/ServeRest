@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="{{lang}}" data-version="{{version}}" data-notice-version="{{noticeVersion}}" data-notice-url="{{noticeUrl}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>{{script.legacy-links}}</script>
+<script>{{script.prefs-boot}}</script>
+<title>{{lab.page.title}}</title>
+<meta name="description" content="{{lab.page.description}}">
+<link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">
+<link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
+<script src="/lab/assets/core.js?v={{version}}" defer></script>
+<script src="/lab/assets/app.js?v={{version}}" defer></script>
+</head>
+<body data-1p-ignore>
+<!-- Ícones do Executar dividido e de "Rever em câmera lenta". O caracol, a seta e o visto são ícones do Lucide
+     (licença ISC); as duas setas são as do logo do ServeRest, redesenhadas como vetor; a seta de abrir as etapas do Fluxo é a da direita. -->
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="i-snail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"/><circle cx="10" cy="13" r="8"/><path d="M2 21h12c4.4 0 8-3.6 8-8V7a2 2 0 1 0-4 0v6"/><path d="M18 3 19.1 5.2"/><path d="M22 3 20.9 5.2"/></symbol>
+  <symbol id="i-setas" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M1.5 8 9 2.5V6h9.5a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9v3.5z"/><path d="M22.5 16 15 10.5V14H5.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H15v3.5z"/></symbol>
+  <symbol id="i-seta" viewBox="4 10 19 12" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M22.5 16 15 10.5V14H5.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H15v3.5z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+</svg>
+<a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
+
+<!-- Barra do topo, na ordem: o seletor de idioma do Swagger, a marca (logo, versão e aviso de versão nova),
+     a documentação e os controles de tamanho do texto e de tema. O idioma da página já vem marcado do
+     servidor (is-active e aria-current); o estado dos controles vem da raiz, escrita por prefs-boot.js. -->
+<header class="topbar">
+  <div class="topbar-inner wrap">
+    <nav class="lang-switcher" id="lang-switcher" aria-label="{{lab.topbar.languages}}">
+      <a class="lang-switcher__button{{flag.pt-BR.active}}" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" aria-label="{{lab.lang.pt_br}}" title="{{lab.lang.pt_br}}"{{flag.pt-BR.current}}><img class="lang-switcher__flag" src="/flags/flag_brazil.svg" alt="" width="20" height="14"></a>
+      <a class="lang-switcher__button{{flag.es.active}}" href="?lang=es" hreflang="es" lang="es" data-lang="es" aria-label="{{lab.lang.es}}" title="{{lab.lang.es}}"{{flag.es.current}}><img class="lang-switcher__flag" src="/flags/flag_peru.svg" alt="" width="20" height="14"></a>
+      <a class="lang-switcher__button{{flag.en.active}}" href="?lang=en" hreflang="en" lang="en" data-lang="en" aria-label="{{lab.lang.en}}" title="{{lab.lang.en}}"{{flag.en.current}}><img class="lang-switcher__flag" src="/flags/flag_uk.svg" alt="" width="20" height="14"></a>
+    </nav>
+    <div class="brand">
+      <span class="logo" role="img" aria-label="{{lab.topbar.logo}}"></span>
+      <!-- O aviso de versão nova: com o número da versão, um botão que abre o painel logo depois dele (o próximo
+           Tab entra no painel); sem número (aviso forçado), o link para as releases. O selo de opinião só
+           aparece com o endereço do formulário e só com espaço na barra (1024 px ou mais). -->
+      <div class="version-box">
+        <span class="version" id="version"></span>
+        <a class="version-notice" id="version-notice" target="_blank" rel="noopener" hidden></a>
+        <button class="version-notice" type="button" id="release-btn" aria-expanded="false" aria-controls="release-panel" hidden><span class="dot" id="release-dot" aria-hidden="true"></span><span id="release-line"></span></button>
+        <div class="rel-pop" id="release-panel" role="region" hidden></div>
+      </div>
+      <a class="pill-hdr" id="feedback-pill" target="_blank" rel="noopener" hidden>{{lab.feedback.pill}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
+    </div>
+    <div class="bar-end">
+      <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}" target="_blank" rel="noopener">{{lab.topbar.docs}}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
+      <div class="view">
+        <div class="seg" role="group" aria-label="{{lab.topbar.text_size}}" id="seg-text">
+          <button class="seg-btn" type="button" id="text-down" aria-label="A− {{lab.topbar.text_smaller}}" title="{{lab.topbar.text_smaller}}"><span aria-hidden="true"><span class="a-s">A</span>−</span></button>
+          <button class="seg-btn" type="button" id="text-up" aria-label="A+ {{lab.topbar.text_larger}}" title="{{lab.topbar.text_larger}}"><span aria-hidden="true"><span class="a-l">A</span>+</span></button>
+        </div>
+        <div class="seg" role="group" aria-label="{{lab.topbar.theme}}" id="seg-theme">
+          <button class="seg-btn" type="button" data-theme-choice="light" aria-pressed="false" aria-label="{{lab.topbar.theme_light}}" title="{{lab.topbar.theme_light}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          <button class="seg-btn" type="button" data-theme-choice="dark" aria-pressed="false" aria-label="{{lab.topbar.theme_dark}}" title="{{lab.topbar.theme_dark}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A5.9 5.9 0 0 1 5.9 2.4a5.9 5.9 0 1 0 7.7 7.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- As quatro zonas. A coluna da esquerda (.side) tem as abas Rotas e Histórico só no layout com três
+     zonas (data-layout="abas"): nesse layout o script põe o Histórico aqui, depois das Rotas; com quatro
+     zonas e numa coluna só ele fica depois do Resultado, para o teclado seguir a tela. -->
+<main class="app wrap" id="app">
+  <h1 class="sr-only">{{lab.page.heading}}</h1>
+  <div class="side" id="side">
+    <!-- A contagem do Histórico tem o número para o leitor de tela e, escondida dele, a roda que gira cada
+         dígito (app.js, rodaSet); sem espaço entre as duas, o script as acha como primeiro e último filho. -->
+    <div class="folder-tabs side-tabs" id="side-tabs" role="tablist" aria-label="{{lab.side.tabs}}">
+      <button class="folder-tab side-tab" type="button" role="tab" id="side-tab-rotas" aria-controls="routes" aria-selected="true"><span class="tab-label">{{lab.routes.title}}</span> <span class="tab-count" id="side-count-rotas"></span></button>
+      <button class="folder-tab side-tab" type="button" role="tab" id="side-tab-historico" aria-controls="history" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.history.title}}</span> <span class="tab-count" id="side-count-historico" hidden><span class="count-num" id="hist-badge-num"><span class="sr-only"></span><span class="odo" aria-hidden="true"></span></span></span><span class="sr-only" id="hist-badge-new"></span></button>
+    </div>
+    <section class="zone zone-routes" id="routes" aria-labelledby="routes-title">
+      <div class="zone-head">
+        <h2 class="zone-title" id="routes-title">{{lab.routes.title}}</h2>
+        <span class="muted small" id="routes-count"></span>
+        <button class="btn btn-quiet routes-toggle" type="button" id="routes-toggle" aria-expanded="true" aria-controls="route-list">{{lab.routes.hide}}</button>
+      </div>
+      <label class="filter">
+        <span class="sr-only">{{lab.routes.filter}}</span>
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input class="input" type="search" id="filter" placeholder="{{lab.routes.filter_placeholder}}" autocomplete="off">
+      </label>
+      <div class="route-list" id="route-list"></div>
+    </section>
+  </div>
+
+  <section class="zone zone-request" id="request-zone" aria-labelledby="request-zone-title">
+    <div class="zone-head">
+      <h2 class="zone-title" id="request-zone-title">{{lab.request.title}}</h2>
+      <a class="head-doc-link" id="doc-link" target="_blank" rel="noopener" hidden></a>
+    </div>
+    <section class="request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
+  </section>
+
+  <!-- Resultado: a origem do envio mostrado no fim da linha do título e, numa coluna só, o link de volta à
+       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. -->
+  <section class="zone zone-result" id="result" aria-labelledby="result-title">
+    <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2><span class="tag result-origin" id="result-origin" hidden></span><a class="result-edit" id="result-edit" href="#request-zone" hidden>{{lab.result.edit}}</a></div>
+    <div class="result-empty" id="result-empty" tabindex="-1"></div>
+    <p class="shown" id="shown" tabindex="-1" aria-describedby="result-origin" hidden></p>
+    <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
+      <div class="band">
+        <h3 class="band-title"><button class="flow-toggle" type="button" id="flow-title" aria-expanded="true" aria-controls="flow-body"></button></h3>
+        <div class="band-tools flow-controls" id="flow-controls">
+          <!-- Rever não envia: a descrição diz isso ao leitor de tela, que só ouviria o nome do botão. -->
+          <button class="btn" type="button" id="replay" aria-disabled="true" aria-describedby="replay-desc"></button>
+          <span id="replay-desc" hidden>{{lab.flow.replay_desc}}</span>
+        </div>
+      </div>
+      <div class="band-body" id="flow-body"></div>
+    </section>
+    <div class="folder-tabs result-tabs" id="result-tabs" role="tablist" aria-label="{{lab.result_tabs.label}}" hidden>
+      <button class="folder-tab" type="button" role="tab" id="res-tab-resposta" aria-controls="response" aria-selected="true"><span class="tab-label">{{lab.response.title}}</span></button>
+      <button class="folder-tab" type="button" role="tab" id="res-tab-enviado" aria-controls="sent-out" aria-selected="false" tabindex="-1"><span class="tab-label">{{lab.sent_out.title}}</span> <span class="tab-count tab-diff" id="res-tab-diff" hidden>{{lab.sent_out.tab_diff}}</span></button>
+    </div>
+    <section class="response result-panel" id="response" role="tabpanel" aria-labelledby="res-tab-resposta" tabindex="0" aria-busy="false" hidden>
+      <h3 class="sr-only" id="res-title">{{lab.response.title}}</h3>
+      <div class="band-body" id="res-body-area"></div>
+    </section>
+    <section class="sent-out result-panel" id="sent-out" role="tabpanel" aria-labelledby="res-tab-enviado" tabindex="0" hidden>
+      <h3 class="sr-only" id="sent-out-title">{{lab.sent_out.title}}</h3>
+      <div class="band-body">
+        <div class="sent-head"><label class="sent-times"><input type="checkbox" id="sent-out-times"> {{lab.sent_out.times}}</label><button class="btn btn-copy" type="button" id="sent-out-copy">{{lab.copy.command}}</button></div>
+        <div id="sent-out-area"></div>
+      </div>
+    </section>
+  </section>
+
+  <section class="zone zone-history" id="history" aria-labelledby="hist-title">
+    <div class="zone-head">
+      <h2 class="zone-title" id="hist-title">{{lab.history.title}}</h2>
+      <span class="muted small" id="hist-count"></span>
+      <button class="btn btn-quiet hist-clear" type="button" id="hist-clear" hidden>{{lab.history.clear}}</button>
+    </div>
+    <p class="hist-cleared" id="hist-cleared" hidden><span>{{lab.history.clear_done}}</span> <button class="btn btn-quiet" type="button" id="hist-undo">{{lab.history.undo}}</button></p>
+    <p class="hist-limit" id="hist-limit" hidden></p>
+    <p class="hist-empty" id="hist-empty" tabindex="-1"></p>
+    <div class="hist-scroll" id="hist-scroll" hidden>
+      <div class="hist-cols" aria-hidden="true"><span>{{lab.history.col_time}}</span><span>{{lab.history.col_method}}</span><span>{{lab.history.col_path}}</span><span></span><span>{{lab.history.col_status}}</span><span>{{lab.history.col_response}}</span><span class="num">{{lab.history.col_total}}</span></div>
+      <ol class="history-list" id="history-body" aria-labelledby="hist-title"></ol>
+    </div>
+  </section>
+</main>
+
+<!-- Sobre o ServeRest, sempre à vista: a marca e a apresentação, depois três grupos com título. Os links de
+     cada lista vêm de app.js (os endereços não ficam na marcação). -->
+<footer class="about wrap" id="about" aria-labelledby="about-title">
+  <h2 class="sr-only" id="about-title">{{lab.about.title}}</h2>
+  <div class="about-inner">
+    <div class="foot-brand">
+      <span class="about-logo" aria-hidden="true"></span>
+      <p>{{lab.about.intro}}</p>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-beyond-title">{{lab.about.group_beyond}}</h3>
+      <ul class="foot-list" id="about-beyond" aria-labelledby="about-beyond-title"></ul>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-help-title">{{lab.about.group_help}}</h3>
+      <ul class="foot-list" id="about-help" aria-labelledby="about-help-title"></ul>
+    </div>
+    <div class="foot-group">
+      <h3 class="foot-h" id="about-support-title">{{lab.about.group_support}}</h3>
+      <ul class="foot-list" id="about-support" aria-labelledby="about-support-title"></ul>
+      <p class="foot-note" id="about-thanks"></p>
+    </div>
+  </div>
+</footer>
+<p class="sr-only" id="announcer" aria-live="polite"></p>
+
+<script type="application/json" id="lab-texts">{{texts}}</script>
+</body>
+</html>

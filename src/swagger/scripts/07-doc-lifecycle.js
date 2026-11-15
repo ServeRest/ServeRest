@@ -61,9 +61,16 @@
     observe()
   }
 
+  // O worker fica só em /swagger. Com o escopo padrão, a raiz, ele controlava também a página inicial e
+  // entrava no meio de cada chamada dela à API. O registro antigo, da raiz, sai antes do novo.
   function registerServiceWorker () {
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/swagger-sw.js').catch(() => {})
+      const rootScope = window.location.origin + '/'
+      navigator.serviceWorker.getRegistrations()
+        .then(regs => Promise.all(regs.filter(r => r.scope === rootScope).map(r => r.unregister())))
+        .catch(() => {})
+        .then(() => navigator.serviceWorker.register('/swagger-sw.js', { scope: '/swagger' }))
+        .catch(() => {})
     }
   }
 
@@ -126,7 +133,12 @@
     }
     const shouldRefreshEndpointBlock = setRefreshFlagFromState(language)
     updateSwaggerSpec(language, shouldRefreshEndpointBlock)
-    runReleaseCheck()
+  }
+
+  // A logo leva à página inicial no idioma atual; o seletor de idioma também chama esta função.
+  function updateTopbarLogoHref (language) {
+    const logo = document.getElementById('serverest-logo')
+    if (logo) logo.setAttribute('href', '/?lang=' + encodeURIComponent(language))
   }
 
   function setupTopbarLogo (root) {
@@ -135,10 +147,12 @@
       const link = wrapper && wrapper.querySelector('.link')
       if (!wrapper || !link) return
       if (document.getElementById('serverest-logo')) return
-      const logo = document.createElement('div')
+      const logo = document.createElement('a')
       logo.id = 'serverest-logo'
       logo.className = 'topbar-logo'
+      logo.setAttribute('aria-label', 'ServeRest')
       wrapper.insertBefore(logo, link)
+      updateTopbarLogoHref(getPreferredLanguage())
       link.style.display = 'none'
       link.removeAttribute('href')
       link.setAttribute('aria-hidden', 'true')
@@ -151,7 +165,6 @@
     preloadFlags()
     preloadSwaggerJson()
     prefetchSwaggerSpecs()
-    if (document.body) renderReleaseToast()
     checkVersionThenObserve()
   }
 

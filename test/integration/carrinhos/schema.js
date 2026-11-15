@@ -25,7 +25,6 @@ const postSemBody = Joi.object().keys({
 
 const postSemProdutos = Joi.object().keys({
   'produtos[0].quantidade': Joi.string().required(),
-  produtos: Joi.string().required(),
   'produtos[0].idProduto': Joi.string().required()
 })
 

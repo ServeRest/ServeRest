@@ -161,8 +161,19 @@ describe(rotaCarrinhos + ' POST', () => {
 
     chai.assert.deepEqual(body, {
       'produtos[0].idProduto': 'produtos[0].idProduto é obrigatório',
-      'produtos[0].quantidade': 'produtos[0].quantidade é obrigatório',
-      produtos: 'produtos não contém 1 valor obrigatório'
+      'produtos[0].quantidade': 'produtos[0].quantidade é obrigatório'
+    })
+  })
+
+  it('Bad request - produtos deve ter pelo menos 1 item', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({ produtos: [] })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      produtos: 'produtos deve ter pelo menos 1 item'
     })
   })
 
@@ -191,10 +202,33 @@ describe(rotaCarrinhos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      produtos: 'produtos não contém 1 valor obrigatório',
       'produtos[0].idProduto': 'produtos[0].idProduto deve ser uma string',
       'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número'
     })
+  })
+
+  it('Bad request - quantidade como string numérica não é aceita e o estoque não muda', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto,
+          quantidade: '2'
+        }]
+      })
+      .set('authorization', authorization)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número'
+    })
+
+    const { body: bodyProduto } = await request.get(`/produtos/${idProduto}`).expect(200)
+
+    chai.assert.strictEqual(bodyProduto.quantidade, 10)
   })
 
   it('Bad request - quantidade deve ser inteiro', async () => {
@@ -210,7 +244,6 @@ describe(rotaCarrinhos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      produtos: 'produtos não contém 1 valor obrigatório',
       'produtos[0].quantidade': 'produtos[0].quantidade deve ser um inteiro'
     })
   })
@@ -228,7 +261,6 @@ describe(rotaCarrinhos + ' POST', () => {
       .expect(400)
 
     chai.assert.deepEqual(body, {
-      produtos: 'produtos não contém 1 valor obrigatório',
       'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número positivo'
     })
   })

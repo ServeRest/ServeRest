@@ -26,12 +26,27 @@ const moesifMiddleware = require('./middlewares/moesif-monitor-middleware')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
-const { fetchLatestRelease } = require('./utils/github-release')
+const { iniciar, etapa } = require('./utils/etapas')
+const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
+const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
+const {
+  cacheForaDoLocalhost,
+  cacheNoStatic,
+  enviarResposta,
+  prepararResposta,
+  servirTextos,
+  textosDaPasta
+} = require('./lab/entrega')
 
 const forceReleaseBanner = process.env.FORCE_RELEASE_BANNER === 'true'
 const supportedLanguages = new Set(['pt-BR', 'en', 'es'])
+
+function idiomaDaRequisicao (req) {
+  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
+  return supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
+}
 
 const app = express()
 
@@ -55,13 +70,15 @@ app.set('json spaces', 4)
 // o Express passaria a ler o primeiro endereço do X-Forwarded-For, que o próprio cliente
 // pode forjar, então o número de saltos precisa ser explícito.
 app.set('trust proxy', 1)
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
+app.use(['/login', '/usuarios', '/produtos', '/carrinhos'], iniciar)
+const parsersDoBody = express.Router()
+parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))
+app.use(etapa('body', parsersDoBody))
 app.use(queryParser())
 app.use(timeout())
-app.use(cors())
+app.use(cors({ exposedHeaders: ['X-ServeRest-Stages'] }))
 app.use(moesifMiddleware)
-app.use(rateLimiter)
+app.use(etapa('rate_limit', rateLimiter))
 
 app.disable('etag')
 
@@ -95,6 +112,12 @@ swaggerDocument.servers = currentUrl === serverestUrl
 
 swaggerDocument.info.version = version
 
+// O documento como a página inicial o pede, com v: montado e comprimido uma vez por idioma.
+const swaggerJsonDaPagina = new Map([...supportedLanguages].map(idioma => [
+  idioma,
+  prepararResposta(JSON.stringify(localizeSwaggerDocument(swaggerDocument, idioma), null, app.get('json spaces')), 'json')
+]))
+
 let latestReleaseInfo = null
 let latestReleasePromise = null
 
@@ -116,36 +139,65 @@ if (!ehAmbienteDeTestes) {
   atualizarReleaseInfo()
 }
 
-const uiOptionsBase = {
-  customSiteTitle: 'ServeRest',
-  customfavIcon: '/favicon.ico',
-  customCss
+const PAGINA_DE_RELEASES = 'https://github.com/ServeRest/ServeRest/releases'
+const PREFIXO_DAS_RELEASES = 'https://github.com/ServeRest/ServeRest/'
+
+// Aviso de versão nova da página inicial, calculado a cada requisição. Forçado e
+// sem dados da release, o aviso vai sem versão. O link que a API devolve só é usado se for do
+// repositório; qualquer outro vira a lista de releases.
+function avisoDeVersao (releaseInfo) {
+  const haVersaoNova = releaseInfo !== null && isNewerVersion(releaseInfo.version, version)
+  if (!haVersaoNova && !forceReleaseBanner) return null
+  if (releaseInfo === null) return { version: '', url: PAGINA_DE_RELEASES }
+  const urlConfiavel = typeof releaseInfo.url === 'string' && releaseInfo.url.startsWith(PREFIXO_DAS_RELEASES)
+  return { version: releaseInfo.version, url: urlConfiavel ? releaseInfo.url : PAGINA_DE_RELEASES }
 }
 
+const uiOptions = {
+  customSiteTitle: 'ServeRest',
+  customfavIcon: '/favicon.ico',
+  customCss,
+  customJsStr: buildCustomJsStr(version)
+}
+
+function setupDoSwagger (idioma) {
+  return swaggerUi.setup(localizeSwaggerDocument(swaggerDocument, idioma), uiOptions)
+}
+
+// O swagger-ui-express só preenche o /swagger-ui-init.js quando a página do Swagger é renderizada.
+// Sem esta renderização, quem abre só a página inicial faz o service worker guardar um init vazio
+// e o /swagger fica em branco para essa pessoa até a próxima versão.
+setupDoSwagger('pt-BR')
+
+// Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 app.use('/', swaggerUi.serve)
-app.get('/', (req, res, next) => {
-  res.set('Cache-Control', 'no-cache, max-age=0')
-  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
-  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
-  const localizedSwagger = localizeSwaggerDocument(swaggerDocument, language)
-  const customJsStr = buildCustomJsStr(
-    latestReleaseInfo,
-    version,
-    forceReleaseBanner
-  )
-  const uiOptions = {
-    ...uiOptionsBase,
-    customJsStr
+app.get('/swagger', (req, res, next) => {
+  // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
+  if (req.path !== '/swagger') {
+    const inicioDaQuery = req.originalUrl.indexOf('?')
+    const query = inicioDaQuery === -1 ? '' : req.originalUrl.slice(inicioDaQuery)
+    return res.redirect(302, '/swagger' + query)
   }
-  return swaggerUi.setup(localizedSwagger, uiOptions)(req, res, next)
+  res.set('Cache-Control', 'no-cache, max-age=0')
+  return setupDoSwagger(idiomaDaRequisicao(req))(req, res, next)
 })
-app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png')))
-app.use('/flags', express.static(join(__dirname, '../docs/flags')))
+app.use('/favicon.ico', express.static(join(__dirname, '../docs/favicon.png'), { setHeaders: cacheNoStatic }))
+app.use('/flags', express.static(join(__dirname, '../docs/flags'), { setHeaders: cacheNoStatic }))
 app.use('/images', express.static(join(__dirname, '../docs/images')))
+app.use('/lab/assets', servirTextos(textosDaPasta(LAB_ASSETS_DIR)), express.static(LAB_ASSETS_DIR, { setHeaders: cacheNoStatic }))
+// A página volta sempre ao servidor (no-cache), mas quem já a tem recebe um 304 sem corpo.
+app.get('/', (req, res) => {
+  res.set('Cache-Control', 'no-cache, max-age=0')
+  enviarResposta(req, res, paginaPronta(idiomaDaRequisicao(req), avisoDeVersao(latestReleaseInfo)))
+})
 app.get('/swagger.json', (req, res) => {
-  const requestedLanguage = typeof req.query.lang === 'string' ? req.query.lang : ''
-  const language = supportedLanguages.has(requestedLanguage) ? requestedLanguage : 'pt-BR'
-  res.status(200).json(localizeSwaggerDocument(swaggerDocument, language))
+  // Só a página inicial pede com v. O Swagger e quem importa no Postman pedem sem v e recebem como antes.
+  if (req.query.v !== undefined) {
+    const cache = cacheForaDoLocalhost(req)
+    if (cache) res.set('Cache-Control', cache)
+    return enviarResposta(req, res, swaggerJsonDaPagina.get(idiomaDaRequisicao(req)))
+  }
+  res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
 app.get('/swagger-sw.js', (req, res) => {

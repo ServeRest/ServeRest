@@ -79,6 +79,66 @@ describe(rotaProdutos + ' PUT', () => {
     })
   })
 
+  it('Bad request - preco como string numérica não é aceito', async () => {
+    const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
+
+    const { body } = await request
+      .put(`${rotaProdutos}/${_id}`)
+      .send({ ...utils.dadosProduto(), preco: '470' })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      preco: 'preco deve ser um número'
+    })
+  })
+
+  // O serviço tira os espaços em volta de nome e imagem antes de gravar; só espaços viraria "".
+  describe('Texto só com espaços', () => {
+    it('Bad request - nome só com espaços não é aceito', async () => {
+      const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
+
+      const { body } = await request
+        .put(`${rotaProdutos}/${_id}`)
+        .send({ ...utils.dadosProduto(), nome: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        nome: 'nome não pode ficar em branco'
+      })
+    })
+
+    it('Bad request - imagem só com espaços não é aceita', async () => {
+      const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
+
+      const { body } = await request
+        .put(`${rotaProdutos}/${_id}`)
+        .send({ ...utils.dadosProduto(), imagem: '   ' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        imagem: 'imagem não pode ficar em branco'
+      })
+    })
+
+    it('Nome e imagem com espaços em volta do texto são aceitos e gravados sem esses espaços', async () => {
+      const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
+      const produto = utils.dadosProduto()
+
+      const { body } = await request
+        .put(`${rotaProdutos}/${_id}`)
+        .send({ ...produto, nome: `  ${produto.nome}  `, imagem: `  ${produto.imagem}  ` })
+        .set('authorization', authorizationAdministrador)
+        .expect(200)
+
+      chai.assert.deepEqual(body, { message: 'Registro alterado com sucesso' })
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${_id}`).expect(200)
+      chai.assert.deepEqual(produtoGravado, { ...produto, _id })
+    })
+  })
+
   it('Bad request', async () => {
     const { body } = await request
       .put(rotaProdutos + '/a')

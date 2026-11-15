@@ -1,0 +1,1141 @@
+/* eslint-env browser */
+// Funções puras da página do lab: sem DOM e sem estado global, para que os testes de unidade as
+// carreguem com require e o navegador as receba em window.serverestLabCore.
+(function () {
+  'use strict'
+
+  const METHODS = ['get', 'post', 'put', 'patch', 'delete']
+
+  // Com HTTP/2 o navegador entrega statusText vazio; o texto vem desta tabela, sem tradução, porque
+  // são nomes do protocolo.
+  const STATUS_TEXT = {
+    200: 'OK',
+    201: 'Created',
+    204: 'No Content',
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    405: 'Method Not Allowed',
+    408: 'Request Timeout',
+    409: 'Conflict',
+    413: 'Payload Too Large',
+    415: 'Unsupported Media Type',
+    422: 'Unprocessable Entity',
+    429: 'Too Many Requests',
+    500: 'Internal Server Error',
+    502: 'Bad Gateway',
+    503: 'Service Unavailable',
+    504: 'Gateway Timeout'
+  }
+
+  function statusText (status) {
+    return STATUS_TEXT[status] || ''
+  }
+
+  // A página do status code na MDN, no idioma da página quando a MDN tem a tradução: KNOWN são os códigos
+  // conferidos nas três línguas, MISSING os que faltam numa delas. Sem tradução, a página em inglês, e
+  // english diz isso (para o nome do link avisar), só quando a página não é em inglês.
+  const MDN_LOCALES = { pt: 'pt-BR', es: 'es', en: 'en-US' }
+  const MDN_STATUS_KNOWN = [200, 201, 400, 401, 403, 404, 405, 408, 413, 415, 429, 500]
+  const MDN_STATUS_MISSING = { es: [415, 429] }
+
+  function mdnStatusUrl (code, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const number = Number(code)
+    const translated = MDN_STATUS_KNOWN.includes(number) && !(MDN_STATUS_MISSING[prefix] || []).includes(number)
+    const locale = translated ? MDN_LOCALES[prefix] || 'en-US' : 'en-US'
+    return {
+      url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Status/' + encodeURIComponent(String(code)),
+      english: locale === 'en-US' && prefix !== 'en'
+    }
+  }
+
+  // A página do método na MDN, com a mesma regra de idioma do status code. Os cinco métodos foram conferidos
+  // nas três línguas; outro método cai na página em inglês.
+  const MDN_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+
+  function mdnMethodUrl (method, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const name = String(method || '').toUpperCase()
+    const locale = MDN_METHODS.includes(name) ? MDN_LOCALES[prefix] || 'en-US' : 'en-US'
+    return {
+      url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Methods/' + encodeURIComponent(name),
+      english: locale === 'en-US' && prefix !== 'en'
+    }
+  }
+
+  /* Fluxo: modelo do painel a partir do header X-ServeRest-Stages, com os textos recebidos como argumento.
+     Os casos estão em test/unit/flow-panel.test.js. */
+
+  function segmentGrow (stage) {
+    return Math.sqrt(typeof stage.dur === 'number' && stage.dur > 0 ? stage.dur : 0.2)
+  }
+
+  function formatDuration (dur, language) {
+    const text = dur.toFixed(2)
+    return language === 'en' ? text : text.replace('.', ',')
+  }
+
+  function knownKey (texts, key) {
+    return Object.prototype.hasOwnProperty.call(texts, key) ? key : null
+  }
+
+  function parseEntry (piece) {
+    const [name, ...params] = piece.split(';').map(part => part.trim())
+    const entry = {}
+    params.filter(Boolean).forEach(param => {
+      const separator = param.indexOf('=')
+      const key = separator === -1 ? param : param.slice(0, separator)
+      entry[key] = separator === -1 ? '' : param.slice(separator + 1)
+    })
+    entry.name = name
+    if (entry.dur !== undefined) {
+      const dur = Number(entry.dur)
+      entry.dur = entry.dur === '' || Number.isNaN(dur) ? undefined : dur
+    }
+    return entry
+  }
+
+  function parseStages (headerValue) {
+    if (typeof headerValue !== 'string') return []
+    return headerValue.split(',')
+      .map(piece => piece.trim())
+      .filter(Boolean)
+      .map(parseEntry)
+      .filter(entry => entry.name)
+  }
+
+  function extraParams (entry) {
+    return Object.keys(entry)
+      .filter(key => !['name', 'st', 'dur'].includes(key))
+      .reduce((params, key) => Object.assign(params, { [key]: entry[key] }), {})
+  }
+
+  function buildStage (entry, texts) {
+    return {
+      name: entry.name,
+      st: entry.st,
+      dur: entry.dur,
+      params: extraParams(entry),
+      labelKey: knownKey(texts, 'ui.flow.stage_label.' + entry.name),
+      descriptionKey: knownKey(texts, 'ui.flow.stage_description.' + entry.name),
+      statusKey: knownKey(texts, 'ui.flow.status.' + entry.st),
+      width: 0,
+      rules: []
+    }
+  }
+
+  function buildRule (entry, code, texts) {
+    return {
+      name: entry.name,
+      code,
+      st: entry.st,
+      item: entry.item,
+      params: extraParams(entry),
+      labelKey: knownKey(texts, 'ui.flow.rule_label.' + code),
+      statusKey: knownKey(texts, 'ui.flow.status.' + entry.st)
+    }
+  }
+
+  function failureKeys (stage, rule, status, texts) {
+    // 408 marca como failed a etapa em execução no timeout, e 500 ou mais é erro inesperado: a etapa não explica a falha.
+    if (status === 408) return { whyKey: 'ui.flow.why.status.timeout', howKey: 'ui.flow.how.status.timeout' }
+    if (status >= 500) return { whyKey: 'ui.flow.why.status.unexpected_error', howKey: 'ui.flow.how.status.unexpected_error' }
+    if (rule) {
+      const why = knownKey(texts, 'ui.flow.why.rule.' + rule.code)
+      const how = knownKey(texts, 'ui.flow.how.rule.' + rule.code)
+      if (why && how) return { whyKey: why, howKey: how }
+    }
+    if (stage.name === 'auth' && stage.params.reason) {
+      const why = knownKey(texts, 'ui.flow.why.auth.' + stage.params.reason)
+      const how = knownKey(texts, 'ui.flow.how.auth.' + stage.params.reason)
+      if (why && how) return { whyKey: why, howKey: how }
+    }
+    return {
+      whyKey: knownKey(texts, 'ui.flow.why.stage.' + stage.name),
+      howKey: knownKey(texts, 'ui.flow.how.stage.' + stage.name)
+    }
+  }
+
+  function buildFlowModel (entries, statusCode, texts) {
+    if (!Array.isArray(entries) || entries.length === 0) return null
+    const stages = []
+    entries.forEach(entry => {
+      const separator = entry.name.indexOf('.')
+      const owner = separator > 0 ? entry.name.slice(0, separator) : null
+      const parent = owner ? stages.filter(stage => stage.name === owner).pop() : null
+      if (parent) {
+        parent.rules.push(buildRule(entry, entry.name.slice(separator + 1), texts))
+      } else {
+        stages.push(buildStage(entry, texts))
+      }
+    })
+    const totalDur = stages.reduce((total, stage) => total + (stage.dur || 0), 0)
+    stages.forEach(stage => {
+      stage.width = totalDur > 0 ? (stage.dur || 0) / totalDur : 0
+    })
+    const status = Number(statusCode)
+    const failedStage = stages.find(stage => stage.st === 'failed') || null
+    const failedRule = failedStage ? failedStage.rules.find(rule => rule.st === 'failed') || null : null
+    let summary = 'completed'
+    let keys = { whyKey: null, howKey: null }
+    if (failedStage) {
+      summary = 'stopped'
+      keys = failureKeys(failedStage, failedRule, status, texts)
+    } else if (status >= 400) {
+      summary = 'outside'
+      keys = { whyKey: 'ui.flow.why.outside', howKey: 'ui.flow.how.outside' }
+    }
+    return {
+      statusCode: Number.isNaN(status) ? null : status,
+      summary,
+      failedStage: failedStage ? failedStage.name : null,
+      failedRule: failedRule ? failedRule.code : null,
+      whyKey: keys.whyKey,
+      howKey: keys.howKey,
+      stages
+    }
+  }
+
+  function stepDelay (stage) {
+    if (stage.dur === undefined) return 420
+    return Math.min(1700, Math.max(420, stage.dur * 480))
+  }
+
+  const FIXED_COLUMN = '22px'
+
+  function ranStage (stage) {
+    return stage.st === 'ok' || stage.st === 'failed'
+  }
+
+  // Colunas da grade do desenho do fluxo. Etapa que não rodou e resposta têm a mesma coluna fixa e
+  // estreita; as etapas que rodaram dividem o resto pela raiz da duração, nunca mais estreitas que a
+  // coluna fixa. Não é um eixo de tempo linear.
+  // Quando as frações somam menos de 1, a grade reparte só essa parte do resto, e o desenho para antes
+  // do fim da coluna (etapas rápidas, o normal num servidor local). Aí elas crescem na mesma proporção
+  // até somar pelo menos 1, arredondadas para cima.
+  // As larguras das etapas dentro do servidor, na barra da requisição inteira (Fluxo fechado): a que não
+  // rodou fica com min; as que rodaram dividem o resto pela raiz da duração, como flowColumns, nunca abaixo de
+  // min, e todas somam exatamente space. Em px, e não em fr: com o espaço justo, a grade com minmax(min, fr)
+  // deixava todas as etapas no mínimo e sobrava um vão depois da última.
+  function stageWidths (stages, space, min) {
+    const ran = stages.map(ranStage)
+    const none = !ran.some(Boolean)
+    const grow = stages.map((stage, index) => none ? 1 : ran[index] ? segmentGrow(stage) : 0)
+    const widths = stages.map(() => min)
+    const open = grow.map(value => value > 0)
+    for (;;) {
+      const fixed = widths.reduce((total, width, index) => total + (open[index] ? 0 : width), 0)
+      const weight = grow.reduce((total, value, index) => total + (open[index] ? value : 0), 0)
+      if (!weight) return widths
+      const unit = (space - fixed) / weight
+      const small = open.findIndex((isOpen, index) => isOpen && grow[index] * unit < min)
+      if (small === -1) return widths.map((width, index) => open[index] ? grow[index] * unit : width)
+      open[small] = false
+    }
+  }
+
+  function flowColumns (model) {
+    const total = model.stages.filter(ranStage).reduce((sum, stage) => sum + segmentGrow(stage), 0)
+    const grow = stage => total < 1 ? Math.ceil(segmentGrow(stage) / total * 1000) / 1000 : segmentGrow(stage)
+    return model.stages
+      .map(stage => ranStage(stage) ? 'minmax(' + FIXED_COLUMN + ', ' + grow(stage).toFixed(3) + 'fr)' : FIXED_COLUMN)
+      .concat(FIXED_COLUMN)
+      .join(' ')
+  }
+
+  /* Tempo da requisição: a entrada da Resource Timing do envio, a mesma fonte da aba Timing do DevTools. */
+
+  // A entrada do envio entre as que o navegador registrou para a URL: a mais nova que começou em start
+  // (performance.now() logo antes do fetch) ou depois. null quando não há nenhuma.
+  function resourceEntry (entries, start) {
+    return Array.from(entries || [])
+      .filter(entry => !!entry && typeof entry.startTime === 'number' && entry.startTime >= start && Number.isFinite(entry.duration) && entry.duration >= 0)
+      .reduce((newest, entry) => !newest || entry.startTime >= newest.startTime ? entry : newest, null)
+  }
+
+  // As fases da entrada, em ms, como a aba Timing as agrupa: a conexão (fila, DNS, TCP e TLS) até o envio
+  // da requisição, a espera pelo primeiro byte (TTFB) e o download do corpo; as três somam a duração.
+  // connNew diz se o envio abriu uma conexão. null quando a entrada não traz as fases: uma requisição para
+  // outra origem sem Timing-Allow-Origin chega com elas zeradas.
+  function resourcePhases (entry) {
+    if (!entry) return null
+    const { startTime, requestStart, responseStart, responseEnd } = entry
+    if (![startTime, requestStart, responseStart, responseEnd].every(Number.isFinite)) return null
+    if (!(requestStart >= startTime && responseStart >= requestStart && responseEnd >= responseStart)) return null
+    const span = (from, to) => Number.isFinite(from) && Number.isFinite(to) && to > from ? to - from : 0
+    const tlsAt = entry.secureConnectionStart > 0 ? entry.secureConnectionStart : null
+    return {
+      conn: requestStart - startTime,
+      ttfb: responseStart - requestStart,
+      down: responseEnd - responseStart,
+      connNew: entry.connectEnd > entry.connectStart || entry.domainLookupEnd > entry.domainLookupStart,
+      // Os detalhes dos balões: o protocolo, as etapas de uma conexão nova (TLS só em https) e o tamanho do
+      // corpo como chegou (encoded) e depois de descomprimido (size).
+      protocol: typeof entry.nextHopProtocol === 'string' ? entry.nextHopProtocol : '',
+      dns: span(entry.domainLookupStart, entry.domainLookupEnd),
+      tcp: span(entry.connectStart, tlsAt || entry.connectEnd),
+      tls: tlsAt ? span(tlsAt, entry.connectEnd) : 0,
+      secure: !!tlsAt,
+      size: Number.isFinite(entry.decodedBodySize) ? entry.decodedBodySize : null,
+      encoded: Number.isFinite(entry.encodedBodySize) ? entry.encodedBodySize : null
+    }
+  }
+
+  // As linhas de uma conexão nova no balão. O trecho da conexão vai do pedido da página até o navegador
+  // começar a enviar: além de DNS, TCP e TLS, ele inclui a espera na fila do navegador (Queueing e Stalled
+  // no DevTools). A espera é o que sobra, calculada com os valores arredondados a uma casa, como o topo do
+  // balão (timeLabels) e as linhas os mostram, para a soma das linhas bater com o tempo do topo.
+  function connParts (conn, details) {
+    const shown = ms => Number.isFinite(ms) && ms > 0 ? Math.round(ms * 10) / 10 : 0
+    const dns = shown(details.dns)
+    const tcp = shown(details.tcp)
+    const tls = shown(details.tls)
+    const wait = Math.max(0, Math.round((shown(conn) - dns - tcp - tls) * 10) / 10)
+    return { wait, dns, tcp, tls }
+  }
+
+  const PROTOCOLS = { 'http/1.0': 'HTTP/1.0', 'http/1.1': 'HTTP/1.1', h2: 'HTTP/2', h2c: 'HTTP/2', h3: 'HTTP/3' }
+
+  // O nome do protocolo como as pessoas o escrevem ("h2" vira "HTTP/2"); null para o que não é conhecido.
+  function protocolName (value) {
+    return PROTOCOLS[String(value || '').toLowerCase()] || null
+  }
+
+  // Um tamanho em bytes como o resto da página: bytes abaixo de 1 KB, KB com uma casa acima disso.
+  function formatBytes (bytes, language) {
+    if (!Number.isFinite(bytes) || bytes < 0) return null
+    if (bytes < 1024) return bytes + ' bytes'
+    const text = (bytes / 1024).toFixed(1)
+    return (language === 'en' ? text : text.replace('.', ',')) + ' KB'
+  }
+
+  // As partes da barra de tempo sob o fluxo, em ms. server é a soma das etapas do header; a rede é o TTFB
+  // menos o servidor, desenhada em duas metades (ida e volta), porque o navegador só mede a soma das duas.
+  // Conexão, ida, servidor, volta e download somam o total. O servidor nunca passa do TTFB; se passasse
+  // (relógios diferentes), a rede ficaria em zero.
+  function timeBar (total, timing, server) {
+    const net = Math.max(0, timing.ttfb - server)
+    return { total, conn: timing.conn, ttfb: timing.ttfb, down: timing.down, connNew: timing.connNew, server, net, half: net / 2, details: timing }
+  }
+
+  // As larguras da barra. Em escala real quando toda parte com tempo tem pelo menos minShare da barra; senão
+  // cada tempo vira tempo^p, com o maior p (o ajuste mais suave) que leva a parte mais fina até minShare. Uma
+  // potência não troca a ordem: uma parte que levou mais tempo nunca fica mais estreita que outra. Em
+  // produção a rede passa de 95% e a conexão vira uma linha; no localhost tudo já aparece e nada muda.
+  // adjusted diz se a escala deixou de ser a real. Os números mostrados continuam os reais.
+  // A fatia mínima de cada parte com tempo: 3% da barra. A escala só se afasta da real o necessário para a parte
+  // mais fina chegar a ela (Q18).
+  const TIME_MIN_SHARE = 0.03
+
+  function timeWeights (bar, minShare) {
+    const times = [bar.conn, bar.half, bar.server, bar.half, bar.down].map(ms => ms > 0 ? ms : 0)
+    const thinnest = power => {
+      const sizes = times.map(ms => ms > 0 ? Math.pow(ms, power) : 0)
+      const sum = sizes.reduce((total, size) => total + size, 0)
+      const filled = sizes.filter(size => size > 0)
+      return sum > 0 && filled.length ? Math.min(...filled) / sum : 1
+    }
+    let power = 1
+    if (minShare > 0 && thinnest(1) < minShare) {
+      let low = 0.2
+      let high = 1
+      for (let step = 0; step < 30; step++) {
+        const middle = (low + high) / 2
+        if (thinnest(middle) >= minShare) low = middle
+        else high = middle
+      }
+      power = low
+    }
+    const scale = ms => ms > 0 ? Math.pow(ms, power) : 0
+    return { conn: scale(bar.conn), half: scale(bar.half), server: scale(bar.server), down: scale(bar.down), adjusted: power < 1 }
+  }
+
+  // Sem as fases (um envio guardado antes da Resource Timing, ou sem entrada dela): o total vira servidor
+  // mais rede, na linha que fica no lugar da barra.
+  function timeFallback (total, server) {
+    return { total, server, net: Math.max(0, total - server) }
+  }
+
+  function formatMsFixed (ms, digits, language) {
+    const text = ms.toFixed(digits)
+    return (language === 'en' ? text : text.replace('.', ',')) + ' ms'
+  }
+
+  // Um tempo em ms como o resto da página: inteiro a partir de 100 ms, com uma casa abaixo disso.
+  function formatMs (ms, language) {
+    return ms >= 100 ? String(Math.round(ms)) + ' ms' : formatMsFixed(ms, 1, language)
+  }
+
+  // A fatia de um tempo no total, ao lado do valor no balão da barra: uma casa, vírgula fora do inglês, e
+  // "< 0,1%" quando a fatia existe mas não chega a isso. Sem total, não há fatia.
+  function formatShare (part, total, language) {
+    if (!(total > 0) || !Number.isFinite(part) || part < 0) return null
+    const percent = part / total * 100
+    const text = percent > 0 && percent < 0.05 ? '< 0.1' : percent.toFixed(1)
+    return (language === 'en' ? text : text.replace('.', ',')) + '%'
+  }
+
+  // Os números da barra prontos para mostrar: o total como formatMs, o servidor com duas casas, como as
+  // etapas, e o resto com uma.
+  function timeLabels (values, language) {
+    const labels = {}
+    Object.keys(values).filter(key => typeof values[key] === 'number').forEach(key => {
+      labels[key] = key === 'total' ? formatMs(values[key], language) : formatMsFixed(values[key], key === 'server' ? 2 : 1, language)
+    })
+    return labels
+  }
+
+  // O link de referência de cada parte da barra. As páginas do MDN com tradução usam o idioma da página quando
+  // ele existe (conferido: Server-Timing só em pt-BR; gerenciamento de conexão em pt-BR e es); english diz
+  // que a página é em inglês, para o texto do link avisar, só quando a página do lab não é em inglês.
+  const TIME_LINKS = {
+    conn: 'https://developer.chrome.com/docs/devtools/network/reference#timing-explanation',
+    outbound: 'https://developer.mozilla.org/en-US/docs/Glossary/Round_Trip_Time',
+    inbound: 'https://developer.chrome.com/docs/devtools/network#throttle',
+    ttfb: 'https://developer.mozilla.org/en-US/docs/Glossary/Time_to_first_byte',
+    total: 'https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing#resource_loading_timestamps',
+    curl: 'https://everything.curl.dev/usingcurl/verbose/writeout.html'
+  }
+  const MDN_LOCALIZED = {
+    server: { path: '/docs/Web/HTTP/Reference/Headers/Server-Timing', locales: { pt: 'pt-BR' } },
+    connection: { path: '/docs/Web/HTTP/Guides/Connection_management_in_HTTP_1.x', locales: { pt: 'pt-BR', es: 'es' } },
+    overview: { path: '/docs/Web/HTTP/Guides/Overview', locales: { pt: 'pt-BR', es: 'es' } },
+    encoding: { path: '/docs/Web/HTTP/Reference/Headers/Content-Encoding', locales: { pt: 'pt-BR', es: 'es' } }
+  }
+  // O artigo do web.dev sobre TTFB tem tradução para pt-BR e es, escolhida pelo parâmetro hl.
+  const WEBDEV_LOCALES = { pt: 'pt-br', es: 'es' }
+
+  function timeLink (part, language) {
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    if (part === 'webdev_ttfb') {
+      const hl = WEBDEV_LOCALES[prefix]
+      return { url: 'https://web.dev/articles/ttfb' + (hl ? '?hl=' + hl : ''), english: !hl && prefix !== 'en' }
+    }
+    const localized = MDN_LOCALIZED[part]
+    if (localized) {
+      const locale = localized.locales[prefix] || 'en-US'
+      return { url: 'https://developer.mozilla.org/' + locale + localized.path, english: locale === 'en-US' && prefix !== 'en' }
+    }
+    return TIME_LINKS[part] ? { url: TIME_LINKS[part], english: prefix !== 'en' } : null
+  }
+
+  // Os headers de resposta do ServeRest que têm página no MDN, com o nome como o MDN escreve e se há a página
+  // em espanhol (conferido; em pt-BR todos têm). Os outros, como X-ServeRest-Stages, ficam sem link.
+  const MDN_HEADERS = [
+    ['Access-Control-Allow-Origin', true], ['Access-Control-Expose-Headers', true], ['Connection', false],
+    ['Content-Length', true], ['Content-Type', true], ['Date', false], ['Keep-Alive', true], ['Server', true],
+    ['Strict-Transport-Security', true], ['X-Content-Type-Options', true], ['X-DNS-Prefetch-Control', false],
+    ['X-Frame-Options', true], ['X-XSS-Protection', true]
+  ].reduce((headers, [name, es]) => ({ ...headers, [name.toLowerCase()]: { name, es } }), {})
+
+  function headerLink (name, language) {
+    const header = MDN_HEADERS[String(name || '').toLowerCase()]
+    if (!header) return null
+    const prefix = String(language || '').slice(0, 2).toLowerCase()
+    const locale = prefix === 'pt' ? 'pt-BR' : prefix === 'es' && header.es ? 'es' : 'en-US'
+    return { url: 'https://developer.mozilla.org/' + locale + '/docs/Web/HTTP/Reference/Headers/' + header.name, english: locale === 'en-US' && prefix !== 'en' }
+  }
+
+  const isPhase = value => Number.isFinite(value) && value >= 0
+
+  function validTiming (timing) {
+    return !!timing && typeof timing === 'object' && isPhase(timing.conn) && isPhase(timing.ttfb) && isPhase(timing.down) && typeof timing.connNew === 'boolean'
+  }
+
+  /* OpenAPI */
+
+  function refLookup (spec, ref) {
+    if (typeof ref !== 'string' || ref.slice(0, 2) !== '#/') return null
+    return ref.slice(2).split('/').reduce((node, part) => {
+      return node ? node[part.replace(/~1/g, '/').replace(/~0/g, '~')] : null
+    }, spec)
+  }
+
+  // O limite de saltos protege contra $ref circular.
+  function resolve (spec, node) {
+    let current = node
+    let hops = 0
+    while (current && current.$ref && hops++ < 10) current = refLookup(spec, current.$ref)
+    return current || null
+  }
+
+  // Exemplo declarado no próprio conteúdo: example ou o primeiro de examples.
+  function declaredExample (spec, content) {
+    if (content.example !== undefined) return content.example
+    if (content.examples) {
+      const first = Object.keys(content.examples)[0]
+      const example = first ? resolve(spec, content.examples[first]) : null
+      if (example && example.value !== undefined) return example.value
+    }
+    return undefined
+  }
+
+  function exampleOf (spec, content) {
+    if (!content) return undefined
+    const declared = declaredExample(spec, content)
+    if (declared !== undefined) return declared
+    const schema = resolve(spec, content.schema)
+    if (schema && schema.example !== undefined) return schema.example
+    if (schema && schema.properties) {
+      return Object.keys(schema.properties).reduce((out, name) => {
+        const property = resolve(spec, schema.properties[name]) || {}
+        out[name] = property.example !== undefined ? property.example : property.default !== undefined ? property.default : ''
+        return out
+      }, {})
+    }
+    return undefined
+  }
+
+  // Exemplo de corpo de uma resposta documentada: só o que o documento traz. Uma folha sem exemplo
+  // fica de fora, em vez de virar um valor inventado; o limite de profundidade protege de schema
+  // recursivo.
+  function sampleOf (spec, node, depth) {
+    const schema = resolve(spec, node)
+    if (!schema || depth > 6) return undefined
+    if (schema.example !== undefined) return schema.example
+    if (schema.type === 'array' || schema.items) {
+      const item = sampleOf(spec, schema.items, depth + 1)
+      return item === undefined ? undefined : [item]
+    }
+    if (schema.properties) {
+      const out = {}
+      Object.keys(schema.properties).forEach(name => {
+        const value = sampleOf(spec, schema.properties[name], depth + 1)
+        if (value !== undefined) out[name] = value
+      })
+      return Object.keys(out).length ? out : undefined
+    }
+    return undefined
+  }
+
+  function responseExample (spec, content) {
+    if (!content) return undefined
+    const declared = declaredExample(spec, content)
+    return declared !== undefined ? declared : sampleOf(spec, content.schema, 0)
+  }
+
+  // O schema com cada $ref resolvido nas propriedades e nos itens, até a profundidade 6, para a tabela do
+  // schema do corpo. O documento não muda: cada parte resolvida é uma cópia rasa.
+  function deref (spec, node, depth) {
+    const level = depth || 0
+    const schema = resolve(spec, node)
+    if (!schema || level > 6) return schema || null
+    const out = Object.assign({}, schema)
+    if (schema.properties) {
+      out.properties = {}
+      Object.keys(schema.properties).forEach(name => { out.properties[name] = deref(spec, schema.properties[name], level + 1) || {} })
+    }
+    if (schema.items) out.items = deref(spec, schema.items, level + 1)
+    return out
+  }
+
+  // As linhas da tabela do schema do corpo, na ordem do documento: um campo por linha; um array de objetos
+  // ganha uma linha de grupo e, logo abaixo, os campos de cada item. path junta o grupo e o nome
+  // (produtos.quantidade), como o campo aparece na mensagem de erro do servidor.
+  function schemaRows (schema, group) {
+    const required = (schema && Array.isArray(schema.required)) ? schema.required : []
+    const rows = []
+    Object.keys((schema && schema.properties) || {}).forEach(name => {
+      const prop = schema.properties[name] || {}
+      rows.push({ name, group: group || null, path: group ? group + '.' + name : name, type: typeof prop.type === 'string' ? prop.type : '', required: required.includes(name), prop })
+      if (prop.type === 'array' && prop.items && prop.items.properties) {
+        rows.push({ groupLabel: name })
+        rows.push(...schemaRows(prop.items, name))
+      }
+    })
+    return rows
+  }
+
+  // Respostas documentadas da operação, na ordem do documento, para o aluno saber o que verificar.
+  function responsesOf (spec, operation) {
+    const responses = operation.responses || {}
+    return Object.keys(responses).map(status => {
+      const response = resolve(spec, responses[status]) || {}
+      const content = response.content ? response.content['application/json'] : null
+      return { status, description: response.description || '', example: responseExample(spec, content) }
+    })
+  }
+
+  function headerSchemes (spec) {
+    const schemes = (spec.components && spec.components.securitySchemes) || {}
+    return Object.keys(schemes)
+      .map(name => ({ id: name, scheme: resolve(spec, schemes[name]) || {} }))
+      .filter(item => item.scheme.in === 'header' && item.scheme.name)
+  }
+
+  function authHeaderOf (spec) {
+    const schemes = headerSchemes(spec)
+    return schemes.length ? schemes[0].scheme.name : 'Authorization'
+  }
+
+  function paramsOf (spec, shared, own) {
+    const ownParams = own.map(param => resolve(spec, param)).filter(Boolean)
+    const sharedParams = shared.map(param => resolve(spec, param)).filter(Boolean)
+      .filter(param => !ownParams.some(item => item.name === param.name && item.in === param.in))
+    return sharedParams.concat(ownParams)
+      .filter(param => param.in === 'path' || param.in === 'query')
+      .map(param => {
+        const schema = resolve(spec, param.schema) || {}
+        return {
+          name: param.name,
+          in: param.in,
+          required: !!param.required || param.in === 'path',
+          description: param.description || '',
+          example: param.example !== undefined ? param.example : schema.example,
+          def: schema.default,
+          enumValues: Array.isArray(schema.enum) ? schema.enum : null,
+          type: typeof schema.type === 'string' ? schema.type : ''
+        }
+      })
+  }
+
+  function buildRoutes (spec) {
+    const schemeIds = headerSchemes(spec).map(item => item.id)
+    const routes = []
+    Object.keys(spec.paths || {}).forEach(path => {
+      const item = spec.paths[path] || {}
+      Object.keys(item).filter(method => METHODS.includes(method)).forEach(method => {
+        const operation = item[method]
+        const requestBody = resolve(spec, operation.requestBody)
+        const content = requestBody && requestBody.content ? requestBody.content['application/json'] : null
+        const example = exampleOf(spec, content)
+        const security = operation.security !== undefined ? operation.security : (spec.security || [])
+        routes.push({
+          key: method + ' ' + path,
+          method,
+          path,
+          tag: (operation.tags && operation.tags[0]) || '',
+          summary: operation.summary || '',
+          description: operation.description || '',
+          operationId: operation.operationId || '',
+          responses: responsesOf(spec, operation),
+          params: paramsOf(spec, item.parameters || [], operation.parameters || []),
+          body: content ? { example: example === undefined ? {} : example, schema: deref(spec, content.schema) } : null,
+          needsToken: security.some(requirement => Object.keys(requirement).some(name => schemeIds.includes(name)))
+        })
+      })
+    })
+    return routes
+  }
+
+  function tagOrder (spec, routes) {
+    const order = (spec.tags || []).map(tag => tag.name)
+    routes.forEach(route => {
+      if (!order.includes(route.tag)) order.push(route.tag)
+    })
+    return order
+  }
+
+  // Link da rota na página do Swagger (#/<tag>/<operationId>), no idioma da página. Sem operationId
+  // no documento, vale o que o Swagger UI gera: o método em minúsculas e o caminho com "_" no lugar
+  // de tudo que não é letra, dígito ou "_". Operação sem tag fica no grupo "default" do Swagger UI.
+  function swaggerLink (route, language) {
+    const id = route.operationId || route.method.toLowerCase() + route.path.replace(/[^A-Za-z0-9_]/g, '_')
+    return '/swagger?lang=' + encodeURIComponent(language) + '#/' + encodeURIComponent(route.tag || 'default') + '/' + encodeURIComponent(id)
+  }
+
+  /* Requisição */
+
+  // draft.auth existe só quando o aluno editou o header da rota; sem ele, a rota segue o token da página.
+  function authValueFor (draft, pageToken) {
+    if (draft && typeof draft.auth === 'string') return draft.auth
+    return pageToken || ''
+  }
+
+  // Valor de header HTTP aceita tab, os caracteres de 0x20 a 0x7E e os de 0x80 a 0xFF.
+  function isSendableHeaderValue (value) {
+    return /^[\t\x20-\x7e\x80-\xff]*$/.test(String(value))
+  }
+
+  // O fetch do navegador tira espaços e tabs das pontas do valor; a página tira antes, para que
+  // a prévia, o curl e o que vai pela rede sejam iguais.
+  function trimHeaderValue (value) {
+    return typeof value === 'string' ? value.replace(/^[ \t]+|[ \t]+$/g, '') : value
+  }
+
+  // options: { baseUrl, authValue, authHeader }. Parâmetro de caminho vazio fica como {nome}: quem
+  // executa confere antes e não envia.
+  function buildRequest (route, draft, options) {
+    const path = route.path.replace(/\{([^}]+)\}/g, (placeholder, name) => {
+      const value = draft.params['path:' + name]
+      return value ? encodeURIComponent(value) : placeholder
+    })
+    const query = route.params
+      .filter(param => param.in === 'query' && (draft.params['query:' + param.name] || '') !== '')
+      .map(param => encodeURIComponent(param.name) + '=' + encodeURIComponent(draft.params['query:' + param.name]))
+      .join('&')
+    const hasBody = !!route.body && typeof draft.body === 'string' && draft.body.trim() !== ''
+    const headers = []
+    if (hasBody) headers.push(['Content-Type', 'application/json'])
+    const authValue = trimHeaderValue(options.authValue)
+    if (route.needsToken && authValue) headers.push([options.authHeader, authValue])
+    return {
+      method: route.method.toUpperCase(),
+      url: options.baseUrl + path + (query ? '?' + query : ''),
+      headers,
+      body: hasBody ? draft.body : undefined
+    }
+  }
+
+  function shellQuote (value) {
+    return "'" + String(value).replace(/'/g, "'\\''") + "'"
+  }
+
+  // As partes do comando curl, na ordem: o início (método e URL), um -H por header e o corpo. Um corpo que
+  // começa por @ vai com --data-raw, porque com -d o curl leria o arquivo local que tem aquele nome.
+  function curlParts (request) {
+    const list = [{ kind: 'start', method: request.method, url: request.url, text: 'curl -X ' + request.method + ' ' + shellQuote(request.url) }]
+    request.headers.forEach(header => list.push({ kind: 'header', name: header[0], value: header[1], text: '-H ' + shellQuote(header[0] + ': ' + header[1]) }))
+    if (request.body !== undefined) {
+      const flag = String(request.body).charAt(0) === '@' ? '--data-raw' : '-d'
+      list.push({ kind: 'body', flag, body: String(request.body), text: flag + ' ' + shellQuote(request.body) })
+    }
+    return list
+  }
+
+  function curlOf (request) {
+    return curlParts(request).map(part => part.text).join(' \\\n  ')
+  }
+
+  // O mesmo comando com a opção -w: depois da resposta, o curl escreve os próprios tempos, contados desde o
+  // início da requisição. Uma variável por linha dentro das aspas, para o comando e a saída ficarem legíveis
+  // (bash e zsh aceitam a quebra de linha dentro das aspas). Os nomes são os do curl, iguais em todo idioma.
+  const CURL_TIME_VARS = ['time_namelookup', 'time_connect', 'time_appconnect', 'time_starttransfer', 'time_total']
+  const CURL_TIMES = "-w '\n" + CURL_TIME_VARS.map(name => (name + ':').padEnd(20) + '%{' + name + '}s').join('\n') + "\n'"
+
+  function curlWithTimes (curl) {
+    return curl + ' \\\n  ' + CURL_TIMES
+  }
+
+  // Reindenta um JSON com dois espaços sem converter nenhum valor: os caracteres originais ficam (1.0
+  // continua 1.0, um inteiro de 20 dígitos não perde precisão, chaves repetidas continuam as duas). null
+  // quando o texto não é JSON.
+  function prettyJson (text) {
+    try {
+      JSON.parse(text)
+    } catch (e) {
+      return null
+    }
+    const source = String(text)
+    const space = ch => ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r'
+    let out = ''
+    let depth = 0
+    let index = 0
+    const newline = () => '\n' + '  '.repeat(depth)
+    while (index < source.length) {
+      const ch = source.charAt(index)
+      if (ch === '"') {
+        let end = index + 1
+        while (end < source.length && source.charAt(end) !== '"') end += source.charAt(end) === '\\' ? 2 : 1
+        out += source.slice(index, end + 1)
+        index = end + 1
+      } else if (space(ch)) {
+        index++
+      } else if (ch === '{' || ch === '[') {
+        let next = index + 1
+        while (next < source.length && space(source.charAt(next))) next++
+        const close = ch === '{' ? '}' : ']'
+        if (source.charAt(next) === close) {
+          out += ch + close
+          index = next + 1
+        } else {
+          depth++
+          out += ch + newline()
+          index++
+        }
+      } else if (ch === '}' || ch === ']') {
+        depth--
+        out += newline() + ch
+        index++
+      } else if (ch === ',') {
+        out += ',' + newline()
+        index++
+      } else if (ch === ':') {
+        out += ': '
+        index++
+      } else {
+        out += ch
+        index++
+      }
+    }
+    return out
+  }
+
+  function decodeJwtExp (token) {
+    try {
+      const part = String(token).replace(/^Bearer\s+/i, '').split('.')[1]
+      const payload = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')))
+      return typeof payload.exp === 'number' ? new Date(payload.exp * 1000) : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // De onde veio o valor do campo de autenticação e até quando ele vale, para a legenda do campo.
+  // expiresAt e now: Date ou milissegundos. filledFrom: hora do envio do histórico que preencheu o
+  // campo; só conta junto com edited, porque preencher grava o valor como edição da rota.
+  function tokenCaptionState ({ hasToken, expiresAt, now, edited, filledFrom }) {
+    if (edited) return filledFrom ? 'filled' : 'edited'
+    if (!hasToken) return 'none'
+    if (!expiresAt) return 'active_no_exp'
+    return Number(expiresAt) <= Number(now) ? 'expired' : 'active'
+  }
+
+  /* Histórico: os envios ficam do mais recente para o mais antigo. */
+
+  function recordKey (record) {
+    return record.method.toLowerCase() + ' ' + record.path
+  }
+
+  // Chave da rota (como route.key) para o envio mais recente dela.
+  function lastResultByRoute (history) {
+    const latest = new Map()
+    history.forEach(record => {
+      const key = recordKey(record)
+      if (!latest.has(key)) latest.set(key, record)
+    })
+    return latest
+  }
+
+  // Condição de "Preencher a requisição com este envio": o envio está no histórico e a rota dele
+  // tem um envio mais recente.
+  function isOlderThanLatest (record, history) {
+    return history.includes(record) && lastResultByRoute(history).get(recordKey(record)) !== record
+  }
+
+  // Compara o comando curl inteiro (método, URL, headers e corpo) guardado no envio com o da
+  // requisição montada agora a partir do rascunho.
+  function recordDiffersFromDraft (record, request) {
+    return curlOf(request) !== record.curl
+  }
+
+  // O token de uma resposta real de POST /login com status 200; null em qualquer outro envio.
+  function loginToken (record) {
+    if (record.error || record.status !== 200 || record.method !== 'POST' || record.path !== '/login') return null
+    try {
+      const body = JSON.parse(record.bodyText)
+      return body && typeof body.authorization === 'string' && body.authorization ? body.authorization : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // O envio de POST /login cujo token é o valor que vai em Authorization: o mais recente, se dois logins
+  // devolveram o mesmo token. Sem valor, ou com um valor que não é o token de nenhum login, nenhum.
+  function tokenInUseId (records, sentValue) {
+    if (!sentValue) return null
+    const record = records.find(item => loginToken(item) === sentValue)
+    return record ? record.id : null
+  }
+
+  // A oferta do token sob a linha do status (D30): o botão (use) ou a frase de que ele já é o token da
+  // página (in_use). Um token vencido recebe o mesmo botão, sem aviso nem bloqueio: a validade não conta.
+  function offerState ({ record, pageToken }) {
+    const token = loginToken(record)
+    if (!token) return 'none'
+    return pageToken === token ? 'in_use' : 'use'
+  }
+
+  /* Histórico guardado na sessão do navegador (sessionStorage) */
+
+  // O registro como fica guardado: a hora em texto ISO; um corpo maior que maxChars vai cortado, com o
+  // tamanho real em bodyCut (a Resposta diz que o corpo foi cortado).
+  function storedRecord (record, maxChars) {
+    const out = Object.assign({}, record, { at: new Date(record.at).toISOString() })
+    if (record.bodyText.length > maxChars) {
+      out.bodyText = record.bodyText.slice(0, maxChars)
+      out.bodyCut = record.bodyCut || record.bodyText.length
+    }
+    return out
+  }
+
+  const isText = value => typeof value === 'string'
+  const isPairs = value => Array.isArray(value) && value.every(pair => Array.isArray(pair) && pair.length === 2 && isText(pair[0]) && isText(pair[1]))
+
+  // Um registro guardado só volta se tem tudo o que a página lê dele, com o tipo certo.
+  function validStoredRecord (item) {
+    if (!item || typeof item !== 'object') return false
+    const sent = item.sent
+    return Number.isInteger(item.id) && item.id > 0 &&
+      isText(item.method) && isText(item.path) && isText(item.url) && isText(item.curl) && isText(item.bodyText) && isText(item.statusText) &&
+      isText(item.at) && !Number.isNaN(Date.parse(item.at)) &&
+      (item.status === null || Number.isInteger(item.status)) &&
+      (item.error === null || isText(item.error)) &&
+      (item.stagesHeader === null || isText(item.stagesHeader)) &&
+      (item.bodySent === undefined || isText(item.bodySent)) &&
+      (item.bodyCut === undefined || Number.isInteger(item.bodyCut)) &&
+      // Sem timing: um envio guardado antes da Resource Timing, ou sem entrada dela.
+      (item.timing === undefined || item.timing === null || validTiming(item.timing)) &&
+      typeof item.ms === 'number' && typeof item.authSent === 'boolean' && typeof item.protected === 'boolean' &&
+      isPairs(item.requestHeaders) && isPairs(item.headers) &&
+      (sent === null || (!!sent && typeof sent === 'object' && !!sent.params && typeof sent.params === 'object' && isText(sent.body) && isText(sent.auth)))
+  }
+
+  // O valor guardado ({ v: 1, history }) de volta em registros, com a hora em Date e no máximo max envios.
+  // null quando o valor inteiro deve ser descartado: não é JSON, tem outra forma, um registro não tem o
+  // que a página lê, ou um id se repete.
+  function readStoredHistory (value, max) {
+    let saved = null
+    try {
+      saved = JSON.parse(value)
+    } catch (e) {
+      return null
+    }
+    if (!saved || saved.v !== 1 || !Array.isArray(saved.history)) return null
+    const list = saved.history.slice(0, max)
+    const ids = new Set()
+    const ok = list.every(item => {
+      if (!validStoredRecord(item) || ids.has(item.id)) return false
+      ids.add(item.id)
+      return true
+    })
+    return ok ? list.map(item => Object.assign({}, item, { at: new Date(item.at) })) : null
+  }
+
+  /* Texto */
+
+  function safeHref (url) {
+    try {
+      const parsed = new URL(url)
+      return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.href : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // A página da versão no GitHub. O semantic-release publica uma release para cada versão, inclusive as
+  // betas, com a tag v<versão>.
+  function releaseUrl (version) {
+    if (!version) return null
+    return safeHref('https://github.com/ServeRest/ServeRest/releases/tag/v' + encodeURIComponent(version))
+  }
+
+  // O link pré-preenchido do formulário de opinião traz VERSAO no lugar da versão: a página troca pela
+  // versão que está rodando, para cada resposta dizer de qual versão veio. Sem link, ou depois da data
+  // em que o formulário deixa de aceitar respostas, não há formulário: um link morto só frustra.
+  function feedbackFormUrl (template, version, now, until) {
+    if (!template) return null
+    if (until && now > Date.parse(until)) return null
+    return safeHref(String(template).replace('VERSAO', encodeURIComponent(version || '')))
+  }
+
+  // Markdown mínimo da introdução do documento: **negrito** e [texto](url), com link dentro de
+  // negrito. Devolve pedaços de texto para quem desenha criar os nós; nada vira HTML. Link que não é
+  // http(s) vira só o texto dele. Um ** sem par some, e o que vem depois dele fica sem negrito.
+  function parseInlineMarkdown (text) {
+    const source = String(text || '')
+    const pattern = /\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g
+    const out = []
+    let boldPieces = null
+    const add = (value, href) => {
+      if (!value) return
+      const piece = href ? { text: value, href } : { text: value }
+      if (boldPieces) boldPieces.push(piece)
+      else out.push({ ...piece, bold: false })
+    }
+    let last = 0
+    let match = pattern.exec(source)
+    while (match) {
+      add(source.slice(last, match.index))
+      if (match[0] !== '**') {
+        add(match[1], safeHref(match[2]))
+      } else if (boldPieces) {
+        boldPieces.forEach(piece => out.push({ ...piece, bold: true }))
+        boldPieces = null
+      } else {
+        boldPieces = []
+      }
+      last = match.index + match[0].length
+      match = pattern.exec(source)
+    }
+    add(source.slice(last))
+    if (boldPieces) boldPieces.forEach(piece => out.push({ ...piece, bold: false }))
+    return out
+  }
+
+  function escapeHtml (value) {
+    return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
+
+  // Única marcação montada como texto na página: cada token é escapado antes de ser envolvido.
+  function highlightJson (json) {
+    const token = /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g
+    let html = ''
+    let last = 0
+    let match = token.exec(json)
+    while (match) {
+      const value = match[0]
+      let className = 'j-num'
+      if (value.charAt(0) === '"') className = /:$/.test(value) ? 'j-key' : 'j-str'
+      else if (/^(true|false|null)$/.test(value)) className = 'j-lit'
+      html += escapeHtml(json.slice(last, match.index)) + '<span class="' + className + '">' + escapeHtml(value) + '</span>'
+      last = match.index + value.length
+      match = token.exec(json)
+    }
+    return html + escapeHtml(json.slice(last))
+  }
+
+  // O aviso de versão nova da barra. Quem decide se existe aviso é o servidor (isNewerVersion), que escreve
+  // a versão e a URL da release na raiz da página: aqui nada compara versões. Sem URL, nenhum aviso; com URL
+  // e sem versão, o aviso forçado sem número (a linha simples); com as duas, a linha que abre o painel. Um
+  // servidor que roda uma versão de pré-lançamento (3.3.0-beta.8) só ouve falar de uma estável nova.
+  function releaseNotice (notice) {
+    const { running, version, url } = notice || {}
+    if (!safeHref(url)) return null
+    if (!version) return { kind: 'plain' }
+    const prerelease = String(running || '').includes('-')
+    return {
+      kind: 'panel',
+      line: prerelease ? 'lab.version.notice_stable' : 'lab.version.notice',
+      title: prerelease ? 'lab.release.title_stable' : 'lab.release.title',
+      runningKey: prerelease ? 'lab.release.running_beta' : 'lab.release.running'
+    }
+  }
+
+  // O convite para dar opinião, no Resultado vazio (R4 estendida). Aparece a partir do 3º envio do Histórico
+  // da aba, numa aba só por dia de uso (a primeira em que as condições valem). Depois de um dia em que
+  // apareceu, pula os 2 dias de uso seguintes; para depois de aparecer em 10 dias. "Responder" encerra de vez;
+  // "Agora não" tira só naquele dia. Dia de uso é um dia do calendário em que a página foi aberta: dias sem
+  // uso não contam. O estado vai em JSON no localStorage: days (dias em que apareceu), last (o último deles),
+  // seen (o último dia de uso), gap (dias de uso desde last), off (o dia do "Agora não") e answered.
+  const FEEDBACK_MIN_COUNT = 3
+  const FEEDBACK_SKIP_DAYS = 2
+  const FEEDBACK_MAX_DAYS = 10
+
+  // O dia do calendário, no fuso de quem usa: "2026-11-14".
+  function dayKey (date) {
+    const pad = value => String(value).padStart(2, '0')
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+  }
+
+  // O valor guardado, com os valores antigos migrados: "answered" continua respondido; "shown" e "closed"
+  // recomeçam a contagem. Qualquer outra coisa é um estado novo.
+  function readInvite (raw) {
+    if (raw === 'answered') return { answered: true }
+    try {
+      const value = JSON.parse(raw)
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, off: value.off || null, answered: !!value.answered }
+      }
+    } catch (e) {}
+    return { days: 0, last: null, seen: null, gap: 0, off: null, answered: false }
+  }
+
+  // A página foi aberta hoje: o primeiro uso do dia conta mais um dia de uso desde o último convite.
+  function inviteVisit (state, today) {
+    if (state.seen === today) return state
+    return { ...state, seen: today, gap: state.last && state.last !== today ? (state.gap || 0) + 1 : state.gap || 0 }
+  }
+
+  // session é o dia em que esta aba mostrou o convite (sessionStorage). Devolve se aparece e, quando muda, o
+  // estado novo e o dia a guardar na aba.
+  function feedbackInvite (input) {
+    const { count, today, state = readInvite(null), session } = input || {}
+    const no = { show: false, state: null, session: null }
+    if (!(count >= FEEDBACK_MIN_COUNT) || state.answered || state.off === today) return no
+    if (state.last === today) return session === today ? { show: true, state: null, session: null } : no
+    if ((state.days || 0) >= FEEDBACK_MAX_DAYS) return no
+    if (state.last && (state.gap || 0) <= FEEDBACK_SKIP_DAYS) return no
+    return { show: true, state: { ...state, days: (state.days || 0) + 1, last: today, seen: today, gap: 0 }, session: today }
+  }
+
+  // "Responder" encerra o convite de vez; "Agora não" só naquele dia.
+  function inviteEnd (state, today, answered) {
+    return answered ? { ...state, answered: true } : { ...state, off: today }
+  }
+
+  // O ServeRest não tem login de verdade: /login, email e password são dados de exemplo. Estes atributos
+  // pedem aos gerenciadores de senha que não ofereçam salvar nem preencher nada (1Password, LastPass,
+  // Bitwarden e Dashlane, nessa ordem) e aos corretores que não sublinhem JSON, ids e tokens (navegador,
+  // teclado do celular e Grammarly). src/swagger/scripts/09-campos-sem-assistentes.js repete a lista, e um
+  // teste confere que as duas são iguais.
+  const FIELD_ASSISTS_OFF = Object.freeze({
+    autocomplete: 'off',
+    'data-1p-ignore': '',
+    'data-lpignore': 'true',
+    'data-bwignore': '',
+    'data-form-type': 'other',
+    spellcheck: 'false',
+    autocorrect: 'off',
+    autocapitalize: 'off',
+    'data-gramm': 'false',
+    'data-gramm_editor': 'false',
+    'data-enable-grammarly': 'false'
+  })
+
+  const core = {
+    FIELD_ASSISTS_OFF,
+    statusText,
+    mdnStatusUrl,
+    mdnMethodUrl,
+    releaseNotice,
+    feedbackInvite,
+    readInvite,
+    inviteVisit,
+    inviteEnd,
+    dayKey,
+    segmentGrow,
+    formatDuration,
+    formatShare,
+    timeWeights,
+    TIME_MIN_SHARE,
+    parseStages,
+    buildFlowModel,
+    stepDelay,
+    flowColumns,
+    stageWidths,
+    resourceEntry,
+    resourcePhases,
+    timeBar,
+    timeFallback,
+    formatMs,
+    formatMsFixed,
+    connParts,
+    timeLabels,
+    timeLink,
+    headerLink,
+    protocolName,
+    formatBytes,
+    resolve,
+    deref,
+    schemaRows,
+    exampleOf,
+    responsesOf,
+    authHeaderOf,
+    buildRoutes,
+    tagOrder,
+    swaggerLink,
+    authValueFor,
+    isSendableHeaderValue,
+    trimHeaderValue,
+    buildRequest,
+    shellQuote,
+    curlParts,
+    curlOf,
+    curlWithTimes,
+    CURL_TIMES,
+    CURL_TIME_VARS,
+    prettyJson,
+    decodeJwtExp,
+    tokenCaptionState,
+    recordKey,
+    lastResultByRoute,
+    isOlderThanLatest,
+    recordDiffersFromDraft,
+    loginToken,
+    tokenInUseId,
+    offerState,
+    storedRecord,
+    readStoredHistory,
+    safeHref,
+    feedbackFormUrl,
+    releaseUrl,
+    parseInlineMarkdown,
+    highlightJson
+  }
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = core
+  if (typeof window !== 'undefined') window.serverestLabCore = core
+})()

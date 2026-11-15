@@ -7,7 +7,7 @@ const STYLES_DIR = join(__dirname, 'styles')
 const SCRIPTS_DIR = join(__dirname, 'scripts')
 const TRANSLATIONS_DIR = join(__dirname, 'translations')
 
-const STYLE_FILES = ['topbar.css', 'language-switcher.css', 'release-toast.css']
+const STYLE_FILES = ['topbar.css', 'language-switcher.css']
 
 function loadCustomCss () {
   return STYLE_FILES
@@ -28,7 +28,8 @@ function buildUiLabelTranslations () {
   const ptBr = require(join(TRANSLATIONS_DIR, 'pt-BR.js'))
   const en = require(join(TRANSLATIONS_DIR, 'en.js'))
   const es = require(join(TRANSLATIONS_DIR, 'es.js'))
-  const uiKeys = Object.keys(ptBr).filter(k => k.startsWith('ui.')).sort()
+  // Os textos ui.flow.* são só do fluxo da página inicial: o Swagger não tem painel de fluxo.
+  const uiKeys = Object.keys(ptBr).filter(k => k.startsWith('ui.') && !k.startsWith('ui.flow.')).sort()
   const summaryKeys = Object.keys(ptBr).filter(k => k.endsWith('.summary')).sort()
   const keys = [...uiKeys, ...summaryKeys]
   const entries = keys.map(key => {
@@ -43,11 +44,9 @@ function buildUiLabelTranslations () {
 const customCss = loadCustomCss()
 const customJsTemplate = loadCustomJsTemplate()
 
-function buildCustomJsStr (releaseInfo, currentVersion, forceBanner) {
+function buildCustomJsStr (currentVersion) {
   const replacements = {
-    __RELEASE_INFO__: JSON.stringify(releaseInfo),
     __CURRENT_VERSION__: JSON.stringify(currentVersion),
-    __FORCE_BANNER__: JSON.stringify(forceBanner),
     __UI_LABEL_TRANSLATIONS__: buildUiLabelTranslations()
   }
   return Object.keys(replacements).reduce(

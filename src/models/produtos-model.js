@@ -21,11 +21,11 @@ exports.schemaGetOne = {
 
 exports.schemaPost = {
   body: Joi.object({
-    nome: Joi.string().required(),
-    preco: Joi.number().positive().integer().required(),
+    nome: Joi.string().trim().required(),
+    preco: Joi.number().strict().positive().integer().required(),
     descricao: Joi.string().required(),
-    quantidade: Joi.number().min(0).integer().required(),
-    imagem: Joi.string().optional()
+    quantidade: Joi.number().strict().min(0).integer().required(),
+    imagem: Joi.string().trim().optional()
   })
 }
 

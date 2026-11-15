@@ -52,6 +52,7 @@ function renderLanguageSwitcher (parent) {
       const url = new URL(window.location.href)
       url.searchParams.set('lang', language.code)
       window.history.replaceState({}, '', url.toString())
+      updateTopbarLogoHref(language.code)
       wrapper.querySelectorAll('.lang-switcher__button').forEach(el => {
         el.classList.toggle('is-active', el.getAttribute('data-lang') === language.code)
       })
@@ -60,7 +61,6 @@ function renderLanguageSwitcher (parent) {
       updateSwaggerSpec(language.code, shouldRefresh)
       applyTranslations(language.code)
       setTimeout(() => applyTranslations(language.code), 100)
-      updateReleaseToastLanguage(language.code)
     })
     wrapper.appendChild(button)
   })
