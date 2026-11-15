@@ -1564,8 +1564,19 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-layer { inset: 0; pointer-events: none; }
 .guide-shade { position: absolute; inset: 0; pointer-events: auto; background: rgb(0 0 0 / 0.45); cursor: not-allowed; }
 .guide-ring { position: fixed; pointer-events: none; border: 2px solid var(--accent); border-radius: 10px; box-shadow: 0 0 0 2px var(--surface); }
-.guide-card { position: fixed; z-index: 1001; width: min(23rem, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; padding: 12px 16px 14px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
-.guide-card.is-docked { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; max-height: 46vh; }
+.guide-card { position: fixed; z-index: 1001; width: min(23rem, calc(100vw - 32px)); border: 1px solid var(--control); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+.guide-scroll { max-height: calc(100vh - 32px); overflow: auto; padding: 12px 16px 14px; border-radius: inherit; }
+.guide-card.is-docked { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto; }
+.guide-card.is-docked .guide-scroll { max-height: 46vh; }
+/* A ponta: um quadrado girado, da cor do cartão, com a borda só nos dois lados de fora. */
+.guide-arrow { position: absolute; width: 14px; height: 14px; background: var(--surface); border: 1px solid var(--control); transform: rotate(45deg); }
+.guide-arrow[data-dir="left"] { left: -8px; border-top: 0; border-right: 0; }
+.guide-arrow[data-dir="right"] { right: -8px; border-bottom: 0; border-left: 0; }
+.guide-arrow[data-dir="up"] { top: -8px; border-right: 0; border-bottom: 0; }
+.guide-arrow[data-dir="down"] { bottom: -8px; border-top: 0; border-left: 0; }
+.guide-marker { position: fixed; z-index: 1000; pointer-events: none; border: 2px solid var(--accent); border-radius: 6px; }
+.guide-marker.is-ripple { animation: guide-ripple 1.2s cubic-bezier(0.2, 0, 0, 1) 2; }
+@keyframes guide-ripple { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } to { box-shadow: 0 0 0 12px transparent; } }
 .guide-head, .guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .guide-kicker { flex: 1; display: grid; font-size: 0.75rem; color: var(--graphite); }
 .guide-nudge { animation: guide-nudge 0.6s 2; border-color: var(--accent); color: var(--accent-strong); }
@@ -1591,7 +1602,5 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .guide-choice { display: grid; width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--control); border-radius: 6px; background: var(--surface); text-align: left; color: var(--graphite); }
 .guide-choice strong { font-size: 1rem; }
 .guide-choice:hover, .guide-choice:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
-.guide-attn { animation: guide-attn 0.9s 3; }
-@keyframes guide-attn { 50% { box-shadow: 0 0 0 3px var(--accent); } }
-@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-attn { animation: none; } }
-@media (forced-colors: active) { .guide-ring { border-color: Highlight; } }
+@media (prefers-reduced-motion: reduce) { .guide-nudge, .guide-marker { animation: none; } }
+@media (forced-colors: active) { .guide-ring, .guide-marker { border-color: Highlight; } }
