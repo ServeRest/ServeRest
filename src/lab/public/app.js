@@ -43,7 +43,7 @@
   // O convite do guia "Como usar": "opened" ou "dismissed" ("Agora não"); com qualquer valor, não volta.
   const GUIDE_KEY = 'serverestGuideInvite'
   // O formulário de opinião de cada idioma; VERSAO vira a versão da página no campo pré-preenchido. Vazio,
-  // nenhuma entrada de opinião aparece (rodapé, convite e selo da barra).
+  // nenhuma entrada de opinião aparece (rodapé, convite e linha da faixa roxa).
   const FEEDBACK_FORM_URL = {
     'pt-BR': 'https://docs.google.com/forms/d/e/1FAIpQLScVAi6hLqT1rpsuN-Jtrxu2r8dcg20EjfTzsjci7wQHPtegPQ/viewform?usp=pp_url&entry.924035673=VERSAO',
     en: 'https://docs.google.com/forms/d/e/1FAIpQLScHuNJNhQc5eDK-vGqD5H4GcJPwFUYwBHbQPjoH52zxkhAQ7Q/viewform?usp=pp_url&entry.924035673=VERSAO',
@@ -346,10 +346,9 @@
     return '#' + route.method + route.path
   }
 
-  // Cada bandeira é um link comum para a mesma página no outro idioma, mantendo a rota escolhida. A do
-  // idioma da página já vem marcada do servidor (is-active e aria-current).
+  // Cada idioma do menu leva à mesma página no outro idioma, mantendo a rota escolhida.
   function updateLanguageLinks () {
-    document.querySelectorAll('.lang-switcher__button').forEach(link => {
+    document.querySelectorAll('#lang-menu a[data-lang]').forEach(link => {
       link.setAttribute('href', '?lang=' + encodeURIComponent(link.getAttribute('data-lang')) + window.location.hash)
     })
   }
@@ -366,11 +365,13 @@
     if (notice.kind === 'plain') {
       const link = $('version-notice')
       link.href = core.safeHref(url)
-      link.replaceChildren(t('lab.version.notice_plain'), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
+      link.replaceChildren(el('span', { class: 'dot', 'aria-hidden': 'true' }), el('span', { class: 'rel-words', text: t('lab.version.notice_plain') }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
       link.hidden = false
       return
     }
-    $('release-line').textContent = fillText(notice.line, { version: latest })
+    // Na barra estreita só o ponto e o número ficam à vista (lab.css); o nome do botão segue a frase inteira.
+    $('release-line').replaceChildren(...parts(notice.line, { version: el('span', { class: 'rel-num', text: latest }) })
+      .map(piece => typeof piece === 'string' ? el('span', { class: 'rel-words', text: piece }) : piece))
     $('release-dot').hidden = readLocal(RELEASE_SEEN_KEY) === latest
     $('release-panel').replaceChildren(
       el('p', { class: 'rel-title', id: 'release-title', text: fillText(notice.title, { version: latest }) }),
@@ -495,6 +496,7 @@
     document.documentElement.setAttribute('data-text', prefs.text)
     $('text-down').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[0]))
     $('text-up').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[TEXT_SIZES.length - 1]))
+    $('text-size-name').textContent = t(TEXT_SIZE_NAMES[prefs.text])
   }
 
   function stepText (delta) {
@@ -589,17 +591,11 @@
     return parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) })
   }
 
-  // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px). O
-  // brilho dele toca uma vez por carga da página: terminado ou interrompido, não volta (lab.css).
-  function paintFeedbackPill () {
+  // A linha de opinião da faixa roxa vem do servidor, sempre à vista; só some sem o endereço do formulário.
+  function paintFeedbackBand () {
     const form = feedbackUrl()
-    const pill = $('feedback-pill')
-    if (!form) return
-    const stopShine = () => pill.classList.add('shine-done')
-    pill.addEventListener('animationend', stopShine, { once: true })
-    pill.addEventListener('animationcancel', stopShine, { once: true })
-    pill.href = form
-    pill.hidden = false
+    if (form) $('feedback-band-link').href = form
+    else $('feedback-band').hidden = true
   }
 
   // Sobre o ServeRest no Resultado vazio da primeira visita: a apresentação e os três links de quem vai
@@ -772,49 +768,114 @@
     announce(fillText('lab.guide.where', { open: t('lab.guide.open') }))
   }
 
-  // O seletor de idioma do Swagger. A bandeira do idioma da página não recarrega; as outras guardam o
-  // idioma escolhido e pedem à página nova que brilhe 1 s na cor da bandeira (sem brilho com menos
-  // movimento pedido pelo sistema).
+  // A etiqueta da versão leva à release dela no GitHub (estáveis e betas têm uma). Depois de trocar de idioma,
+  // o botão do idioma brilha 1 s na cor da bandeira (sem brilho com menos movimento pedido pelo sistema).
   function setupTopbar () {
-    // A versão leva à página dela no GitHub: estáveis e betas têm release publicada.
-    const box = $('version')
     const releaseHref = core.releaseUrl(version)
-    box.textContent = ''
-    // A seta de "abre outra aba" aparece só com o mouse ou o foco, por cima do espaço ao lado: a barra continua
-    // numa linha.
-    if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'hover-arrow', 'aria-hidden': 'true', text: '↗' }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
+    if (releaseHref) $('version').href = releaseHref
+    else $('version').hidden = true
     updateLanguageLinks()
     $('guide-open').addEventListener('click', () => openGuide(null))
-    document.querySelectorAll('.lang-switcher__button').forEach(link => {
-      link.addEventListener('click', event => {
-        const code = link.getAttribute('data-lang')
-        if (code === language) {
-          event.preventDefault()
-          return
-        }
-        try {
-          window.localStorage.setItem(LANGUAGE_KEY, code)
-        } catch (e) {}
-        try {
-          window.sessionStorage.setItem(GLOW_KEY, code)
-        } catch (e) {}
-      })
-    })
+    document.querySelectorAll('#lang-menu a[data-lang]').forEach(link => link.addEventListener('click', followLanguageLink))
+    setupMenus()
+    placeBarItems()
+    window.addEventListener('resize', placeBarItems)
     let glow = null
     try {
       glow = window.sessionStorage.getItem(GLOW_KEY)
       if (glow === language) window.sessionStorage.removeItem(GLOW_KEY)
     } catch (e) {}
     if (glow !== language || prefersReducedMotion()) return
-    const pill = $('lang-switcher')
+    const button = $('lang-btn')
     // O estilo de repouso é calculado antes, para o brilho entrar com a transição de 0,15 s.
-    pill.getBoundingClientRect()
-    pill.setAttribute('data-glow-lang', language)
-    pill.classList.add('lang-switcher--glow')
+    button.getBoundingClientRect()
+    button.setAttribute('data-glow-lang', language)
+    button.classList.add('lang-glow')
     setTimeout(() => {
-      pill.classList.remove('lang-switcher--glow')
-      pill.removeAttribute('data-glow-lang')
+      button.classList.remove('lang-glow')
+      button.removeAttribute('data-glow-lang')
     }, 1000)
+  }
+
+  // O único lugar que trata o clique num idioma: o da página só fecha o menu; os outros guardam o idioma e
+  // pedem o brilho à página nova, e o link segue.
+  function followLanguageLink (event) {
+    const code = event.currentTarget.getAttribute('data-lang')
+    if (code === language) {
+      event.preventDefault()
+      closeMenu(true)
+      return
+    }
+    try {
+      window.localStorage.setItem(LANGUAGE_KEY, code)
+    } catch (e) {}
+    try {
+      window.sessionStorage.setItem(GLOW_KEY, code)
+    } catch (e) {}
+  }
+
+  // Menus da barra, um aberto por vez: fecham no Esc (o foco volta ao botão), num clique fora, no segundo
+  // clique e quando o foco sai deles. Não prendem o foco.
+  let openMenu = null
+
+  function menuPanel (button) {
+    return $(button.getAttribute('aria-controls'))
+  }
+
+  function closeMenu (refocus) {
+    const button = openMenu
+    if (!button) return
+    openMenu = null
+    button.setAttribute('aria-expanded', 'false')
+    menuPanel(button).hidden = true
+    if (refocus) button.focus()
+  }
+
+  function setupMenus () {
+    document.querySelectorAll('.topbar [data-menu]').forEach(button => {
+      const panel = menuPanel(button)
+      button.addEventListener('click', () => {
+        const wasOpen = openMenu === button
+        closeMenu(false)
+        if (wasOpen) return
+        openMenu = button
+        button.setAttribute('aria-expanded', 'true')
+        panel.hidden = false
+      })
+      ;[button, panel].forEach(node => node.addEventListener('focusout', event => {
+        const next = event.relatedTarget
+        if (openMenu === button && next && next !== button && !panel.contains(next)) closeMenu(false)
+      }))
+    })
+    document.addEventListener('pointerdown', event => {
+      if (openMenu && !openMenu.contains(event.target) && !menuPanel(openMenu).contains(event.target)) closeMenu(false)
+    })
+    // Com o painel da versão nova aberto no menu, o Esc fecha só o painel.
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !openMenu) return
+      if (!$('release-panel').hidden && menuPanel(openMenu).contains($('release-panel'))) return
+      event.preventDefault()
+      closeMenu(true)
+    })
+  }
+
+  // Com "Mais opções" à vista (CSS, abaixo de 640 px), as preferências, a documentação e a versão mudam para o
+  // menu: os mesmos elementos, e a ordem do DOM segue a da tela.
+  let phoneBar = null
+  function placeBarItems () {
+    const phone = $('more-btn').getClientRects().length > 0
+    if (phone === phoneBar) return
+    phoneBar = phone
+    closeMenu(false)
+    closeRelease(false)
+    if (phone) {
+      $('more-sep').before($('prefs'))
+      $('more-menu').append($('docs-link'), $('version-box'))
+    } else {
+      $('brand').append($('version-box'))
+      $('guide-open').after($('docs-link'))
+      $('lang-btn').parentNode.after($('prefs'))
+    }
   }
 
   /* ---------- Documento OpenAPI ---------- */
@@ -5592,7 +5653,7 @@
     restoreSession()
     setupTopbar()
     paintNotice()
-    paintFeedbackPill()
+    paintFeedbackBand()
     countUsageDay()
     renderAbout(null)
     setupFlowControls()

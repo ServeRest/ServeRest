@@ -65,21 +65,27 @@ function headValues (language) {
   }
 }
 
-// A bandeira do idioma da página sai marcada do servidor, como no seletor do Swagger: maior (is-active)
-// e com aria-current. Os valores são fixos, nunca vêm de fora.
-function flagValues (language) {
-  return ['pt-BR', 'en', 'es'].reduce((output, code) => ({
+// O idioma da página sai marcado do servidor: o botão do menu de idiomas mostra a bandeira e a sigla dele, e o
+// link dele na lista leva aria-current. Os valores são fixos, nunca vêm de fora.
+const IDIOMAS_DA_BARRA = {
+  'pt-BR': { flag: 'flag_brazil.svg', code: 'PT', name: 'lab.lang.pt_br' },
+  en: { flag: 'flag_uk.svg', code: 'EN', name: 'lab.lang.en' },
+  es: { flag: 'flag_peru.svg', code: 'ES', name: 'lab.lang.es' }
+}
+
+function flagValues (language, translations) {
+  const atual = IDIOMAS_DA_BARRA[language]
+  return Object.keys(IDIOMAS_DA_BARRA).reduce((output, code) => ({
     ...output,
-    [`flag.${code}.active`]: code === language ? ' is-active' : '',
     [`flag.${code}.current`]: code === language ? ' aria-current="true"' : ''
-  }), {})
+  }), { 'lang.flag': atual.flag, 'lang.code': atual.code, 'lang.name': escapeHtml(translations[atual.name]) })
 }
 
 function pageValues (language, translations) {
   const values = Object.keys(translations)
     .filter(key => key.startsWith('lab.'))
     .reduce((output, key) => ({ ...output, [key]: escapeHtml(translations[key]) }), {})
-  return { ...values, ...flagValues(language), ...headValues(language), ...inlineScripts, lang: language, texts: textsJson(translations) }
+  return { ...values, ...flagValues(language, translations), ...headValues(language), ...inlineScripts, lang: language, texts: textsJson(translations) }
 }
 
 const valuesByLanguage = {
@@ -92,9 +98,12 @@ const valuesByLanguage = {
 // nunca é vazia, e a versão vazia quer dizer aviso sem número de versão.
 function renderLabPage (language, pageVersion, notice) {
   const aviso = notice || { version: '', url: '' }
+  const valores = valuesByLanguage[language]
   return renderTemplate(template, {
-    ...valuesByLanguage[language],
+    ...valores,
     version: escapeHtml(pageVersion),
+    // "versão 3.4.0": o nome da etiqueta da versão para o leitor de tela e o texto dela no menu do telefone.
+    'topbar.version': valores['lab.topbar.version'].replace('{version}', () => escapeHtml(pageVersion)),
     noticeVersion: escapeHtml(aviso.version),
     noticeUrl: escapeHtml(aviso.url)
   })
