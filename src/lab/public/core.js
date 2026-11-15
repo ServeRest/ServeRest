@@ -995,14 +995,17 @@
   }
 
   // O convite para dar opinião, no Resultado vazio (R4 estendida). Aparece a partir do 3º envio do Histórico
-  // da aba, numa aba só por dia de uso (a primeira em que as condições valem). Depois de um dia em que
-  // apareceu, pula os 2 dias de uso seguintes; para depois de aparecer em 10 dias. "Responder" encerra de vez;
-  // "Agora não" tira só naquele dia. Dia de uso é um dia do calendário em que a página foi aberta: dias sem
-  // uso não contam. O estado vai em JSON no localStorage: days (dias em que apareceu), last (o último deles),
-  // seen (o último dia de uso), gap (dias de uso desde last), off (o dia do "Agora não") e answered.
+  // da aba, numa aba só por dia de uso (a primeira em que as condições valem). Nos 10 primeiros dias em que
+  // aparece, pula os 2 dias de uso seguintes; depois, aparece uma vez a cada 30 dias, para seguir ouvindo por
+  // anos sem insistir. "Responder" tira por 180 dias, ou até o formulário ganhar uma edição nova; "Agora não"
+  // tira só naquele dia. Dia de uso é um dia do calendário em que a página foi aberta. O estado vai em JSON no
+  // localStorage: days (dias em que apareceu), last (o último deles), seen (o último dia de uso), gap (dias de
+  // uso desde last), off (o dia do "Agora não"), answered (o dia da resposta) e edition (a edição respondida).
   const FEEDBACK_MIN_COUNT = 3
   const FEEDBACK_SKIP_DAYS = 2
   const FEEDBACK_MAX_DAYS = 10
+  const FEEDBACK_LATE_DAYS = 30
+  const FEEDBACK_ANSWER_DAYS = 180
 
   // O dia do calendário, no fuso de quem usa: "2026-11-14".
   function dayKey (date) {
@@ -1010,17 +1013,20 @@
     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
   }
 
-  // O valor guardado, com os valores antigos migrados: "answered" continua respondido; "shown" e "closed"
-  // recomeçam a contagem. Qualquer outra coisa é um estado novo.
-  function readInvite (raw) {
-    if (raw === 'answered') return { answered: true }
+  function daysBetween (from, to) {
+    return (Date.parse(to + 'T00:00Z') - Date.parse(from + 'T00:00Z')) / 864e5
+  }
+
+  // O valor guardado, com os valores antigos migrados: "answered" (o texto, ou true no JSON) vira respondido
+  // hoje, na edição 1; "shown" e "closed" recomeçam a contagem. Qualquer outra coisa é um estado novo.
+  function readInvite (raw, today) {
+    let value = raw === 'answered' ? { answered: true } : null
     try {
-      const value = JSON.parse(raw)
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, off: value.off || null, answered: !!value.answered }
-      }
+      value = value || JSON.parse(raw)
     } catch (e) {}
-    return { days: 0, last: null, seen: null, gap: 0, off: null, answered: false }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) value = {}
+    const answered = value.answered === true ? today || null : typeof value.answered === 'string' ? value.answered : null
+    return { days: Number(value.days) || 0, last: value.last || null, seen: value.seen || null, gap: Number(value.gap) || 0, off: value.off || null, answered, edition: answered ? Number(value.edition) || 1 : 0 }
   }
 
   // A página foi aberta hoje: o primeiro uso do dia conta mais um dia de uso desde o último convite.
@@ -1029,21 +1035,22 @@
     return { ...state, seen: today, gap: state.last && state.last !== today ? (state.gap || 0) + 1 : state.gap || 0 }
   }
 
-  // session é o dia em que esta aba mostrou o convite (sessionStorage). Devolve se aparece e, quando muda, o
-  // estado novo e o dia a guardar na aba.
+  // session é o dia em que esta aba mostrou o convite (sessionStorage); edition, a do formulário de hoje. Devolve
+  // se aparece e, quando muda, o estado novo e o dia a guardar na aba. Uma resposta a uma edição anterior não
+  // segura o convite nem a folga: ele aparece no próximo dia de uso.
   function feedbackInvite (input) {
-    const { count, today, state = readInvite(null), session } = input || {}
+    const { count, today, state = readInvite(null), session, edition = 1 } = input || {}
     const no = { show: false, state: null, session: null }
-    if (!(count >= FEEDBACK_MIN_COUNT) || state.answered || state.off === today) return no
+    const older = !!state.answered && (state.edition || 1) < edition
+    if (!(count >= FEEDBACK_MIN_COUNT) || state.off === today || (state.answered && !older && daysBetween(state.answered, today) < FEEDBACK_ANSWER_DAYS)) return no
     if (state.last === today) return session === today ? { show: true, state: null, session: null } : no
-    if ((state.days || 0) >= FEEDBACK_MAX_DAYS) return no
-    if (state.last && (state.gap || 0) <= FEEDBACK_SKIP_DAYS) return no
-    return { show: true, state: { ...state, days: (state.days || 0) + 1, last: today, seen: today, gap: 0 }, session: today }
+    if (!older && state.last && ((state.days || 0) < FEEDBACK_MAX_DAYS ? (state.gap || 0) <= FEEDBACK_SKIP_DAYS : daysBetween(state.last, today) < FEEDBACK_LATE_DAYS)) return no
+    return { show: true, state: { ...state, days: (state.days || 0) + 1, last: today, seen: today, gap: 0, answered: null }, session: today }
   }
 
-  // "Responder" encerra o convite de vez; "Agora não" só naquele dia.
-  function inviteEnd (state, today, answered) {
-    return answered ? { ...state, answered: true } : { ...state, off: today }
+  // "Responder" guarda o dia e a edição respondida; "Agora não" tira só naquele dia.
+  function inviteEnd (state, today, answered, edition) {
+    return answered ? { ...state, answered: today, edition: edition || 1 } : { ...state, off: today }
   }
 
   // O ServeRest não tem login de verdade: /login, email e password são dados de exemplo. Estes atributos

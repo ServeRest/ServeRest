@@ -37,9 +37,11 @@
   const GLOW_KEY = 'serverestLangGlow'
   // A versão nova cujo painel a pessoa já abriu (o ponto do aviso some para ela).
   const RELEASE_SEEN_KEY = 'serverestReleaseSeen'
-  // O convite para dar opinião: "shown", "closed" ou "answered" neste navegador, e a marca desta aba.
+  // O convite para dar opinião: o estado dele em JSON neste navegador (core.readInvite), e a marca desta aba.
   const FEEDBACK_KEY = 'serverestFeedbackInvite'
   const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
+  // O convite do guia "Como usar": "opened" ou "dismissed" ("Agora não"); com qualquer valor, não volta.
+  const GUIDE_KEY = 'serverestGuideInvite'
   // O formulário de opinião de cada idioma; VERSAO vira a versão da página no campo pré-preenchido. Vazio,
   // nenhuma entrada de opinião aparece (rodapé, convite e selo da barra).
   const FEEDBACK_FORM_URL = {
@@ -50,6 +52,8 @@
   // O formulário deixa de aceitar respostas nesta data; depois dela as entradas de opinião somem sozinhas.
   // Precisa ser a mesma data configurada no Google Forms.
   const FEEDBACK_UNTIL = '2027-01-31T23:59:59-03:00'
+  // A edição do formulário: quem respondeu fica 180 dias sem o convite; subir o número o traz de volta na hora.
+  const FEEDBACK_FORM_EDITION = 1
   // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
   const ABOUT_URLS = {
     postman: 'https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json',
@@ -636,9 +640,9 @@
   }
 
   // O convite para dar opinião, no Resultado vazio (core.feedbackInvite decide: a partir do 3º envio, uma aba
-  // por dia de uso, com dois dias de uso de folga entre um dia e outro, até 10 dias). O cartão diz o custo antes
-  // de pedir: 2 minutos, 6 perguntas, sem login. O estado fica em JSON no localStorage; o dia em que esta aba
-  // mostrou o convite, no sessionStorage.
+  // por dia de uso, com dois dias de uso de folga entre um dia e outro nos 10 primeiros dias, depois uma vez a
+  // cada 30 dias). O cartão diz o custo antes de pedir: 2 minutos, 7 perguntas, sem login. O estado fica em
+  // JSON no localStorage; o dia em que esta aba mostrou o convite, no sessionStorage.
   const INVITE_ICONS = {
     art: [['path', { d: 'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }], ['path', { d: 'M8.5 9.6l2.2 2.2 4.6-4.6', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }]],
     time: [['circle', { cx: '8', cy: '8', r: '6.25', 'stroke-width': '1.5' }], ['path', { d: 'M8 4.5V8l2.5 1.5', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
@@ -658,21 +662,22 @@
   }
 
   function inviteState () {
-    return core.readInvite(readLocal(FEEDBACK_KEY))
+    return core.readInvite(readLocal(FEEDBACK_KEY), core.dayKey(new Date()))
   }
 
-  // Cada abertura da página conta o dia de uso, para a folga entre um convite e outro.
+  // Cada abertura da página conta o dia de uso, para a folga entre um convite e outro. Um valor antigo é
+  // regravado na hora, para a resposta migrada ficar com o dia de hoje.
   function countUsageDay () {
-    const before = inviteState()
-    const after = core.inviteVisit(before, core.dayKey(new Date()))
-    if (after !== before) writeLocal(FEEDBACK_KEY, JSON.stringify(after))
+    const raw = readLocal(FEEDBACK_KEY)
+    const after = JSON.stringify(core.inviteVisit(inviteState(), core.dayKey(new Date())))
+    if (after !== raw) writeLocal(FEEDBACK_KEY, after)
   }
 
   function feedbackInviteNode () {
     const form = feedbackUrl()
     if (!form) return null
     const today = core.dayKey(new Date())
-    const decision = core.feedbackInvite({ count: state.history.length, today, state: inviteState(), session: readSession(FEEDBACK_SESSION_KEY) })
+    const decision = core.feedbackInvite({ count: state.history.length, today, state: inviteState(), session: readSession(FEEDBACK_SESSION_KEY), edition: FEEDBACK_FORM_EDITION })
     if (!decision.show) return null
     if (decision.state) writeLocal(FEEDBACK_KEY, JSON.stringify(decision.state))
     if (decision.session) writeSession(FEEDBACK_SESSION_KEY, decision.session)
@@ -687,11 +692,11 @@
       el('p', { class: 'invite-where', text: t('lab.feedback.invite_where') }))
   }
 
-  // "Responder" (o link abre o formulário em outra aba) encerra o convite de vez; "Agora não", só hoje. O
+  // "Responder" (o link abre o formulário em outra aba) tira o convite por 180 dias; "Agora não", só hoje. O
   // cartão sai depois do clique, para o link abrir antes; o foco vai para a primeira linha do Resultado vazio,
   // em vez de cair no body, e "Agora não" anuncia que o convite volta outro dia e onde o link continua.
   function endInvite (answered) {
-    writeLocal(FEEDBACK_KEY, JSON.stringify(core.inviteEnd(inviteState(), core.dayKey(new Date()), answered)))
+    writeLocal(FEEDBACK_KEY, JSON.stringify(core.inviteEnd(inviteState(), core.dayKey(new Date()), answered, FEEDBACK_FORM_EDITION)))
     setTimeout(() => {
       const invite = $('invite')
       if (!invite) return
@@ -700,6 +705,55 @@
       invite.remove()
       if (!answered) announce(t('lab.feedback.closed'))
     }, 0)
+  }
+
+  // O guia "Como usar" (guia.js) só é baixado quando abre pela primeira vez. Enquanto baixa, o botão fica
+  // ocupado; numa falha, uma frase curta diz isso, e o botão continua valendo. Abrir o guia encerra o convite.
+  let guideLoading = false
+  function openGuide (trigger) {
+    if (guideLoading) return
+    if (window.serverestGuide) {
+      writeLocal(GUIDE_KEY, 'opened')
+      if ($('guide-invite')) $('guide-invite').remove()
+      window.serverestGuide.open()
+      return
+    }
+    guideLoading = true
+    const busy = [$('guide-open'), trigger].filter(Boolean)
+    busy.forEach(button => button.setAttribute('aria-busy', 'true'))
+    const script = el('script', { src: '/lab/assets/guia.js?v=' + encodeURIComponent(version) })
+    script.onload = script.onerror = () => {
+      guideLoading = false
+      busy.forEach(button => button.removeAttribute('aria-busy'))
+      if (window.serverestGuide) return openGuide()
+      script.remove()
+      const note = el('p', { class: 'rel-pop', 'aria-hidden': 'true', text: t('lab.guide.load_failed') })
+      note.style.cssText = 'left: auto; right: 20px'
+      // No fim da barra, fora do caminho do flex (logo depois do botão, ela desfaria o encaixe dele com .bar-end).
+      $('guide-open').parentNode.append(note)
+      setTimeout(() => note.remove(), 6000)
+      announce(t('lab.guide.load_failed'))
+    }
+    document.head.append(script)
+  }
+
+  // O convite da primeira visita só aparece com o Histórico desta aba vazio (o de opinião pede 3 envios: os dois
+  // nunca ficam juntos) e some de vez quando o guia abre ou em "Agora não".
+  function guideInviteNode () {
+    if (readLocal(GUIDE_KEY)) return null
+    return el('section', { class: 'invite', id: 'guide-invite', 'aria-labelledby': 'guide-invite-title' },
+      el('p', { class: 'invite-title', id: 'guide-invite-title', text: t('lab.guide.invite_lead') }),
+      el('p', { text: t('lab.guide.invite_text') }),
+      el('div', { class: 'invite-actions' },
+        el('button', { type: 'button', class: 'btn btn-primary', text: t('lab.guide.invite_open'), onclick: event => openGuide(event.currentTarget) }),
+        el('button', { type: 'button', class: 'btn btn-quiet', text: t('lab.feedback.invite_close'), onclick: dismissGuideInvite })))
+  }
+
+  function dismissGuideInvite () {
+    writeLocal(GUIDE_KEY, 'dismissed')
+    $('result-empty-first').focus()
+    $('guide-invite').remove()
+    announce(fillText('lab.guide.where', { open: t('lab.guide.open') }))
   }
 
   // O seletor de idioma do Swagger. A bandeira do idioma da página não recarrega; as outras guardam o
@@ -714,6 +768,7 @@
     // numa linha.
     if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'hover-arrow', 'aria-hidden': 'true', text: '↗' }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
     updateLanguageLinks()
+    $('guide-open').addEventListener('click', () => openGuide(null))
     document.querySelectorAll('.lang-switcher__button').forEach(link => {
       link.addEventListener('click', event => {
         const code = link.getAttribute('data-lang')
@@ -1158,12 +1213,14 @@
       if (state.specError) message = t('lab.request.no_spec')
       else if (state.spec) message = t('lab.request.choose')
       box.append(el('p', { class: 'muted small', id: 'req-title', text: message }))
+      box.removeAttribute('data-route')
       paintDocLink(null)
       return
     }
     const route = state.selected
     const draft = draftFor(route)
     paintDocLink(route)
+    box.setAttribute('data-route', route.key)
 
     // O título da rota abre a zona; o grupo e a descrição dele ficam na lista de rotas.
     append(box, [
@@ -1327,6 +1384,8 @@
     // Durante o envio o nome é o texto visível ("Executando").
     if (!state.busy && slowMotion()) run.setAttribute('aria-label', t('lab.run.execute_slow'))
     else run.removeAttribute('aria-label')
+    // Os data-* daqui em diante são para o guia (guia.js), que nunca lê o texto traduzido.
+    run.setAttribute('data-send-mode', slowMotion() ? 'lenta' : 'normal')
   }
 
   function publicLine () {
@@ -2506,7 +2565,7 @@
     const record = state.history.find(item => item.id === id)
     if (!record) return
     const entry = document.querySelector('#history-body .entry[data-id="' + id + '"]')
-    if (entry) entry.replaceChildren(...entryParts(record))
+    if (entry) paintEntry(entry, record)
     paintRouteMarks()
     if (state.shownId === id) {
       renderShown(record, state.shownLive)
@@ -2597,14 +2656,24 @@
     $('hist-cleared').hidden = !(state.undo && !count)
   }
 
+  // data-token: o envio levou o header Authorization; data-token-in-use: é o login do selo, à vista.
   function entryItem (record) {
-    return el('li', null, el('button', {
+    const entry = el('button', {
       type: 'button',
       class: 'entry',
       'data-id': String(record.id),
+      'data-key': core.recordKey(record),
+      'data-token': record.authSent ? 'sent' : null,
       'aria-current': record.id === state.shownId ? 'true' : null,
       onclick: () => pickHistory(record)
-    }, entryParts(record)))
+    })
+    paintEntry(entry, record)
+    return el('li', null, entry)
+  }
+
+  function paintEntry (entry, record) {
+    entry.replaceChildren(...entryParts(record))
+    entry.toggleAttribute('data-token-in-use', record.id === state.tokenMark && record.id !== state.pendingId)
   }
 
   // Os filhos de uma entrada, na ordem das colunas da tabela: hora, método, path, cadeado, status, o que a
@@ -2681,7 +2750,7 @@
     changed.forEach(item => {
       const record = item === null ? null : state.history.find(entry => entry.id === item)
       const entry = record && document.querySelector('#history-body .entry[data-id="' + item + '"]')
-      if (entry) entry.replaceChildren(...entryParts(record))
+      if (entry) paintEntry(entry, record)
     })
   }
 
@@ -3021,6 +3090,10 @@
         status)
       box.setAttribute('data-key', key)
     }
+    // Como o chip, o status só chega no veredito.
+    box.setAttribute('data-record', core.recordKey(record))
+    if (pending) box.removeAttribute('data-status')
+    else box.setAttribute('data-status', record.error ? 'error' : String(record.status))
     const real = status.querySelector('.status-real')
     if (!pending) real.replaceChildren(statusChip(record))
     status.classList.toggle('is-pending', pending)
@@ -3240,8 +3313,8 @@
         how,
         el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
       // O Sobre aparece em toda rota ainda não executada, não só na primeira visita: quem troca de rota
-      // também chega a um Resultado vazio. O convite de opinião, quando cabe, vem antes dele.
-      first ? null : feedbackInviteNode(),
+      // também chega a um Resultado vazio. O convite do guia ou o de opinião, quando cabe, vem antes dele.
+      first ? guideInviteNode() : feedbackInviteNode(),
       aboutBand()
     ])
   }
@@ -3846,7 +3919,7 @@
       const opensEarly = !!stage.descriptionKey
       const opensFinal = opensEarly || stage.rules.length > 0 || stage.st === 'skipped' || (isFailed && (!!model.whyKey || !!model.howKey))
       const details = opensFinal ? el('div', { class: 'flow-details', id: 'flow-details-' + index, hidden: true }) : null
-      const li = el('li', { class: 'flow-stage' }, el('div', { class: 'flow-row' }), details)
+      const li = el('li', { class: 'flow-stage', 'data-stage': stage.name }, el('div', { class: 'flow-row' }), details)
       list.append(li)
       linkSummary(li, summaryBar.children[index], summarySeg)
       // Clicar no segmento do resumo abre a linha da etapa, como clicar na própria linha.
@@ -4686,10 +4759,12 @@
     const record = flow.record
     summary.textContent = ''
     summary.className = 'flow-summary ' + model.summary
+    summary.setAttribute('data-verdict', model.summary)
     let spoken
     if (model.summary === 'stopped') {
       const index = model.stages.findIndex(stage => stage.name === model.failedStage && stage.st === 'failed')
       const stage = model.stages[index]
+      summary.setAttribute('data-stage', stage.name)
       summary.append(el('span', { text: t('ui.flow.stopped_at') }), codeOrLabel(stage.labelKey, stage.name, 'flow-summary-stage'))
       spoken = fillText('lab.announce.stopped', { status: statusLine(record), stage: stageName(stage) })
       if (flow.hintEl && index !== -1) flow.hintEl.firstChild.textContent = fillText('lab.flow.hint_stopped', { stage: stageName(stage) })

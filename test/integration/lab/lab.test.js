@@ -224,6 +224,22 @@ describe('/ GET (marcação da página inicial)', () => {
     }
   })
 
+  it('tem na barra o botão "Como usar" do guia, traduzido, e não pede guia.js: ele só é baixado ao abrir, nos três idiomas', async () => {
+    const { body } = await request.get('/version').expect(200)
+    for (const [lang, textos] of [['pt-BR', ptBr], ['en', en], ['es', es]]) {
+      const { text } = await request.get('/').query({ lang }).expect(200)
+      const botao = /<button [^>]*id="guide-open"[^>]*>([\s\S]*?)<\/button>/.exec(text)
+      expect(botao, lang).to.not.equal(null)
+      expect(botao[0], lang).to.include('aria-haspopup="dialog"')
+      expect(botao[1].replace(/<svg[\s\S]*<\/svg>/, ''), lang).to.equal(escaparHtml(textos['lab.guide.open']))
+      expect(text, lang).to.not.include('guia.js')
+      expect(JSON.parse(blocoDeTextos(text)), lang).to.have.property('lab.guide.learn.name', textos['lab.guide.learn.name'])
+    }
+    const guia = await request.get(`/lab/assets/guia.js?v=${body.version}`).expect(200)
+    expect(guia.headers['content-type']).to.match(/javascript/)
+    expect(guia.text).to.include('window.serverestGuide')
+  })
+
   it('traz no começo do body o sprite dos ícones do Executar, com a origem e a licença', async () => {
     const { text } = await request.get('/').expect(200)
     const sprite = /<!--([\s\S]*?)-->\s*<svg class="sprite"[^>]*aria-hidden="true"[^>]*>([\s\S]*?)<\/svg>/.exec(text)

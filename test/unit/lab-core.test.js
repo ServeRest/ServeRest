@@ -979,20 +979,22 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
-  describe('feedbackInvite (R4 estendida)', () => {
+  describe('feedbackInvite (R4 estendida, sem fim)', () => {
     // Abre a página em cada dia da lista (um dia de uso cada) e diz em quais o convite apareceu.
-    const usar = (dias, { count = 3, inicio = core.readInvite(null) } = {}) => {
+    const usar = (dias, { count = 3, inicio = core.readInvite(null), edition = 1 } = {}) => {
       let estado = inicio
       const vistos = []
       dias.forEach(dia => {
         estado = core.inviteVisit(estado, dia)
-        const decisao = core.feedbackInvite({ count, today: dia, state: estado, session: null })
+        const decisao = core.feedbackInvite({ count, today: dia, state: estado, session: null, edition })
         if (decisao.state) estado = decisao.state
         if (decisao.show) vistos.push(dia)
       })
       return { vistos, estado }
     }
-    const dias = n => Array.from({ length: n }, (_, i) => '2026-12-' + String(i + 1).padStart(2, '0'))
+    // n dias seguidos a partir de um dia (UTC, para não depender do fuso de quem roda o teste).
+    const seguidos = (inicio, n) => Array.from({ length: n }, (_, i) => new Date(Date.parse(inicio + 'T00:00:00Z') + i * 86400000).toISOString().slice(0, 10))
+    const dias = n => seguidos('2026-12-01', n)
 
     it('com menos de 3 envios no Histórico não aparece', () => {
       expect(core.feedbackInvite({ count: 2, today: '2026-12-01', state: core.readInvite(null) }).show).to.equal(false)
@@ -1007,10 +1009,20 @@ describe('Página do lab: funções puras', () => {
       expect(usar(['2026-12-01', '2026-12-09', '2026-12-20', '2027-01-05', '2027-01-06']).vistos).to.deep.equal(['2026-12-01', '2027-01-05'])
     })
 
-    it('aparece em no máximo 10 dias', () => {
-      const { vistos, estado } = usar(dias(31).concat(dias(31).map(dia => dia.replace('2026-12', '2027-01'))))
-      expect(vistos).to.have.length(10)
+    it('nos 10 primeiros dias em que aparece segue a folga de 2 dias de uso', () => {
+      const { vistos, estado } = usar(dias(28))
+      expect(vistos).to.deep.equal(['01', '04', '07', '10', '13', '16', '19', '22', '25', '28'].map(dia => '2026-12-' + dia))
       expect(estado.days).to.equal(10)
+    })
+
+    it('depois do 10º dia não para: espera 30 dias do calendário, mesmo com uso todo dia', () => {
+      const { vistos } = usar(seguidos('2026-12-01', 120))
+      expect(vistos.slice(10)).to.deep.equal(['2027-01-27', '2027-02-26', '2027-03-28'])
+    })
+
+    it('depois do 10º dia, o primeiro dia de uso passados os 30 dias o traz de volta', () => {
+      const { estado } = usar(dias(28))
+      expect(usar(['2027-01-10', '2027-01-26', '2027-02-15', '2027-02-16'], { inicio: estado }).vistos).to.deep.equal(['2027-02-15'])
     })
 
     it('uma aba só por dia: a aba que mostrou continua mostrando; outra aba, no mesmo dia, não', () => {
@@ -1020,11 +1032,21 @@ describe('Página do lab: funções puras', () => {
       expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: primeira.state, session: null }).show).to.equal(false)
     })
 
-    it('respondido, nunca mais aparece', () => {
+    it('respondido, some por 180 dias e volta no primeiro dia de uso depois deles', () => {
       const { estado } = usar(['2026-12-01'])
-      const respondido = core.inviteEnd(estado, '2026-12-01', true)
-      expect(usar(dias(31).slice(1), { inicio: respondido }).vistos).to.deep.equal([])
-      expect(core.readInvite('answered').answered).to.equal(true)
+      const respondido = core.inviteEnd(estado, '2026-12-01', true, 1)
+      expect(respondido).to.include({ answered: '2026-12-01', edition: 1 })
+      const { vistos, estado: depois } = usar(seguidos('2026-12-02', 200), { inicio: respondido })
+      expect(vistos[0]).to.equal('2027-05-30')
+      expect(depois.answered).to.equal(null)
+    })
+
+    it('uma edição nova do formulário traz de volta na hora quem respondeu a anterior, e depois segue a folga', () => {
+      const { estado } = usar(['2026-12-01'])
+      const respondido = core.inviteEnd(estado, '2026-12-01', true, 1)
+      expect(usar(['2026-12-02'], { inicio: respondido, edition: 1 }).vistos).to.deep.equal([])
+      expect(usar(['2026-12-02', '2026-12-03', '2026-12-04', '2026-12-05'], { inicio: respondido, edition: 2 }).vistos).to.deep.equal(['2026-12-02', '2026-12-05'])
+      expect(usar(['2027-01-02'], { inicio: core.inviteEnd(respondido, '2027-01-01', true, 2), edition: 2 }).vistos).to.deep.equal([])
     })
 
     it('"Agora não" tira só naquele dia: o resto do dia, em qualquer aba, não aparece, e a contagem segue', () => {
@@ -1037,7 +1059,7 @@ describe('Página do lab: funções puras', () => {
     it('com o que a versão anterior guardou ("shown" ou "closed", com ou sem a marca "1" da aba), aparece no dia', () => {
       ;['shown', 'closed'].forEach(antigo => {
         ;[null, '1'].forEach(marca => {
-          const estado = core.inviteVisit(core.readInvite(antigo), '2026-12-01')
+          const estado = core.inviteVisit(core.readInvite(antigo, '2026-12-01'), '2026-12-01')
           const decisao = core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca })
           expect(decisao, antigo + ' ' + marca).to.include({ show: true, session: '2026-12-01' })
           expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: decisao.state, session: decisao.session }).show, antigo + ' ' + marca).to.equal(true)
@@ -1045,17 +1067,27 @@ describe('Página do lab: funções puras', () => {
       })
     })
 
-    it('com "answered" guardado pela versão anterior, nunca aparece, com ou sem a marca da aba', () => {
-      ;[null, '1'].forEach(marca => {
-        const estado = core.inviteVisit(core.readInvite('answered'), '2026-12-01')
-        expect(core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca }).show, String(marca)).to.equal(false)
+    it('migra o "answered" antigo (texto ou no JSON) para respondido hoje, na edição 1, e o conta por 180 dias', () => {
+      const antigoJson = JSON.stringify({ days: 4, last: '2026-11-01', seen: '2026-11-10', gap: 3, off: null, answered: true })
+      ;['answered', antigoJson].forEach(antigo => {
+        const estado = core.readInvite(antigo, '2026-12-01')
+        expect(estado, antigo).to.include({ answered: '2026-12-01', edition: 1 })
+        ;[null, '1'].forEach(marca => {
+          expect(core.feedbackInvite({ count: 3, today: '2026-12-01', state: core.inviteVisit(estado, '2026-12-01'), session: marca }).show, antigo + ' ' + marca).to.equal(false)
+        })
+        expect(usar(seguidos('2026-12-01', 182), { inicio: estado }).vistos, antigo).to.deep.equal(['2027-05-30'])
       })
     })
 
     it('migra os valores antigos: "shown" e "closed" recomeçam, e lixo vira estado novo', () => {
       ;['shown', 'closed', '{x', null, '[]'].forEach(antigo => {
-        expect(usar(['2026-12-01'], { inicio: core.readInvite(antigo) }).vistos, String(antigo)).to.deep.equal(['2026-12-01'])
+        expect(usar(['2026-12-01'], { inicio: core.readInvite(antigo, '2026-12-01') }).vistos, String(antigo)).to.deep.equal(['2026-12-01'])
       })
+    })
+
+    it('o estado guardado continua um JSON pequeno', () => {
+      const { estado } = usar(seguidos('2026-12-01', 400))
+      expect(JSON.stringify(core.inviteEnd(estado, '2028-01-05', true, 3)).length).to.be.below(160)
     })
 
     it('dayKey é o dia do calendário local', () => {
@@ -1319,7 +1351,7 @@ describe('Página do lab: funções puras', () => {
     })
 
     it('a lista lida inclui a página, os scripts e o CSS', () => {
-      expect(nomes.map(nome => nome.split(sep).join('/'))).to.include.members(['page.html', 'index.js', 'public/app.js', 'public/core.js', 'public/prefs-boot.js', 'public/lab.css'])
+      expect(nomes.map(nome => nome.split(sep).join('/'))).to.include.members(['page.html', 'index.js', 'public/app.js', 'public/core.js', 'public/guia.js', 'public/prefs-boot.js', 'public/lab.css'])
     })
 
     it('os textos do fluxo trocados pela página existem e viram a instrução única de como obter um token', () => {
@@ -1385,7 +1417,8 @@ describe('Página do lab: funções puras', () => {
       serverestLabView: 'VIEW_KEY',
       serverestReleaseSeen: 'RELEASE_SEEN_KEY',
       serverestFeedbackInvite: 'FEEDBACK_KEY',
-      serverestFeedbackInviteSession: 'FEEDBACK_SESSION_KEY'
+      serverestFeedbackInviteSession: 'FEEDBACK_SESSION_KEY',
+      serverestGuideInvite: 'GUIDE_KEY'
     }
 
     it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {
