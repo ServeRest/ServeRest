@@ -119,6 +119,12 @@ describe('Guia "Como usar" (guia.js)', () => {
       expect(guia).to.not.match(/replay\(next, 'is-ready'\)/)
     })
 
+    it('na faixa preta, o Fechar realçado e o ícone do caminho realçado continuam à vista', () => {
+      expect(cssDoGuia).to.include('.guide-brand .guide-close.guide-nudge { border-color: var(--accent); background: var(--bar-fg); color: var(--bar-bg); }')
+      expect(cssDoGuia).to.include('.guide-path:hover .guide-icon, .guide-path:focus-visible .guide-icon { background: var(--accent); }')
+      expect(cssDoGuia).to.include('.guide-path:hover .guide-icon svg, .guide-path:focus-visible .guide-icon svg { stroke: var(--surface); }')
+    })
+
     it('a camada escura tem um tom em cada tema', () => {
       expect(cssDoGuia).to.include('--guide-dim: rgb(20 22 28 / 0.45)')
       expect(cssDoGuia).to.include('--guide-dim: rgb(0 0 0 / 0.62)')
