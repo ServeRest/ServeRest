@@ -4,7 +4,9 @@ const { readFileSync } = require('fs')
 const { join } = require('path')
 
 const { version } = require('../../package.json')
+const { enderecosDaPagina } = require('./buscadores')
 const { prepararResposta } = require('./entrega')
+const { urlDoAmbiente } = require('../utils/ambiente')
 const ptBr = require('../swagger/translations/pt-BR')
 const en = require('../swagger/translations/en')
 const es = require('../swagger/translations/es')
@@ -45,6 +47,24 @@ function textsJson (translations) {
   return JSON.stringify(texts).replace(/</g, '\\u003c')
 }
 
+// Canonical, hreflang e Open Graph pedem endereços absolutos. Com a URL do próprio ambiente, o staging e as
+// instâncias das parceiras não se anunciam como a produção.
+const BASE = urlDoAmbiente()
+const ENDERECOS = enderecosDaPagina(BASE)
+// O og:locale pede idioma_PAÍS: o país é o da bandeira de cada idioma no seletor.
+const OG_LOCALE = { 'pt-BR': 'pt_BR', en: 'en_GB', es: 'es_PE' }
+
+function headValues (language) {
+  return {
+    'head.canonical': escapeHtml(ENDERECOS[language]),
+    'head.url.pt-BR': escapeHtml(ENDERECOS['pt-BR']),
+    'head.url.en': escapeHtml(ENDERECOS.en),
+    'head.url.es': escapeHtml(ENDERECOS.es),
+    'head.og_locale': OG_LOCALE[language],
+    'head.image': escapeHtml(`${BASE}/lab/assets/img/serverest-og.png`)
+  }
+}
+
 // A bandeira do idioma da página sai marcada do servidor, como no seletor do Swagger: maior (is-active)
 // e com aria-current. Os valores são fixos, nunca vêm de fora.
 function flagValues (language) {
@@ -59,7 +79,7 @@ function pageValues (language, translations) {
   const values = Object.keys(translations)
     .filter(key => key.startsWith('lab.'))
     .reduce((output, key) => ({ ...output, [key]: escapeHtml(translations[key]) }), {})
-  return { ...values, ...flagValues(language), ...inlineScripts, lang: language, texts: textsJson(translations) }
+  return { ...values, ...flagValues(language), ...headValues(language), ...inlineScripts, lang: language, texts: textsJson(translations) }
 }
 
 const valuesByLanguage = {
