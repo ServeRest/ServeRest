@@ -625,6 +625,25 @@
         el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link'), onclick: goToAbout }) }))))
   }
 
+  // Depois do primeiro envio, as rotas ainda não enviadas mostram só uma linha centrada no lugar do Sobre: como
+  // apoiar o projeto (star, apoio financeiro e opinião) e o caminho para o rodapé, onde está o resto. Quatro
+  // paradas do Tab em vez das nove do Sobre inteiro, que o rodapé já repete.
+  function supportLine () {
+    const form = feedbackUrl()
+    const links = [
+      externalLink(ABOUT_URLS.repository, t('lab.about.support_star')),
+      externalLink(ABOUT_URLS.fund, t('lab.about.support_fund')),
+      form ? externalLink(form, t('lab.about.support_feedback')) : null,
+      el('a', { href: '#about', text: t('lab.about.support_more'), onclick: goToAbout })
+    ].filter(Boolean)
+    const items = []
+    links.forEach((link, index) => {
+      if (index) items.push(el('span', { class: 'support-sep', 'aria-hidden': 'true', text: '·' }))
+      items.push(link)
+    })
+    return el('p', { class: 'support-line' }, el('span', { class: 'support-lead', text: t('lab.about.support_lead') }), items)
+  }
+
   // O hash guarda a rota escolhida: seguir #about trocaria a rota pela primeira ao recarregar ou mudar
   // de idioma. O clique rola até o rodapé e põe o foco nele sem mexer no endereço.
   function goToAbout (event) {
@@ -3366,10 +3385,11 @@
           routeLine),
         how,
         el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
-      // O Sobre aparece em toda rota ainda não executada, não só na primeira visita: quem troca de rota
-      // também chega a um Resultado vazio. O convite do guia ou o de opinião, quando cabe, vem antes dele.
+      // O Sobre inteiro aparece só enquanto o Histórico desta aba está vazio (a primeira visita); depois, cada
+      // rota ainda não executada mostra a linha curta de apoio (supportLine). O convite do guia ou o de opinião,
+      // quando cabe, vem antes dele.
       first ? guideInviteNode() : feedbackInviteNode(),
-      aboutBand()
+      first ? aboutBand() : supportLine()
     ])
   }
 

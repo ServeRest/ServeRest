@@ -174,6 +174,12 @@ function setupDoSwagger (idioma) {
 // e o /swagger fica em branco para essa pessoa até a próxima versão.
 setupDoSwagger('pt-BR')
 
+// O index.html da pasta do Swagger UI é a página de exemplo do pacote, que carrega a Petstore: sob o domínio do
+// ServeRest ele parecia uma página do projeto. O endereço leva à página inicial, com a query (o idioma) junto.
+app.get('/index.html', (req, res) => {
+  const inicioDaQuery = req.originalUrl.indexOf('?')
+  res.redirect(301, '/' + (inicioDaQuery === -1 ? '' : req.originalUrl.slice(inicioDaQuery)))
+})
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 app.use('/', swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {

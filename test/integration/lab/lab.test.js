@@ -432,6 +432,20 @@ describe('/ GET (endereços e cartão de compartilhamento)', () => {
   })
 })
 
+describe('/index.html GET', () => {
+  it('leva à página inicial em vez da página de exemplo do Swagger UI, com a Petstore', async () => {
+    const res = await request.get('/index.html').expect(301)
+    expect(res.headers.location).to.equal('/')
+    const pagina = await request.get('/').expect(200)
+    expect(pagina.text).to.not.include('petstore')
+  })
+
+  it('mantém a query na volta, para o idioma escolhido continuar', async () => {
+    const res = await request.get('/index.html?lang=en').expect(301)
+    expect(res.headers.location).to.equal('/?lang=en')
+  })
+})
+
 describe('/lab GET', () => {
   it('não existe mais: responde 405, e os arquivos em /lab/assets continuam servidos', async () => {
     await request.get('/lab').expect(405)
