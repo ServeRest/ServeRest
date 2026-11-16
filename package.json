@@ -50,6 +50,7 @@
   "dependencies": {
     "axios": "^1.13.4",
     "colors": "^1.4.0",
+    "compression": "1.7.5",
     "connect-timeout": "^1.9.1",
     "cors": "^2.8.6",
     "dd-trace": "^5.136.0",
