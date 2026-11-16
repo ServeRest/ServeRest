@@ -22,4 +22,8 @@ COPY . .
 
 EXPOSE 3000
 ENTRYPOINT ["/app/datadog-init"]
-CMD ["npm", "start", "--", "0"]
+# Direto no node, sem npm start: o datadog-init injeta o tracer em todo processo Node pelo NODE_OPTIONS, e o
+# npm, que é um processo Node só para repassar o comando, carregava o tracer à toa (cerca de 30 MiB parado).
+# Os sinais chegam ao node pelo datadog-init. É o mesmo comando do script start do package.json: mudar os dois
+# juntos. O --nodoc evita que o servidor tente abrir a documentação num navegador que o container não tem.
+CMD ["node", "./src/server.js", "--nodoc"]
