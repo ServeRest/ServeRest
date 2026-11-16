@@ -107,12 +107,17 @@ jobs:
       run: make test-unit
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
-        DD_GIT_BRANCH: ${{ github.ref_name }}
+        # Num PR o código baixado é o do ramo, não o commit de merge de github.sha: com um commit que não existe
+        # no checkout, o envio dos dados do git ao Datadog não termina e o processo sai sem rodar os testes.
+        DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
       with:
         name: coverage-unit
@@ -136,12 +141,17 @@ jobs:
       run: make test-integration
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
-        DD_GIT_BRANCH: ${{ github.ref_name }}
+        # Num PR o código baixado é o do ramo, não o commit de merge de github.sha: com um commit que não existe
+        # no checkout, o envio dos dados do git ao Datadog não termina e o processo sai sem rodar os testes.
+        DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
       with:
         name: coverage-integration
@@ -166,12 +176,17 @@ jobs:
       run: make test-e2e-localhost
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        DD_GIT_COMMIT_SHA:  ${{ github.sha }}
-        DD_GIT_BRANCH: ${{ github.ref_name }}
+        # Num PR o código baixado é o do ramo, não o commit de merge de github.sha: com um commit que não existe
+        # no checkout, o envio dos dados do git ao Datadog não termina e o processo sai sem rodar os testes.
+        DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
 
   sonarcloud:
     needs: [test-unit, test-integration]

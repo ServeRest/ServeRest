@@ -60,6 +60,37 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "paths.login.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "examples": {
+                                    "dadosInvalidos": {
+                                        "summary": "paths.login.post.responses.400.examples.dadosInvalidos.summary",
+                                        "value": {
+                                            "email": "email é obrigatório",
+                                            "password": "password é obrigatório"
+                                        }
+                                    },
+                                    "jsonMalformado": {
+                                        "summary": "paths.login.post.responses.400.examples.jsonMalformado.summary",
+                                        "value": {
+                                            "message": "Adicione aspas em todos os valores. Para mais informações acesse a issue https://github.com/ServeRest/ServeRest/issues/225"
+                                        }
+                                    },
+                                    "corpoComprimidoInvalido": {
+                                        "summary": "paths.login.post.responses.400.examples.corpoComprimidoInvalido.summary",
+                                        "value": {
+                                            "message": "Corpo comprimido inválido. Envie o corpo de acordo com o header Content-Encoding ou remova o header."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "paths.login.post.responses.401.description",
                         "content": {
@@ -69,6 +100,15 @@
                                 }
                             }
                         }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -106,6 +146,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.usuarios.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "email": "email deve ser um email válido"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -130,7 +186,23 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/EmailJaUtilizado"
+                        "description": "paths.usuarios.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorEmailJaUtilizado"
+                                }
+                            }
+                        }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -180,6 +252,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -227,6 +302,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -273,7 +351,23 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/EmailJaUtilizado"
+                        "description": "paths.usuariosById.put.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorEmailJaUtilizado"
+                                }
+                            }
+                        }
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -311,6 +405,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.produtos.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "preco": "preco deve ser um número"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -340,13 +450,29 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                        "description": "paths.produtos.post.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/existeProdutoComEsseNome"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -396,6 +522,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -455,6 +584,9 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -507,13 +639,29 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/components/responses/ProdutoNomeDuplicado"
+                        "description": "paths.produtosById.put.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/existeProdutoComEsseNome"
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
                     },
                     "403": {
                         "$ref": "#/components/responses/RotaParaAdministradores"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -549,6 +697,22 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "paths.carrinhos.get.responses.400.description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/mensagensDeErro"
+                                },
+                                "example": {
+                                    "precoTotal": "precoTotal deve ser um número"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             },
@@ -595,6 +759,15 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "413": {
+                        "$ref": "#/components/responses/CorpoGrandeDemais"
+                    },
+                    "415": {
+                        "$ref": "#/components/responses/CorpoNaoSuportado"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -644,6 +817,9 @@
                                 }
                             }
                         }
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -679,6 +855,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -714,6 +893,9 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/TokenInvalido"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/LimiteDeRequisicoes"
                     }
                 }
             }
@@ -902,26 +1084,6 @@
             }
         },
         "responses": {
-            "EmailJaUtilizado": {
-                "description": "components.responses.EmailJaUtilizado.description",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/errorEmailJaUtilizado"
-                        }
-                    }
-                }
-            },
-            "ProdutoNomeDuplicado": {
-                "description": "components.responses.ProdutoNomeDuplicado.description",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/existeProdutoComEsseNome"
-                        }
-                    }
-                }
-            },
             "TokenInvalido": {
                 "description": "components.responses.TokenInvalido.description",
                 "content": {
@@ -938,6 +1100,52 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/rotaParaAdministradores"
+                        }
+                    }
+                }
+            },
+            "CorpoGrandeDemais": {
+                "description": "components.responses.CorpoGrandeDemais.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/corpoGrandeDemais"
+                        }
+                    }
+                }
+            },
+            "CorpoNaoSuportado": {
+                "description": "components.responses.CorpoNaoSuportado.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/corpoNaoSuportado"
+                        },
+                        "examples": {
+                            "charset": {
+                                "summary": "components.responses.CorpoNaoSuportado.examples.charset.summary",
+                                "value": {
+                                    "message": "Unsupported charset",
+                                    "charset": "latin9"
+                                }
+                            },
+                            "contentEncoding": {
+                                "summary": "components.responses.CorpoNaoSuportado.examples.contentEncoding.summary",
+                                "value": {
+                                    "message": "Unsupported content encoding",
+                                    "encoding": "br"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "LimiteDeRequisicoes": {
+                "description": "components.responses.LimiteDeRequisicoes.description",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/limiteDeRequisicoes"
                         }
                     }
                 }
@@ -1457,6 +1665,44 @@
                     "message": {
                         "type": "string",
                         "example": "Rota exclusiva para administradores"
+                    }
+                }
+            },
+            "mensagensDeErro": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
+            },
+            "corpoGrandeDemais": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Payload too large"
+                    }
+                }
+            },
+            "corpoNaoSuportado": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "charset": {
+                        "type": "string"
+                    },
+                    "encoding": {
+                        "type": "string"
+                    }
+                }
+            },
+            "limiteDeRequisicoes": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga"
                     }
                 }
             }

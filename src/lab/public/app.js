@@ -35,22 +35,24 @@
   const TEXT_KEY = 'serverestTextSize'
   // Pedido da página anterior para a página nova brilhar na cor do idioma escolhido (só nesta aba).
   const GLOW_KEY = 'serverestLangGlow'
+  const HANDOFF_KEY = 'serverestLangHandoff'
   // A versão nova cujo painel a pessoa já abriu (o ponto do aviso some para ela).
   const RELEASE_SEEN_KEY = 'serverestReleaseSeen'
-  // O convite para dar opinião: "shown", "closed" ou "answered" neste navegador, e a marca desta aba.
+  // O pedido de opinião: o estado dele em JSON neste navegador (core.readInvite). prefs-boot.js lê a mesma chave.
   const FEEDBACK_KEY = 'serverestFeedbackInvite'
-  const FEEDBACK_SESSION_KEY = 'serverestFeedbackInviteSession'
+  // O cartão do guia "Como usar": "opened" (o guia abriu, por qualquer caminho) ou "dismissed" ("Não,
+  // obrigado"); com qualquer valor, não volta.
+  const GUIDE_KEY = 'serverestGuideInvite'
   // O formulário de opinião de cada idioma; VERSAO vira a versão da página no campo pré-preenchido. Vazio,
-  // nenhuma entrada de opinião aparece (rodapé, convite e selo da barra).
+  // nenhuma entrada de opinião aparece (rodapé, linha do Resultado e linha da faixa roxa).
   const FEEDBACK_FORM_URL = {
     'pt-BR': 'https://docs.google.com/forms/d/e/1FAIpQLScVAi6hLqT1rpsuN-Jtrxu2r8dcg20EjfTzsjci7wQHPtegPQ/viewform?usp=pp_url&entry.924035673=VERSAO',
     en: 'https://docs.google.com/forms/d/e/1FAIpQLScHuNJNhQc5eDK-vGqD5H4GcJPwFUYwBHbQPjoH52zxkhAQ7Q/viewform?usp=pp_url&entry.924035673=VERSAO',
     es: 'https://docs.google.com/forms/d/e/1FAIpQLSfHpCxjm3tKfEEANKKMrQyWz4_raAQ6Dpu-ow8k9CA90UwOHg/viewform?usp=pp_url&entry.924035673=VERSAO'
   }
-  // O formulário deixa de aceitar respostas nesta data; depois dela as entradas de opinião somem sozinhas.
-  // Precisa ser a mesma data configurada no Google Forms.
-  const FEEDBACK_UNTIL = '2027-01-31T23:59:59-03:00'
-  // Os links do Sobre (a faixa do Resultado vazio e o rodapé). Cada um passa por core.safeHref.
+  // A edição do formulário: quem respondeu fica 180 dias sem o pedido; subir o número o traz de volta.
+  const FEEDBACK_FORM_EDITION = 1
+  // Os links do rodapé e da linha de apoio do Resultado vazio. Cada um passa por core.safeHref.
   const ABOUT_URLS = {
     postman: 'https://raw.githubusercontent.com/ServeRest/ServeRest/trunk/docs/swagger.json',
     repository: 'https://github.com/ServeRest/ServeRest',
@@ -148,12 +150,12 @@
     parent.append(child.nodeType ? child : String(child))
   }
 
-  function svgIcon (size, shapes) {
+  function svgIcon (size, shapes, box) {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('width', String(size))
     svg.setAttribute('height', String(size))
-    svg.setAttribute('viewBox', '0 0 16 16')
+    svg.setAttribute('viewBox', box || '0 0 16 16')
     svg.setAttribute('aria-hidden', 'true')
     shapes.forEach(shape => {
       const node = document.createElementNS(ns, shape[0])
@@ -321,6 +323,7 @@
     unseen: 0,
     // O envio que estava no Resultado antes de a página recarregar, até as rotas chegarem.
     restoreShownId: null,
+    handoff: null,
     // O envio cujo fluxo ainda anda: até o veredito, nenhum lugar da página mostra o status dele.
     pendingId: null,
     // O envio de POST /login cujo token a rota escolhida envia agora em Authorization (o selo "token em uso").
@@ -345,10 +348,9 @@
     return '#' + route.method + route.path
   }
 
-  // Cada bandeira é um link comum para a mesma página no outro idioma, mantendo a rota escolhida. A do
-  // idioma da página já vem marcada do servidor (is-active e aria-current).
+  // Cada idioma do menu leva à mesma página no outro idioma, mantendo a rota escolhida.
   function updateLanguageLinks () {
-    document.querySelectorAll('.lang-switcher__button').forEach(link => {
+    document.querySelectorAll('#lang-menu a[data-lang]').forEach(link => {
       link.setAttribute('href', '?lang=' + encodeURIComponent(link.getAttribute('data-lang')) + window.location.hash)
     })
   }
@@ -365,11 +367,13 @@
     if (notice.kind === 'plain') {
       const link = $('version-notice')
       link.href = core.safeHref(url)
-      link.replaceChildren(t('lab.version.notice_plain'), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
+      link.replaceChildren(el('span', { class: 'dot', 'aria-hidden': 'true' }), el('span', { class: 'rel-words', text: t('lab.version.notice_plain') }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') }))
       link.hidden = false
       return
     }
-    $('release-line').textContent = fillText(notice.line, { version: latest })
+    // Na barra estreita só o ponto e o número ficam à vista (lab.css); o nome do botão segue a frase inteira.
+    $('release-line').replaceChildren(...parts(notice.line, { version: el('span', { class: 'rel-num', text: latest }) })
+      .map(piece => typeof piece === 'string' ? el('span', { class: 'rel-words', text: piece }) : piece))
     $('release-dot').hidden = readLocal(RELEASE_SEEN_KEY) === latest
     $('release-panel').replaceChildren(
       el('p', { class: 'rel-title', id: 'release-title', text: fillText(notice.title, { version: latest }) }),
@@ -434,14 +438,6 @@
     } catch (e) {}
   }
 
-  function readSession (key) {
-    try {
-      return window.sessionStorage.getItem(key)
-    } catch (e) {
-      return null
-    }
-  }
-
   function writeSession (key, value) {
     try {
       window.sessionStorage.setItem(key, value)
@@ -494,6 +490,7 @@
     document.documentElement.setAttribute('data-text', prefs.text)
     $('text-down').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[0]))
     $('text-up').setAttribute('aria-disabled', String(prefs.text === TEXT_SIZES[TEXT_SIZES.length - 1]))
+    $('text-size-name').textContent = t(TEXT_SIZE_NAMES[prefs.text])
   }
 
   function stepText (delta) {
@@ -551,7 +548,7 @@
 
   // O endereço do formulário de opinião no idioma da página; vazio, nenhuma entrada de opinião aparece.
   function feedbackUrl () {
-    return core.feedbackFormUrl(FEEDBACK_FORM_URL[language], version, Date.now(), FEEDBACK_UNTIL)
+    return core.feedbackFormUrl(FEEDBACK_FORM_URL[language], version)
   }
 
   // As listas do rodapé, que a marcação traz vazias. A documentação Swagger abre nesta aba, como o link da
@@ -571,14 +568,12 @@
     $('about-help').replaceChildren(...[
       item(externalLink(ABOUT_URLS.issues, t('lab.about.link_issue'))),
       contactUrl ? item(externalLink(contactUrl, fillText('lab.about.link_contact', { name: contact.name || '' }))) : null,
-      form ? item(externalLink(form, t('lab.feedback.footer')), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
+      form ? item(formLink(externalLink(form, t('lab.feedback.footer'))), el('span', { class: 'foot-sub', text: t('lab.feedback.footer_note') })) : null
     ].filter(Boolean))
     $('about-support').replaceChildren(...supportItems())
     $('about-thanks').replaceChildren(...thanksParts())
   }
 
-  // "Apoie o ServeRest" aparece no rodapé e no Sobre do Resultado vazio: os mesmos links e o mesmo
-  // agradecimento, feitos de novo para cada lugar.
   function supportItems () {
     return [[ABOUT_URLS.author, 'lab.about.link_follow'], [ABOUT_URLS.repository, 'lab.about.link_star'], [ABOUT_URLS.fund, 'lab.about.link_fund'], [ABOUT_URLS.contribute, 'lab.about.link_contribute']]
       .map(([url, key]) => el('li', null, externalLink(url, t(key))))
@@ -588,40 +583,30 @@
     return parts('lab.about.thanks', { link: externalLink(ABOUT_URLS.ngo, t('lab.about.thanks_link')) })
   }
 
-  // O selo de opinião da barra: só com o endereço do formulário (o CSS o mostra a partir de 1024 px). O
-  // brilho dele toca uma vez por carga da página: terminado ou interrompido, não volta (lab.css).
-  function paintFeedbackPill () {
+  // A linha de opinião da faixa roxa vem do servidor; prefs-boot.js decide antes da primeira pintura se ela
+  // aparece (core.feedbackLineToday). Sem o endereço do formulário ela não volta, e se já estava pintada fica
+  // invisível no mesmo lugar, para a faixa não mudar de altura.
+  function paintFeedbackBand () {
     const form = feedbackUrl()
-    const pill = $('feedback-pill')
-    if (!form) return
-    const stopShine = () => pill.classList.add('shine-done')
-    pill.addEventListener('animationend', stopShine, { once: true })
-    pill.addEventListener('animationcancel', stopShine, { once: true })
-    pill.href = form
-    pill.hidden = false
+    const link = $('feedback-band-link')
+    if (form) formLink(link).href = form
+    else $('feedback-band').style.visibility = 'hidden'
   }
 
-  // Sobre o ServeRest no Resultado vazio da primeira visita: a apresentação e os três links de quem vai
-  // testar fora desta página, e o caminho para o rodapé.
-  // Depois de quem vai testar fora daqui, como apoiar o projeto, como no rodapé, e o convite para o
-  // formulário de opinião enquanto ele estiver aberto.
-  function aboutBand () {
-    const go = (key, linkKey, url) => el('li', null, parts(key, { link: externalLink(url, t(linkKey)) }))
-    const form = feedbackUrl()
-    return el('section', { class: 'result-about', 'aria-labelledby': 'result-about-title' },
-      el('div', { class: 'band' }, el('h3', { class: 'band-title', id: 'result-about-title', text: t('lab.about.title') })),
-      el('div', { class: 'band-body about-body' },
-        el('p', null, el('strong', { text: t('lab.about.intro') })),
-        el('p', { class: 'about-go', text: t('lab.about.go_title') }),
-        el('ul', { class: 'go-list', role: 'list' },
-          go('lab.about.go_postman', 'lab.about.go_postman_link', ABOUT_URLS.postman),
-          go('lab.about.go_local', 'lab.about.go_local_link', ABOUT_URLS.repository),
-          go('lab.about.go_load', 'lab.about.go_load_link', ABOUT_URLS.load)),
-        el('p', { class: 'about-go', text: t('lab.about.group_support') }),
-        el('ul', { class: 'go-list', role: 'list' }, supportItems()),
-        form ? el('p', null, parts('lab.about.feedback', { link: externalLink(form, t('lab.about.feedback_link')) })) : null,
-        el('p', { class: 'muted small' }, thanksParts()),
-        el('p', { class: 'muted small' }, parts('lab.about.more', { link: el('a', { href: '#about', text: t('lab.about.more_link'), onclick: goToAbout }) }))))
+  // A linha curta no fim do Resultado vazio: como apoiar o projeto (star e apoio financeiro) e o caminho para
+  // o rodapé, onde está o resto. O pedido de opinião fica na linha própria, logo acima.
+  function supportLine () {
+    const links = [
+      externalLink(ABOUT_URLS.repository, t('lab.about.support_star')),
+      externalLink(ABOUT_URLS.fund, t('lab.about.support_fund')),
+      el('a', { href: '#about', text: t('lab.about.support_more'), onclick: goToAbout })
+    ]
+    const items = []
+    links.forEach((link, index) => {
+      if (index) items.push(el('span', { class: 'support-sep', 'aria-hidden': 'true', text: '·' }))
+      items.push(link)
+    })
+    return el('p', { class: 'support-line' }, el('span', { class: 'support-lead', text: t('lab.about.support_lead') }), items)
   }
 
   // O hash guarda a rota escolhida: seguir #about trocaria a rota pela primeira ao recarregar ou mudar
@@ -635,115 +620,267 @@
     about.focus({ preventScroll: true })
   }
 
-  // O convite para dar opinião, no Resultado vazio (core.feedbackInvite decide: a partir do 3º envio, uma aba
-  // por dia de uso, com dois dias de uso de folga entre um dia e outro, até 10 dias). O cartão diz o custo antes
-  // de pedir: 2 minutos, 6 perguntas, sem login. O estado fica em JSON no localStorage; o dia em que esta aba
-  // mostrou o convite, no sessionStorage.
-  const INVITE_ICONS = {
+  /* ---------- Pedido de opinião ---------- */
+
+  // O pedido de opinião tem dois lugares: a linha da faixa roxa, nos dias que core.feedbackLineToday escolhe,
+  // e uma linha fixa no Resultado vazio. Seguir qualquer link do formulário (essa linha, a faixa ou o rodapé)
+  // grava a resposta, e a linha do Resultado vira um obrigado até a resposta deixar de valer.
+  const PAGE_ICONS = {
     art: [['path', { d: 'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }], ['path', { d: 'M8.5 9.6l2.2 2.2 4.6-4.6', 'stroke-width': '1.7', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }]],
-    time: [['circle', { cx: '8', cy: '8', r: '6.25', 'stroke-width': '1.5' }], ['path', { d: 'M8 4.5V8l2.5 1.5', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
-    questions: [['path', { d: 'M3 4h10M3 8h10M3 12h6', 'stroke-width': '1.5', 'stroke-linecap': 'round' }]],
-    login: [['path', { d: 'M8 1.75l5 2v4c0 3.2-2.2 5.4-5 6.5-2.8-1.1-5-3.3-5-6.5v-4z', 'stroke-width': '1.5', 'stroke-linejoin': 'round' }]]
+    heart: [['path', { d: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z', 'stroke-width': '1.7', 'stroke-linejoin': 'round' }]],
+    // Os dos caminhos do guia, como em guia.js (ICONS); o traço vem do CSS (.guide-icon).
+    learn: [['path', { d: 'M4 8h12l-3-3M20 16H8l3 3' }]],
+    tour: [['circle', { cx: '12', cy: '12', r: '8' }], ['path', { d: 'M15 9l-2 5-4 1 2-5z' }]]
   }
 
-  function inviteIcon (name, size, box) {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    ;[['width', size], ['height', size], ['viewBox', box], ['aria-hidden', 'true'], ['fill', 'none'], ['stroke', 'currentColor']].forEach(([key, value]) => svg.setAttribute(key, value))
-    INVITE_ICONS[name].forEach(([tag, attrs]) => {
-      const shape = document.createElementNS('http://www.w3.org/2000/svg', tag)
-      Object.entries(attrs).forEach(([key, value]) => shape.setAttribute(key, value))
-      svg.append(shape)
-    })
+  // Os ícones de 24 px, só com traço.
+  function drawIcon (name, size) {
+    const svg = svgIcon(size, PAGE_ICONS[name], '0 0 24 24')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('stroke', 'currentColor')
     return svg
   }
 
-  function inviteState () {
-    return core.readInvite(readLocal(FEEDBACK_KEY))
+  function feedbackState (today) {
+    return core.readInvite(readLocal(FEEDBACK_KEY), today)
   }
 
-  // Cada abertura da página conta o dia de uso, para a folga entre um convite e outro.
-  function countUsageDay () {
-    const before = inviteState()
-    const after = core.inviteVisit(before, core.dayKey(new Date()))
-    if (after !== before) writeLocal(FEEDBACK_KEY, JSON.stringify(after))
+  // Cada carga conta o dia de uso e guarda o que o próximo dia de uso mostra na faixa. O que prefs-boot.js
+  // pintou vale para o dia todo; sem formulário, nada aparece nem fica marcado para depois.
+  function visitFeedback () {
+    const today = core.dayKey(new Date())
+    const raw = readLocal(FEEDBACK_KEY)
+    const form = !!feedbackUrl()
+    const after = core.feedbackVisit(feedbackState(today), today, form && document.documentElement.hasAttribute('data-feedback'), FEEDBACK_FORM_EDITION)
+    if (!form) after.next = null
+    if (JSON.stringify(after) !== raw) writeLocal(FEEDBACK_KEY, JSON.stringify(after))
   }
 
-  function feedbackInviteNode () {
+  // Um link do formulário: o clique (ou o botão do meio, que abre em outra aba) grava a resposta.
+  function formLink (link) {
+    if (!link || !link.nodeType) return link
+    link.addEventListener('click', recordAnswer)
+    link.addEventListener('auxclick', event => {
+      if (event.button === 1) recordAnswer()
+    })
+    return link
+  }
+
+  // A linha do Resultado vazio: o pedido, ou o obrigado de quem já respondeu. Sem formulário, nenhuma.
+  function opinionRow () {
     const form = feedbackUrl()
     if (!form) return null
     const today = core.dayKey(new Date())
-    const decision = core.feedbackInvite({ count: state.history.length, today, state: inviteState(), session: readSession(FEEDBACK_SESSION_KEY) })
-    if (!decision.show) return null
-    if (decision.state) writeLocal(FEEDBACK_KEY, JSON.stringify(decision.state))
-    if (decision.session) writeSession(FEEDBACK_SESSION_KEY, decision.session)
-    const promise = (icon, key) => el('span', null, inviteIcon(icon, '13', '0 0 16 16'), t(key))
-    return el('section', { class: 'invite', id: 'invite', 'aria-labelledby': 'invite-title' },
-      el('span', { class: 'inv-art' }, inviteIcon('art', '26', '0 0 24 24')),
-      el('p', { class: 'invite-title', id: 'invite-title', text: t('lab.feedback.invite_title') }),
-      el('p', { class: 'inv-promise' }, promise('time', 'lab.feedback.promise_time'), promise('questions', 'lab.feedback.promise_questions'), promise('login', 'lab.feedback.promise_login')),
-      el('div', { class: 'invite-actions' },
-        externalLink(form, t('lab.feedback.invite_go'), { class: 'btn btn-primary inv-go', onclick: () => endInvite(true) }),
-        el('button', { type: 'button', class: 'btn btn-quiet', id: 'invite-close', text: t('lab.feedback.invite_close'), onclick: () => endInvite(false) })),
-      el('p', { class: 'invite-where', text: t('lab.feedback.invite_where') }))
+    if (core.feedbackAnswered(feedbackState(today), today, FEEDBACK_FORM_EDITION)) {
+      return el('div', { class: 'op-row', id: 'op-row' },
+        el('p', { class: 'op-who', id: 'op-thanks', tabindex: '-1' },
+          el('span', { class: 'op-ico ok' }, drawIcon('heart', '17')),
+          el('span', { class: 'op-txt' }, el('b', { text: t('lab.feedback.thanks_title') }), el('span', { text: t('lab.feedback.thanks_text') }))))
+    }
+    return el('div', { class: 'op-row', id: 'op-row' },
+      el('p', { class: 'op-who' },
+        el('span', { class: 'op-ico' }, drawIcon('art', '18')),
+        el('span', { class: 'op-txt' }, el('b', { text: t('lab.feedback.row_title') }), el('span', { text: t('lab.feedback.promise_questions') + ', ' + t('lab.feedback.promise_login') }))),
+      formLink(externalLink(form, t('lab.feedback.invite_go'), { class: 'op-go' })))
   }
 
-  // "Responder" (o link abre o formulário em outra aba) encerra o convite de vez; "Agora não", só hoje. O
-  // cartão sai depois do clique, para o link abrir antes; o foco vai para a primeira linha do Resultado vazio,
-  // em vez de cair no body, e "Agora não" anuncia que o convite volta outro dia e onde o link continua.
-  function endInvite (answered) {
-    writeLocal(FEEDBACK_KEY, JSON.stringify(core.inviteEnd(inviteState(), core.dayKey(new Date()), answered)))
+  // A resposta fica gravada no clique; a linha do Resultado troca depois dele, para o link abrir antes. Quem
+  // estava no botão da linha fica no obrigado, em vez de cair no body.
+  function recordAnswer () {
+    const today = core.dayKey(new Date())
+    writeLocal(FEEDBACK_KEY, JSON.stringify(core.feedbackAnswer(feedbackState(today), today, FEEDBACK_FORM_EDITION)))
     setTimeout(() => {
-      const invite = $('invite')
-      if (!invite) return
-      const first = $('result-empty-first')
-      if (first) first.focus()
-      invite.remove()
-      if (!answered) announce(t('lab.feedback.closed'))
+      const row = $('op-row')
+      if (!row) return
+      const focused = row.contains(document.activeElement)
+      row.replaceWith(opinionRow())
+      if (focused && $('op-thanks')) $('op-thanks').focus()
     }, 0)
   }
 
-  // O seletor de idioma do Swagger. A bandeira do idioma da página não recarrega; as outras guardam o
-  // idioma escolhido e pedem à página nova que brilhe 1 s na cor da bandeira (sem brilho com menos
-  // movimento pedido pelo sistema).
+  // O guia "Como usar" (guia.js) só é baixado quando abre pela primeira vez. Enquanto baixa, o botão fica
+  // ocupado; numa falha, uma frase curta diz isso, e o botão continua valendo. Com um caminho (os botões do
+  // cartão do Resultado), abre direto no primeiro passo dele. Abrir o guia tira o cartão de vez.
+  let guideLoading = false
+  function openGuide (trigger, path) {
+    if (guideLoading) return
+    if (window.serverestGuide) {
+      writeLocal(GUIDE_KEY, 'opened')
+      if ($('guide-card')) $('guide-card').remove()
+      if (path) window.serverestGuide.start(path)
+      else window.serverestGuide.open()
+      return
+    }
+    guideLoading = true
+    const busy = [$('guide-open'), trigger].filter(Boolean)
+    busy.forEach(button => button.setAttribute('aria-busy', 'true'))
+    const script = el('script', { src: '/lab/assets/guia.js?v=' + encodeURIComponent(version) })
+    script.onload = script.onerror = () => {
+      guideLoading = false
+      busy.forEach(button => button.removeAttribute('aria-busy'))
+      if (window.serverestGuide) return openGuide(null, path)
+      script.remove()
+      const note = el('p', { class: 'rel-pop', 'aria-hidden': 'true', text: t('lab.guide.load_failed') })
+      note.style.cssText = 'left: auto; right: 20px'
+      // No fim da barra, fora do caminho do flex (logo depois do botão, ela desfaria o encaixe dele com .bar-end).
+      $('guide-open').parentNode.append(note)
+      setTimeout(() => note.remove(), 6000)
+      announce(t('lab.guide.load_failed'))
+    }
+    document.head.append(script)
+  }
+
+  // O cartão do guia no Resultado vazio, com a cara das boas-vindas dele e os dois caminhos: um clique já
+  // começa o caminho. Aparece enquanto este navegador nunca abriu o guia (por qualquer caminho) nem disse "Não,
+  // obrigado". Os textos e a contagem de passos são os do guia: cada passo tem um título lab.guide.<caminho>.
+  // *_title, e um teste confere que a contagem bate com os passos de guia.js.
+  function guideCard () {
+    if (readLocal(GUIDE_KEY)) return null
+    const steps = id => Object.keys(texts).filter(key => (/^lab\.guide\.([a-z]+)\.[a-z_]+_title$/.exec(key) || [])[1] === id).length
+    const path = (id, name) => {
+      const count = el('span', { class: 'gw-steps' }, fillText('lab.guide.count', { count: steps(id) }), el('b', { 'aria-hidden': 'true', text: '→' }))
+      return el('button', { type: 'button', class: 'gw-path', 'data-path': id, onclick: event => openGuide(event.currentTarget, id) },
+        el('span', { class: 'guide-icon' }, drawIcon(id, '20')), el('strong', { text: t(name) }), count)
+    }
+    return el('section', { class: 'gw', id: 'guide-card', 'aria-labelledby': 'guide-card-title' },
+      el('div', { class: 'gw-brand' },
+        el('h3', { class: 'gw-title', id: 'guide-card-title', text: t('lab.guide.welcome_title') }),
+        el('p', { class: 'gw-lead', text: t('lab.guide.welcome_lead') + ' ' + t('lab.guide.welcome_pick') })),
+      el('div', { class: 'gw-body' },
+        el('div', { class: 'gw-paths' }, path('learn', 'lab.guide.learn.name'), path('tour', 'lab.guide.tour.name')),
+        el('div', { class: 'gw-foot' }, el('button', { type: 'button', class: 'gw-no', text: t('lab.guide.card_no'), onclick: dismissGuideCard }))))
+  }
+
+  // "Não, obrigado": o cartão sai de vez, o foco vai para a primeira linha do Resultado vazio e um aviso diz
+  // onde o guia continua.
+  function dismissGuideCard () {
+    writeLocal(GUIDE_KEY, 'dismissed')
+    $('result-empty-first').focus()
+    $('guide-card').remove()
+    announce(fillText('lab.guide.where', { open: t('lab.guide.open') }))
+  }
+
+  // A etiqueta da versão leva à release dela no GitHub (estáveis e betas têm uma). Depois de trocar de idioma,
+  // o botão do idioma brilha 1 s na cor da bandeira (sem brilho com menos movimento pedido pelo sistema).
   function setupTopbar () {
-    // A versão leva à página dela no GitHub: estáveis e betas têm release publicada.
-    const box = $('version')
     const releaseHref = core.releaseUrl(version)
-    box.textContent = ''
-    // A seta de "abre outra aba" aparece só com o mouse ou o foco, por cima do espaço ao lado: a barra continua
-    // numa linha.
-    if (releaseHref) append(box, el('a', { class: 'version-link', href: releaseHref, target: '_blank', rel: 'noopener' }, fillText('lab.topbar.version', { version }), el('span', { class: 'hover-arrow', 'aria-hidden': 'true', text: '↗' }), el('span', { class: 'sr-only', text: ' ' + t('lab.link.new_tab') })))
+    if (releaseHref) $('version').href = releaseHref
+    else $('version').hidden = true
     updateLanguageLinks()
-    document.querySelectorAll('.lang-switcher__button').forEach(link => {
-      link.addEventListener('click', event => {
-        const code = link.getAttribute('data-lang')
-        if (code === language) {
-          event.preventDefault()
-          return
-        }
-        try {
-          window.localStorage.setItem(LANGUAGE_KEY, code)
-        } catch (e) {}
-        try {
-          window.sessionStorage.setItem(GLOW_KEY, code)
-        } catch (e) {}
-      })
-    })
+    $('guide-open').addEventListener('click', () => openGuide(null))
+    document.querySelectorAll('#lang-menu a[data-lang]').forEach(link => link.addEventListener('click', followLanguageLink))
+    setupMenus()
+    placeBarItems()
+    // A forma da barra vem de uma consulta de contêiner no body, que muda de largura sem resize da janela (a
+    // barra de rolagem aparece quando a página cresce): observar o body pega toda troca, também a primeira.
+    if (window.ResizeObserver) new ResizeObserver(placeBarItems).observe(document.body)
+    else window.addEventListener('resize', placeBarItems)
     let glow = null
     try {
       glow = window.sessionStorage.getItem(GLOW_KEY)
       if (glow === language) window.sessionStorage.removeItem(GLOW_KEY)
     } catch (e) {}
     if (glow !== language || prefersReducedMotion()) return
-    const pill = $('lang-switcher')
+    const button = $('lang-btn')
     // O estilo de repouso é calculado antes, para o brilho entrar com a transição de 0,15 s.
-    pill.getBoundingClientRect()
-    pill.setAttribute('data-glow-lang', language)
-    pill.classList.add('lang-switcher--glow')
+    button.getBoundingClientRect()
+    button.setAttribute('data-glow-lang', language)
+    button.classList.add('lang-glow')
     setTimeout(() => {
-      pill.classList.remove('lang-switcher--glow')
-      pill.removeAttribute('data-glow-lang')
+      button.classList.remove('lang-glow')
+      button.removeAttribute('data-glow-lang')
     }, 1000)
+  }
+
+  // O único lugar que trata o clique num idioma: o da página só fecha o menu; os outros guardam o idioma e
+  // pedem o brilho à página nova, e o link segue.
+  function followLanguageLink (event) {
+    const code = event.currentTarget.getAttribute('data-lang')
+    if (code === language) {
+      event.preventDefault()
+      closeMenu(true)
+      return
+    }
+    try {
+      window.localStorage.setItem(LANGUAGE_KEY, code)
+    } catch (e) {}
+    try {
+      window.sessionStorage.setItem(GLOW_KEY, code)
+    } catch (e) {}
+  }
+
+  // Menus da barra, um aberto por vez: fecham no Esc (o foco volta ao botão), num clique fora, no segundo
+  // clique e quando o foco sai deles. Não prendem o foco.
+  let openMenu = null
+
+  function menuPanel (button) {
+    return $(button.getAttribute('aria-controls'))
+  }
+
+  function closeMenu (refocus) {
+    const button = openMenu
+    if (!button) return
+    openMenu = null
+    button.setAttribute('aria-expanded', 'false')
+    menuPanel(button).hidden = true
+    if (refocus) button.focus()
+  }
+
+  function setupMenus () {
+    document.querySelectorAll('.topbar [data-menu]').forEach(button => {
+      const panel = menuPanel(button)
+      button.addEventListener('click', () => {
+        const wasOpen = openMenu === button
+        closeMenu(false)
+        if (wasOpen) return
+        openMenu = button
+        button.setAttribute('aria-expanded', 'true')
+        panel.hidden = false
+      })
+      ;[button, panel].forEach(node => node.addEventListener('focusout', event => {
+        const next = event.relatedTarget
+        if (openMenu === button && next && next !== button && !panel.contains(next)) closeMenu(false)
+      }))
+    })
+    document.addEventListener('pointerdown', event => {
+      if (openMenu && !openMenu.contains(event.target) && !menuPanel(openMenu).contains(event.target)) closeMenu(false)
+    })
+    // Com o painel da versão nova aberto no menu, o Esc fecha só o painel.
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !openMenu) return
+      if (!$('release-panel').hidden && menuPanel(openMenu).contains($('release-panel'))) return
+      event.preventDefault()
+      closeMenu(true)
+    })
+  }
+
+  // Com "Mais opções" à vista (CSS, abaixo de 640 px), as preferências, a documentação e a versão mudam para o
+  // menu: os mesmos elementos, e a ordem do DOM segue a da tela.
+  let phoneBar = null
+  function placeBarItems () {
+    const phone = $('more-btn').getClientRects().length > 0
+    if (phone === phoneBar) return
+    phoneBar = phone
+    // Mover um elemento no DOM tira o foco dele: quem estava num controle que muda de lugar continua nele, ou
+    // vai ao botão que agora o guarda (o menu fechado, ou o aviso de versão quando o painel fecha). O CSS
+    // pode já ter escondido o controle e mandado o foco ao body: vale o último foco (lastFocus, como em
+    // placeSide).
+    const focused = document.activeElement === document.body && lastFocus && lastFocus.isConnected ? lastFocus : document.activeElement
+    const moved = ['prefs', 'docs-link', 'version-box', 'more-menu'].some(id => $(id).contains(focused)) ? focused : null
+    closeMenu(false)
+    closeRelease(false)
+    if (phone) {
+      $('more-sep').before($('prefs'))
+      $('more-menu').append($('docs-link'), $('version-box'))
+    } else {
+      $('brand').append($('version-box'))
+      $('guide-open').after($('docs-link'))
+      $('lang-btn').parentNode.after($('prefs'))
+    }
+    if (!moved || document.activeElement === moved) return
+    const shown = node => !!node && node.getClientRects().length > 0
+    const holder = [moved, $('release-panel').contains(moved) ? $('release-btn') : null, $('more-btn')].find(shown)
+    if (holder) holder.focus({ preventScroll: true })
   }
 
   /* ---------- Documento OpenAPI ---------- */
@@ -754,9 +891,13 @@
     state.specError = null
     const list = $('route-list')
     list.textContent = ''
+    // A altura da lista carregada fica reservada enquanto ela carrega (lab.css); renderRoutes a solta.
+    list.classList.add('is-loading')
     list.append(el('p', { class: 'empty' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading')))
     $('routes-count').textContent = ''
     renderRequest()
+    // O Resultado vazio diz que as rotas carregam (também numa nova tentativa); um envio à vista fica.
+    if (state.shownId === null) renderResultEmpty(null)
     // A versão na URL troca a lista a cada versão nova: fora do localhost o servidor a deixa no cache do
     // navegador por um ano, e a visita seguinte não pede a lista de novo.
     const url = '/swagger.json?lang=' + encodeURIComponent(language) + '&v=' + encodeURIComponent(version)
@@ -770,16 +911,27 @@
       state.authHeader = core.authHeaderOf(spec)
       const wanted = state.selected ? state.selected.key : routeKeyFromHash()
       state.selected = state.routes.find(route => route.key === wanted) || state.routes[0] || null
+      applyHandoffDrafts()
       renderRoutes()
       renderRequest()
       renderAbout(spec)
       showAfterLoad()
+      finishHandoff()
     }).catch(error => {
       if (seq !== state.loadSeq) return
       state.specError = (error && error.message) || String(error)
       state.routes = []
+      // Sem as rotas a página fica curta: a altura reservada para a troca de idioma deixaria a pessoa numa
+      // área em branco, com o aviso do erro e o botão de tentar de novo fora da tela. A rolagem salva deixa
+      // de valer, para uma nova tentativa não puxar a página de volta.
+      if (state.handoff && state.handoff.scrollY) {
+        state.handoff.scrollY = 0
+        releaseHandoffScroll()
+        window.scrollTo(0, 0)
+      }
       renderRoutes()
       renderRequest()
+      if (state.shownId === null) renderResultEmpty(null)
       announce(t('lab.routes.error'))
     })
   }
@@ -805,6 +957,7 @@
 
   function renderRoutes () {
     const list = $('route-list')
+    list.classList.remove('is-loading')
     list.textContent = ''
     if (state.specError) {
       list.append(el('div', { class: 'error-box' },
@@ -854,8 +1007,10 @@
       })
       // A descrição do grupo fica sob o nome dele, como o Swagger UI mostra a descrição de cada tag.
       const description = tagDescription(tag)
-      const name = tag || t('lab.routes.untagged')
-      const count = el('span', { text: String(items.length) })
+      // O nome do grupo é a tag do Swagger, em português em todo idioma (como no Swagger UI): fora do pt-BR ele
+      // leva lang, para o leitor de tela não o pronunciar em inglês ou espanhol.
+      const name = tag ? el('span', { lang: language === 'pt-BR' ? null : 'pt-BR', text: tag }) : t('lab.routes.untagged')
+      const count = el('span', { class: 'group-count', text: String(items.length) })
       const desc = description ? el('p', { class: 'group-desc', text: description }) : null
       list.append(el('div', { class: 'group' }, el('h3', null, name, count), desc, ul))
     })
@@ -1006,7 +1161,7 @@
   }
 
   // Abas com o teclado: setas, Home e End, com ativação automática. A aba escolhida não é guardada: toda
-  // carga da página abre em Rotas, mesmo depois de recarregar ou trocar de idioma.
+  // carga da página abre em Rotas, mesmo depois de recarregar.
   function setupSide () {
     const ids = Object.keys(SIDE_PANELS)
     ids.forEach((id, index) => {
@@ -1098,15 +1253,17 @@
 
   /* ---------- Requisição ---------- */
 
+  function freshDraft (route) {
+    const params = {}
+    route.params.forEach(param => {
+      params[param.in + ':' + param.name] = prefills(route, param) ? String(param.def) : ''
+    })
+    // Sem a chave auth a rota segue o token da página; a primeira edição do campo cria a chave.
+    return { params, body: route.body ? JSON.stringify(route.body.example, null, 2) : '' }
+  }
+
   function draftFor (route) {
-    if (!state.drafts[route.key]) {
-      const params = {}
-      route.params.forEach(param => {
-        params[param.in + ':' + param.name] = prefills(route, param) ? String(param.def) : ''
-      })
-      // Sem a chave auth a rota segue o token da página; a primeira edição do campo cria a chave.
-      state.drafts[route.key] = { params, body: route.body ? JSON.stringify(route.body.example, null, 2) : '' }
-    }
+    if (!state.drafts[route.key]) state.drafts[route.key] = freshDraft(route)
     return state.drafts[route.key]
   }
 
@@ -1145,8 +1302,8 @@
       el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
-  // A Requisição sem abas: o título, a descrição, a barra de endereço com a URL já resolvida, a linha do
-  // atalho e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
+  // A Requisição sem abas: o título, a barra de endereço com a URL já resolvida, a linha do atalho, a
+  // descrição da rota e as seções com faixa: Parâmetros, Corpo (JSON) (só com corpo; com as abas JSON e Schema quando
   // o documento traz o schema), Requisição a enviar (o comando curl, refeito a cada edição) e Respostas possíveis,
   // sempre à vista e por último.
   function renderRequest () {
@@ -1158,29 +1315,32 @@
       if (state.specError) message = t('lab.request.no_spec')
       else if (state.spec) message = t('lab.request.choose')
       box.append(el('p', { class: 'muted small', id: 'req-title', text: message }))
+      box.removeAttribute('data-route')
       paintDocLink(null)
       return
     }
     const route = state.selected
     const draft = draftFor(route)
     paintDocLink(route)
+    box.setAttribute('data-route', route.key)
 
     // O título da rota abre a zona; o grupo e a descrição dele ficam na lista de rotas.
     append(box, [
       el('h3', { class: 'req-title', id: 'req-title', text: route.summary || route.method.toUpperCase() + ' ' + route.path }),
-      route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
       el('div', { class: 'req-bar-wrap' },
         el('div', { class: 'req-bar' },
           methodBadge(route.method),
-          // A base e o caminho: a base sai quando não cabe; o title guarda a URL inteira. O caminho já vem com
-          // os parâmetros preenchidos (paintResolvedUrl, a cada edição).
+          // A base e o caminho: a base sai quando não cabe (fitReqBar); o title guarda a URL inteira. O caminho
+          // já vem com os parâmetros preenchidos (paintResolvedUrl, a cada edição).
           el('code', { class: 'req-path', id: 'req-path', title: baseUrl + route.path },
             el('span', { class: 'req-base', text: baseUrl }),
-            el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text', text: route.path }))),
+            el('span', { class: 'req-route' }, el('span', { dir: 'ltr', id: 'req-route-text' }, pathNodes(route.path)))),
           runControl())),
       el('div', { class: 'req-hint' },
         methodLink(route.method),
         el('span', { class: 'kbd-hint' }, parts('lab.actions.shortcut', { ctrl: el('kbd', { text: ctrlName() }), enter: el('kbd', { text: 'Enter' }) }))),
+      // Depois da barra, que mudava de altura com a descrição de cada rota.
+      route.description ? el('div', { class: 'req-desc' }, richText(route.description)) : null,
       reqSection('params', t('lab.section.params'), null, paramsContent(route, draft)),
       route.body ? reqSection('body', t('lab.section.body'), null, bodyContent(route, draft)) : null,
       reqSection('sent', t('lab.sent.title'), draftCopyButton(), curlBlock()),
@@ -1194,7 +1354,8 @@
   // Uma seção da Requisição: a faixa (título h4 e, à direita, os controles da seção) e o conteúdo.
   function reqSection (id, title, tools, content) {
     const titleId = 'sec-' + id + '-title'
-    return el('section', { class: 'req-section', id: 'sec-' + id, 'aria-labelledby': titleId },
+    // Sem aria-labelledby: um nome faria de cada seção uma região na lista de marcos, que fica só com as zonas.
+    return el('section', { class: 'req-section', id: 'sec-' + id },
       el('div', { class: 'band' },
         el('h4', { class: 'band-title', id: titleId, text: title }),
         tools ? el('div', { class: 'band-tools' }, tools) : null),
@@ -1292,6 +1453,12 @@
     const button = $('run-mode')
     if (!menu || button.getAttribute('aria-disabled') === 'true') return
     menu.hidden = false
+    // O menu abre alinhado à direita do botão; numa tela estreita ele encolhe para não passar da margem da
+    // página (o respiro do recipiente), em vez de encostar na borda da janela.
+    menu.style.maxWidth = ''
+    const gutter = parseFloat(getComputedStyle($('app')).paddingLeft) || 0
+    const box = menu.getBoundingClientRect()
+    if (box.left < gutter) menu.style.maxWidth = (box.right - gutter) + 'px'
     button.setAttribute('aria-expanded', 'true')
     const checked = menu.querySelector('[aria-checked="true"]') || menu.querySelector('[role="menuitemradio"]')
     checked.focus()
@@ -1319,7 +1486,8 @@
     const slow = state.mode === 'lenta'
     const name = fillText('lab.run.mode', { mode: t(slow ? 'lab.run.mode_slow' : 'lab.run.mode_normal') })
     button.replaceChildren(icon(slow ? 'i-snail' : 'i-setas'), icon('i-chev', 'ico-chev'))
-    button.setAttribute('aria-label', name)
+    // O title é o nome (o botão só tem ícones) e mostra o modo ao passar o mouse; um aria-label igual faria o
+    // leitor de tela ouvir o nome e, de novo, a descrição.
     button.setAttribute('title', name)
     button.hidden = state.reduced
     if (state.reduced) closeRunMenu(false)
@@ -1327,6 +1495,8 @@
     // Durante o envio o nome é o texto visível ("Executando").
     if (!state.busy && slowMotion()) run.setAttribute('aria-label', t('lab.run.execute_slow'))
     else run.removeAttribute('aria-label')
+    // Os data-* daqui em diante são para o guia (guia.js), que nunca lê o texto traduzido.
+    run.setAttribute('data-send-mode', slowMotion() ? 'lenta' : 'normal')
   }
 
   function publicLine () {
@@ -1813,12 +1983,71 @@
 
   // A barra mostra a URL já resolvida: os parâmetros de path preenchidos e a query no fim. Um parâmetro de
   // path vazio fica {nome}, como no comando.
+  // O caminho quebra primeiro depois de / e de -; dentro de uma palavra, só quando um trecho não cabe na linha.
+  function pathNodes (path) {
+    // Sem lookbehind: o Safari 16.0 a 16.3 não sabe ler essa sintaxe, e um erro de leitura para o script inteiro.
+    return (path.match(/[^/-]*[/-]|[^/-]+$/g) || [path]).map((part, index) => index ? [el('wbr'), part] : part)
+  }
+
   function paintResolvedUrl (request) {
     const text = $('req-route-text')
     const path = $('req-path')
     if (!text || !path) return
-    text.textContent = request.url.slice(baseUrl.length)
+    text.replaceChildren()
+    append(text, pathNodes(request.url.slice(baseUrl.length)))
     path.title = request.url
+    fitReqBar(true)
+  }
+
+  // A base da URL sai quando não cabe numa linha com o caminho na célula da barra; o caminho quebra dentro da
+  // célula. A forma da barra (uma ou duas linhas, lab.css) depende só da largura, e esta conta só mexe no que
+  // fica dentro da célula. A largura da célula é a de durante o envio ("Executando", mais largo que Executar),
+  // para a base não aparecer e sumir ao enviar. Refeita quando o caminho, a largura da barra ou o tamanho do
+  // texto mudam (o observador fica em init).
+  const reqFit = { key: '' }
+  function fitReqBar (force) {
+    const bar = document.querySelector('#request .req-bar')
+    if (!bar) return
+    const path = $('req-path')
+    const key = [bar.clientWidth, $('req-route-text').textContent, document.documentElement.getAttribute('data-text')].join('|')
+    if (!force && key === reqFit.key) return
+    reqFit.key = key
+    const width = node => node.getBoundingClientRect().width
+    // As partes na largura natural, numa cópia invisível fora da barra.
+    const copy = path.cloneNode(true)
+    copy.removeAttribute('id')
+    copy.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'))
+    copy.setAttribute('aria-hidden', 'true')
+    copy.style.cssText = 'position: absolute; visibility: hidden; white-space: nowrap; width: auto'
+    // A cópia fica dentro da barra: sem isto, .no-base da medida anterior esconderia a base dela também.
+    copy.querySelector('.req-base').style.display = 'inline'
+    const probe = el('button', { type: 'button', class: 'btn btn-primary', 'aria-hidden': 'true', tabindex: '-1' }, el('span', { class: 'spin' }), ' ', t('lab.actions.executing'))
+    probe.style.cssText = 'position: absolute; visibility: hidden'
+    bar.append(copy, probe)
+    const text = width(copy.querySelector('.req-base')) + width(copy.querySelector('.req-route'))
+    const style = getComputedStyle(path)
+    const busyGrow = Math.max(0, width(probe) - width($('run')))
+    const sameRow = $('run-split').getBoundingClientRect().top < path.getBoundingClientRect().bottom
+    const cell = path.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - (sameRow ? busyGrow : 0)
+    // Em duas linhas o Executar fica sob o caminho: a célula guarda a altura do caminho mais alto de todas as
+    // rotas nesta largura, para o Executar não descer de uma rota para outra.
+    let reserve = 0
+    if (!sameRow) {
+      copy.style.whiteSpace = 'normal'
+      copy.style.width = path.offsetWidth + 'px'
+      copy.querySelector('.req-base').style.display = 'none'
+      state.routes.forEach(route => {
+        // O caminho como a rota intocada o mostra: em GET, já com o valor documentado no parâmetro de caminho.
+        const shown = core.buildRequest(route, freshDraft(route), { baseUrl, authValue: '' }).url.slice(baseUrl.length)
+        copy.querySelector('.req-route').replaceChildren(...pathNodes(shown).flat())
+        reserve = Math.max(reserve, copy.offsetHeight)
+      })
+    }
+    path.style.minHeight = reserve ? reserve + 'px' : ''
+    copy.remove()
+    probe.remove()
+    // 1 px de folga: as larguras medidas são fracionárias.
+    bar.classList.toggle('no-base', text > cell + 1)
   }
 
   function tokenValues () {
@@ -2162,6 +2391,8 @@
     }, COLD_AFTER * 1000 + 20)
     const sent = { params: Object.assign({}, draft.params), body: draft.body, auth: route.needsToken ? authValue(route) : '' }
     const outgoing = send(route, currentRequest(route), 'route')
+    // O envio que acabou de sair, para o guia (guia.js) contar só envios de verdade, nunca cliques ou teclas.
+    $('request').setAttribute('data-send', String(outgoing.record.id))
     outgoing.record.sent = sent
     // Espera real: passado 1 s sem resposta, e com a mesma rota escolhida, o Resultado passa a mostrar este
     // envio (cabeçalho, Foi enviado e a espera). Antes de 1 s, nada muda.
@@ -2313,6 +2544,8 @@
       if (list) {
         state.history = list
         state.seq = list.reduce((max, item) => Math.max(max, item.id), 0)
+        // Os envios que voltaram com a aba já estavam feitos: o guia (guia.js) só conta os que saírem depois.
+        $('request').setAttribute('data-send', String(state.seq))
       } else {
         discardStored(HISTORY_KEY)
       }
@@ -2329,6 +2562,76 @@
     }
     if (state.history.some(item => item.id === view.shownId)) state.restoreShownId = view.shownId
     if (Number.isInteger(view.unseen) && view.unseen > 0) state.unseen = Math.min(view.unseen, state.history.length)
+  }
+
+  /* ---------- Passagem da troca de idioma ---------- */
+
+  // A troca de idioma recarrega a página e perderia o token, os rascunhos e a rolagem. O token nunca fica na
+  // sessão; esta passagem é a única exceção e vale só para a navegação: some aos 10 s, ao ser lida e na volta
+  // do cache, só o idioma de destino a usa, e um clique que abre outra aba não a grava.
+  function setupLanguageHandoff () {
+    document.addEventListener('click', event => {
+      const link = event.target.closest && event.target.closest('a[data-lang]')
+      const to = link && link.getAttribute('data-lang')
+      if (!to || to === language || event.button || event.ctrlKey || event.shiftKey || event.altKey || event.metaKey || (link.target && link.target !== '_self')) return
+      const drafts = {}
+      state.routes.forEach(route => {
+        const changes = core.draftChanges(state.drafts[route.key], freshDraft(route))
+        if (changes) drafts[route.key] = changes
+      })
+      const time = date => date ? date.getTime() : null
+      // A lista de rotas fechada (pilha) muda a altura acima da rolagem: ela vai junto para a rolagem cair no lugar.
+      const routesCollapsed = $('routes').classList.contains('collapsed')
+      writeSession(HANDOFF_KEY, JSON.stringify({ v: 1, at: Date.now(), to, token: state.token, tokenAt: time(state.tokenAt), tokenExp: time(state.tokenExp), drafts, scrollY: window.scrollY, sideTab: state.sideTab, resultTab: state.resultTab, routesCollapsed }))
+    }, true)
+    window.addEventListener('pageshow', event => event.persisted && discardStored(HANDOFF_KEY))
+  }
+
+  function takeHandoff () {
+    const raw = readStored(HANDOFF_KEY)
+    discardStored(HANDOFF_KEY)
+    const handoff = raw && core.readHandoff(raw, { now: Date.now(), language, maxAge: 10000 })
+    if (handoff) Object.assign(state, { token: handoff.token, tokenAt: handoff.tokenAt, tokenExp: handoff.tokenExp, handoff })
+    // prefs-boot.js reservou a altura só com uma conferência curta: uma passagem que não vale a solta já.
+    else releaseHandoffScroll()
+  }
+
+  function releaseHandoffScroll () {
+    document.documentElement.style.minHeight = ''
+    document.documentElement.style.overflowAnchor = ''
+  }
+
+  // buildRequest só lê o que a rota tem.
+  function applyHandoffDrafts () {
+    state.routes.forEach(route => {
+      const from = state.handoff && state.handoff.drafts[route.key]
+      const draft = from && draftFor(route)
+      if (draft) Object.assign(draft, from, { params: Object.assign(draft.params, from.params) })
+    })
+  }
+
+  // A lista de rotas como estava, e a rolagem salva sobre a altura reservada (prefs-boot.js já a pôs antes da
+  // primeira pintura; aqui ela vale de novo depois que a lista fecha). Sem a reserva, a página ainda sem as rotas
+  // é curta demais e a rolagem só caberia depois que elas chegassem, num pulo. A ancoragem de rolagem fica
+  // desligada enquanto o conteúdo entra, para não mover a página atrás do que está chegando.
+  function placeHandoff () {
+    const handoff = state.handoff
+    if (!handoff) return
+    if (handoff.routesCollapsed && isNarrow()) setRoutesCollapsed(true)
+    if (!handoff.scrollY) return
+    const root = document.documentElement
+    root.style.minHeight = Math.ceil(handoff.scrollY + window.innerHeight) + 'px'
+    root.style.overflowAnchor = 'none'
+    window.scrollTo(0, handoff.scrollY)
+  }
+
+  function finishHandoff () {
+    const handoff = state.handoff
+    state.handoff = null
+    if (!handoff) return
+    if (state.shownId !== null) selectResultTab(handoff.resultTab, false)
+    window.scrollTo(0, handoff.scrollY)
+    releaseHandoffScroll()
   }
 
   // Depois de carregar as rotas: o envio que estava à vista volta ao Resultado, se é da rota escolhida (a do
@@ -2506,7 +2809,7 @@
     const record = state.history.find(item => item.id === id)
     if (!record) return
     const entry = document.querySelector('#history-body .entry[data-id="' + id + '"]')
-    if (entry) entry.replaceChildren(...entryParts(record))
+    if (entry) paintEntry(entry, record)
     paintRouteMarks()
     if (state.shownId === id) {
       renderShown(record, state.shownLive)
@@ -2597,14 +2900,24 @@
     $('hist-cleared').hidden = !(state.undo && !count)
   }
 
+  // data-token: o envio levou o header Authorization; data-token-in-use: é o login do selo, à vista.
   function entryItem (record) {
-    return el('li', null, el('button', {
+    const entry = el('button', {
       type: 'button',
       class: 'entry',
       'data-id': String(record.id),
+      'data-key': core.recordKey(record),
+      'data-token': record.authSent ? 'sent' : null,
       'aria-current': record.id === state.shownId ? 'true' : null,
       onclick: () => pickHistory(record)
-    }, entryParts(record)))
+    })
+    paintEntry(entry, record)
+    return el('li', null, entry)
+  }
+
+  function paintEntry (entry, record) {
+    entry.replaceChildren(...entryParts(record))
+    entry.toggleAttribute('data-token-in-use', record.id === state.tokenMark && record.id !== state.pendingId)
   }
 
   // Os filhos de uma entrada, na ordem das colunas da tabela: hora, método, path, cadeado, status, o que a
@@ -2681,7 +2994,7 @@
     changed.forEach(item => {
       const record = item === null ? null : state.history.find(entry => entry.id === item)
       const entry = record && document.querySelector('#history-body .entry[data-id="' + item + '"]')
-      if (entry) entry.replaceChildren(...entryParts(record))
+      if (entry) paintEntry(entry, record)
     })
   }
 
@@ -3001,6 +3314,25 @@
     return el('span', { class: 'chip chip-neutral' }, el('span', { text: '•' }), '000')
   }
 
+  // O esqueleto do status no cabeçalho do Resultado traz, invisível, a linha de status mais longa que a API
+  // devolve: ele fica na célula do status nos dois estados, então a célula já nasce com a altura que o status
+  // real vai ter, numa linha ou em duas numa zona estreita, e o veredito não empurra o Fluxo e a Resposta.
+  function longestStatus () {
+    const lines = Object.keys(core.STATUS_TEXT).map(code => code + ' ' + core.statusText(code)).concat(t('lab.history.failed'))
+    return lines.reduce((a, b) => b.length > a.length ? b : a, '')
+  }
+
+  function longestChip () {
+    return el('span', { class: 'chip chip-neutral' }, el('span', { text: '✗' }), ' ', longestStatus())
+  }
+
+  // Na linha do status da Resposta, a mesma ideia: o status fica numa célula com uma cópia invisível do status
+  // mais longo, na resposta e no esqueleto, e a linha tem a mesma altura nos dois; numa zona estreita o status
+  // quebra dentro dela em vez de passar da tela.
+  function statusCell (chip) {
+    return el('span', { class: 'status-cell' }, chip, el('span', { class: 'chip status-ghost', 'aria-hidden': 'true' }, el('span', { text: '✗' }), ' ', longestStatus()))
+  }
+
   // O cabeçalho do Resultado: método, path e "Status code" com o status. Até o veredito o status dá lugar ao
   // esqueleto, e o lugar inteiro sai da árvore de acessibilidade (D29). Num envio novo da mesma rota nada é
   // refeito: "Status code" é o mesmo nos dois estados e fica parado, e só o valor cruza com o esqueleto, que
@@ -3013,7 +3345,7 @@
     let status = box.querySelector(':scope > .shown-status')
     if (!status || box.getAttribute('data-key') !== key) {
       status = el('span', { class: 'shown-status' }, labelled ? [el('span', { class: 'status-label', text: t('lab.status.label') }), ' '] : null,
-        el('span', { class: 'status-value' }, el('span', { class: 'status-real' }), neutralChip()))
+        el('span', { class: 'status-value' }, el('span', { class: 'status-real' }), longestChip()))
       box.replaceChildren(
         el('span', { class: 'sr-only', text: t('lab.result.shown_label') }),
         methodBadge(record.method),
@@ -3021,6 +3353,11 @@
         status)
       box.setAttribute('data-key', key)
     }
+    // Como o chip, o status só chega no veredito.
+    box.setAttribute('data-record', core.recordKey(record))
+    box.setAttribute('data-send', String(record.id))
+    if (pending) box.removeAttribute('data-status')
+    else box.setAttribute('data-status', record.error ? 'error' : String(record.status))
     const real = status.querySelector('.status-real')
     if (!pending) real.replaceChildren(statusChip(record))
     status.classList.toggle('is-pending', pending)
@@ -3223,14 +3560,23 @@
     state.offer = null
     const box = $('result-empty')
     box.textContent = ''
-    // Primeira visita: esta aba ainda não tem Histórico (um recarregamento com Histórico não é primeira visita).
-    const first = !state.history.length
+    // Enquanto as rotas carregam, ou quando não carregam, uma linha só, sem cartão nem pedido: as duas não se
+    // parecem (a da espera gira, a da falha usa a frase e a cor do erro da lista de rotas).
+    if (state.specError || !state.spec) {
+      box.append(el('div', { class: 'result-empty-lines' }, state.specError
+        ? el('p', { class: 'result-wait is-failed', text: t('lab.routes.error') })
+        : el('p', { class: 'result-wait' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading'))))
+      return
+    }
     const routeLine = route ? el('p', { class: 'result-route' }, parts('lab.result.not_sent', { route: el('code', { text: route.method.toUpperCase() + ' ' + route.path }) })) : null
     const how = el('p', { text: t('lab.result.not_sent_how') })
-    // A primeira linha recebe o foco quando o convite é fechado.
+    // A primeira linha recebe o foco quando o cartão do guia sai por "Não, obrigado".
     const firstLine = routeLine || how
     firstLine.id = 'result-empty-first'
     firstLine.setAttribute('tabindex', '-1')
+    const row = opinionRow()
+    // Sempre o mesmo esqueleto: a frase da rota, como seguir e a nota; o cartão do guia, enquanto ele vale; a
+    // linha de opinião, com formulário; e a linha de apoio. Quando o cartão sai, só o que vem depois dele sobe.
     append(box, [
       el('div', { class: 'result-empty-lines' },
         // As setas da marca abrem o Resultado vazio; a logo completa fica na barra e no rodapé.
@@ -3238,11 +3584,9 @@
           el('span', { class: 'setas', 'aria-hidden': 'true' }, el('span', { class: 'setas-p' }), el('span', { class: 'setas-d' })),
           routeLine),
         how,
-        el('p', { class: 'muted small', text: t(first ? 'lab.result.history_note' : 'lab.result.others') })),
-      // O Sobre aparece em toda rota ainda não executada, não só na primeira visita: quem troca de rota
-      // também chega a um Resultado vazio. O convite de opinião, quando cabe, vem antes dele.
-      first ? null : feedbackInviteNode(),
-      aboutBand()
+        el('p', { class: 'muted small', text: t(state.history.length ? 'lab.result.others' : 'lab.result.history_note') })),
+      guideCard(),
+      el('div', { class: row ? 'res-foot has-row' : 'res-foot' }, row, supportLine())
     ])
   }
 
@@ -3432,7 +3776,7 @@
     append(area, [
       el('div', { class: 'res-line' }, statusLink(record), simpleDocLine(record, documentedResponse(record))),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }), copy),
-      empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : el('div', { class: 'code res-body' }, pre),
+      empty ? el('p', { class: 'empty-body', text: t('lab.response.empty_body') }) : bodyBlock(pre, shownText.split('\n').length),
       empty ? null : el('p', { class: 'copy-msg', id: 'body-copy-msg' }),
       // A oferta do token fica logo abaixo do corpo, onde o token aparece: assim a linha do status, o
       // "Copiar corpo" e o corpo ficam no mesmo lugar em toda rota, com ou sem token.
@@ -3444,6 +3788,46 @@
     if (restore) keepResponseInView(false)
   }
 
+  // O corpo fica numa caixa de 30 rem que rola, no bloco escuro. Quando ele passa dela, a caixa vira uma região
+  // nomeada que recebe o foco do teclado (para rolar com as setas em todo navegador, não só nos que já fazem isso
+  // sozinhos), um esmaecer marca o corte, e "Mostrar tudo (N linhas)", sob a caixa, abre o corpo inteiro na
+  // página; "Mostrar menos" volta à caixa. O botão fica depois do corpo: o topo do corpo não anda na troca do
+  // esqueleto para a resposta. A medida se refaz quando a caixa muda de tamanho (aba trocada, janela, texto).
+  let bodyObserver = null
+  function bodyBlock (pre, lines) {
+    const box = el('div', { class: 'code res-body' }, pre)
+    const fade = el('span', { class: 'body-fade', 'aria-hidden': 'true', hidden: true })
+    const more = el('button', { type: 'button', class: 'btn btn-quiet body-more', 'aria-expanded': 'false', hidden: true })
+    const paint = () => {
+      const full = box.classList.contains('is-full')
+      const cut = !full && box.scrollHeight > box.clientHeight + 1
+      if (cut) {
+        box.setAttribute('tabindex', '0')
+        box.setAttribute('role', 'region')
+        box.setAttribute('aria-label', t('lab.response.body_region'))
+      } else ['tabindex', 'role', 'aria-label'].forEach(name => box.removeAttribute(name))
+      fade.hidden = !cut || box.scrollTop + box.clientHeight >= box.scrollHeight - 2
+      more.hidden = !cut && !full
+      more.textContent = full ? t('lab.response.body_less') : fillText('lab.response.body_all', { count: lines })
+      more.setAttribute('aria-expanded', String(full))
+    }
+    more.addEventListener('click', () => {
+      const full = !box.classList.contains('is-full')
+      box.classList.toggle('is-full', full)
+      box.scrollTop = 0
+      paint()
+      // Voltando à caixa, o botão sobe junto com o fim dela: a página rola até ele, para ele não sumir da janela.
+      if (!full && more.getBoundingClientRect().top < 0) more.scrollIntoView({ block: 'center', behavior: state.reduced ? 'auto' : 'smooth' })
+    })
+    box.addEventListener('scroll', () => { fade.hidden = box.scrollTop + box.clientHeight >= box.scrollHeight - 2 || !box.hasAttribute('tabindex') }, { passive: true })
+    box.paintCut = paint
+    if (window.ResizeObserver) {
+      if (!bodyObserver) bodyObserver = new ResizeObserver(entries => entries.forEach(entry => entry.target.paintCut && entry.target.paintCut()))
+      bodyObserver.observe(box)
+    }
+    return [el('div', { class: 'res-body-wrap' }, box, fade), more]
+  }
+
   // "Status code ✗ 401 Unauthorized ↗": um link só, para a página do status na MDN, numa aba nova. O nome
   // acessível é uma frase inteira em aria-label, que começa pelo texto visível e já diz que abre outra aba.
   function statusLink (record) {
@@ -3452,10 +3836,10 @@
     return el('a', { class: 'status-link', href: mdn.url, target: '_blank', rel: 'noopener', 'aria-label': name },
       el('span', { class: 'status-label', text: t('lab.status.label') }),
       ' ',
-      el('span', { class: 'chip ' + statusClass(record.status) },
+      statusCell(el('span', { class: 'chip ' + statusClass(record.status) },
         el('span', { 'aria-hidden': 'true', text: statusGlyph(record.status) }),
         ' ',
-        el('span', { class: 'status-text', text: statusLine(record) })),
+        el('span', { class: 'status-text', text: statusLine(record) }))),
       el('span', { 'aria-hidden': 'true', text: ' ↗' }))
   }
 
@@ -3483,7 +3867,7 @@
     const bar = className => el('span', { class: 'skel-bar' + (className ? ' ' + className : '') })
     const node = el('div', { class: 'pv' + (record.ms >= COLD_AFTER * 1000 ? ' is-still' : '') },
       el('div', { class: 'res-line', 'aria-hidden': 'true' },
-        el('span', { class: 'status-link' }, el('span', { class: 'status-label', text: t('lab.status.label') }), ' ', el('span', { class: 'chip pv-chip' }, ' ', bar())),
+        el('span', { class: 'status-link' }, el('span', { class: 'status-label', text: t('lab.status.label') }), ' ', statusCell(el('span', { class: 'chip pv-chip' }, '\u00a0', bar())), el('span', { class: 'pv-arrow', text: ' ↗' })),
         el('span', { class: 'res-doc pv-doc' }, ' ', bar())),
       el('div', { class: 'sub-row' }, el('h4', { class: 'sub-label', text: t('lab.response.body_label') }),
         el('button', { type: 'button', class: 'btn', id: 'show-now', text: t('lab.pending.show_now'), onclick: showNow })),
@@ -3551,11 +3935,14 @@
     return { found: route.responses.find(response => response.status === String(record.status)) || null }
   }
 
-  // Só a descrição da documentação, sem "Na documentação:".
+  // A descrição lista todas as causas que o status tem na rota, então à vista ela vai sozinha, curta para caber
+  // numa linha. "Na documentação:" fica só para o leitor de tela, que não vê a linha sob o status e ouviria a
+  // descrição como a causa deste envio; quem diz a causa é o corpo da resposta. O espaço depois dos dois-pontos é
+  // inquebrável: o Chrome tira o espaço comum do fim do texto escondido, e o leitor juntaria as duas partes.
   function simpleDocLine (record, doc) {
     if (!doc) return null
     if (!doc.found) return el('span', { class: 'res-doc', text: t('lab.simple.undocumented') })
-    return el('span', { class: 'res-doc' }, richInline(doc.found.description))
+    return el('span', { class: 'res-doc' }, el('span', { class: 'sr-only', text: t('lab.simple.documented') + '\u00a0' }), richInline(doc.found.description))
   }
 
   // Headers da resposta, sempre à vista; sob o de etapas, de onde vem o desenho do fluxo.
@@ -3604,7 +3991,7 @@
   // Fluxo fechado: bar é a barra com as partes (items), a da requisição inteira (one, com o tempo timeBar) ou
   // a de "Todas as etapas"; read é a linha de leitura, readAt a parte que ela mostra (null: a frase de como
   // usar a barra), barFocus a parte em que o teclado parou e barHover se o mouse está sobre a barra.
-  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false, bar: null, items: [], one: null, timeBar: null, read: null, readAt: null, readShown: null, readTimer: null, barFocus: null, barHover: false, morph: false, holdOne: null, barRunning: null, previous: null, columns: '', holdCols: null, holdStages: null, doneKey: '', oneWidened: false }
+  const flow = { timer: null, run: 0, record: null, model: null, active: 0, end: 0, rows: [], segs: [], live: false, bar: null, items: [], one: null, timeBar: null, read: null, readAt: null, readShown: null, readTimer: null, barFocus: null, barHover: false, morph: false, holdOne: null, barRunning: null, previous: null, columns: '', holdCols: null, holdStages: null, doneKey: '', oneWidened: false, oneClamped: false }
 
   function ran (stage) {
     return stage.st === 'ok' || stage.st === 'failed'
@@ -3725,10 +4112,11 @@
     return el('p', { class: 'flow-mini-time' }, t('lab.time.part.total') + ' ', el('b', {}, timeNumber(core.timeLabels(bar, language).total)))
   }
 
+  // Sem resposta ou sem o header de etapas, o envio termina aqui, sem veredito: data-verdict="none" diz isso ao guia.
   function flowNote (record, content) {
     const body = $('flow-body')
     append(body, flowContext(record, null))
-    body.append(el('p', { class: 'flow-note strong' }, content))
+    body.append(el('p', { class: 'flow-note strong', 'data-verdict': 'none' }, content))
   }
 
   // quiet: ao trocar de rota o envio anterior volta sem ser anunciado como se tivesse acabado de chegar.
@@ -3846,7 +4234,7 @@
       const opensEarly = !!stage.descriptionKey
       const opensFinal = opensEarly || stage.rules.length > 0 || stage.st === 'skipped' || (isFailed && (!!model.whyKey || !!model.howKey))
       const details = opensFinal ? el('div', { class: 'flow-details', id: 'flow-details-' + index, hidden: true }) : null
-      const li = el('li', { class: 'flow-stage' }, el('div', { class: 'flow-row' }), details)
+      const li = el('li', { class: 'flow-stage', 'data-stage': stage.name }, el('div', { class: 'flow-row' }), details)
       list.append(li)
       linkSummary(li, summaryBar.children[index], summarySeg)
       // Clicar no segmento do resumo abre a linha da etapa, como clicar na própria linha.
@@ -4213,7 +4601,9 @@
     time.hold = null
   }
 
-  const STAGE_MIN_PX = 22
+  // 24 px: o alvo mínimo da WCAG 2.5.8, para cada parte da barra fechada e da barra de tempo.
+  const STAGE_MIN_PX = 24
+  const PART_MIN_PX = 24
 
   function oneBar (bar) {
     const part = name => el('span', { class: 'fc-oi fc-onet ' + TIME_KIND[name], 'data-tpart': name }, el('span', { class: 'fc-ns' }))
@@ -4231,17 +4621,19 @@
     return box
   }
 
-  // A marca do servidor desenhado maior: discreta, no canto direito da linha de leitura. O mouse e o foco do
-  // teclado mostram a explicação, que o leitor de tela ouve pela descrição.
+  // A marca da barra desenhada fora da escala: discreta, no canto direito da linha de leitura. Ela abre o balão
+  // com a explicação (scaleButton): o servidor maior para as etapas caberem, as partes no tamanho mínimo, ou os
+  // dois.
   function scaleMark () {
-    return el('button', { type: 'button', class: 'fc-scale', id: 'fc-scale', 'aria-describedby': 'fc-scale-desc', 'data-tip': t('lab.flow.read.widened') },
-      t('lab.time.adjusted_mark'),
-      el('span', { class: 'sr-only', id: 'fc-scale-desc', text: t('lab.flow.read.widened') }))
+    return scaleButton('fc-scale', 'fc-scale', () => [flow.oneWidened && 'lab.flow.read.widened', flow.oneClamped && 'lab.time.adjusted'].filter(Boolean))
   }
 
   function paintScaleMark () {
     const mark = $('fc-scale')
-    if (mark) mark.classList.toggle('is-on', flow.active >= flow.end && !!flow.oneWidened)
+    if (!mark) return
+    const on = flow.active >= flow.end && !!(flow.oneWidened || flow.oneClamped)
+    mark.classList.toggle('is-on', on)
+    if (!on && scalePop.mark === mark) closeScalePop(false)
   }
 
   // As larguras da barra da requisição seguem a escala da barra de tempo (core.timeWeights, cada parte com
@@ -4268,18 +4660,25 @@
     const avail = width - 4 * 2
     const weights = core.timeWeights(bar, core.TIME_MIN_SHARE)
     const w = { conn: weights.conn, outbound: weights.half, server: weights.server, inbound: weights.half, down: weights.down }
-    const sum = Object.values(w).reduce((total, value) => total + value, 0) || 1
-    const px = {}
-    Object.keys(w).forEach(name => { px[name] = w[name] / sum * avail })
     const need = n * STAGE_MIN_PX + (n - 1) * 2
-    // Quando o servidor cresce além da escala para as etapas caberem, a marca "escala ajustada" aparece no canto
-    // direito da linha de leitura; só no veredito, porque diz algo do tempo novo (D29).
-    flow.oneWidened = px.server < need
-    if (px.server < need) {
-      const rest = (sum - w.server) || 1
-      px.server = need
-      ONE_PARTS.before.concat(ONE_PARTS.after).forEach(name => { px[name] = w[name] / rest * (avail - need) })
+    // Cada parte é um alvo de toque de pelo menos PART_MIN_PX, e o servidor precisa de STAGE_MIN_PX por etapa: a
+    // conta do flex, em que a parte abaixo do mínimo fica nele e as outras dividem o resto na proporção delas.
+    // Quando alguma parte saiu da escala assim, a marca "escala ajustada" aparece no canto direito da linha de
+    // leitura; só no veredito, porque diz algo do tempo novo (D29).
+    const names = Object.keys(w)
+    const mins = { conn: PART_MIN_PX, outbound: PART_MIN_PX, server: need, inbound: PART_MIN_PX, down: PART_MIN_PX }
+    const frozen = {}
+    const px = {}
+    for (;;) {
+      const fixed = names.reduce((total, name) => total + (frozen[name] ? mins[name] : 0), 0)
+      const weight = names.reduce((total, name) => total + (frozen[name] ? 0 : w[name]), 0) || 1
+      names.forEach(name => { px[name] = frozen[name] ? mins[name] : w[name] / weight * (avail - fixed) })
+      const small = names.find(name => !frozen[name] && px[name] < mins[name])
+      if (!small) break
+      frozen[small] = true
     }
+    flow.oneWidened = !!frozen.server
+    flow.oneClamped = names.some(name => name !== 'server' && frozen[name])
     if (flow.holdOne && flow.holdOne.n === n) Object.keys(px).forEach(name => { px[name] = flow.holdOne[name] * avail })
     else if (!flow.holdOne) {
       barMemo.one = { n }
@@ -4301,6 +4700,7 @@
     const labelWidth = label.offsetWidth
     label.style.left = Math.max(0, Math.min(width - labelWidth, left + px.server / 2 - labelWidth / 2)) + 'px'
     paintScaleMark()
+    placeScalePop()
   }
 
   // Fechado, a barra é o caminho até as etapas (e, na da requisição inteira, até os balões do tempo): uma
@@ -4686,10 +5086,12 @@
     const record = flow.record
     summary.textContent = ''
     summary.className = 'flow-summary ' + model.summary
+    summary.setAttribute('data-verdict', model.summary)
     let spoken
     if (model.summary === 'stopped') {
       const index = model.stages.findIndex(stage => stage.name === model.failedStage && stage.st === 'failed')
       const stage = model.stages[index]
+      summary.setAttribute('data-stage', stage.name)
       summary.append(el('span', { text: t('ui.flow.stopped_at') }), codeOrLabel(stage.labelKey, stage.name, 'flow-summary-stage'))
       spoken = fillText('lab.announce.stopped', { status: statusLine(record), stage: stageName(stage) })
       if (flow.hintEl && index !== -1) flow.hintEl.firstChild.textContent = fillText('lab.flow.hint_stopped', { stage: stageName(stage) })
@@ -4746,6 +5148,8 @@
     const shownParts = () => flowParts().filter(node => node.getClientRects().length)
     const before = animate ? new Set(shownParts()) : null
     if (animate) smoothSwap($('flow'), false)
+    // A marca de um estado some no outro: o balão dela fecha junto.
+    closeScalePop(false)
     state.flowOpen = open
     $('flow').classList.toggle('is-collapsed', !open)
     $('flow-title').setAttribute('aria-expanded', open ? 'true' : 'false')
@@ -4891,6 +5295,13 @@
       el('span', { class: 'tl-tick', 'data-for': String(index) }),
       el('span', { class: 'tl-call' + extra, 'data-for': String(index), 'data-part': part }, label(part))
     ]
+    // A ida e a volta ganham rótulo acima da barra, com o nome curto, só quando o nome não cabe dentro da parte
+    // (placeTimeLabels): aí a parte é estreita, e o rótulo é o alvo maior dela, como o das outras.
+    const netCall = (index, part) => [
+      el('span', { class: 'tl-tick', 'data-for': String(index), hidden: true }),
+      el('span', { class: 'tl-call net', 'data-for': String(index), 'data-part': part, hidden: true },
+        el('span', { class: 'tl-term', text: t(SHORT_NAMES[part]) }), ' ', el('b', {}, timeNumber(timeValue(part, labels))))
+    ]
     const dim = (part, from, to, top, extra) => [
       el('span', { class: 'tl-dim', 'data-from': from, 'data-to': to, 'data-top': top, 'aria-hidden': 'true' }),
       el('button', { type: 'button', class: 'tl-dim-label' + extra, 'data-part': part, 'data-from': from, 'data-to': to, 'data-top': top, ...trigger }, label(part))
@@ -4904,16 +5315,16 @@
       ttfb: labels.ttfb
     })
     const fig = el('figure', { class: 'tl' },
-      // A marca discreta da escala ajustada fica ao lado da dica; o mouse vê a explicação no title, e o leitor
-      // de tela a ouve inteira, logo depois da marca.
-      el('p', { class: 'flow-hint tl-hint' }, t('lab.time.hint'), ' ',
-        el('span', { class: 'tl-scale', title: t('lab.time.adjusted') }, t('lab.time.adjusted_mark'), el('span', { class: 'sr-only', text: ': ' + t('lab.time.adjusted') }))),
+      // A marca discreta da escala ajustada fica ao lado da dica; ela abre o balão com a explicação
+      // (scaleButton), acima dela, longe da barra.
+      el('p', { class: 'flow-hint tl-hint' }, t('lab.time.hint'), ' ', scaleButton('tl-scale', null, () => ['lab.time.adjusted'])),
       el('p', { class: 'sr-only', text: summary }),
       el('div', { class: 'tl-draw' },
-        el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), call(2, 'server', ' server'), call(4, 'down', '')),
+        el('div', { class: 'tl-calls', 'aria-hidden': 'true' }, call(0, 'conn', ''), netCall(1, 'outbound'), call(2, 'server', ' server'), netCall(3, 'inbound'), call(4, 'down', '')),
         el('div', { class: 'tl-bar' }, segs),
         el('div', { class: 'tl-dims' }, dim('ttfb', '1', '3', '0', ''), dim('total', '0', '4', '1', ' total'))),
-      el('div', { class: 'tl-pop', id: 'tl-pop', role: 'region', 'aria-labelledby': 'tl-pop-title', hidden: true }))
+      // Um grupo nomeado, e não uma região: o balão não entra na lista de marcos da página.
+      el('div', { class: 'tl-pop', id: 'tl-pop', role: 'group', 'aria-labelledby': 'tl-pop-title', hidden: true }))
 
     const toggle = button => time.current === button ? closeTimePop(false) : openTimePop(button, timePopContent(button.getAttribute('data-part'), bar, labels))
     fig.querySelectorAll('button[data-part]').forEach(button => button.addEventListener('click', () => toggle(button)))
@@ -5058,6 +5469,70 @@
     pop.style.setProperty('--notch', Math.max(14, Math.min(width - 14, center - left)) + 'px')
   }
 
+  // A marca "escala ajustada" (Fluxo fechado e barra de tempo aberta) é um botão que abre um balão como os do
+  // tempo: clique, toque, Enter ou Espaço abrem e fecham; Esc fecha e devolve o foco; um clique fora ou o foco
+  // saindo fecham (setupTime). O balão entra logo depois da marca na ordem do Tab e abre do lado oposto ao da
+  // barra que ele explica, para não cobri-la: sob a marca do Fluxo fechado (a barra fica acima dela) e acima da
+  // marca da barra de tempo (a barra fica abaixo). reasons diz quais frases ele mostra agora.
+  const scalePop = { node: null, mark: null }
+
+  function scaleButton (className, id, reasons) {
+    const button = el('button', { type: 'button', class: className, id, 'aria-expanded': 'false', 'aria-controls': 'scale-pop' }, t('lab.time.adjusted_mark'))
+    button.addEventListener('click', () => {
+      if (scalePop.mark === button) closeScalePop(false)
+      else openScalePop(button, reasons())
+    })
+    return button
+  }
+
+  function openScalePop (mark, keys) {
+    closeScalePop(false)
+    const pop = el('div', { class: 'scale-pop', id: 'scale-pop', role: 'group', 'aria-labelledby': 'scale-pop-title' },
+      el('p', { class: 'rel-title', id: 'scale-pop-title', text: capitalized(t('lab.time.adjusted_mark')) }),
+      keys.map(key => el('p', { text: t(key) })),
+      el('div', { class: 'rel-actions' }, el('button', { type: 'button', class: 'btn', text: t('lab.time.close'), onclick: () => closeScalePop(true) })))
+    ;(mark.closest('.fc-read-row, .tl-hint') || mark).after(pop)
+    scalePop.node = pop
+    scalePop.mark = mark
+    mark.setAttribute('aria-expanded', 'true')
+    placeScalePop()
+    const box = pop.getBoundingClientRect()
+    const shift = box.top < 12 ? box.top - 12 : box.bottom + 12 > window.innerHeight ? box.bottom + 12 - window.innerHeight : 0
+    if (shift) window.scrollBy({ top: shift, behavior: state.reduced ? 'auto' : 'smooth' })
+  }
+
+  function closeScalePop (refocus) {
+    const { node, mark } = scalePop
+    if (!node) return
+    scalePop.node = null
+    scalePop.mark = null
+    node.remove()
+    if (mark.isConnected) {
+      mark.setAttribute('aria-expanded', 'false')
+      if (refocus) mark.focus()
+    }
+  }
+
+  function placeScalePop () {
+    const { node: pop, mark } = scalePop
+    if (!pop || !pop.offsetParent) return
+    const area = $('flow-body').getBoundingClientRect()
+    const anchor = mark.getBoundingClientRect()
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    const width = Math.min(20 * rem, area.width - 24)
+    pop.style.width = width + 'px'
+    const center = anchor.left + anchor.width / 2
+    const left = Math.max(area.left + 12, Math.min(area.right - 12 - width, center - width / 2))
+    const origin = pop.offsetParent.getBoundingClientRect()
+    const above = mark.classList.contains('tl-scale')
+    pop.classList.toggle('is-above', above)
+    pop.style.left = (left - origin.left) + 'px'
+    // Sob a marca do Fluxo fechado, o balão abre depois da fileira inteira, para não cobrir a linha de leitura.
+    const below = (mark.closest('.fc-read-row') || mark).getBoundingClientRect().bottom
+    pop.style.top = (above ? anchor.top - 10 - pop.offsetHeight - origin.top : below + 10 - origin.top) + 'px'
+    pop.style.setProperty('--notch', Math.max(14, Math.min(width - 14, center - left)) + 'px')
+  }
+
   // Os rótulos e as cotas seguem a posição real das partes (cada parte tem uma largura mínima).
   function layoutTime (fig) {
     const bar = fig.querySelector('.tl-bar')
@@ -5070,7 +5545,8 @@
     const weights = core.timeWeights({ conn: ms[0], half: ms[1], server: ms[2], down: ms[4] }, core.TIME_MIN_SHARE)
     const g = [weights.conn, weights.half, weights.server, weights.half, weights.down].map(weight => weight.toFixed(4))
     if (!time.hold) barMemo.tl = g
-    fig.classList.toggle('tl-adjusted', weights.adjusted)
+    // Uma parte que ficou na largura mínima (o alvo de toque, CSS) também tira o desenho da escala.
+    fig.classList.toggle('tl-adjusted', weights.adjusted || segmentBoxes(segs, g, width).clamped)
     // Os rótulos ficam sobre as partes como estão desenhadas: presas na geometria anterior até o veredito
     // (D29). A fileira de rótulos guarda a altura que as duas geometrias pedem, para nada abaixo dela pular no
     // veredito; o piso fica no desenho até o próximo envio.
@@ -5109,11 +5585,13 @@
       frozen[small] = true
     }
     let x = 0
-    return sizes.map(size => {
+    const boxes = sizes.map(size => {
       const box = { left: x, right: x + size, width: size }
       x += size + gap
       return box
     })
+    boxes.clamped = frozen.some(Boolean)
+    return boxes
   }
 
   // Põe os rótulos acima e as cotas abaixo das partes como elas ficam com os pesos dados e diz quantas
@@ -5134,10 +5612,14 @@
       })
     }))
     nets.forEach(node => { node.firstChild.textContent = choices(node)[level] })
+    fig.querySelectorAll('.tl-call.net').forEach(call => {
+      call.hidden = level < 2
+      fig.querySelector('.tl-tick[data-for="' + call.getAttribute('data-for') + '"]').hidden = level < 2
+    })
     // Os rótulos acima da barra sobem uma fileira quando encostariam no vizinho.
     const rows = []
     let maxRow = 0
-    fig.querySelectorAll('.tl-call').forEach(call => {
+    fig.querySelectorAll('.tl-call:not([hidden])').forEach(call => {
       const index = call.getAttribute('data-for')
       const s = seg(Number(index))
       const center = (s.left + s.right) / 2
@@ -5153,6 +5635,8 @@
       tick.style.left = Math.round(center) + 'px'
       tick.style.height = (6 + row * 20) + 'px'
     })
+    // A fileira das cotas tem 56 px; uma cota que quebrou em duas linhas a faz crescer até caber.
+    let dimsBottom = 56
     fig.querySelectorAll('.tl-dim, .tl-dim-label').forEach(node => {
       const from = seg(Number(node.getAttribute('data-from'))).left
       const to = seg(Number(node.getAttribute('data-to'))).right
@@ -5165,8 +5649,10 @@
         const w = node.offsetWidth
         node.style.left = Math.max(w / 2, Math.min(width - w / 2, (from + to) / 2)) + 'px'
         node.style.top = (top + 4) + 'px'
+        dimsBottom = Math.max(dimsBottom, top + 4 + node.offsetHeight)
       }
     })
+    fig.querySelector('.tl-dims').style.height = dimsBottom + 'px'
     return maxRow
   }
 
@@ -5222,6 +5708,7 @@
 
   function unmountTime () {
     closeTimePop(false)
+    closeScalePop(false)
     time.onServerPop = null
     time.front.clear()
     if (time.observer) time.observer.disconnect()
@@ -5232,6 +5719,7 @@
   // Um clique fora fecha o balão; Esc fecha e devolve o foco à parte.
   function setupTime () {
     document.addEventListener('pointerdown', event => {
+      if (scalePop.node && !scalePop.node.contains(event.target) && !scalePop.mark.contains(event.target)) closeScalePop(false)
       const button = time.current
       if (!button) return
       const call = time.fig.querySelector('.tl-call[data-part="' + button.getAttribute('data-part') + '"]')
@@ -5239,16 +5727,24 @@
       closeTimePop(false)
     })
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && time.current) {
+      if (event.key === 'Escape' && scalePop.node) {
+        event.preventDefault()
+        closeScalePop(true)
+      } else if (event.key === 'Escape' && time.current) {
         event.preventDefault()
         closeTimePop(true)
       }
+    })
+    // O foco que sai da marca e do balão dela fecha o balão (Tab, Shift + Tab, outro controle).
+    document.addEventListener('focusin', event => {
+      if (scalePop.node && !scalePop.node.contains(event.target) && event.target !== scalePop.mark) closeScalePop(false)
     })
     if (window.ResizeObserver) {
       time.observer = new ResizeObserver(() => {
         if (!time.fig) return
         layoutTime(time.fig)
         placeTimePop()
+        placeScalePop()
       })
     }
   }
@@ -5263,23 +5759,31 @@
     } catch (e) {}
     // O Histórico da sessão volta antes de qualquer pintura: as marcas das Rotas, o Histórico e a contagem
     // leem dele.
+    takeHandoff()
     restoreSession()
+    setupLanguageHandoff()
     setupTopbar()
     paintNotice()
-    paintFeedbackPill()
-    countUsageDay()
+    paintFeedbackBand()
+    visitFeedback()
     renderAbout(null)
     setupFlowControls()
     setupTime()
     setupResultTabs()
     setupView()
     setupSide()
+    if (state.handoff) selectSideTab(state.handoff.sideTab, false)
+    placeHandoff()
     // O CSS precisa da altura do Resultado para grudá-lo pela base quando ele, vazio, é mais alto que a janela.
     if (window.ResizeObserver) {
       new ResizeObserver(() => document.documentElement.style.setProperty('--res-h', $('result').offsetHeight + 'px')).observe($('result'))
+      // A barra de endereço decide de novo a forma quando a zona muda de largura ou o texto de tamanho.
+      new ResizeObserver(() => fitReqBar(false)).observe($('request'))
     }
+    try {
+      document.fonts.ready.then(() => fitReqBar(true))
+    } catch (e) {}
     renderHistory()
-    renderResultEmpty(null)
     const filter = $('filter')
     Object.keys(core.FIELD_ASSISTS_OFF).forEach(name => filter.setAttribute(name, core.FIELD_ASSISTS_OFF[name]))
     filter.addEventListener('input', renderRoutes)

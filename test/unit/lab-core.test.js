@@ -54,12 +54,12 @@ describe('Página do lab: funções puras', () => {
 
     it('flowColumns: requisição que parou tem coluna fixa para cada etapa que não rodou e para a resposta', () => {
       const model = core.buildFlowModel(core.parseStages(headers.semToken), 401, textosDoFluxo)
-      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.467fr) minmax(22px, 0.306fr) minmax(22px, 0.228fr) 22px 22px 22px 22px')
+      expect(core.flowColumns(model)).to.equal('minmax(24px, 0.467fr) minmax(24px, 0.306fr) minmax(24px, 0.228fr) 24px 24px 24px 24px')
     })
 
     it('flowColumns: requisição que passou divide as colunas pela raiz da duração, e etapa pulada fica fixa', () => {
       const model = core.buildFlowModel(core.parseStages(headers.criado), 201, textosDoFluxo)
-      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.424fr) 22px minmax(22px, 1.187fr) minmax(22px, 0.566fr) minmax(22px, 1.449fr) minmax(22px, 1.010fr) 22px')
+      expect(core.flowColumns(model)).to.equal('minmax(24px, 0.424fr) 24px minmax(24px, 1.187fr) minmax(24px, 0.566fr) minmax(24px, 1.449fr) minmax(24px, 1.010fr) 24px')
     })
 
     it('stageWidths: com o espaço justo as etapas que rodaram dividem o que sobra e somam o espaço inteiro', () => {
@@ -84,7 +84,7 @@ describe('Página do lab: funções puras', () => {
 
     it('flowColumns: etapa que rodou sem duração usa a duração mínima do painel', () => {
       const model = core.buildFlowModel(core.parseStages('body;st=ok, auth;st=failed;reason=token_missing, write;st=not_run'), 401, textosDoFluxo)
-      expect(core.flowColumns(model)).to.equal('minmax(22px, 0.500fr) minmax(22px, 0.500fr) 22px 22px')
+      expect(core.flowColumns(model)).to.equal('minmax(24px, 0.500fr) minmax(24px, 0.500fr) 24px 24px')
     })
 
     it('flowColumns: etapas rápidas crescem na mesma proporção até as frações somarem pelo menos 1, para o desenho ir até o fim da coluna', () => {
@@ -92,7 +92,7 @@ describe('Página do lab: funções puras', () => {
       const rapidas = 'body;st=ok;dur=0.19, rate_limit;st=skipped, auth;st=failed;dur=0.07;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run'
       const colunas = core.flowColumns(core.buildFlowModel(core.parseStages(rapidas), 401, textosDoFluxo))
       const fracoes = colunas.match(/[0-9.]+(?=fr\))/g).map(Number)
-      expect(colunas).to.equal('minmax(22px, 0.623fr) 22px minmax(22px, 0.378fr) 22px 22px 22px 22px')
+      expect(colunas).to.equal('minmax(24px, 0.623fr) 24px minmax(24px, 0.378fr) 24px 24px 24px 24px')
       expect(fracoes.reduce((soma, valor) => soma + valor, 0)).to.be.at.least(1)
       expect(fracoes[0] / fracoes[1]).to.be.closeTo(Math.sqrt(0.19) / Math.sqrt(0.07), 0.01)
     })
@@ -484,6 +484,21 @@ describe('Página do lab: funções puras', () => {
             status: '401',
             description: ptBr['components.responses.TokenInvalido.description'],
             example: { message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' }
+          },
+          {
+            status: '413',
+            description: ptBr['components.responses.CorpoGrandeDemais.description'],
+            example: { message: 'Payload too large' }
+          },
+          {
+            status: '415',
+            description: ptBr['components.responses.CorpoNaoSuportado.description'],
+            example: { message: 'Unsupported charset', charset: 'latin9' }
+          },
+          {
+            status: '429',
+            description: ptBr['components.responses.LimiteDeRequisicoes.description'],
+            example: { message: 'Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga' }
           }
         ])
       })
@@ -979,87 +994,139 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
-  describe('feedbackInvite (R4 estendida)', () => {
-    // Abre a página em cada dia da lista (um dia de uso cada) e diz em quais o convite apareceu.
-    const usar = (dias, { count = 3, inicio = core.readInvite(null) } = {}) => {
+  describe('Pedido de opinião: a linha da faixa roxa e a resposta', () => {
+    // Abre a página em cada carga da lista ("2026-12-01", ou [dia, cargas]) como a página faz: a linha aparece se
+    // feedbackLineToday (a conta de prefs-boot.js) disser, e a carga guarda o dia com feedbackVisit. Devolve os
+    // dias em que a linha apareceu (uma vez por dia) e o estado no fim.
+    const usar = (cargas, { inicio = core.readInvite(null), edition = 1, aoCarregar } = {}) => {
       let estado = inicio
       const vistos = []
-      dias.forEach(dia => {
-        estado = core.inviteVisit(estado, dia)
-        const decisao = core.feedbackInvite({ count, today: dia, state: estado, session: null })
-        if (decisao.state) estado = decisao.state
-        if (decisao.show) vistos.push(dia)
+      cargas.forEach(carga => {
+        const [dia, vezes] = Array.isArray(carga) ? carga : [carga, 1]
+        for (let i = 0; i < vezes; i++) {
+          const linha = core.feedbackLineToday(estado, dia)
+          if (aoCarregar) aoCarregar(estado, dia, linha)
+          estado = core.feedbackVisit(estado, dia, linha, edition)
+          if (linha && vistos[vistos.length - 1] !== dia) vistos.push(dia)
+        }
       })
       return { vistos, estado }
     }
-    const dias = n => Array.from({ length: n }, (_, i) => '2026-12-' + String(i + 1).padStart(2, '0'))
+    // n dias seguidos a partir de um dia (UTC, para não depender do fuso de quem roda o teste).
+    const seguidos = (inicio, n) => Array.from({ length: n }, (_, i) => new Date(Date.parse(inicio + 'T00:00:00Z') + i * 86400000).toISOString().slice(0, 10))
+    const dias = n => seguidos('2026-12-01', n)
 
-    it('com menos de 3 envios no Histórico não aparece', () => {
-      expect(core.feedbackInvite({ count: 2, today: '2026-12-01', state: core.readInvite(null) }).show).to.equal(false)
-      expect(core.feedbackInvite(undefined).show).to.equal(false)
+    it('dia 1 sem linha; dia 2 com; dias 3 e 4 de uso sem; dia 5 com', () => {
+      expect(usar(dias(5)).vistos).to.deep.equal(['2026-12-02', '2026-12-05'])
     })
 
-    it('aparece no dia 1, pula os dias de uso 2 e 3 e volta no dia 4', () => {
-      expect(usar(dias(4)).vistos).to.deep.equal(['2026-12-01', '2026-12-04'])
+    it('recarregar num dia com a linha mantém a linha e não conta outro dia; num dia sem, continua sem', () => {
+      const { vistos, estado } = usar([['2026-12-01', 3], ['2026-12-02', 4], ['2026-12-03', 2], '2026-12-04', '2026-12-05'])
+      expect(vistos).to.deep.equal(['2026-12-02', '2026-12-05'])
+      expect(estado.days).to.equal(2)
     })
 
-    it('dias sem uso não contam: depois de aparecer, só o 3º dia de uso seguinte o traz de volta', () => {
-      expect(usar(['2026-12-01', '2026-12-09', '2026-12-20', '2027-01-05', '2027-01-06']).vistos).to.deep.equal(['2026-12-01', '2027-01-05'])
+    it('dias sem uso não contam: só o 3º dia de uso depois da linha a traz de volta', () => {
+      expect(usar(['2026-12-01', '2026-12-09', '2026-12-20', '2027-01-05', '2027-01-06']).vistos).to.deep.equal(['2026-12-09', '2027-01-06'])
     })
 
-    it('aparece em no máximo 10 dias', () => {
-      const { vistos, estado } = usar(dias(31).concat(dias(31).map(dia => dia.replace('2026-12', '2027-01'))))
-      expect(vistos).to.have.length(10)
+    it('nos 10 primeiros dias com a linha segue a folga de 2 dias de uso', () => {
+      const { vistos, estado } = usar(dias(31))
+      expect(vistos).to.deep.equal(['02', '05', '08', '11', '14', '17', '20', '23', '26', '29'].map(dia => '2026-12-' + dia))
       expect(estado.days).to.equal(10)
     })
 
-    it('uma aba só por dia: a aba que mostrou continua mostrando; outra aba, no mesmo dia, não', () => {
-      const primeira = core.feedbackInvite({ count: 3, today: '2026-12-01', state: core.inviteVisit(core.readInvite(null), '2026-12-01'), session: null })
-      expect(primeira).to.include({ show: true, session: '2026-12-01' })
-      expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: primeira.state, session: '2026-12-01' }).show).to.equal(true)
-      expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: primeira.state, session: null }).show).to.equal(false)
+    it('depois do 10º dia, no máximo uma vez a cada 30 dias do calendário, mesmo com uso todo dia', () => {
+      const { vistos } = usar(seguidos('2026-12-01', 120))
+      expect(vistos.slice(10)).to.deep.equal(['2027-01-28', '2027-02-27', '2027-03-29'])
     })
 
-    it('respondido, nunca mais aparece', () => {
-      const { estado } = usar(['2026-12-01'])
-      const respondido = core.inviteEnd(estado, '2026-12-01', true)
-      expect(usar(dias(31).slice(1), { inicio: respondido }).vistos).to.deep.equal([])
-      expect(core.readInvite('answered').answered).to.equal(true)
+    it('depois do 10º dia, o primeiro dia de uso passados os 30 dias traz a linha', () => {
+      const { estado } = usar(dias(29))
+      expect(usar(['2027-01-10', '2027-01-27', '2027-02-15', '2027-02-16'], { inicio: estado }).vistos).to.deep.equal(['2027-02-15'])
     })
 
-    it('"Agora não" tira só naquele dia: o resto do dia, em qualquer aba, não aparece, e a contagem segue', () => {
-      const { estado } = usar(['2026-12-01'])
-      const fechado = core.inviteEnd(estado, '2026-12-01', false)
-      expect(core.feedbackInvite({ count: 5, today: '2026-12-01', state: fechado, session: '2026-12-01' }).show).to.equal(false)
-      expect(usar(['2026-12-02', '2026-12-03', '2026-12-04'], { inicio: fechado }).vistos).to.deep.equal(['2026-12-04'])
+    it('a resposta tira a linha a partir da próxima carga, por 180 dias, e ela volta no primeiro dia de uso depois', () => {
+      const { estado } = usar(dias(2))
+      const respondido = core.feedbackAnswer(estado, '2026-12-02', 1)
+      expect(respondido).to.include({ answered: '2026-12-02', edition: 1 })
+      expect(core.feedbackLineToday(respondido, '2026-12-02')).to.equal(false)
+      expect(core.feedbackAnswered(respondido, '2027-05-30', 1)).to.equal(true)
+      expect(core.feedbackAnswered(respondido, '2027-05-31', 1)).to.equal(false)
+      const { vistos } = usar(seguidos('2026-12-02', 200), { inicio: respondido })
+      expect(vistos[0]).to.equal('2027-05-31')
     })
 
-    it('com o que a versão anterior guardou ("shown" ou "closed", com ou sem a marca "1" da aba), aparece no dia', () => {
-      ;['shown', 'closed'].forEach(antigo => {
-        ;[null, '1'].forEach(marca => {
-          const estado = core.inviteVisit(core.readInvite(antigo), '2026-12-01')
-          const decisao = core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca })
-          expect(decisao, antigo + ' ' + marca).to.include({ show: true, session: '2026-12-01' })
-          expect(core.feedbackInvite({ count: 4, today: '2026-12-01', state: decisao.state, session: decisao.session }).show, antigo + ' ' + marca).to.equal(true)
-        })
+    it('respondida pelo rodapé num dia sem a linha, a linha não volta no dia em que voltaria', () => {
+      const { estado } = usar(dias(4))
+      expect(usar(['2026-12-05'], { inicio: core.feedbackAnswer(estado, '2026-12-04', 1) }).vistos).to.deep.equal([])
+    })
+
+    it('uma edição nova do formulário desfaz a resposta anterior: a linha volta no ritmo de antes', () => {
+      const { estado } = usar(dias(2))
+      const respondido = core.feedbackAnswer(estado, '2026-12-02', 1)
+      expect(core.feedbackAnswered(respondido, '2026-12-03', 2)).to.equal(false)
+      expect(usar(seguidos('2026-12-03', 4), { inicio: respondido, edition: 1 }).vistos).to.deep.equal([])
+      // Na edição 2, a primeira carga ainda segue o que estava guardado (a faixa já nasce decidida); a linha
+      // volta no 3º dia de uso depois da última vez, como se não houvesse resposta.
+      expect(usar(seguidos('2026-12-03', 7), { inicio: respondido, edition: 2 }).vistos).to.deep.equal(['2026-12-05', '2026-12-08'])
+    })
+
+    it('migra o "answered" antigo (texto ou no JSON) para respondido hoje, na edição 1, e o conta por 180 dias', () => {
+      const antigoJson = JSON.stringify({ days: 4, last: '2026-11-01', seen: '2026-11-10', gap: 3, off: null, answered: true })
+      ;['answered', antigoJson].forEach(antigo => {
+        const estado = core.readInvite(antigo, '2026-12-01')
+        expect(estado, antigo).to.include({ answered: '2026-12-01', edition: 1 })
+        expect(usar(seguidos('2026-12-01', 182), { inicio: estado }).vistos[0], antigo).to.equal('2027-05-30')
       })
     })
 
-    it('com "answered" guardado pela versão anterior, nunca aparece, com ou sem a marca da aba', () => {
-      ;[null, '1'].forEach(marca => {
-        const estado = core.inviteVisit(core.readInvite('answered'), '2026-12-01')
-        expect(core.feedbackInvite({ count: 3, today: '2026-12-01', state: estado, session: marca }).show, String(marca)).to.equal(false)
-      })
+    it('migra o estado do convite antigo: guarda a contagem, larga o "Agora não" e começa com a faixa fina', () => {
+      const antigo = JSON.stringify({ days: 2, last: '2026-11-20', seen: '2026-11-28', gap: 4, off: '2026-11-28', answered: null, edition: 0 })
+      const estado = core.readInvite(antigo, '2026-12-01')
+      expect(estado).to.deep.equal({ days: 2, last: '2026-11-20', seen: '2026-11-28', gap: 4, answered: null, edition: 0, next: null })
+      // Sem next guardado, a primeira carga é fina; dali em diante, o ritmo de sempre.
+      expect(usar(dias(5), { inicio: estado }).vistos).to.deep.equal(['2026-12-02', '2026-12-05'])
     })
 
-    it('migra os valores antigos: "shown" e "closed" recomeçam, e lixo vira estado novo', () => {
+    it('"shown", "closed", lixo e nada viram um estado novo: o primeiro dia é sem a linha', () => {
       ;['shown', 'closed', '{x', null, '[]'].forEach(antigo => {
-        expect(usar(['2026-12-01'], { inicio: core.readInvite(antigo) }).vistos, String(antigo)).to.deep.equal(['2026-12-01'])
+        expect(usar(dias(2), { inicio: core.readInvite(antigo, '2026-12-01') }).vistos, String(antigo)).to.deep.equal(['2026-12-02'])
       })
+    })
+
+    it('o estado guardado continua um JSON pequeno', () => {
+      const { estado } = usar(seguidos('2026-12-01', 400))
+      expect(JSON.stringify(core.feedbackAnswer(estado, '2028-01-05', 3)).length).to.be.below(160)
     })
 
     it('dayKey é o dia do calendário local', () => {
       expect(core.dayKey(new Date(2026, 0, 5, 23, 59))).to.equal('2026-01-05')
+    })
+
+    // prefs-boot.js decide a linha antes da primeira pintura, sem core.js: a conta dele tem de dar o mesmo que
+    // feedbackLineToday em cada carga, com o dia do relógio local.
+    it('prefs-boot.js liga a linha exatamente nas cargas em que feedbackLineToday liga', () => {
+      const fonte = readFileSync(join(__dirname, '../../src/lab/public/prefs-boot.js'), 'utf8')
+      const boot = (guardado, dia) => {
+        const atributos = {}
+        const [ano, mes, data] = dia.split('-').map(Number)
+        const Relogio = class extends Date { constructor () { super(ano, mes - 1, data, 23, 59) } }
+        const window = { localStorage: { getItem: () => guardado }, matchMedia: () => ({ matches: false }), sessionStorage: { getItem: () => null } }
+        const document = { documentElement: { lang: 'pt-BR', style: {}, setAttribute: (nome, valor) => { atributos[nome] = valor } } }
+        vm.runInNewContext(fonte, { window, document, Date: Relogio, JSON, String, Number })
+        return atributos['data-feedback'] === 'line'
+      }
+      let conferidas = 0
+      const conferir = (estado, dia, linha) => {
+        expect(boot(JSON.stringify(estado), dia), dia + ' ' + JSON.stringify(estado)).to.equal(linha)
+        conferidas++
+      }
+      const { estado } = usar(seguidos('2026-12-01', 70).map(dia => [dia, 2]), { aoCarregar: conferir })
+      usar([['2027-02-09', 2]], { inicio: core.feedbackAnswer(estado, '2027-02-08', 1), aoCarregar: conferir })
+      expect(conferidas).to.equal(142)
+      expect(boot(null, '2026-12-01')).to.equal(false)
+      expect(boot('{x', '2026-12-01')).to.equal(false)
     })
   })
 
@@ -1087,6 +1154,114 @@ describe('Página do lab: funções puras', () => {
       expect(core.prettyJson('não é json')).to.equal(null)
       expect(core.prettyJson('{"a":')).to.equal(null)
       expect(core.prettyJson('')).to.equal(null)
+    })
+  })
+
+  describe('passagem da troca de idioma: draftChanges e readHandoff', () => {
+    const novo = () => ({ params: { 'path:_id': '0uxuPY0cbmQhpEz1', 'query:nome': '' }, body: '{\n  "nome": "Fulano"\n}' })
+    const agora = Date.parse('2026-11-15T12:00:00.000Z')
+    const opcoes = { now: agora, language: 'es', maxAge: 10000 }
+    // Como app.js a grava (writeHandoff).
+    const passagem = (extra = {}) => Object.assign({
+      v: 1,
+      at: agora,
+      to: 'es',
+      token: 'Bearer a.b.c',
+      tokenAt: Date.parse('2026-11-15T11:58:00.000Z'),
+      tokenExp: Date.parse('2026-11-15T12:08:00.000Z'),
+      drafts: { 'post /usuarios': { body: '{}', params: { 'query:nome': 'Ana' }, auth: '' } },
+      scrollY: 312.5,
+      sideTab: 'historico',
+      resultTab: 'enviado',
+      routesCollapsed: true
+    }, extra)
+    const ler = (extra, outras = {}) => core.readHandoff(JSON.stringify(passagem(extra)), Object.assign({}, opcoes, outras))
+
+    it('draftChanges leva só o que a pessoa mudou do padrão', () => {
+      expect(core.draftChanges(undefined, novo())).to.equal(null)
+      expect(core.draftChanges(novo(), novo())).to.equal(null)
+      const editado = Object.assign(novo(), { body: '{}' })
+      editado.params['query:nome'] = 'Ana'
+      expect(core.draftChanges(editado, novo())).to.deep.equal({ body: '{}', params: { 'query:nome': 'Ana' } })
+    })
+
+    it('draftChanges leva o Authorization editado, mesmo vazio, e ignora parâmetro que a rota não tem ou que não é texto', () => {
+      expect(core.draftChanges(Object.assign(novo(), { auth: '' }), novo())).to.deep.equal({ auth: '' })
+      const estranho = novo()
+      estranho.params['query:outro'] = 'x'
+      estranho.params['query:nome'] = undefined
+      expect(core.draftChanges(estranho, novo())).to.equal(null)
+    })
+
+    it('draftChanges leva a hora do envio que preencheu o corpo e o Authorization, e ela volta como Date', () => {
+      const envio = new Date('2026-11-15T11:59:00.000Z')
+      const preenchido = Object.assign(novo(), { body: '{}', bodyFrom: envio, auth: '', authFrom: envio })
+      const mudancas = core.draftChanges(preenchido, novo())
+      expect(mudancas).to.deep.equal({ body: '{}', bodyFrom: envio.getTime(), auth: '', authFrom: envio.getTime() })
+      // O corpo de volta ao exemplo não leva a hora: a legenda é a do exemplo.
+      expect(core.draftChanges(Object.assign(novo(), { bodyFrom: envio }), novo())).to.equal(null)
+      const lido = ler({ drafts: { 'post /carrinhos': mudancas } })
+      expect(lido.drafts['post /carrinhos'].bodyFrom.toISOString()).to.equal(envio.toISOString())
+      expect(lido.drafts['post /carrinhos'].authFrom.toISOString()).to.equal(envio.toISOString())
+      expect(ler().routesCollapsed).to.equal(true)
+    })
+
+    it('ida e volta: as horas do token voltam como Date e o resto igual', () => {
+      const lido = ler()
+      expect(lido.tokenAt.toISOString()).to.equal('2026-11-15T11:58:00.000Z')
+      expect(lido.tokenExp.toISOString()).to.equal('2026-11-15T12:08:00.000Z')
+      expect(lido).to.deep.include({ token: 'Bearer a.b.c', scrollY: 312.5, sideTab: 'historico', resultTab: 'enviado' })
+      expect(lido.drafts).to.deep.equal(passagem().drafts)
+      expect(ler({ token: null, tokenAt: null, tokenExp: null })).to.deep.include({ token: null, tokenAt: null, tokenExp: null })
+    })
+
+    it('vale por maxAge: com 10 s ainda vale, depois disso não, e uma hora no futuro também não', () => {
+      expect(ler({ at: agora - 10000 })).to.not.equal(null)
+      expect(ler({ at: agora - 10001 })).to.equal(null)
+      expect(ler({ at: agora + 1 })).to.equal(null)
+    })
+
+    it('só a página no idioma de destino a usa: uma recarga da mesma página não', () => {
+      expect(ler({}, { language: 'pt-BR' })).to.equal(null)
+    })
+
+    it('descarta o valor inteiro quando não é JSON, tem outra forma ou um campo estranho', () => {
+      ['{not json', null, '[]', '0', '"es"'].forEach(valor => expect(core.readHandoff(valor, opcoes), valor).to.equal(null))
+      const quebrados = [
+        { v: 2 },
+        { at: 'agora' },
+        { token: '' },
+        { token: 42 },
+        { tokenAt: 'ontem' },
+        { tokenExp: {} },
+        { drafts: null },
+        { drafts: [] },
+        { drafts: { usuarios: {} } },
+        { drafts: { 'post /usuarios': [] } },
+        { drafts: { 'post /usuarios': { body: 1 } } },
+        { drafts: { 'post /usuarios': { auth: null } } },
+        { drafts: { 'post /usuarios': { body: '{}', token: 'x' } } },
+        { drafts: { 'post /usuarios': { params: [] } } },
+        { drafts: { 'post /usuarios': { params: { 'query:nome': 1 } } } },
+        { drafts: { 'post /usuarios': { params: { 'header:x': 'a' } } } },
+        { scrollY: -1 },
+        { scrollY: '10' },
+        { sideTab: 'outra' },
+        { resultTab: 'curl' },
+        { routesCollapsed: undefined },
+        { routesCollapsed: 'sim' },
+        { drafts: { 'post /usuarios': { body: '{}', bodyFrom: 'ontem' } } },
+        { drafts: { 'post /usuarios': { auth: '', authFrom: null } } }
+      ]
+      quebrados.forEach(campo => expect(ler(campo), JSON.stringify(campo)).to.equal(null))
+    })
+  })
+
+  // O Safari 16.0 a 16.3 não lê lookbehind; um erro de leitura para o arquivo inteiro, e a página não funciona.
+  it('nenhum arquivo da página usa lookbehind numa expressão regular', () => {
+    const pasta = join(__dirname, '../../src/lab/public')
+    readdirSync(pasta).filter(nome => nome.endsWith('.js')).forEach(nome => {
+      expect(readFileSync(join(pasta, nome), 'utf8'), nome).not.to.match(/\(\?<[=!]/)
     })
   })
 
@@ -1218,12 +1393,6 @@ describe('Página do lab: funções puras', () => {
       expect(core.feedbackFormUrl('', '3.3.0')).to.equal(null)
       expect(core.feedbackFormUrl('javascript:alert(1)', '3.3.0')).to.equal(null)
     })
-
-    it('para de devolver o link depois da data final do formulário', () => {
-      const ate = '2027-01-31T23:59:59-03:00'
-      expect(core.feedbackFormUrl(modelo, '3.3.0', Date.parse('2027-01-31T23:59:58-03:00'), ate)).to.equal('https://docs.google.com/forms/d/e/abc/viewform?usp=pp_url&entry.1=3.3.0')
-      expect(core.feedbackFormUrl(modelo, '3.3.0', Date.parse('2027-02-01T00:00:00-03:00'), ate)).to.equal(null)
-    })
   })
 
   describe('parseInlineMarkdown', () => {
@@ -1319,7 +1488,7 @@ describe('Página do lab: funções puras', () => {
     })
 
     it('a lista lida inclui a página, os scripts e o CSS', () => {
-      expect(nomes.map(nome => nome.split(sep).join('/'))).to.include.members(['page.html', 'index.js', 'public/app.js', 'public/core.js', 'public/prefs-boot.js', 'public/lab.css'])
+      expect(nomes.map(nome => nome.split(sep).join('/'))).to.include.members(['page.html', 'index.js', 'public/app.js', 'public/core.js', 'public/guia.js', 'public/prefs-boot.js', 'public/lab.css'])
     })
 
     it('os textos do fluxo trocados pela página existem e viram a instrução única de como obter um token', () => {
@@ -1341,6 +1510,29 @@ describe('Página do lab: funções puras', () => {
         expect(textos['lab.flow.how.user_not_found'], idioma).to.match(/\{instruction\}$/)
         expect(textos['lab.auth.how_to_get'], idioma).to.include(`“${textos['lab.token.use']}”`)
       })
+    })
+  })
+
+  // Numa coluna só, a lista de rotas carregada ocupa 60vh; enquanto carrega, a mesma altura fica reservada (a
+  // chegada das rotas empurrava a Requisição e o resto para baixo: CLS de 0,6 no telefone).
+  describe('Reserva da lista de rotas enquanto carrega', () => {
+    const labDir = join(__dirname, '../../src/lab')
+    const pagina = readFileSync(join(labDir, 'page.html'), 'utf8')
+    const css = readFileSync(join(labDir, 'public/lab.css'), 'utf8')
+    const app = readFileSync(join(labDir, 'public/app.js'), 'utf8')
+
+    it('a lista nasce reservada, e a reserva tem a altura máxima da lista carregada, só numa coluna', () => {
+      expect(pagina).to.include('<div class="route-list is-loading" id="route-list"></div>')
+      const pilha = css.slice(css.indexOf('@container page (width < 68.75rem) {'))
+      const bloco = pilha.slice(0, pilha.indexOf('\n}\n'))
+      expect(bloco).to.include('.route-list { max-height: 60vh; }')
+      expect(bloco).to.include('.route-list.is-loading { min-height: 60vh; }')
+      expect(css.match(/\.is-loading \{/g)).to.have.length(1)
+    })
+
+    it('carregar de novo reserva; desenhar a lista (rotas ou erro) solta', () => {
+      expect(app).to.match(/list\.textContent = ''\n(\s+\/\/[^\n]*\n)*\s+list\.classList\.add\('is-loading'\)/)
+      expect(app).to.match(/function renderRoutes \(\) \{\n\s+const list = \$\('route-list'\)\n\s+list\.classList\.remove\('is-loading'\)/)
     })
   })
 
@@ -1385,7 +1577,8 @@ describe('Página do lab: funções puras', () => {
       serverestLabView: 'VIEW_KEY',
       serverestReleaseSeen: 'RELEASE_SEEN_KEY',
       serverestFeedbackInvite: 'FEEDBACK_KEY',
-      serverestFeedbackInviteSession: 'FEEDBACK_SESSION_KEY'
+      serverestGuideInvite: 'GUIDE_KEY',
+      serverestLangHandoff: 'HANDOFF_KEY'
     }
 
     it('cada chave do localStorage e do sessionStorage é uma constante só em app.js, igual à de prefs-boot.js', () => {

@@ -31,6 +31,7 @@ const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
+const { robotsTxt, sitemapXml } = require('./lab/buscadores')
 const {
   cacheForaDoLocalhost,
   cacheNoStatic,
@@ -112,6 +113,10 @@ swaggerDocument.servers = currentUrl === serverestUrl
 
 swaggerDocument.info.version = version
 
+// Com a URL deste ambiente, montados uma vez. Só a produção libera os buscadores.
+const textoDoRobots = robotsTxt(currentUrl, currentUrl === serverestUrl)
+const textoDoSitemap = sitemapXml(currentUrl)
+
 // O documento como a página inicial o pede, com v: montado e comprimido uma vez por idioma.
 const swaggerJsonDaPagina = new Map([...supportedLanguages].map(idioma => [
   idioma,
@@ -169,6 +174,13 @@ function setupDoSwagger (idioma) {
 // e o /swagger fica em branco para essa pessoa até a próxima versão.
 setupDoSwagger('pt-BR')
 
+// O index.html da pasta do Swagger UI é a página de exemplo do pacote, que carrega a Petstore: sob o domínio do
+// ServeRest ele parecia uma página do projeto. O endereço leva à página inicial, com a query (o idioma) junto.
+// O destino é sempre a raiz: o que vem de quem pede entra só depois do "?", e nunca forma outro endereço.
+app.get('/index.html', (req, res) => {
+  const inicioDaQuery = req.originalUrl.indexOf('?')
+  res.redirect(301, inicioDaQuery === -1 ? '/' : '/?' + req.originalUrl.slice(inicioDaQuery + 1))
+})
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 app.use('/', swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {
@@ -200,6 +212,10 @@ app.get('/swagger.json', (req, res) => {
   res.status(200).json(localizeSwaggerDocument(swaggerDocument, idiomaDaRequisicao(req)))
 })
 app.get('/version', (req, res) => { res.status(200).send({ version }) })
+// Sem estas duas rotas os buscadores recebiam o 405 em JSON das URLs desconhecidas, que continua igual para as
+// outras: os testes dos alunos podem conferir essa resposta.
+app.get('/robots.txt', (req, res) => { res.type('text/plain').send(textoDoRobots) })
+app.get('/sitemap.xml', (req, res) => { res.type('application/xml').send(textoDoSitemap) })
 app.get('/swagger-sw.js', (req, res) => {
   const workerCode = readFileSync(join(__dirname, 'swagger/swagger-sw.js'), 'utf8')
     .replace(/__VERSION__/g, version)

@@ -7,6 +7,28 @@
 <script>{{script.prefs-boot}}</script>
 <title>{{lab.page.title}}</title>
 <meta name="description" content="{{lab.page.description}}">
+<!-- Para buscadores e redes sociais, com endereços absolutos do próprio ambiente (src/lab/index.js). O pt-BR
+     é a raiz, que também é a página de um lang desconhecido; o x-default aponta para ela. -->
+<link rel="canonical" href="{{head.canonical}}">
+<link rel="alternate" hreflang="pt-BR" href="{{head.url.pt-BR}}">
+<link rel="alternate" hreflang="en" href="{{head.url.en}}">
+<link rel="alternate" hreflang="es" href="{{head.url.es}}">
+<link rel="alternate" hreflang="x-default" href="{{head.url.pt-BR}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ServeRest">
+<meta property="og:title" content="{{lab.page.title}}">
+<meta property="og:description" content="{{lab.page.description}}">
+<meta property="og:url" content="{{head.canonical}}">
+<meta property="og:locale" content="{{head.og_locale}}">
+<meta property="og:image" content="{{head.image}}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{lab.page.image_alt}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{lab.page.title}}">
+<meta name="twitter:description" content="{{lab.page.description}}">
+<meta name="twitter:image" content="{{head.image}}">
+<meta name="twitter:image:alt" content="{{lab.page.image_alt}}">
 <link rel="icon" type="image/svg+xml" href="/lab/assets/img/favicon.svg">
 <link rel="stylesheet" href="/lab/assets/lab.css?v={{version}}">
 <script src="/lab/assets/core.js?v={{version}}" defer></script>
@@ -24,42 +46,58 @@
 </svg>
 <a class="skip-link" href="#request">{{lab.page.skip_link}}</a>
 
-<!-- Barra do topo, na ordem: o seletor de idioma do Swagger, a marca (logo, versão e aviso de versão nova),
-     a documentação e os controles de tamanho do texto e de tema. O idioma da página já vem marcado do
-     servidor (is-active e aria-current); o estado dos controles vem da raiz, escrita por prefs-boot.js. -->
+<!-- Barra do topo, numa linha: marca, "Como usar", documentação, idioma e preferências. No telefone a versão,
+     a documentação e as preferências vão para "Mais opções" (app.js, placeBarItems). Os idiomas são links
+     comuns, que funcionam antes do script. -->
 <header class="topbar">
   <div class="topbar-inner wrap">
-    <nav class="lang-switcher" id="lang-switcher" aria-label="{{lab.topbar.languages}}">
-      <a class="lang-switcher__button{{flag.pt-BR.active}}" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR" aria-label="{{lab.lang.pt_br}}" title="{{lab.lang.pt_br}}"{{flag.pt-BR.current}}><img class="lang-switcher__flag" src="/flags/flag_brazil.svg" alt="" width="20" height="14"></a>
-      <a class="lang-switcher__button{{flag.es.active}}" href="?lang=es" hreflang="es" lang="es" data-lang="es" aria-label="{{lab.lang.es}}" title="{{lab.lang.es}}"{{flag.es.current}}><img class="lang-switcher__flag" src="/flags/flag_peru.svg" alt="" width="20" height="14"></a>
-      <a class="lang-switcher__button{{flag.en.active}}" href="?lang=en" hreflang="en" lang="en" data-lang="en" aria-label="{{lab.lang.en}}" title="{{lab.lang.en}}"{{flag.en.current}}><img class="lang-switcher__flag" src="/flags/flag_uk.svg" alt="" width="20" height="14"></a>
-    </nav>
-    <div class="brand">
+    <div class="brand" id="brand">
       <span class="logo" role="img" aria-label="{{lab.topbar.logo}}"></span>
-      <!-- O aviso de versão nova: com o número da versão, um botão que abre o painel logo depois dele (o próximo
-           Tab entra no painel); sem número (aviso forçado), o link para as releases. O selo de opinião só
-           aparece com o endereço do formulário e só com espaço na barra (1024 px ou mais). -->
-      <div class="version-box">
-        <span class="version" id="version"></span>
+      <div class="version-box" id="version-box">
+        <a class="version-tag" id="version" target="_blank" rel="noopener"><span class="v-short" aria-hidden="true">v{{version}}</span><span class="v-long">{{topbar.version}}</span><span class="m-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
         <a class="version-notice" id="version-notice" target="_blank" rel="noopener" hidden></a>
         <button class="version-notice" type="button" id="release-btn" aria-expanded="false" aria-controls="release-panel" hidden><span class="dot" id="release-dot" aria-hidden="true"></span><span id="release-line"></span></button>
         <div class="rel-pop" id="release-panel" role="region" hidden></div>
       </div>
-      <a class="pill-hdr" id="feedback-pill" target="_blank" rel="noopener" hidden>{{lab.feedback.pill}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
     </div>
-    <div class="bar-end">
-      <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}" target="_blank" rel="noopener">{{lab.topbar.docs}}<span class="hover-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
-      <div class="view">
-        <div class="seg" role="group" aria-label="{{lab.topbar.text_size}}" id="seg-text">
-          <button class="seg-btn" type="button" id="text-down" aria-label="A− {{lab.topbar.text_smaller}}" title="{{lab.topbar.text_smaller}}"><span aria-hidden="true"><span class="a-s">A</span>−</span></button>
-          <button class="seg-btn" type="button" id="text-up" aria-label="A+ {{lab.topbar.text_larger}}" title="{{lab.topbar.text_larger}}"><span aria-hidden="true"><span class="a-l">A</span>+</span></button>
-        </div>
-        <div class="seg" role="group" aria-label="{{lab.topbar.theme}}" id="seg-theme">
-          <button class="seg-btn" type="button" data-theme-choice="light" aria-pressed="false" aria-label="{{lab.topbar.theme_light}}" title="{{lab.topbar.theme_light}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-          <button class="seg-btn" type="button" data-theme-choice="dark" aria-pressed="false" aria-label="{{lab.topbar.theme_dark}}" title="{{lab.topbar.theme_dark}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A5.9 5.9 0 0 1 5.9 2.4a5.9 5.9 0 1 0 7.7 7.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+    <button class="guide-open" type="button" id="guide-open" aria-haspopup="dialog"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.75c-.5.22-.8.6-.8 1.15v.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></svg><span class="guide-label">{{lab.guide.open}}</span></button>
+    <a class="docs-link" id="docs-link" href="/swagger?lang={{lang}}" target="_blank" rel="noopener"><span class="docs-long">{{lab.topbar.docs_full}}</span><span class="docs-short" aria-hidden="true">Swagger</span><span class="m-arrow" aria-hidden="true">↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a>
+    <div class="bar-end" id="bar-end">
+      <div class="menu-wrap">
+        <button class="cap lang-btn" type="button" id="lang-btn" data-menu aria-expanded="false" aria-controls="lang-menu"><img src="/flags/{{lang.flag}}" alt="" width="20" height="14"><span class="lang-code">{{lang.code}}</span><span class="sr-only">, {{lang.name}}. {{lab.topbar.lang_change}}</span><svg class="chev" width="12" height="12" aria-hidden="true"><use href="#i-chev"/></svg></button>
+        <div class="menu lang-menu" id="lang-menu" hidden>
+          <p class="m-h" id="lang-menu-title">{{lab.topbar.languages}}</p>
+          <ul class="m-list" aria-labelledby="lang-menu-title">
+            <li><a class="m-item" href="?lang=pt-BR" hreflang="pt-BR" lang="pt-BR" data-lang="pt-BR"{{flag.pt-BR.current}}><img src="/flags/flag_brazil.svg" alt="" width="20" height="14">{{lab.lang.pt_br}}<svg class="m-check" width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg></a></li>
+            <li><a class="m-item" href="?lang=es" hreflang="es" lang="es" data-lang="es"{{flag.es.current}}><img src="/flags/flag_peru.svg" alt="" width="20" height="14">{{lab.lang.es}}<svg class="m-check" width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg></a></li>
+            <li><a class="m-item" href="?lang=en" hreflang="en" lang="en" data-lang="en"{{flag.en.current}}><img src="/flags/flag_uk.svg" alt="" width="20" height="14">{{lab.lang.en}}<svg class="m-check" width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg></a></li>
+          </ul>
         </div>
       </div>
+      <div class="cap prefs" id="prefs">
+        <div class="seg seg-text" role="group" aria-label="{{lab.topbar.text_size}}" id="seg-text">
+          <span class="m-h" aria-hidden="true">{{lab.topbar.text_size}}</span>
+          <button class="seg-btn" type="button" id="text-down" aria-label="A− {{lab.topbar.text_smaller}}"><span aria-hidden="true"><span class="a-s">A</span>−</span></button>
+          <span class="m-size" id="text-size-name" aria-hidden="true"></span>
+          <button class="seg-btn" type="button" id="text-up" aria-label="A+ {{lab.topbar.text_larger}}"><span aria-hidden="true"><span class="a-l">A</span>+</span></button>
+        </div>
+        <span class="prefs-sep" aria-hidden="true"></span>
+        <div class="seg seg-theme" role="group" aria-label="{{lab.topbar.theme}}" id="seg-theme">
+          <span class="m-h" aria-hidden="true">{{lab.topbar.theme}}</span>
+          <button class="seg-btn" type="button" data-theme-choice="light" aria-pressed="false" aria-label="{{lab.topbar.theme_light}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="m-label">{{lab.topbar.theme_light_short}}</span></button>
+          <button class="seg-btn" type="button" data-theme-choice="dark" aria-pressed="false" aria-label="{{lab.topbar.theme_dark}}"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A5.9 5.9 0 0 1 5.9 2.4a5.9 5.9 0 1 0 7.7 7.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="m-label">{{lab.topbar.theme_dark_short}}</span></button>
+        </div>
+      </div>
+      <div class="menu-wrap more-wrap">
+        <button class="cap more-btn" type="button" id="more-btn" data-menu aria-expanded="false" aria-controls="more-menu"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr-only">{{lab.topbar.more}}</span></button>
+        <div class="menu more-menu" id="more-menu" hidden><span class="m-sep" id="more-sep"></span></div>
+      </div>
     </div>
+  </div>
+  <!-- A faixa roxa é fina; a linha de opinião só aparece com data-feedback na raiz, que prefs-boot.js põe antes
+       da primeira pintura nos dias em que ela vale. O link do formulário vem de app.js. -->
+  <div class="topbar-band">
+    <p class="fb-line" id="feedback-band">{{lab.feedback.band}} <a class="fb-link" id="feedback-band-link" target="_blank" rel="noopener">{{lab.feedback.band_link}}<span aria-hidden="true"> ↗</span><span class="sr-only"> {{lab.link.new_tab}}</span></a></p>
   </div>
 </header>
 
@@ -86,7 +124,7 @@
         <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <input class="input" type="search" id="filter" placeholder="{{lab.routes.filter_placeholder}}" autocomplete="off">
       </label>
-      <div class="route-list" id="route-list"></div>
+      <div class="route-list is-loading" id="route-list"></div>
     </section>
   </div>
 
@@ -95,16 +133,18 @@
       <h2 class="zone-title" id="request-zone-title">{{lab.request.title}}</h2>
       <a class="head-doc-link" id="doc-link" target="_blank" rel="noopener" hidden></a>
     </div>
-    <section class="request" id="request" aria-labelledby="req-title" tabindex="-1"></section>
+    <section class="request" id="request" tabindex="-1"></section>
   </section>
 
   <!-- Resultado: a origem do envio mostrado no fim da linha do título e, numa coluna só, o link de volta à
-       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. -->
+       barra de endereço; o cabeçalho do envio; o Fluxo; e as abas Resposta e Foi enviado. Só as quatro zonas são
+       regiões nomeadas: as partes de dentro (a Requisição da rota, o Fluxo) não têm nome de região, para a lista
+       de marcos do leitor de tela ficar curta. -->
   <section class="zone zone-result" id="result" aria-labelledby="result-title">
     <div class="zone-head"><h2 class="zone-title" id="result-title">{{lab.result.title}}</h2><span class="tag result-origin" id="result-origin" hidden></span><a class="result-edit" id="result-edit" href="#request-zone" hidden>{{lab.result.edit}}</a></div>
     <div class="result-empty" id="result-empty" tabindex="-1"></div>
     <p class="shown" id="shown" tabindex="-1" aria-describedby="result-origin" hidden></p>
-    <section class="flow" id="flow" aria-labelledby="flow-title" hidden>
+    <section class="flow" id="flow" hidden>
       <div class="band">
         <h3 class="band-title"><button class="flow-toggle" type="button" id="flow-title" aria-expanded="true" aria-controls="flow-body"></button></h3>
         <div class="band-tools flow-controls" id="flow-controls">

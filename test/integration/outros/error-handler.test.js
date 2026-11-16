@@ -99,6 +99,44 @@ describe('Error handler', () => {
     }))
   })
 
+  // A regra vale para todo erro que o body-parser marca como do cliente, não só para os tipos com mensagem própria.
+  it('Responde com o status 4xx e o tipo um erro do cliente sem mensagem própria, e registra como alerta - @skipE2E', async () => {
+    const consoleLogStub = sandbox.stub(console, 'log')
+    sandbox.stub(carrinhosService, 'getAll').throws({ type: 'request.size.invalid', expose: true, statusCode: 400, message: 'request size did not match content length' })
+
+    const { body } = await request.get('/carrinhos').expect(400)
+
+    chai.assert.deepEqual(body, {
+      message: 'Não foi possível ler a requisição. Confira o corpo e os headers enviados.',
+      error: 'request.size.invalid'
+    })
+    sinon.assert.calledOnce(consoleLogStub)
+    sinon.assert.calledWith(consoleLogStub, sinon.match({ level: 'alert', message: 'Client error 400: request.size.invalid' }))
+  })
+
+  it('Responde com o status 4xx um erro do cliente sem tipo, e registra a mensagem dele - @skipE2E', async () => {
+    const consoleLogStub = sandbox.stub(console, 'log')
+    sandbox.stub(carrinhosService, 'getAll').throws({ expose: true, statusCode: 403, message: 'sem tipo' })
+
+    const { body } = await request.get('/carrinhos').expect(403)
+
+    chai.assert.deepEqual(body, { message: 'Não foi possível ler a requisição. Confira o corpo e os headers enviados.' })
+    sinon.assert.calledWith(consoleLogStub, sinon.match({ level: 'alert', message: 'Client error 403: sem tipo' }))
+  })
+
+  it('Mantém o 500 que pede issue para um erro 5xx, mesmo marcado com expose - @skipE2E', async () => {
+    sandbox.stub(console, 'log')
+    sandbox.stub(carrinhosService, 'getAll').throws({ type: 'stream.not.readable', expose: true, statusCode: 503 })
+
+    const { body } = await request.get('/carrinhos').expect(500)
+
+    chai.assert.deepEqual(body, {
+      message: 'Abra uma issue informando essa resposta. https://github.com/ServeRest/ServeRest/issues',
+      error: 'stream.not.readable',
+      version
+    })
+  })
+
   it('Deve informar para abrir issue ao retornar erro de schema que ainda não foi mapeado" - @skipE2E', async () => {
     sandbox.stub(carrinhosService, 'getAll').throws({
       name: 'ValidationError',

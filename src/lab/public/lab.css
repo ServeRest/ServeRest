@@ -212,10 +212,9 @@ button { cursor: pointer; }
    o foco, o sublinhado fica cheio e a seta aparece. */
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
-.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a, .docs-link, .version-link { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.docs-link, .version-link { text-decoration-color: color-mix(in srgb, currentColor 55%, transparent); }
+.method-link, .status-link .status-text, .head-doc-link, .res-headers dt a { text-decoration: underline dotted; text-decoration-color: var(--control); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .res-headers dt a, .res-headers dt a:hover { color: inherit; }
-.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible, .docs-link:hover, .docs-link:focus-visible, .version-link:hover, .version-link:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.method-link:hover, .method-link:focus-visible, .status-link:hover .status-text, .status-link:focus-visible .status-text, .head-doc-link:hover, .head-doc-link:focus-visible, .res-headers dt a:hover, .res-headers dt a:focus-visible { text-decoration-style: solid; text-decoration-color: currentColor; text-decoration-thickness: 1px; }
 .method-link > span[aria-hidden="true"], .status-link > span[aria-hidden="true"], .head-doc-link > span[aria-hidden="true"], .res-headers dt a > span[aria-hidden="true"] { visibility: hidden; }
 .method-link:hover > span[aria-hidden="true"], .method-link:focus-visible > span[aria-hidden="true"], .status-link:hover > span[aria-hidden="true"], .status-link:focus-visible > span[aria-hidden="true"], .head-doc-link:hover > span[aria-hidden="true"], .head-doc-link:focus-visible > span[aria-hidden="true"], .res-headers dt a:hover > span[aria-hidden="true"], .res-headers dt a:focus-visible > span[aria-hidden="true"] { visibility: visible; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -237,96 +236,194 @@ a:hover { color: var(--accent-strong); text-decoration-thickness: 2px; }
    inteira; o conteúdo dela usa o mesmo recipiente. */
 .wrap { width: 100%; max-width: 1800px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
 
-/* Barra superior: a mesma do Swagger, nos dois esquemas */
-.topbar { background: var(--bar-bg); color: var(--bar-fg); border-bottom: 20px solid var(--purple); }
-.topbar-inner { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
+/* Barra superior: uma linha de 64 px (56 no telefone) e a faixa roxa. Tudo em px: a barra é a mesma nos três
+   tamanhos de texto. */
+.topbar { background: var(--bar-bg); color: var(--bar-fg); }
+.topbar-inner { position: relative; display: flex; align-items: center; height: 64px; }
 .topbar :focus-visible { outline-color: var(--bar-fg); }
-.brand { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: 32px; flex: none; }
 /* A logo completa (a arte da marca, recortada) como máscara: branca na barra. O PNG fica no dobro da maior
    altura mostrada, 88 px; a proporção e as divisas do degradê do Sobre seguem as da arte de 4005 x 1536. */
 .logo { display: block; flex: none; height: 44px; aspect-ratio: 4005 / 1536; background-color: var(--bar-fg); -webkit-mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; mask: url("img/serverest-logo.png") 0 0 / 100% 100% no-repeat; }
-/* Os textos da barra em px, como os botões: a barra fica igual nos três tamanhos de texto, e A− e A+ não
-   saem de baixo do ponteiro em nenhuma largura. */
-.version-box { display: flex; flex-direction: column; gap: 0; line-height: 1.35; }
-.version { font-size: 12.5px; color: var(--bar-muted); font-variant-numeric: tabular-nums; }
-.version-link { position: relative; color: inherit; }
-.version-link:hover, .version-link:focus-visible { color: var(--bar-fg); }
-.docs-link { position: relative; }
-.version-link .hover-arrow, .docs-link .hover-arrow { position: absolute; left: 100%; margin-left: 2px; visibility: hidden; text-decoration: none; }
-.version-link:hover .hover-arrow, .version-link:focus-visible .hover-arrow, .docs-link:hover .hover-arrow, .docs-link:focus-visible .hover-arrow { visibility: visible; }
-/* Aviso de versão nova: uma linha discreta sob a versão, só quando o servidor conhece uma versão mais nova. */
-.version-notice { font-size: 12.5px; color: var(--bar-notice); font-weight: 600; }
+/* A etiqueta mostra "v3.4.0"; o leitor de tela e o menu do telefone, "versão 3.4.0" (.v-long). */
+.version-box { position: relative; display: flex; align-items: center; gap: 6px; }
+.version-tag { font-size: 12px; line-height: 1; color: var(--bar-muted); border: 1px solid #444444; border-radius: 4px; padding: 5px 6px; text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.version-tag:hover, .version-tag:focus-visible { color: var(--bar-fg); border-color: #999999; }
+.version-tag .m-arrow { display: none; }
+.brand .v-long { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Aviso de versão nova, colado na etiqueta; o ponto some quando o painel dessa versão já foi aberto. */
+.version-notice { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 24px; min-height: 24px; font-size: 12px; font-weight: 600; color: var(--bar-notice); white-space: nowrap; }
 .version-notice:hover { color: var(--bar-fg); }
-/* Com o número da versão, o aviso é um botão sublinhado, com um ponto enquanto o painel dessa versão não
-   foi aberto; o painel abre logo abaixo, nas cores da página (segue o tema mesmo sobre a barra preta). */
-button.version-notice { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-family: inherit; line-height: inherit; text-align: left; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
+button.version-notice { padding: 0 2px; border: 0; background: none; font-family: inherit; line-height: 1; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; }
 button.version-notice[aria-expanded="true"] { color: var(--bar-fg); }
 .version-notice .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 20; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; }
+.rel-pop { position: absolute; top: calc(100% + 10px); left: 0; z-index: 30; width: min(24rem, calc(100vw - 64px)); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; white-space: normal; text-align: left; }
 .rel-pop[hidden] { display: none; }
 .rel-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
 .rel-pop .code-page { padding: 6px 10px; }
 .rel-pop a { color: var(--accent); }
 .rel-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
 .topbar .rel-pop :focus-visible { outline-color: var(--focus); }
-/* O selo de opinião, depois da versão: só com espaço na barra (regra de 1024 px abaixo). */
-.pill-hdr { position: relative; isolation: isolate; overflow: hidden; display: none; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--bar-notice); border: 1px solid #8f7ab0; border-radius: 999px; padding: 3px 10px; text-decoration: none; white-space: nowrap; }
-.pill-hdr:hover { color: var(--bar-fg); border-color: var(--bar-fg); }
-/* Para o selo ser notado, uma faixa de luz o atravessa da esquerda para a direita duas vezes e para de vez.
-   Movimento que começa sozinho e passa de 5 s precisaria de um botão de pausa (WCAG 2.2.2): tudo termina
-   5 s depois de o selo aparecer (1 s de espera, 1,6 s por passada, 0,8 s entre elas). A faixa fica atrás do
-   texto, e no pico clareia o fundo só até manter 7:1 de contraste; parada, ela fica fora do selo. Uma
-   animação de CSS recomeçaria quando o selo volta a aparecer depois de um display: none (janela estreitada
-   abaixo de 1024 px e alargada de novo): app.js põe .shine-done quando ela termina ou é interrompida. */
-.pill-hdr::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.2) 50%, transparent 75%); transform: translateX(-100%); animation: pillShine 4s ease-in-out 1s; }
-.pill-hdr.shine-done::after { animation: none; display: none; }
-@keyframes pillShine {
-  0% { transform: translateX(-100%); }
-  40% { transform: translateX(100%); animation-timing-function: steps(1, end); }
-  60% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-@media (prefers-reduced-motion: reduce) { .pill-hdr::after { animation: none; display: none; } }
-.docs-link { color: var(--bar-fg); font-size: 14px; font-weight: 600; padding: 6px 2px; white-space: nowrap; }
-.docs-link:hover { color: var(--bar-fg); }
-
-/* O seletor de idioma do Swagger (src/swagger/styles/language-switcher.css), sem position fixed: a cápsula
-   branca com as três bandeiras, no começo da barra. A bandeira do idioma da página fica maior; depois de
-   trocar de idioma, a cápsula brilha na cor da bandeira escolhida por 1 s. */
-.lang-switcher { display: flex; flex: none; gap: 6px; background: rgba(255, 255, 255, 0.92); border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 8px; box-shadow: 0px 2px 5px rgba(124, 58, 237, 0.5); transition: box-shadow 1.5s ease-out; }
-.lang-switcher.lang-switcher--glow { transition: box-shadow 0.15s ease-out; }
-.lang-switcher__button { border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; opacity: 0.6; display: inline-flex; align-items: center; justify-content: center; color: #000; text-decoration: none; }
-.lang-switcher__flag { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
-.lang-switcher__button:hover { opacity: 1; transform: translateY(-2px); }
-.lang-switcher__button.is-active { opacity: 1; transform: scale(1.3); }
-.lang-switcher[data-glow-lang='pt-BR'].lang-switcher--glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
-.lang-switcher[data-glow-lang='en'].lang-switcher--glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
-.lang-switcher[data-glow-lang='es'].lang-switcher--glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
-/* O anel branco da barra some na cápsula branca: dentro dela, anel preto. */
-.topbar .lang-switcher__button:focus-visible { opacity: 1; outline: 2px solid #000000; outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .lang-switcher, .lang-switcher.lang-switcher--glow { transition: none; } }
-
-/* No fim da barra, o link da documentação e os dois pares de botões: tamanho do texto (A− e A+) e tema
-   (claro e escuro). Sem caixa: cada botão é só o texto ou o ícone, com um fundo escuro ao passar o mouse;
-   os pares ficam a 10 px um do outro. O tema em uso fica branco e sublinhado (uma barra de 2 px, forma além
-   da cor); o outro, cinza claro (11,4:1 no preto). O anel de foco é o branco da barra (21:1), rente ao
-   botão. Tudo em px, para a barra não crescer com o texto. */
-.bar-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px 20px; margin-left: auto; }
-.view { display: flex; align-items: center; gap: 10px; flex: none; }
-.seg { display: inline-flex; }
-.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 4px; background: none; color: #ffffff; font: 600 14px/1 "Open Sans", sans-serif; cursor: pointer; }
+.topbar .guide-open { margin-left: 0; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border: 1px solid var(--bar-notice); border-radius: 4px; background: none; color: var(--bar-notice); font: 600 14px/1 var(--font-ui); white-space: nowrap; flex: none; }
+.topbar .guide-open:hover { background: rgba(215, 180, 255, 0.14); color: var(--bar-fg); }
+.guide-open svg { display: block; flex: none; }
+/* Abaixo de 900 px a documentação mostra "Swagger"; o nome inteiro continua para o leitor de tela. */
+.docs-link { margin-left: 20px; color: var(--bar-fg); font-size: 14px; font-weight: 600; line-height: 20px; padding: 8px 2px; white-space: nowrap; text-decoration: underline solid 1px; text-decoration-color: rgba(255, 255, 255, 0.4); text-underline-offset: 4px; }
+.docs-link:hover, .docs-link:focus-visible { color: var(--bar-fg); text-decoration-color: currentColor; text-decoration-thickness: 1px; }
+.docs-link .m-arrow { display: inline-block; margin-left: 3px; text-decoration: none; }
+.docs-short { display: none; }
+.bar-end { margin-left: auto; display: flex; align-items: center; gap: 12px; flex: none; padding-left: 16px; }
+.cap { display: inline-flex; align-items: center; height: 36px; border: 1px solid #333333; border-radius: 999px; background: none; color: var(--bar-fg); }
+button.cap { cursor: pointer; }
+.lang-btn { gap: 6px; padding: 0 10px 0 12px; font: 600 13px/1 var(--font-ui); letter-spacing: 0.02em; transition: box-shadow 1.5s ease-out; }
+.lang-btn img { display: block; width: 20px; height: 14px; border-radius: 2px; object-fit: cover; }
+.lang-btn .chev { display: block; color: var(--bar-muted); }
+.lang-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.lang-btn:hover, .more-btn:hover { border-color: #777777; }
+/* Depois da troca de idioma, o botão brilha 1 s na cor da bandeira. */
+.lang-btn.lang-glow { transition: box-shadow 0.15s ease-out; }
+.lang-btn[data-glow-lang='pt-BR'].lang-glow { box-shadow: 0 0 6px #009739, 0 0 15px #009739; }
+.lang-btn[data-glow-lang='en'].lang-glow { box-shadow: 0 0 6px #2c6bff, 0 0 15px #2c6bff; }
+.lang-btn[data-glow-lang='es'].lang-glow { box-shadow: 0 0 6px #ff2b2b, 0 0 15px #ff2b2b; }
+@media (prefers-reduced-motion: reduce) { .lang-btn, .lang-btn.lang-glow { transition: none; } }
+/* O tema em uso fica branco e sublinhado (forma além da cor); o outro, cinza claro (11,4:1 no preto). Os
+   títulos e os nomes só aparecem no menu do telefone. */
+.prefs { padding: 0 3px; }
+.prefs-sep { width: 1px; height: 20px; background: #333333; margin: 0 4px; }
+.prefs .m-h, .prefs .m-size, .prefs .m-label { display: none; }
+.seg { display: inline-flex; align-items: center; }
+.seg-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 1px; width: 34px; height: 32px; padding: 0; border: 0; border-radius: 999px; background: none; color: #ffffff; font: 600 14px/1 var(--font-ui); cursor: pointer; }
 .seg-btn:hover { background: #2f3238; }
 .topbar .seg-btn:focus-visible { z-index: 1; outline-offset: 0; }
 .seg-btn[data-theme-choice] { color: var(--bar-muted); }
 .seg-btn[data-theme-choice]:hover { color: #ffffff; }
 /* O estado vem da raiz (gravada antes da primeira pintura): o botão já nasce marcado, sem piscar. */
 :root[data-theme="light"] .seg-btn[data-theme-choice="light"], :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"] { color: #ffffff; }
-:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 3px; height: 2px; border-radius: 1px; background: currentColor; }
+:root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 2px; height: 2px; border-radius: 1px; background: currentColor; }
 :root[data-text="normal"] #text-down, :root[data-text="maior"] #text-up { color: #80848c; background: none; cursor: not-allowed; }
 @media (forced-colors: active) { :root[data-theme="light"] .seg-btn[data-theme-choice="light"]::after, :root[data-theme="dark"] .seg-btn[data-theme-choice="dark"]::after { background: CanvasText; } }
 .seg-btn .a-s { font-size: 12px; }
 .seg-btn .a-l { font-size: 17px; }
 .seg-btn svg { display: block; }
+.menu-wrap { position: relative; display: flex; }
+.menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: 248px; max-width: calc(100vw - 20px); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 6px; box-shadow: var(--shadow); padding: 6px; font: 400 14px/1.35 var(--font-ui); text-align: left; }
+.topbar .menu :focus-visible { outline-color: var(--focus); outline-offset: -2px; }
+.m-h { margin: 0; padding: 8px 10px 4px; font-size: 12px; font-weight: 600; color: var(--graphite); }
+.m-list { margin: 0; padding: 0; list-style: none; }
+.m-item { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 10px; border-radius: 4px; color: inherit; text-decoration: none; }
+.m-item:hover { background: var(--hover); color: inherit; }
+.m-item img { width: 20px; height: 14px; border-radius: 2px; object-fit: cover; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.m-check { margin-left: auto; flex: none; visibility: hidden; color: var(--accent); }
+.m-item[aria-current="true"] { font-weight: 600; }
+.m-item[aria-current="true"] .m-check { visibility: visible; }
+.m-sep { display: block; height: 1px; margin: 6px 4px; background: var(--border); }
+/* "Mais opções", só no telefone: os mesmos controles da barra, arrumados como itens do menu. */
+.more-wrap { display: none; }
+.more-btn { width: 40px; justify-content: center; }
+.more-btn svg { display: block; }
+.more-menu .prefs { display: block; height: auto; padding: 0; border: 0; border-radius: 0; color: inherit; }
+.more-menu .prefs-sep { display: none; }
+.more-menu .seg { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 6px; padding: 0 4px 6px; }
+.more-menu .seg-theme { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.more-menu .prefs .m-h { display: block; grid-column: 1 / -1; padding-left: 6px; padding-right: 6px; }
+.more-menu .prefs .m-size { display: block; text-align: center; font-weight: 600; }
+.more-menu .prefs .m-label { display: inline; }
+.topbar .more-menu .seg-btn { width: auto; height: auto; min-height: 36px; gap: 6px; padding: 0 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--ink); font: 400 14px/1 var(--font-ui); }
+.topbar .more-menu .seg-btn:hover { background: var(--hover); }
+.topbar .more-menu #text-down, .topbar .more-menu #text-up { font-weight: 600; }
+:root .topbar .more-menu .seg-btn[data-theme-choice][aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }
+:root .topbar .more-menu .seg-btn[data-theme-choice]::after { display: none; }
+:root[data-text="normal"] .more-menu #text-down, :root[data-text="maior"] .more-menu #text-up { color: var(--control); }
+.more-menu .docs-link, .more-menu .version-tag { display: flex; align-items: center; min-height: 36px; margin: 0; padding: 6px 10px; border: 0; border-radius: 4px; color: var(--ink); font: 400 14px/1.35 var(--font-ui); text-decoration: none; }
+.more-menu .docs-link:hover, .more-menu .version-tag:hover { background: var(--hover); color: var(--ink); }
+.more-menu .docs-link .m-arrow, .more-menu .version-tag .m-arrow { display: inline; margin-left: auto; padding-left: 10px; color: var(--graphite); }
+.more-menu .version-box { display: block; }
+.more-menu .v-short { display: none; }
+.more-menu .version-notice { display: flex; justify-content: flex-start; min-height: 36px; padding: 6px 10px; color: var(--accent); font-size: 13px; white-space: normal; text-align: left; }
+.more-menu .version-notice:hover { color: var(--accent-strong); }
+.more-menu .version-notice .dot { align-self: flex-start; margin-top: 5px; }
+.more-menu .rel-pop { position: static; width: auto; margin: 4px; box-shadow: none; }
+/* Branco no roxo: 7,2:1. A faixa tem 20 px, como a do Swagger; a linha de opinião (28 px) só aparece com
+   data-feedback, que prefs-boot.js põe antes da primeira pintura. */
+.topbar-band { min-height: 20px; background: var(--purple); }
+.fb-line { display: none; }
+:root[data-feedback] .fb-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 0.3em; min-height: 28px; padding: 4px 12px; font-size: 12.5px; line-height: 1.2; color: #ffffff; text-align: center; }
+.fb-link { color: #ffffff; font-weight: 600; text-decoration-color: rgba(255, 255, 255, 0.6); white-space: nowrap; }
+.fb-link:hover { color: #ffffff; text-decoration-color: #ffffff; text-decoration-thickness: 1px; }
+.topbar-band :focus-visible { outline-color: #ffffff; outline-offset: 1px; }
+/* Para caber numa linha: abaixo de 1280 px o aviso mostra o ponto e o número (só o ponto abaixo de 900 px), e
+   com aviso (data-notice-url, do servidor) a documentação já vira "Swagger". */
+@container page (max-width: 1279px) {
+  .brand .rel-words, :root:not([data-notice-url=""]) .topbar-inner > .docs-link .docs-long { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  :root:not([data-notice-url=""]) .topbar-inner > .docs-link .docs-short { display: inline; }
+}
+@container page (max-width: 899px) {
+  .topbar-inner > .docs-link .docs-long, .brand .rel-num { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .topbar-inner > .docs-link .docs-short { display: inline; }
+}
+@container page (max-width: 759px) {
+  .logo { height: 34px; }
+  .brand { margin-right: 20px; gap: 8px; }
+  .docs-link { margin-left: 14px; }
+  .bar-end { gap: 8px; }
+  .prefs .seg-btn { width: 32px; }
+}
+/* De 640 a 759 px tudo fica mais junto, com alvos ainda de 24 px ou mais. */
+@container page (min-width: 640px) and (max-width: 759px) {
+  .logo { height: 30px; }
+  .brand { margin-right: 12px; gap: 6px; }
+  .topbar .guide-open { padding: 0 10px 0 8px; }
+  .docs-link { margin-left: 10px; }
+  .bar-end { padding-left: 8px; }
+  .lang-btn { padding: 0 8px 0 10px; }
+  .prefs .seg-btn { width: 28px; }
+  .prefs-sep { margin: 0 2px; }
+}
+/* Telefone: logo, "Como usar", idioma e "Mais opções", com alvos de 36 px. */
+@container page (max-width: 639px) {
+  .topbar-inner { height: 56px; }
+  .brand { margin-right: 12px; }
+  .brand .version-box, .topbar-inner > .docs-link, .bar-end > .prefs { display: none; }
+  .more-wrap { display: flex; }
+  .topbar .guide-open { height: 36px; }
+  .bar-end { padding-left: 6px; gap: 6px; }
+  .lang-btn { padding: 0 8px 0 10px; }
+}
+@container page (max-width: 399px) {
+  .logo { height: 30px; }
+  .brand { margin-right: 10px; }
+  .topbar .guide-open { padding: 0 10px 0 8px; }
+  .fb-line { font-size: 12px; padding-left: 8px; padding-right: 8px; }
+}
+/* Abaixo de 360 px "Como usar" fica só com o ícone. */
+@container page (max-width: 359px) {
+  .topbar .guide-open { width: 36px; padding: 0; justify-content: center; }
+  .guide-label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .brand { margin-right: 8px; }
+}
+/* Etiqueta de pré-release (v3.4.0-beta.2) com aviso de versão nova: o aviso já é só o ponto abaixo de 900 px, e
+   a linha ainda passava até 19 px de 640 a 658 px e até 33 px de 760 a 793 px. Só nesse estado, a forma do
+   telefone ("Mais opções") vale até 679 px e a barra junta de 640 a 759 px vale até 799 px; todos os rótulos
+   ficam. placeBarItems segue o CSS (o botão "Mais opções" à vista). */
+@container page (min-width: 640px) and (max-width: 679px) {
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner { height: 56px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .brand .version-box,
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner > .docs-link,
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end > .prefs { display: none; }
+  :root:not([data-notice-url=""])[data-version*="-"] .more-wrap { display: flex; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar .guide-open { height: 36px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end { padding-left: 6px; gap: 6px; }
+}
+@container page (min-width: 760px) and (max-width: 799px) {
+  :root:not([data-notice-url=""])[data-version*="-"] .logo { height: 30px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .brand { margin-right: 12px; gap: 6px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar .guide-open { padding: 0 10px 0 8px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .topbar-inner > .docs-link { margin-left: 10px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .bar-end { gap: 8px; padding-left: 8px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .lang-btn { padding: 0 8px 0 10px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .prefs .seg-btn { width: 28px; }
+  :root:not([data-notice-url=""])[data-version*="-"] .prefs-sep { margin: 0 2px; }
+}
 
 /* Controles */
 .input { width: 100%; border: 1px solid var(--control); border-radius: 4px; background: var(--input-bg); padding: 4px 8px; min-height: 2rem; font-size: 0.875rem; }
@@ -444,7 +541,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .filter svg { position: absolute; left: 21px; top: 50%; transform: translateY(-50%); color: var(--graphite); }
 .route-list { flex: 1; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 .group h3 { position: sticky; top: 0; z-index: 1; display: flex; gap: 6px; align-items: baseline; font-size: 0.9375rem; padding: 5px 12px 3px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.group h3 span { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
+/* Só a contagem fica miúda e grafite; o nome do grupo (um span com lang fora do pt-BR) segue o título. */
+.group h3 .group-count { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 400; color: var(--graphite); font-variant-numeric: tabular-nums; }
 /* A descrição do grupo (tags[].description) sob o nome, como no Swagger: uma linha discreta que rola com
    a lista (o nome continua grudado no topo) e pode quebrar, nunca cortada. */
 .group-desc { padding: 6px 12px 0; font-size: 0.75rem; line-height: 1.4; color: var(--graphite); overflow-wrap: break-word; }
@@ -488,20 +586,21 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .request:focus { outline: none; }
 .request:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .req-title { font-size: 1.5625rem; line-height: 1.15; text-wrap: balance; }
-.req-desc { margin-top: var(--space-m); display: flex; flex-direction: column; gap: var(--space-s); max-width: 72ch; }
+.req-desc { margin-top: var(--space-l); display: flex; flex-direction: column; gap: var(--space-s); max-width: 72ch; }
 .req-desc code { font-size: 0.78125rem; font-weight: 600; background: var(--well); padding: 1px 4px; border-radius: 2px; }
 /* Link da rota na documentação: no fim da linha do título da zona, discreto (grafite, sem sublinhado em
    repouso). O texto visível é curto; o nome acessível começa por ele e diz o resto. */
 .head-doc-link { margin-left: auto; display: inline-block; padding: 0.25rem 0; line-height: 1.25rem; font-size: 0.8125rem; color: var(--graphite); white-space: nowrap; }
 .head-doc-link:hover, .head-doc-link:focus-visible { color: var(--ink); }
-/* Barra de endereço: sempre uma linha. Selo, URL e Executar na largura natural. Se a URL não cabe, a base
-   sai primeiro (ela está inteira em Requisição a enviar e no title); se nem o caminho cabe, ele perde o começo,
-   com reticências à esquerda, e o fim (a parte que muda de rota para rota) continua à vista. O invólucro dá
-   à barra o respiro de cima e de baixo. */
+/* Barra de endereço: selo, URL e Executar numa linha. A URL fica na célula do meio e quebra dentro dela onde
+   precisar; a base sai primeiro quando não cabe numa linha com o caminho (.no-base, de fitReqBar em app.js; ela
+   está inteira em Requisição a enviar e no title). O selo e o Executar ficam no alto da barra, alinhados pelo
+   centro da primeira linha, e não mudam de lugar de uma rota para outra: um caminho longo só faz a barra crescer
+   uma linha. O invólucro dá à barra o respiro de cima e de baixo. */
 .req-bar-wrap { margin: calc(var(--space-xl) - 8px) calc(-1 * var(--req-x)) 0; padding: 8px var(--req-x); background: var(--surface); }
 .req-bar {
   --m: var(--ink);
-  display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 5px;
+  display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 4px; padding: 5px;
   border: 1px solid color-mix(in srgb, var(--m) 60%, var(--surface)); border-radius: 4px; background: color-mix(in srgb, var(--m) var(--bar-tint), var(--surface));
 }
 .req-bar:has(.m-get) { --m: var(--m-get); }
@@ -509,18 +608,29 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .req-bar:has(.m-put) { --m: var(--m-put); }
 .req-bar:has(.m-patch) { --m: var(--m-patch); }
 .req-bar:has(.m-delete) { --m: var(--m-delete); }
-.req-bar .method { flex: none; font-size: 0.75rem; padding: 7px 6px 6px; }
-/* Uma linha visível: o caminho vem primeiro na linha (order) e a base à esquerda dele (row-reverse); se as
-   duas não cabem, a base quebra para a segunda linha, que fica escondida. A leitura segue a ordem do DOM. */
-.req-path { flex: 1 1 auto; min-width: 0; display: flex; flex-flow: row-reverse wrap; justify-content: flex-end; align-content: flex-start; height: calc(1.5em + 8px); overflow: hidden; padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; white-space: nowrap; }
-.req-base { flex: none; color: var(--graphite); font-weight: 400; }
-.req-route { order: -1; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; direction: rtl; text-align: left; }
+/* O selo (0,75rem de texto e 13 px de respiro) e a primeira linha do caminho (1,3125rem e 4 px em cima) centrados
+   na altura do Executar (2,125rem). */
+.req-bar .method { flex: none; margin-top: calc((2.125rem - 0.75rem - 13px) / 2); font-size: 0.75rem; padding: 7px 6px 6px; }
+.req-path { flex: 1 1 0; min-width: 0; display: block; margin-top: calc(0.40625rem - 4px); padding: 4px 8px; font-size: 0.875rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.req-base { color: var(--graphite); font-weight: 400; }
+.req-bar.no-base .req-base { display: none; }
+/* Duas linhas só quando a largura deixa menos de 8 caracteres para o caminho ao lado do Executar mais largo
+   dos três idiomas ("Executando", durante o envio): selo e caminho em cima, o Executar embaixo, à direita, perto
+   do atalho. A conta (selo DELETE, os respiros, a fonte do caminho, Executando e o botão do modo, mais os 20 px
+   de respiro da zona de cada lado) foi medida com o texto normal e o maior: 9rem + 194 px sem o caminho, e
+   0,525rem por caractere; 13rem deixa 7,6 caracteres. Com 8, a Requisição de 1200 px de página (406 px, com as
+   colunas iguais abaixo de 1440 px) já fica numa linha. A forma depende só da largura e do tamanho do texto,
+   nunca da rota: numa largura, todas as rotas têm a mesma forma. */
+@container req (width < calc(13rem + 194px)) {
+  .req-bar { flex-wrap: wrap; row-gap: 6px; }
+  .req-bar .run-split { flex-basis: 100%; justify-content: flex-end; }
+}
 .req-bar .btn-primary { flex: none; align-self: center; min-height: 2.125rem; padding: 4px 24px; font-size: 0.875rem; }
 /* Executar dividido: a parte principal envia no modo em uso; o segmento da direita mostra, em branco, o
    ícone do modo (as setas do ServeRest: normal; o caracol: câmera lenta) e a seta pequena de menu, sempre
    os dois, e abre o menu do modo. Durante o envio os dois ficam com o desenho indisponível. */
 .ico { display: block; flex: none; width: 16px; height: 16px; }
-.run-split { position: relative; display: inline-flex; flex: none; align-self: center; }
+.run-split { position: relative; display: inline-flex; flex: none; }
 .run-split .btn-primary { border-radius: 4px 0 0 4px; }
 .run-split:has(> .run-mode[hidden]) .btn-primary { border-radius: 4px; }
 .run-mode { display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 2.25rem; min-height: 2.125rem; padding: 0 8px; border: 1px solid var(--purple); border-left-color: rgba(255, 255, 255, 0.45); border-radius: 0 4px 4px 0; background: var(--purple); color: var(--on-purple); }
@@ -593,16 +703,16 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .flow.is-collapsed .fc-read { display: grid; margin: 6px 0 0; font-size: 0.8125rem; line-height: 1.4; color: var(--graphite); }
 /* A linha de leitura e, no canto direito, a marca "escala ajustada", numa coluna da largura dela que existe
    sempre: a leitura guarda a altura da frase mais longa nessa coluna mais estreita, e a marca, visível só quando
-   o servidor cresceu além da escala e depois do veredito, não mexe em nada. A explicação aparece com o mouse e
-   o foco. */
+   a barra saiu da escala e depois do veredito, não mexe em nada. A marca abre o balão com a explicação, sob ela
+   (scaleButton, em app.js). */
 .fc-read-row { display: none; }
 .flow.is-collapsed .fc-read-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: start; margin-top: 6px; }
 .flow.is-collapsed .fc-read-row > .fc-read { margin: 0; }
-.fc-scale { position: relative; visibility: hidden; margin: 1px 0 0; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; background: none; color: var(--graphite); font-size: 0.6875rem; line-height: 1.3; white-space: nowrap; cursor: help; }
+.fc-scale { position: relative; visibility: hidden; margin: 1px 0 0; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; background: none; color: var(--graphite); font-size: 0.6875rem; line-height: 1.3; white-space: nowrap; cursor: pointer; }
 .fc-scale.is-on { visibility: visible; }
 .fc-scale:focus { outline: none; }
 .fc-scale:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.fc-scale.is-on:hover::after, .fc-scale.is-on:focus-visible::after { content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20; width: max-content; max-width: min(18rem, 80vw); padding: 6px 8px; border: 1px solid var(--control); border-radius: 4px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink); font-size: 0.75rem; line-height: 1.4; white-space: normal; text-align: left; }
+.fc-scale:hover, .fc-scale[aria-expanded="true"], .tl-scale:hover, .tl-scale[aria-expanded="true"] { border-style: solid; color: var(--ink); }
 .fc-read > .fc-read-text, .fc-read::after { grid-area: 1 / 1; }
 .fc-read::after { content: attr(data-reserve) / ""; visibility: hidden; pointer-events: none; user-select: none; }
 .fc-read-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
@@ -627,6 +737,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .fc-oi:focus { outline: none; }
 .fc-ns { position: absolute; left: 0; right: 0; top: 50%; height: 16px; margin-top: -8px; background: var(--seg-idle); }
 .fc-onet.conn .fc-ns { background: var(--graphite); }
+.fc-onet.net .fc-ns { box-shadow: inset 0 0 0 1px var(--control); }
 .fc-onet.down .fc-ns { background: var(--seg-response); }
 .fc-onet.is-wait .fc-ns { background: var(--well); box-shadow: inset 0 0 0 1px var(--border); }
 .fc-srv { display: grid; column-gap: 2px; min-width: 0; }
@@ -650,6 +761,9 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .band-body.is-running .num-real { opacity: 0; visibility: hidden; }
 .band-body.is-running .tl > .sr-only { display: none; }
 .band-body.is-running .num-slot > .num-skel { opacity: 1; visibility: visible; }
+/* Fora da espera o esqueleto dos números fica escondido, e o brilho dele para (seguia rodando com a página
+   parada). */
+.band-body:not(.is-running) .num-slot > .num-skel::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .num-slot > * { transition: none; } }
 .skel-still .skel-bar::after { animation: none; display: none; }
 /* Na linha de leitura, uma parte do tempo vem com um quadrado na cor dela, o tempo e a fatia do total. */
@@ -675,7 +789,7 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .band-body { padding: var(--space-m) 16px var(--space-xl); }
 /* Na Requisição a seção sai do respiro de #request para a faixa ir de borda a borda. */
 .req-section { margin: 0 calc(-1 * var(--req-x)); }
-.req-hint + .req-section, .req-bar-wrap + .req-section { margin-top: var(--space-xl); }
+.req-hint + .req-section, .req-bar-wrap + .req-section, .req-desc + .req-section { margin-top: var(--space-xl); }
 .req-section > .band, .req-section > .band-body { padding-left: var(--req-x); padding-right: var(--req-x); }
 .req-section:last-child > .band-body { padding-bottom: 0; }
 .captions { margin-top: var(--space-s); display: flex; flex-direction: column; gap: var(--space-xs); }
@@ -886,8 +1000,13 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 /* O status no cabeçalho ocupa sempre a largura do mais longo ("✗ 500 Internal Server Error"), antes e
    depois do veredito: o cabeçalho quebra as linhas do mesmo jeito nos dois, e a altura não muda na troca.
    Pendente, o esqueleto tem a mesma largura em todo envio, e a margem completa o lugar (D29). */
-.shown .status-value .chip { min-width: 16em; }
-.shown .status-value .chip-neutral { min-width: 0; margin-right: 8em; }
+/* Numa zona mais estreita que esse lugar (320 px com o texto maior), o lugar é a largura da zona e o status
+   quebra dentro dele, em vez de passar da tela; o esqueleto completa o mesmo lugar. */
+.shown .status-value .chip { min-width: min(16em, 100cqw - 32px); white-space: normal; }
+/* O esqueleto tem o texto do status mais longo, invisível (longestChip), com a mesma largura mínima e a mesma
+   quebra: a célula tem a mesma altura na espera e no veredito. A barra do esqueleto fica na primeira linha. */
+.shown .status-value .chip-neutral { width: auto; }
+.shown .status-value > .chip-neutral::after { right: auto; width: min(8em, 100%); top: 0.75em; }
 /* "Status code" escrito antes do status, no cabeçalho do Resultado (texto, sem link) e na linha da Resposta
    (link para a página do status na MDN). Até o veredito, o rótulo e o status ficam juntos no lugar guardado
    e invisível (D29). */
@@ -896,6 +1015,15 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .status-link { display: inline-flex; align-items: baseline; gap: 8px; color: inherit; text-decoration: none; }
 .status-link:hover { color: inherit; }
 .status-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+/* O status da Resposta e uma cópia invisível do status mais longo dividem a célula (statusCell): a linha tem a
+   mesma altura no esqueleto e na resposta, e numa zona estreita o status quebra dentro da célula, sem passar da
+   tela. A seta do link, no esqueleto, guarda o lugar dela, invisível. */
+.status-link { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.status-cell { display: inline-grid; min-width: 0; }
+.status-cell > * { grid-area: 1 / 1; }
+.res-line .status-cell .chip { white-space: normal; }
+.status-ghost, .pv-arrow { visibility: hidden; }
+.status-cell > .pv-chip { justify-self: start; align-self: start; height: 1.5em; }
 .shown .method { align-self: center; }
 /* Envio cujo fluxo ainda não chegou ao veredito: no cabeçalho do Resultado e na entrada do Histórico, o
    lugar do status fica guardado, invisível, com o esqueleto com brilho por cima (no cabeçalho, "Status
@@ -913,7 +1041,9 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .status-value { display: inline-grid; align-items: baseline; }
 .status-value > * { grid-area: 1 / 1; transition: opacity 0.15s ease-out, visibility 0.15s; }
 .status-value > .chip-neutral { position: relative; visibility: hidden; opacity: 0; }
-.status-value > .chip-neutral::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; animation: skelSweep 1.5s ease-in-out infinite; }
+.status-value > .chip-neutral::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 0.75rem; margin-top: -0.375rem; visibility: visible; border-radius: 2px; background: linear-gradient(90deg, var(--skel) 0%, var(--skel) 35%, var(--skel-shine) 50%, var(--skel) 65%, var(--skel) 100%); background-size: 300% 100%; }
+/* O brilho só roda na espera: escondido depois do veredito, ele seguia recalculando o estilo da página parada. */
+.is-pending > .status-value > .chip-neutral::after { animation: skelSweep 1.5s ease-in-out infinite; }
 .is-pending > .status-value > .chip-neutral { opacity: 1; }
 .is-pending > .status-value > .status-real { opacity: 0; visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .status-value > * { transition: none; } .status-value > .chip-neutral::after { animation: none; } }
@@ -926,7 +1056,8 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 /* Foi enviado: a primeira linha do painel tem só o Copiar comando, à direita (a hora já está no cabeçalho
    do Resultado); depois, o que difere do rascunho, numa frase e numa lista. */
 .sent-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin-bottom: var(--space-s); }
-.sent-times { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--ink); cursor: pointer; }
+.sent-times { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 0; font-size: 0.8125rem; color: var(--ink); cursor: pointer; }
+.sent-times input { flex: none; width: 24px; height: 24px; margin: 0; }
 .curl-times-list { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 2px 0 4px; font-size: 0.8125rem; }
 .curl-times-list dt { font-family: var(--font-code); color: var(--ink); }
 .curl-times-list dd { margin: 0; color: var(--graphite); }
@@ -939,34 +1070,56 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .setas { --setas-p: url("data:image/png;base64,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"); --setas-d: url("data:image/png;base64,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"); position: relative; display: block; flex: none; height: 32px; width: calc(32px * 135 / 96); }
 .setas > span { position: absolute; inset: 0; -webkit-mask: var(--setas-p) 0 0 / 100% 100% no-repeat; mask: var(--setas-p) 0 0 / 100% 100% no-repeat; background: var(--logo-accent); }
 .setas > .setas-d { -webkit-mask-image: var(--setas-d); mask-image: var(--setas-d); background: var(--logo-ink); }
-/* Sobre o ServeRest no Resultado vazio, só na primeira visita desta aba. */
-.about-body { display: flex; flex-direction: column; gap: var(--space-s); }
-.about-body > p, .go-list { max-width: 64ch; }
-.about-body strong { font-weight: 600; }
-.about-go { font-weight: 600; margin-top: var(--space-xs); }
-.go-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; }
-.go-list li::marker { color: var(--graphite); }
-/* O convite para dar opinião (V3): um cartão centrado acima do Sobre, com o ícone, o título, o custo antes do
-   pedido (2 minutos, 6 perguntas, sem login; cada item quebra inteiro) e as duas ações. */
-.invite { box-sizing: border-box; display: grid; justify-items: center; gap: 8px; width: min(52ch, calc(100% - 28px)); margin: 0 auto var(--space-xl); padding: 20px 22px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); box-shadow: 0 1px 0 var(--border); text-align: center; }
-.inv-art { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
-.invite-title { font-family: var(--font-head); font-size: 1.1875rem; font-weight: 600; line-height: 1.25; }
-.inv-promise { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; font-size: 0.8125rem; color: var(--graphite); }
-.inv-promise > span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.inv-promise svg { flex: none; color: var(--accent); }
-.invite-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-top: 6px; }
-.invite .inv-go { text-decoration: none; }
-.invite-where { font-size: 0.75rem; color: var(--graphite); }
+/* A linha de apoio no fim do Resultado vazio: centrada, discreta, os links separados por um ponto que o leitor
+   de tela não lê. */
+.support-line { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 10px; padding: 0 16px var(--space-xl); font-size: 0.8125rem; color: var(--graphite); text-align: center; }
+.support-lead { font-weight: 600; color: var(--ink); }
+.support-sep { color: var(--graphite); }
 /* O Resultado vazio fica centrado na zona, com as linhas numa medida de leitura: as setas com a frase da rota,
-   como seguir, a nota do Histórico, o convite e o Sobre. */
+   como seguir e a nota do Histórico. */
 #result-empty .result-empty-lines { align-items: center; text-align: center; max-width: none; }
-#result-empty .result-empty-lines > p, #result-empty .about-body > p, #result-empty .go-list { max-width: 60ch; }
+#result-empty .result-empty-lines > p { max-width: 60ch; }
 #result-empty .result-empty-head { justify-content: center; }
-#result-empty .result-about .band { justify-content: center; text-align: center; }
-#result-empty .about-body { align-items: center; text-align: center; }
-/* Sem marcadores no Sobre centrado: cada item numa linha própria, com um respiro entre eles. role="list" (no
-   script) mantém a lista para o leitor de tela, que alguns navegadores esquecem com list-style: none. */
-#result-empty .go-list { padding-left: 0; list-style: none; gap: 8px; }
+/* Enquanto as rotas carregam, a linha gira; quando não carregam, a linha usa a cor e o fundo do erro. */
+.result-wait { text-align: center; font-size: 0.875rem; color: var(--graphite); }
+.result-wait.is-failed { padding: 10px 12px; border-radius: 4px; background: var(--fail-tint); color: var(--fail); font-weight: 600; }
+/* O cartão do guia: a cara das boas-vindas dele (a faixa preta com o fio roxo) e os dois caminhos. */
+.gw { box-sizing: border-box; width: min(31rem, calc(100% - 28px)); margin: 0 auto var(--space-xl); border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 1px 0 var(--border); overflow: hidden; }
+.gw-brand { padding: 12px 18px 11px; border-bottom: 5px solid var(--purple); background: var(--bar-bg); color: var(--bar-fg); }
+.gw-title { font-size: 1.375rem; }
+.gw-lead { margin-top: 2px; font-size: 0.875rem; }
+.gw-body { padding: 14px 14px 8px; }
+.gw-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr)); gap: 8px; }
+.gw-path { display: grid; grid-template-columns: 34px 1fr; gap: 2px 10px; align-items: start; width: 100%; padding: 10px 12px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); color: var(--ink); text-align: left; }
+.gw-path:hover, .gw-path:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
+.gw-path strong { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.2; color: var(--accent-strong); }
+.gw-path .guide-icon { height: 34px; }
+.gw-path .guide-icon svg { width: 20px; height: 20px; }
+.gw-path:hover .guide-icon, .gw-path:focus-visible .guide-icon { background: var(--accent); }
+.gw-path:hover .guide-icon svg, .gw-path:focus-visible .guide-icon svg { stroke: var(--surface); }
+.gw-steps { grid-column: 2; font-size: 0.75rem; color: var(--graphite); }
+.gw-steps b { margin-left: 4px; font-size: 1rem; font-weight: 600; color: var(--accent); }
+.gw-foot { display: flex; justify-content: center; margin-top: 6px; }
+.gw-no { min-height: 2rem; padding: 4px 10px; border: 1px solid transparent; border-radius: 4px; background: none; color: var(--graphite); font-size: 0.8125rem; font-weight: 600; }
+.gw-no:hover { background: var(--hover); color: var(--ink); }
+@container result (max-width: 26rem) {
+  .gw-path { grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 0 10px; padding: 8px 10px; }
+  .gw-path .guide-icon { grid-row: auto; height: 30px; }
+  .gw-steps { grid-column: 3; white-space: nowrap; }
+  .gw-path strong { font-size: 1rem; }
+}
+/* O pedido de opinião: uma linha fixa entre um fio e a linha de apoio (ou o obrigado, sem botão). */
+.res-foot.has-row { margin: 0 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.res-foot.has-row .support-line { padding-left: 0; padding-right: 0; }
+.op-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; max-width: 60ch; margin: 0 auto 14px; }
+.op-who { display: flex; align-items: center; gap: 10px; text-align: left; }
+.op-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); }
+.op-ico.ok { background: var(--ok-tint); color: var(--ok); }
+.op-txt { display: grid; line-height: 1.3; }
+.op-txt b { font-size: 0.875rem; font-weight: 700; color: var(--ink); }
+.op-txt span { font-size: 0.75rem; color: var(--graphite); }
+.op-go { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-size: 0.8125rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.op-go:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .link-btn { display: inline-flex; align-items: center; gap: 0.25em; min-height: 2rem; padding: 4px 14px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-weight: 600; font-size: 0.8125rem; text-decoration: none; }
 .link-btn:hover { background: var(--accent-tint); color: var(--accent-strong); }
 .result-route { font-weight: 600; }
@@ -980,6 +1133,12 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
    ou não conforme o status e a rota, e o corpo mudava de lugar entre um envio e outro. Assim o esqueleto da
    câmera lenta guarda as mesmas duas linhas sem saber qual descrição vem (D29). */
 .res-line > .res-doc { flex-basis: 100%; }
+/* Numa zona estreita (telefone) a descrição quebra com frequência: a linha guarda duas linhas, na resposta e no
+   esqueleto (o .pv-doc também é .res-doc), e o corpo e "Copiar corpo" ficam no mesmo lugar. Mais larga, ela
+   cabe numa linha quase sempre, e a reserva é de uma. */
+@container result (max-width: 30rem) {
+  .res-line > .res-doc { min-height: 3em; }
+}
 .res-doc code { font-size: 0.78125rem; }
 .sub-label { font-family: var(--font-ui); font-size: 0.8125rem; font-weight: 600; color: var(--ink); margin: var(--space-l) 0 var(--space-xs); }
 /* "Copiar corpo" fica na linha do subtítulo Corpo, ao lado do que copia. */
@@ -987,6 +1146,13 @@ kbd { font-size: 0.71875rem; border: 1px solid var(--control); border-radius: 3p
 .sub-row > .sub-label { margin: 0; }
 #copy-body { min-width: 7.5rem; }
 .res-body pre { max-height: 30rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* O corpo maior que a caixa (bodyBlock): o esmaecer no corte, por fora da caixa que rola (assim o anel de foco
+   dela não é cortado), some no fim da rolagem; "Mostrar tudo" tira o limite. */
+.res-body-wrap { position: relative; }
+.res-body:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.body-fade { position: absolute; left: 1px; right: 1px; bottom: 1px; height: 3.5rem; border-radius: 0 0 4px 4px; background: linear-gradient(to bottom, transparent, var(--code-bg) 85%); pointer-events: none; }
+.res-body.is-full pre { max-height: none; }
+.body-more { margin-top: var(--space-s); }
 .res-headers .caption { margin-top: 2px; font-family: var(--font-ui); }
 /* Uma caixa tracejada no lugar da resposta, na espera real (a câmera lenta usa o esqueleto no lugar, .pv). */
 .wait-box { min-height: 6.75rem; padding: 12px 16px; border: 1px dashed var(--control); border-radius: 4px; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-s); }
@@ -1172,22 +1338,24 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .flow-hint.tl-hint { display: block; margin: 0 0 2px; }
 /* "escala ajustada": só quando a escala saiu da real, ao lado da dica, discreta. Até o veredito ela não
    aparece: diria algo dos tempos novos antes da hora (D29). */
-.tl-scale { display: none; margin-left: 4px; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; font-size: 0.6875rem; white-space: nowrap; cursor: help; }
+.tl-scale { display: none; margin-left: 4px; padding: 0 6px; border: 1px dashed var(--control); border-radius: 999px; background: none; color: inherit; font-size: 0.6875rem; line-height: 1.3; white-space: nowrap; cursor: pointer; }
 .tl.tl-adjusted .tl-scale { display: inline-block; }
 .band-body.is-running .tl-scale { visibility: hidden; }
 .tl-draw { position: relative; }
 .tl-calls { position: relative; height: var(--calls-h, 26px); }
 .tl-tick { position: absolute; bottom: 0; width: 1px; background: var(--control); }
-.tl-bar { position: relative; display: flex; gap: 2px; height: 20px; }
+/* 24 px de altura e de largura mínima: cada parte é um alvo de toque da WCAG 2.5.8; uma parte que fica no
+   mínimo tira o desenho da escala, e a marca "escala ajustada" aparece (layoutTime). */
+.tl-bar { position: relative; display: flex; gap: 2px; height: 24px; }
 /* Cada parte da barra é um botão com o visual de segmento. */
-.tl-seg { position: relative; flex: var(--g) 1 0; min-width: 3px; display: grid; place-items: center; overflow: hidden; margin: 0; padding: 0; border: 0; border-radius: 0; font-size: 0.75rem; line-height: 1; white-space: nowrap; cursor: pointer; }
+.tl-seg { position: relative; flex: var(--g) 1 0; min-width: 24px; display: grid; place-items: center; overflow: hidden; margin: 0; padding: 0; border: 0; border-radius: 0; font-size: 0.75rem; line-height: 1; white-space: nowrap; cursor: pointer; }
 .tl-seg.net { background: var(--seg-idle); color: var(--ink); }
 .tl-seg.conn { background: var(--graphite); }
-.tl-seg.server { background: var(--ok); min-width: 5px; }
+.tl-seg.server { background: var(--ok); }
 .tl-seg.down { background: var(--seg-response); }
-/* As partes finas ganham uma área de toque maior e invisível (3 a 5 px não é um alvo). */
 .tl-seg.conn, .tl-seg.server, .tl-seg.down { overflow: visible; z-index: 1; }
-.tl-seg.conn::after, .tl-seg.server::after, .tl-seg.down::after { content: ""; position: absolute; inset: -6px -7px; }
+/* A ida e a volta, no cinza claro, ganham uma borda de 3:1 contra a zona (WCAG 1.4.11): são botões. */
+.tl-seg.net { box-shadow: inset 0 0 0 1px var(--control); }
 /* Ao passar o mouse, a parte muda um pouco de cor, como o botão Executar, sem contorno. A mistura com --ink
    escurece no tema claro e clareia no escuro; o download, que já é a cor mais forte, mistura com --graphite. */
 .tl-seg.net:hover { background: color-mix(in srgb, var(--seg-idle) 82%, var(--ink)); }
@@ -1208,16 +1376,19 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .tl-call.is-open.server, .tl-call.is-open.server b { color: var(--ok); }
 .tl-dims { position: relative; height: 56px; }
 .tl-dim { position: absolute; height: 7px; border: 1px solid var(--control); border-top: 0; }
-.tl-dim-label { position: absolute; transform: translateX(-50%); min-height: 24px; margin: 0; border: 0; border-radius: 3px; white-space: nowrap; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
+/* A cota cabe na largura da barra: mais longa que ela (espanhol, 320 px com o texto maior), quebra em duas
+   linhas, e a fileira das cotas cresce (placeTimeLabels). */
+.tl-dim-label { position: absolute; transform: translateX(-50%); width: max-content; max-width: 100%; min-height: 24px; margin: 0; border: 0; border-radius: 3px; text-align: center; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); padding: 3px 6px; background: var(--surface); }
 .tl-dim-label b { font-family: var(--font-code); font-weight: 400; color: var(--ink); }
 .tl-dim-label.total { font-size: 0.8125rem; }
 .tl-dim-label.total b { font-weight: 600; }
 .tl-dim-label[aria-expanded="true"] { color: var(--accent); outline: 2px solid var(--focus); outline-offset: 0; }
 /* O balão de cada parte: o visual do painel do aviso de versão (.rel-pop), com uma ponta para a parte. */
-.tl-pop { position: absolute; z-index: 20; width: min(24rem, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; font-weight: 400; white-space: normal; text-align: left; }
+.tl-pop, .scale-pop { position: absolute; z-index: 20; width: min(24rem, 100%); background: var(--surface); color: var(--ink); border: 1px solid var(--control); border-radius: 4px; box-shadow: var(--shadow); padding: 14px 16px 16px; display: grid; gap: 8px; font-size: 0.8125rem; line-height: 1.45; font-weight: 400; white-space: normal; text-align: left; }
 .tl-pop[hidden] { display: none; }
-.tl-pop::before { content: ""; position: absolute; top: -6px; left: var(--notch, 24px); width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--control); border-top: 1px solid var(--control); transform: translateX(-50%) rotate(45deg); }
-.tl-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
+.tl-pop::before, .scale-pop::before { content: ""; position: absolute; top: -6px; left: var(--notch, 24px); width: 10px; height: 10px; background: var(--surface); border-left: 1px solid var(--control); border-top: 1px solid var(--control); transform: translateX(-50%) rotate(45deg); }
+.scale-pop.is-above::before { top: auto; bottom: -6px; border: 0; border-right: 1px solid var(--control); border-bottom: 1px solid var(--control); }
+.tl-pop .rel-title, .scale-pop .rel-title { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; line-height: 1.25; }
 /* O tempo da parte em destaque, a fatia dela no total ao lado e uma barrinha cheia até essa fatia. */
 .tl-pop-stats { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 4px 0 0; }
 .tl-pop-ms { font-family: var(--font-code); font-size: 1rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1245,16 +1416,26 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .wf-scale { position: relative; }
 /* O servidor em destaque na barra de tempo traz as barras das etapas para o primeiro plano: crescem, sobem e
    ganham sombra; o resto do fluxo vai para o segundo plano. Crescem quase tudo para cima e um pouco para baixo e
-   para os lados, como algo que se aproxima de quem olha. */
+   para os lados, como algo que se aproxima de quem olha. No segundo plano, as barras e as linhas esmaecem; o
+   texto (nomes, marcas, tempos) passa para o grafite, que mantém 4,5:1 nos dois temas: com opacidade ele caía
+   para 1,7:1. */
 .wf-summary .wf-cell-stage .flow-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out; }
-.wf .flow-stages, .wf .wf-lines, .wf-summary .flow-seg-response { transition: opacity 0.18s ease-out; }
+.wf .flow-stages .flow-seg, .wf .wf-lines, .wf-summary .flow-seg-response { transition: opacity 0.18s ease-out; }
 .wf-forward .wf-summary .wf-cell-stage .flow-seg { z-index: 1; transform: translateY(-3px) scale(1.03, 1.5); box-shadow: 0 6px 10px -2px rgb(0 0 0 / 0.4); }
-.wf-forward .flow-stages, .wf-forward .wf-lines, .wf-forward .wf-summary .flow-seg-response { opacity: 0.35; }
+.wf-forward .flow-stages .flow-seg, .wf-forward .wf-lines, .wf-forward .wf-summary .flow-seg-response { opacity: 0.35; }
+.wf.wf-forward .flow-stages * { color: var(--graphite); }
 /* Partes da barra de tempo em primeiro plano (balão aberto, TTFB): ficam mais altas sem
    esticar o texto de dentro, sobem e ganham sombra; as outras partes vão para o segundo plano. */
-.tl-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }
-.tl-focus .tl-seg:not(.tl-front) { opacity: 0.35; }
+/* No segundo plano a cor da parte fica a 35% sobre a zona, como a opacidade de antes, mas o texto de dentro
+   (ida e volta) passa para o grafite e mantém 4,5:1. */
+.tl-seg { transition: transform 0.18s ease-out, box-shadow 0.18s ease-out, background-color 0.18s ease-out, margin 0.18s ease-out; }
+.tl-focus .tl-seg:not(.tl-front) { color: var(--graphite); }
+.tl-focus .tl-seg.net:not(.tl-front) { background: color-mix(in srgb, var(--seg-idle) 35%, var(--surface)); }
+.tl-focus .tl-seg.conn:not(.tl-front) { background: color-mix(in srgb, var(--graphite) 35%, var(--surface)); }
+.tl-focus .tl-seg.server:not(.tl-front) { background: color-mix(in srgb, var(--ok) 35%, var(--surface)); }
+.tl-focus .tl-seg.down:not(.tl-front) { background: color-mix(in srgb, var(--seg-response) 35%, var(--surface)); }
 .tl-seg.tl-front { z-index: 3; margin: -4px 0 -1px; transform: scale(1.03); box-shadow: 0 10px 18px -4px rgb(0 0 0 / 0.55); }
+.tl-seg.net.tl-front { box-shadow: inset 0 0 0 1px var(--control), 0 10px 18px -4px rgb(0 0 0 / 0.55); }
 /* Ida e volta são largas: 3% para os lados viraria até 10 px por cima das partes finas vizinhas. Elas crescem 1%,
    e as partes finas (conexão, servidor, download) ficam sempre por cima, na frente ou não: o TTFB em primeiro
    plano não esconde o servidor entre a ida e a volta. */
@@ -1307,6 +1488,12 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
      próprio conteúdo e rola com a página, sem rolagem própria. */
   .zone-result:has(> #result-empty:not([hidden])) { position: sticky; top: min(16px, calc(100vh - var(--res-h, 0px) - 16px)); }
 }
+/* Abaixo de 1440 px de página, Requisição e Resultado dividem a largura ao meio: com 5 para 6, a Requisição de
+   um notebook de 1280 px (1265 px de página, com a barra de rolagem) não tinha espaço para a barra de endereço
+   numa linha. */
+@container page (68.75rem <= width < 1440px) {
+  .app { grid-template-columns: clamp(19.5rem, 19vw, 23rem) minmax(0, 1fr) minmax(0, 1fr); }
+}
 /* A largura máxima do recipiente depende só da janela, em px, para a barra do topo e o conteúdo e em todo
    tamanho de texto: 1800 px abaixo de 2184 px de janela, 2184 px a partir dela. Assim a barra e o conteúdo
    têm sempre as mesmas bordas, e A− e A+ não saem de baixo do ponteiro. */
@@ -1353,6 +1540,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-routes.collapsed .filter, .zone-routes.collapsed .route-list { display: none; }
   .zone-routes.collapsed .zone-head { border-bottom: 0; }
   .route-list { max-height: 60vh; }
+  /* Numa coluna só, a lista carregada ocupa os 60vh (16 rotas passam disso): enquanto ela carrega, a mesma
+     altura fica reservada, para a Requisição e o resto não descerem quando as rotas chegam. */
+  .route-list.is-loading { min-height: 60vh; }
   .shown { scroll-margin-top: 8px; }
   .zone-request { --req-x: 16px; }
   .zone-routes .zone-head, .filter, .group h3, .group-desc, .group ul { padding-left: 16px; padding-right: 16px; }
@@ -1360,35 +1550,11 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .about-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-/* Abaixo de 1024 px a barra fica justa numa linha só: em 768 px, com o link da documentação e a versão em
-   inglês ou espanhol (um pouco mais longos), ela quebrava para duas linhas. O vão entre o link e A− passa
-   a 12 px, o mesmo da regra de 760 px; os vãos entre o seletor de idioma, a logo e a versão também, porque
-   a logo completa é 4 px mais larga que o SVG de antes. */
-@container page (max-width: 1023px) {
-  .bar-end { column-gap: 12px; }
-  .topbar-inner { column-gap: 12px; }
-  .brand { column-gap: 12px; }
-}
-/* O selo de opinião só cabe na barra a partir de 1024 px (em px, para não depender do tamanho do texto);
-   abaixo disso fica fora da tela e da ordem do Tab. */
-@container page (min-width: 1024px) {
-  .pill-hdr:not([hidden]) { display: inline-flex; }
-}
-/* A barra do topo e o respiro lateral do recipiente mudam numa largura em px (760 px, os 47,5 rem do texto
-   normal), nunca com o tamanho do texto: a barra é a mesma nos três tamanhos em toda largura, e as bordas
-   dela seguem as do conteúdo. O resto da página continua mudando em rem (abaixo). */
+/* O respiro lateral do recipiente muda numa largura em px (760 px, os 47,5 rem do texto normal), nunca com o
+   tamanho do texto: as bordas da barra seguem as do conteúdo nos três tamanhos. O resto da página continua
+   mudando em rem (abaixo). */
 @container page (max-width: 760px) {
   .wrap { padding-left: 12px; padding-right: 12px; }
-  .topbar-inner { gap: 6px 10px; }
-  .docs-link { font-size: 13px; }
-  .bar-end { gap: 8px 12px; }
-  .logo { height: 34px; }
-  /* Sem espaço para a versão; o aviso de versão nova, quando existe, fica numa linha sob o logo. Sem aviso,
-     a marca é só o logo. */
-  .brand { position: static; flex-direction: column; align-items: flex-start; gap: 2px; }
-  .version-box { display: contents; }
-  .version { display: none; }
-  .rel-pop { left: 12px; }
 }
 @container page (max-width: 47.5rem) {
   .req-bar .btn-primary { padding-left: 16px; padding-right: 16px; }
@@ -1400,14 +1566,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .about-inner { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Telefones estreitos (até 384 px): a barra perde um pouco de respiro. Em px, não em rem: com o texto maior
-   a regra entraria também em 390 px, e os botões encolheriam debaixo do dedo. */
+/* Telefones estreitos (até 384 px): o recipiente perde um pouco de respiro. Em px, não em rem: com o texto
+   maior a regra entraria também em 390 px. */
 @container page (max-width: 384px) {
   .wrap { padding-left: 10px; padding-right: 10px; }
-  .rel-pop { left: 10px; }
-  .bar-end { gap: 8px; }
-  .view { gap: 6px; }
-  .seg-btn { width: 32px; }
 }
 
 /* Zona Resultado estreita (telefone, ou texto maior em três colunas): a trilha desce para baixo do
@@ -1438,9 +1600,10 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .fc-read::after { content: attr(data-reserve-touch) / ""; }
 }
 
-/* Resultado muito estreito (320 px com o texto maior): os headers da resposta empilham o nome sobre o
-   valor; lado a lado, o nome mais longo deixava o valor sem largura. */
-@container result (max-width: 20rem) {
+/* Resultado estreito (telefone, ou texto maior em três colunas): os headers da resposta empilham o nome sobre
+   o valor; lado a lado, até uns 500 px de Resultado, o nome mais longo levava quase toda a largura e o valor
+   quebrava no meio das palavras ("max- / age=15552000;"). */
+@container result (max-width: 30rem) {
   .res-headers { grid-template-columns: minmax(0, 1fr); }
   .res-headers dt { padding-bottom: 0; border-bottom: 0; overflow-wrap: anywhere; }
   .res-headers dd { padding-top: 0; }
@@ -1466,3 +1629,132 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
 .wf-morph .wf-summary, .wf-morph .wf-track, .wf-morph .wf-lines-cols { transition: grid-template-columns 0.3s ease-out; }
 .wf-probe { position: absolute; left: 0; top: 0; display: grid; visibility: hidden; pointer-events: none; }
 .tl.tl-morph .tl-seg { transition: flex-basis 0.3s ease-out, background-color 0.3s ease-out, box-shadow 0.3s ease-out, color 0.3s ease-out, transform 0.18s ease-out, opacity 0.18s ease-out, margin 0.18s ease-out; }
+
+/* Cores forçadas (alto contraste do Windows): o navegador troca os fundos pela cor da tela, e as barras do
+   Fluxo e da barra de tempo sumiam, deixando só as grades. Aqui elas usam as cores do sistema: a parte cheia
+   em CanvasText, a etapa que parou em Highlight, a etapa pulada com borda tracejada e a parte ainda vazia com
+   borda; as partes do tempo em CanvasText. A aba escolhida e a rota escolhida ganham Highlight. */
+@media (forced-colors: active) {
+  .flow-seg, .flow-fill, .tl-seg, .fc-ns, .fc-swatch, .tl-pop-meter .fill { forced-color-adjust: none; }
+  .flow-seg { background: Canvas; box-shadow: inset 0 0 0 1px CanvasText; }
+  .flow-fill { background: CanvasText; }
+  .flow-seg-fail .flow-fill, .flow-fill-running { background: Highlight; }
+  .flow-seg.flow-seg-skip, .fc-one .flow-seg.flow-seg-skip { background: Canvas; background-image: none; box-shadow: none; border: 1px dashed CanvasText; }
+  .tl-seg, .tl-seg:hover, .tl.tl-hold .tl-seg, .tl-focus .tl-seg:not(.tl-front), .fc-ns, .fc-onet.conn .fc-ns, .fc-onet.down .fc-ns, .fc-onet.net .fc-ns, .fc-swatch, .tl-pop-meter .fill { background: CanvasText; color: Canvas; box-shadow: none; }
+  .fc-onet.is-wait .fc-ns, .fc-swatch.is-wait { background: Canvas; box-shadow: inset 0 0 0 1px CanvasText; }
+  .tl-seg:focus-visible { outline: 2px solid Highlight; }
+  .folder-tab { forced-color-adjust: none; background: Canvas; color: CanvasText; border-color: transparent; }
+  .folder-tab * { forced-color-adjust: auto; }
+  .folder-tab[aria-selected="true"], .folder-tab[aria-selected="true"]:hover { background: Canvas; border-color: CanvasText; border-top-color: Highlight; }
+  .folder-tab[aria-selected="true"]::before, .folder-tab[aria-selected="true"]::after { display: none; }
+  .route[aria-current="true"]::before { forced-color-adjust: none; background: Highlight; }
+}
+
+/* A troca de idioma recarrega a página: um esmaecer curto no lugar do piscar. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(root) { animation-duration: 180ms; }
+}
+
+/* Guia "Como usar" (guia.js só vem no primeiro clique): curto, porque pesa na primeira visita. */
+.guide-open { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; font-family: var(--font-ui); }
+.guide-open[aria-busy] { cursor: progress; opacity: 0.7; }
+.guide-open + .bar-end { margin-left: 0; }
+@container page (max-width: 760px) { .guide-open + .bar-end { margin-left: auto; } }
+:root { --guide-dim: rgb(20 22 28 / 0.45); --guide-glow: color-mix(in srgb, var(--accent) 22%, transparent); --guide-line: var(--border); }
+:root[data-theme="dark"] { --guide-dim: rgb(0 0 0 / 0.62); --guide-glow: color-mix(in srgb, var(--accent) 30%, transparent); --guide-line: color-mix(in srgb, var(--control) 50%, var(--border)); }
+.guide-layer, .guide-shield, .guide-marker, .guide-ring, .guide-card { position: fixed; z-index: 1000; pointer-events: none; }
+.guide-layer { inset: 0; }
+.guide-shade, .guide-shield, .guide-card { pointer-events: auto; }
+.guide-shade { position: absolute; inset: 0; background: var(--guide-dim); }
+.guide-ring, .guide-marker { border: 2px solid var(--accent); border-radius: 10px; box-shadow: 0 0 0 4px var(--guide-glow); }
+.guide-marker { border-radius: 6px; box-shadow: none; }
+.guide-marker.is-ripple { animation: guide-ripple 1.2s cubic-bezier(0.2, 0, 0, 1) 2; }
+@keyframes guide-ripple { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } to { box-shadow: 0 0 0 12px transparent; } }
+.guide-card { z-index: 1001; width: min(24rem, calc(100vw - 32px)); border: 1px solid var(--guide-line); border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); }
+.guide-card.is-wide { width: min(31rem, calc(100vw - 32px)); }
+.guide-scroll { max-height: calc(100vh - 32px); overflow: auto; border-radius: inherit; }
+.guide-inner { padding: 14px 18px 16px; }
+.guide-arrow { position: absolute; width: 14px; height: 14px; border: 1px solid var(--guide-line); background: var(--surface); transform: rotate(45deg); }
+.guide-arrow[data-dir="left"] { left: -8px; border-width: 0 0 1px 1px; }
+.guide-arrow[data-dir="right"] { right: -8px; border-width: 1px 1px 0 0; }
+.guide-arrow[data-dir="up"] { top: -8px; border-width: 1px 0 0 1px; }
+.guide-arrow[data-dir="down"] { bottom: -8px; border-width: 0 1px 1px 0; }
+.guide-head, .guide-foot { display: flex; align-items: center; gap: 8px; }
+.guide-kicker { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.75rem; color: var(--graphite); }
+.guide-kicker b { color: var(--ink); }
+.guide-close { display: inline-flex; align-items: center; gap: 4px; min-height: 1.75rem; padding: 2px 8px; border: 1px solid transparent; border-radius: 4px; background: none; font-size: 0.8125rem; font-weight: 600; color: var(--graphite); }
+.guide-close:hover { border-color: var(--control); color: var(--ink); }
+.guide-close.guide-nudge { border-color: var(--accent); background: var(--accent-tint); color: var(--accent-strong); animation: guide-pop 240ms; }
+@keyframes guide-pop { 50% { transform: scale(1.06); } }
+.guide-progress { display: flex; gap: 3px; margin: 10px 0 12px; }
+.guide-progress i { flex: 1; height: 4px; border-radius: 2px; background: var(--seg-idle); }
+.guide-progress .is-on { background: var(--accent); }
+.guide-title { margin-bottom: 6px; font-size: 1.25rem; outline: none; }
+.guide-body > * + *, .guide-exit-hint { margin-top: 8px; }
+.guide-body code { padding: 0 4px; border-radius: 3px; background: var(--well); }
+.guide-body .guide-tasks { margin-top: 12px; padding: 8px 12px; list-style: none; border-radius: 6px; background: var(--well); }
+.guide-tasks li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 3px 0; }
+.guide-tasks .is-now { font-weight: 600; }
+.guide-tasks .is-done, .guide-wait, .guide-note, .guide-meta, .guide-path span { color: var(--graphite); }
+.guide-tasks .is-missing { margin: 0 -6px; padding: 3px 6px; border-radius: 4px; background: var(--warn-tint); color: var(--warn); }
+.guide-mark { display: grid; place-items: center; width: 18px; height: 18px; margin-top: 1px; border: 2px solid var(--control); border-radius: 50%; }
+.guide-mark svg, .guide-check svg { width: 10px; height: 10px; fill: none; stroke: var(--surface); stroke-width: 2.4; }
+.guide-mark svg { display: none; }
+.is-now .guide-mark { border-color: var(--accent); }
+.is-missing .guide-mark { border-color: var(--warn); }
+.is-done .guide-mark { border-color: var(--ok); background: var(--ok); }
+.is-done .guide-mark svg { display: block; }
+/* A opcional não pede nada: círculo tracejado e a palavra "Opcional" esmaecida, para o passo não parecer preso. */
+.is-opt:not(.is-done) .guide-mark { border-style: dashed; }
+.guide-opt { color: var(--graphite); font-weight: 600; }
+.is-pop .guide-mark { animation: guide-check 220ms cubic-bezier(0.3, 1.4, 0.6, 1); }
+@keyframes guide-check { from { transform: scale(0.6); } }
+.guide-tasks .guide-done { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); color: var(--ok); font-weight: 700; }
+.guide-done.is-fresh { animation: guide-in 180ms ease-out; }
+@keyframes guide-in { from { opacity: 0; transform: translateY(4px); } }
+.guide-body .guide-warn { display: grid; grid-template-columns: 18px 1fr; gap: 8px; margin-top: 10px; padding: 8px 10px; border-left: 3px solid var(--warn); border-radius: 4px; background: var(--warn-tint); color: var(--warn); font-weight: 600; }
+.guide-warn > :first-child { display: grid; place-items: center; height: 18px; margin-top: 1px; border-radius: 50%; background: var(--warn); color: var(--warn-tint); font-size: 0.75rem; font-weight: 800; }
+.guide-wait { font-style: italic; }
+.guide-exit-hint { font-weight: 600; color: var(--accent-strong); }
+.guide-foot { position: sticky; bottom: -16px; flex-wrap: wrap; margin: 14px 0 -16px; padding: 12px 0 16px; border-top: 1px solid var(--border); background: var(--surface); }
+.guide-foot:empty { display: none; }
+.guide-foot .btn { min-height: 2.25rem; padding: 6px 14px; }
+.guide-foot .btn-primary { padding: 6px 18px; }
+.guide-foot .guide-quiet { padding: 6px 8px; border-color: transparent; background: none; color: var(--graphite); }
+.guide-foot .guide-quiet:hover { background: var(--hover); color: var(--ink); }
+.guide-foot .is-ready { box-shadow: 0 0 0 4px var(--guide-glow); animation: guide-glow 1.6s ease-in-out 3; }
+/* O passo feito chama o Próximo: três ondas suaves (o fundo clareia e o halo cresce, sem mexer na caixa) e depois
+   o halo parado. O mais claro (80% do roxo) ainda deixa o texto branco acima de 4.5:1. */
+@keyframes guide-glow { 50% { border-color: color-mix(in srgb, var(--purple) 80%, var(--on-purple)); background: color-mix(in srgb, var(--purple) 80%, var(--on-purple)); box-shadow: 0 0 0 7px var(--guide-glow); } }
+.guide-grow { flex: 1; }
+/* Telefone: uma folha presa embaixo. */
+.guide-card.is-docked { left: 0 !important; right: 0; top: auto !important; bottom: 0; width: auto; border-bottom: 0; border-radius: 14px 14px 0 0; }
+.is-docked .guide-scroll { --safe: max(16px, env(safe-area-inset-bottom)); max-height: 56vh; }
+.is-docked.is-tall .guide-scroll { max-height: 86vh; }
+.is-docked .guide-inner { padding: 12px 16px var(--safe); }
+.is-docked .guide-foot { bottom: calc(-1 * var(--safe)); margin-bottom: calc(-1 * var(--safe)); padding-bottom: var(--safe); }
+.guide-brand { padding: 14px 20px; border-bottom: 6px solid var(--purple); border-radius: 9px 9px 0 0; background: var(--bar-bg); color: var(--bar-fg); }
+.is-docked .guide-brand { padding: 12px 16px; border-radius: 13px 13px 0 0; }
+.guide-brand .guide-kicker, .guide-brand .guide-close { color: var(--bar-muted); }
+/* Na faixa preta, o Fechar realçado vira um botão claro com texto escuro: o tom lilás sobre o preto deixava o
+   texto apagado. */
+.guide-brand .guide-close.guide-nudge { border-color: var(--accent); background: var(--bar-fg); color: var(--bar-bg); }
+.guide-brand .guide-title { margin: 8px 0 0; font-size: 1.75rem; }
+.guide-lead { font-size: 1rem; }
+.guide-check { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 8px; border-radius: 50%; background: var(--ok); vertical-align: -4px; }
+.guide-check svg { width: 15px; height: 15px; stroke-width: 2.6; }
+.guide-sect { margin-top: 16px !important; font-size: 1.0625rem; }
+.guide-path { display: grid; grid-template-columns: 40px 1fr auto; gap: 4px 12px; align-items: center; width: 100%; padding: 12px 14px; border: 1px solid var(--control); border-radius: 8px; background: var(--surface); text-align: left; font-size: 0.8125rem; }
+.guide-path:hover, .guide-path:focus-visible { border-color: var(--accent); background: var(--accent-tint); }
+.guide-path strong { font-family: var(--font-head); font-size: 1.0625rem; font-weight: 600; color: var(--accent-strong); }
+.guide-icon { grid-row: span 2; display: grid; place-items: center; height: 40px; border-radius: 8px; background: var(--accent-tint); }
+.guide-icon svg { width: 22px; height: 22px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* O cartão realçado ganha o mesmo tom do quadrado do ícone: o quadrado inverte para continuar à vista. */
+.guide-path:hover .guide-icon, .guide-path:focus-visible .guide-icon { background: var(--accent); }
+.guide-path:hover .guide-icon svg, .guide-path:focus-visible .guide-icon svg { stroke: var(--surface); }
+.guide-meta { grid-area: 1 / 3 / 3; display: grid; justify-items: end; gap: 2px; white-space: nowrap; font-size: 0.75rem; }
+.guide-meta :last-child { font-size: 1.125rem; color: var(--accent); }
+.guide-note { margin-top: 14px !important; font-size: 0.8125rem; }
+@media (prefers-reduced-motion: reduce) { .guide-card *, .guide-marker { animation: none !important; } }
+@media (forced-colors: active) { .guide-ring, .guide-marker { border-color: Highlight; } }

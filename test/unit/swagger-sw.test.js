@@ -15,7 +15,7 @@ describe('Service worker do Swagger', () => {
   const { shouldCache } = carregarWorker()
 
   it('não guarda os arquivos da página inicial, que ficam com o cache do navegador', () => {
-    ;['app.js', 'core.js', 'lab.css', 'prefs-boot.js', 'legacy-links.js'].forEach(arquivo => {
+    ;['app.js', 'core.js', 'guia.js', 'lab.css', 'prefs-boot.js', 'legacy-links.js'].forEach(arquivo => {
       expect(shouldCache('http://localhost:3000/lab/assets/' + arquivo + '?v=3.3.0'), arquivo).to.equal(false)
     })
   })

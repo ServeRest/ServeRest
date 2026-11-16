@@ -28,6 +28,35 @@
     }
   }
 
+  // Troca de idioma com a página rolada (a passagem que app.js gravou, valendo 10 s e só para este idioma): a
+  // página nasce com a altura reservada e já na rolagem salva, para a primeira pintura não mostrar o topo e
+  // depois pular. app.js confere a passagem inteira e solta a reserva quando o conteúdo chega (ou na hora,
+  // se ela não vale).
+  const HANDOFF_KEY = 'serverestLangHandoff'
+  try {
+    const root = document.documentElement
+    const saved = JSON.parse(window.sessionStorage.getItem(HANDOFF_KEY))
+    const age = Date.now() - saved.at
+    if (saved.to === root.lang && age >= 0 && age <= 10000 && Number.isFinite(saved.scrollY) && saved.scrollY > 0) {
+      root.style.minHeight = Math.ceil(saved.scrollY + window.innerHeight) + 'px'
+      root.style.overflowAnchor = 'none'
+      window.scrollTo(0, saved.scrollY)
+    }
+  } catch (e) {}
+
+  // A linha de opinião da faixa roxa nasce decidida, para a faixa nunca mudar de altura: app.js guarda a cada
+  // carga o que o próximo dia de uso mostra, e aqui só se compara (a mesma conta de core.feedbackLineToday).
+  // Sem o valor ou sem armazenamento, a faixa fica fina.
+  const FEEDBACK_KEY = 'serverestFeedbackInvite'
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(FEEDBACK_KEY))
+    const now = new Date()
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0')
+    if ((saved.last === today && saved.answered !== today) || (saved.seen !== today && saved.next && saved.next <= today)) {
+      document.documentElement.setAttribute('data-feedback', 'line')
+    }
+  } catch (e) {}
+
   const theme = read(THEME_KEY, THEMES, 'system')
   const dark = theme === 'dark' || (theme === 'system' && systemDark())
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
