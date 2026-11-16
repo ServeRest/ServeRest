@@ -1,6 +1,6 @@
 {
   "name": "serverest",
-  "version": "3.4.0",
+  "version": "3.4.1-beta.1",
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <author@serverest.dev> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "GPL-3.0",
@@ -52,7 +52,7 @@
     "colors": "^1.4.0",
     "connect-timeout": "^1.9.1",
     "cors": "^2.8.6",
-    "dd-trace": "^5.85.0",
+    "dd-trace": "^5.136.0",
     "debug": "^4.4.3",
     "dotenv": "^17.2.4",
     "escape-string-regexp": "^5.0.0",
