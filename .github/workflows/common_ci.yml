@@ -103,13 +103,25 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build test-unit
+      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
+      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
+      # nenhum ficaria verde.
     - name: Run Unit Test
-      run: make test-unit
+      run: |
+        set -o pipefail
+        make test-unit | tee test-unit.log
+        grep -Eq '[1-9][0-9]* passing' test-unit.log
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
-        # e com todas puladas o job passava sem rodar teste nenhum.
+        # O Datadog só recebe o relatório dos testes: o que roda e o que reprova é decidido aqui, não na conta
+        # dele. Ficam desligados o pulo de suítes (com parte delas a cobertura de 100% falha, e com todas
+        # puladas o job passava sem rodar teste nenhum), a repetição de teste que falhou e de teste novo, que
+        # deixaria passar uma falha intermitente, e a quarentena de testes.
         DD_CIVISIBILITY_ITR_ENABLED: false
+        DD_CIVISIBILITY_FLAKY_RETRY_ENABLED: false
+        DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
+        DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
+        DD_TEST_MANAGEMENT_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
@@ -137,13 +149,25 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build test-integration
+      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
+      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
+      # nenhum ficaria verde.
     - name: Run Integration Test
-      run: make test-integration
+      run: |
+        set -o pipefail
+        make test-integration | tee test-integration.log
+        grep -Eq '[1-9][0-9]* passing' test-integration.log
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
-        # e com todas puladas o job passava sem rodar teste nenhum.
+        # O Datadog só recebe o relatório dos testes: o que roda e o que reprova é decidido aqui, não na conta
+        # dele. Ficam desligados o pulo de suítes (com parte delas a cobertura de 100% falha, e com todas
+        # puladas o job passava sem rodar teste nenhum), a repetição de teste que falhou e de teste novo, que
+        # deixaria passar uma falha intermitente, e a quarentena de testes.
         DD_CIVISIBILITY_ITR_ENABLED: false
+        DD_CIVISIBILITY_FLAKY_RETRY_ENABLED: false
+        DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
+        DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
+        DD_TEST_MANAGEMENT_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
@@ -172,13 +196,25 @@ jobs:
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build run-app-e2e
     - run: docker compose build test-e2e-localhost
+      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
+      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
+      # nenhum ficaria verde.
     - name: Run E2E test in locally built docker image
-      run: make test-e2e-localhost
+      run: |
+        set -o pipefail
+        make test-e2e-localhost | tee test-e2e.log
+        grep -Eq '[1-9][0-9]* passing' test-e2e.log
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
-        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
-        # e com todas puladas o job passava sem rodar teste nenhum.
+        # O Datadog só recebe o relatório dos testes: o que roda e o que reprova é decidido aqui, não na conta
+        # dele. Ficam desligados o pulo de suítes (com parte delas a cobertura de 100% falha, e com todas
+        # puladas o job passava sem rodar teste nenhum), a repetição de teste que falhou e de teste novo, que
+        # deixaria passar uma falha intermitente, e a quarentena de testes.
         DD_CIVISIBILITY_ITR_ENABLED: false
+        DD_CIVISIBILITY_FLAKY_RETRY_ENABLED: false
+        DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
+        DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
+        DD_TEST_MANAGEMENT_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
