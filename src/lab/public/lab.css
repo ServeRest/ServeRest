@@ -1540,6 +1540,9 @@ button.flow-row:hover { --row-bg: var(--hover); background: var(--hover); }
   .zone-routes.collapsed .filter, .zone-routes.collapsed .route-list { display: none; }
   .zone-routes.collapsed .zone-head { border-bottom: 0; }
   .route-list { max-height: 60vh; }
+  /* Numa coluna só, a lista carregada ocupa os 60vh (16 rotas passam disso): enquanto ela carrega, a mesma
+     altura fica reservada, para a Requisição e o resto não descerem quando as rotas chegam. */
+  .route-list.is-loading { min-height: 60vh; }
   .shown { scroll-margin-top: 8px; }
   .zone-request { --req-x: 16px; }
   .zone-routes .zone-head, .filter, .group h3, .group-desc, .group ul { padding-left: 16px; padding-right: 16px; }

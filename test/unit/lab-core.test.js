@@ -1513,6 +1513,29 @@ describe('Página do lab: funções puras', () => {
     })
   })
 
+  // Numa coluna só, a lista de rotas carregada ocupa 60vh; enquanto carrega, a mesma altura fica reservada (a
+  // chegada das rotas empurrava a Requisição e o resto para baixo: CLS de 0,6 no telefone).
+  describe('Reserva da lista de rotas enquanto carrega', () => {
+    const labDir = join(__dirname, '../../src/lab')
+    const pagina = readFileSync(join(labDir, 'page.html'), 'utf8')
+    const css = readFileSync(join(labDir, 'public/lab.css'), 'utf8')
+    const app = readFileSync(join(labDir, 'public/app.js'), 'utf8')
+
+    it('a lista nasce reservada, e a reserva tem a altura máxima da lista carregada, só numa coluna', () => {
+      expect(pagina).to.include('<div class="route-list is-loading" id="route-list"></div>')
+      const pilha = css.slice(css.indexOf('@container page (width < 68.75rem) {'))
+      const bloco = pilha.slice(0, pilha.indexOf('\n}\n'))
+      expect(bloco).to.include('.route-list { max-height: 60vh; }')
+      expect(bloco).to.include('.route-list.is-loading { min-height: 60vh; }')
+      expect(css.match(/\.is-loading \{/g)).to.have.length(1)
+    })
+
+    it('carregar de novo reserva; desenhar a lista (rotas ou erro) solta', () => {
+      expect(app).to.match(/list\.textContent = ''\n(\s+\/\/[^\n]*\n)*\s+list\.classList\.add\('is-loading'\)/)
+      expect(app).to.match(/function renderRoutes \(\) \{\n\s+const list = \$\('route-list'\)\n\s+list\.classList\.remove\('is-loading'\)/)
+    })
+  })
+
   describe('Preferências', () => {
     const publicDir = join(__dirname, '../../src/lab/public')
     const fonteDoBoot = readFileSync(join(publicDir, 'prefs-boot.js'), 'utf8')
