@@ -107,6 +107,9 @@ jobs:
       run: make test-unit
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
@@ -136,6 +139,9 @@ jobs:
       run: make test-integration
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
@@ -166,6 +172,9 @@ jobs:
       run: make test-e2e-localhost
       env: # Datadog "CI Tests" variables
         DD_CIVISIBILITY_AGENTLESS_ENABLED: true
+        # O Datadog pulava suítes que julgava não afetadas pela mudança: com parte delas a cobertura de 100% falha,
+        # e com todas puladas o job passava sem rodar teste nenhum.
+        DD_CIVISIBILITY_ITR_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
