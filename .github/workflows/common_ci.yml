@@ -126,9 +126,9 @@ jobs:
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o checkout cria, e o Datadog não o conhece. Com ele os testes
-        # não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do ramo voltaram a
-        # rodar. É um contorno que depende do que o Datadog conhece: se falhar de novo, a conferência reprova.
+        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
+        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
+        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
@@ -173,9 +173,9 @@ jobs:
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o checkout cria, e o Datadog não o conhece. Com ele os testes
-        # não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do ramo voltaram a
-        # rodar. É um contorno que depende do que o Datadog conhece: se falhar de novo, a conferência reprova.
+        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
+        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
+        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
@@ -221,9 +221,9 @@ jobs:
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o checkout cria, e o Datadog não o conhece. Com ele os testes
-        # não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do ramo voltaram a
-        # rodar. É um contorno que depende do que o Datadog conhece: se falhar de novo, a conferência reprova.
+        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
+        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
+        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
 
