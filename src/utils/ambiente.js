@@ -3,10 +3,7 @@ const { conf } = require('./conf')
 const environments = new Set([
   'docker',
   'serverest.dev',
-  'staging.serverest.dev',
-  'agilizei',
-  'cesarschool',
-  'compassuol'
+  'staging.serverest.dev'
 ])
 
 function formaDeExecucao () {
@@ -24,10 +21,7 @@ const aplicacaoExecutandoLocalmente = () => {
 
 const urlMapping = {
   'serverest.dev': 'https://serverest.dev',
-  'staging.serverest.dev': 'https://staging.serverest.dev',
-  agilizei: 'https://agilizei.serverest.dev',
-  compassuol: 'https://compassuol.serverest.dev',
-  cesarschool: 'https://cesarschool.serverest.dev'
+  'staging.serverest.dev': 'https://staging.serverest.dev'
 }
 
 function urlDoAmbiente () {

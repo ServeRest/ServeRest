@@ -16,7 +16,6 @@ env:
   REGION: us-central1
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
-  SERVICE_COMPASSUOL: serverest-compasso-uol
   # Datadog variables
   DD_SERVICE: serverest
   DD_SITE: datadoghq.eu
@@ -201,53 +200,6 @@ jobs:
     - run: docker compose build test-e2e-smoke-production
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
-
-  deploy-compass-uol:
-    name: Deploy on Compass Uol environment (compassuol.serverest.dev)
-    needs: test-e2e-smoke-production
-
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
-      env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
-        DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
-    - name: Authentication on GCloud
-      run: |
-        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
-      env:
-        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
-    - run: gcloud config set project serverest
-    - name: Deploy container image to 'compassuol' environment
-      run: |
-        ENV_VARS="^@^ENVIRONMENT=$ENVIRONMENT@DD_SERVICE=$DD_SERVICE@DD_ENV=$ENVIRONMENT@DD_SITE=$DD_SITE"
-        ENV_VARS="$ENV_VARS@DD_API_KEY=$DD_API_KEY@DD_VERSION=${{ github.ref_name }}"
-        ENV_VARS="$ENV_VARS@DD_TAGS=git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest"
-        ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_TRACE_HEADER_TAGS=true@DD_LOGS_ENABLED=true"
-        ENV_VARS="$ENV_VARS@DD_PROFILING_ENABLED=false@DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false@DD_APPSEC_ENABLED=false"
-
-        gcloud run \
-          deploy $SERVICE_COMPASSUOL \
-          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
-          --region $REGION \
-          --concurrency=80 \
-          --timeout=60s \
-          --update-env-vars="$ENV_VARS"
-      env:
-        DD_API_KEY: ${{ env.DD_API_KEY }}
-        ENVIRONMENT: compassuol
-    - name: Update compassuol traffic to latest revision
-      run: |
-        gcloud run \
-          services update-traffic $SERVICE_COMPASSUOL \
-          --region $REGION \
-          --to-latest
 
   open-issue-production:
     name: Open issue when production smoke test fail
