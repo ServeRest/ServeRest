@@ -891,6 +891,8 @@
     state.specError = null
     const list = $('route-list')
     list.textContent = ''
+    // A altura da lista carregada fica reservada enquanto ela carrega (lab.css); renderRoutes a solta.
+    list.classList.add('is-loading')
     list.append(el('p', { class: 'empty' }, el('span', { class: 'spin', 'aria-hidden': 'true' }), ' ', t('lab.routes.loading')))
     $('routes-count').textContent = ''
     renderRequest()
@@ -955,6 +957,7 @@
 
   function renderRoutes () {
     const list = $('route-list')
+    list.classList.remove('is-loading')
     list.textContent = ''
     if (state.specError) {
       list.append(el('div', { class: 'error-box' },
