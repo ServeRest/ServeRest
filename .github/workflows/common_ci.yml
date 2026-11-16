@@ -103,9 +103,9 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build test-unit
-      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
-      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
-      # nenhum ficaria verde.
+      # Na conferência do passo abaixo, um job sem teste nenhum reprova. Sem ela ficaria verde, como já
+      # aconteceu: na versão 5.85 a biblioteca do Datadog encerrava o processo antes de o mocha começar, e com
+      # o pulo de suítes ligado ela pode pular todas.
     - name: Run Unit Test
       run: |
         set -o pipefail
@@ -122,13 +122,14 @@ jobs:
         DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
         DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
         DD_TEST_MANAGEMENT_ENABLED: false
+        # Os dados do git só servem aos recursos desligados acima. Sem envio, a biblioteca não espera por eles.
+        DD_CIVISIBILITY_GIT_UPLOAD_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
-        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
-        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
+        # Num PR, github.sha é o commit de merge que o GitHub cria, que não fica em ramo nenhum: o relatório no
+        # Datadog fica associado ao commit do ramo.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
@@ -150,9 +151,9 @@ jobs:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build test-integration
-      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
-      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
-      # nenhum ficaria verde.
+      # Na conferência do passo abaixo, um job sem teste nenhum reprova. Sem ela ficaria verde, como já
+      # aconteceu: na versão 5.85 a biblioteca do Datadog encerrava o processo antes de o mocha começar, e com
+      # o pulo de suítes ligado ela pode pular todas.
     - name: Run Integration Test
       run: |
         set -o pipefail
@@ -169,13 +170,14 @@ jobs:
         DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
         DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
         DD_TEST_MANAGEMENT_ENABLED: false
+        # Os dados do git só servem aos recursos desligados acima. Sem envio, a biblioteca não espera por eles.
+        DD_CIVISIBILITY_GIT_UPLOAD_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
-        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
-        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
+        # Num PR, github.sha é o commit de merge que o GitHub cria, que não fica em ramo nenhum: o relatório no
+        # Datadog fica associado ao commit do ramo.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
     - uses: actions/upload-artifact@v4
@@ -198,9 +200,9 @@ jobs:
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - run: docker compose build run-app-e2e
     - run: docker compose build test-e2e-localhost
-      # A biblioteca do Datadog pode encerrar o processo antes de o mocha começar (ela espera um envio de dados
-      # do git que, com o pulo de suítes desligado, não acontece): sem esta conferência, um job sem teste
-      # nenhum ficaria verde.
+      # Na conferência do passo abaixo, um job sem teste nenhum reprova. Sem ela ficaria verde, como já
+      # aconteceu: na versão 5.85 a biblioteca do Datadog encerrava o processo antes de o mocha começar, e com
+      # o pulo de suítes ligado ela pode pular todas.
     - name: Run E2E test in locally built docker image
       run: |
         set -o pipefail
@@ -217,13 +219,14 @@ jobs:
         DD_CIVISIBILITY_EARLY_FLAKE_DETECTION_ENABLED: false
         DD_CIVISIBILITY_IMPACTED_TESTS_DETECTION_ENABLED: false
         DD_TEST_MANAGEMENT_ENABLED: false
+        # Os dados do git só servem aos recursos desligados acima. Sem envio, a biblioteca não espera por eles.
+        DD_CIVISIBILITY_GIT_UPLOAD_ENABLED: false
         DD_API_KEY: ${{ env.DD_API_KEY }}
         DD_SITE: datadoghq.eu
         NODE_OPTIONS: '-r dd-trace/ci/init'
         DD_GIT_REPOSITORY_URL: git@github.com:ServeRest/ServeRest.git
-        # Num PR, github.sha é o commit de merge que o GitHub cria e o checkout baixa, e o Datadog não o conhece.
-        # Com ele os testes não rodavam, provavelmente pela espera descrita na conferência acima; com o commit do
-        # ramo voltaram a rodar. É um contorno, que depende do Datadog: se falhar, a conferência reprova o job.
+        # Num PR, github.sha é o commit de merge que o GitHub cria, que não fica em ramo nenhum: o relatório no
+        # Datadog fica associado ao commit do ramo.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
 
