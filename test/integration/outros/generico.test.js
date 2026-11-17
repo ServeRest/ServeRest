@@ -42,6 +42,7 @@ describe('GENERICO', () => {
       'x-download-options': 'noopen',
       'x-content-type-options': 'nosniff',
       'x-xss-protection': '1; mode=block',
+      'x-robots-tag': 'noindex',
       'content-type': 'application/json; charset=utf-8'
     })
 
@@ -55,6 +56,7 @@ describe('GENERICO', () => {
       'x-download-options': joi.any(),
       'x-content-type-options': joi.any(),
       'x-xss-protection': joi.any(),
+      'x-robots-tag': joi.any(),
       'content-type': joi.any(),
       'content-length': joi.any(),
       etag: joi.any(),

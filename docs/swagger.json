@@ -1142,10 +1142,33 @@
             },
             "LimiteDeRequisicoes": {
                 "description": "components.responses.LimiteDeRequisicoes.description",
+                "headers": {
+                    "Retry-After": {
+                        "description": "components.responses.LimiteDeRequisicoes.headers.Retry-After.description",
+                        "schema": {
+                            "type": "integer",
+                            "example": 30
+                        }
+                    }
+                },
                 "content": {
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/limiteDeRequisicoes"
+                        },
+                        "examples": {
+                            "requisicoes": {
+                                "summary": "components.responses.LimiteDeRequisicoes.examples.requisicoes.summary",
+                                "value": {
+                                    "message": "Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga"
+                                }
+                            },
+                            "dadosBaixados": {
+                                "summary": "components.responses.LimiteDeRequisicoes.examples.dadosBaixados.summary",
+                                "value": {
+                                    "message": "Limite de dados baixados da API atingido: cada cliente pode baixar até 250 MiB por hora no ServeRest online. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga"
+                                }
+                            }
                         }
                     }
                 }

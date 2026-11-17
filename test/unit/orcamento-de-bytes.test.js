@@ -23,9 +23,9 @@ function limitador ({ bytes = 1000, segundos = 3600, requisicoes = 1000 } = {}) 
 // O Node emite close ao fim de toda resposta, completa ou interrompida pelo cliente.
 async function pedir (permitir, { method = 'GET', path = '/usuarios', ip = '10.0.0.1', tamanho } = {}) {
   const res = resposta(tamanho)
-  const permitido = await permitir({ method, path, ip }, res)
+  const bloqueio = await permitir({ method, path, ip }, res)
   res.emit('close')
-  return permitido
+  return bloqueio === null
 }
 
 describe('Orçamento de bytes por IP', () => {
