@@ -5,6 +5,7 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
+const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/produtos.db'), autoload: true })
 
@@ -16,13 +17,13 @@ datastore.ensureIndex({ fieldName: 'preco' })
 /* istanbul ignore next */
 datastore.ensureIndex({ fieldName: 'quantidade' })
 
-exports.getAll = queryString => {
+exports.getAll = async queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return datastore.find(queryString)
+  return doMaisNovoAoMaisAntigo(await datastore.find(queryString))
 }
 
-exports.getOne = id => {
-  return datastore.findOne({ _id: id })
+exports.getOne = async id => {
+  return semMarca(await datastore.findOne({ _id: id }))
 }
 
 /* istanbul ignore next */
@@ -85,7 +86,7 @@ exports.restoreQuantidadePorLote = async (arrayProdutosComQuantidade) => {
 
 exports.criarProduto = async body => {
   body = formatarValores(body)
-  return datastore.insert(body)
+  return datastore.insert({ ...body, alteradoEm: marcarAlteracao() })
 }
 
 /* istanbul ignore next */
@@ -145,7 +146,10 @@ exports.createOrUpdateById = async (idDoProdutoQueSeraAlterado, body) => {
 }
 
 exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {
-  return datastore.update({ _id: idDoProdutoQueSeraAlterado }, body, { upsert: true, returnUpdatedDocs: true })
+  // Vale também para as baixas e reposições de estoque feitas pelos carrinhos.
+  const alteradoEm = marcarAlteracao()
+  const alteracao = body.$set ? { $set: { ...body.$set, alteradoEm } } : { ...body, alteradoEm }
+  return datastore.update({ _id: idDoProdutoQueSeraAlterado }, alteracao, { upsert: true, returnUpdatedDocs: true })
 }
 
 function formatarValores (body) {

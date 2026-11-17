@@ -4,6 +4,7 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
+const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/usuarios.db'), autoload: true })
 
@@ -11,13 +12,13 @@ const datastore = Datastore.create({ filename: join(__dirname, '../data/usuarios
 /* istanbul ignore next */
 datastore.ensureIndex({ fieldName: 'email', sparse: true })
 
-exports.getAll = queryString => {
+exports.getAll = async queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return datastore.find(queryString)
+  return doMaisNovoAoMaisAntigo(await datastore.find(queryString))
 }
 
-exports.getOne = id => {
-  return datastore.findOne({ _id: id })
+exports.getOne = async id => {
+  return semMarca(await datastore.findOne({ _id: id }))
 }
 
 exports.getDadosDoUsuario = queryString => {
@@ -34,7 +35,7 @@ exports.usuarioEhAdministrador = async ({ email, password }) => {
 }
 
 exports.createUser = async body => {
-  return datastore.insert(body)
+  return datastore.insert({ ...body, alteradoEm: marcarAlteracao() })
 }
 
 exports.deleteById = async id => {
@@ -42,5 +43,5 @@ exports.deleteById = async id => {
 }
 
 exports.createOrUpdateById = async (idDoUsuarioQueSeraAlterado, body) => {
-  return datastore.update({ _id: idDoUsuarioQueSeraAlterado }, body, { upsert: true, returnUpdatedDocs: true })
+  return datastore.update({ _id: idDoUsuarioQueSeraAlterado }, { ...body, alteradoEm: marcarAlteracao() }, { upsert: true, returnUpdatedDocs: true })
 }
