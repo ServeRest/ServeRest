@@ -7,7 +7,8 @@ const { version } = require('../../../package.json')
 const { paginaPronta } = require('../../../src/lab')
 
 // A API não muda com o cache e a compressão da página: nenhum header a mais, nem ETag nem Content-Encoding,
-// no localhost e fora dele. A lista é a de antes do cache da página, igual nos dois casos.
+// no localhost e fora dele. A lista é a de antes do cache da página, igual nos dois casos, mais o X-Robots-Tag
+// que tira a API dos buscadores.
 const HEADERS_DA_API = [
   'access-control-allow-origin',
   'access-control-expose-headers',
@@ -20,6 +21,7 @@ const HEADERS_DA_API = [
   'x-dns-prefetch-control',
   'x-download-options',
   'x-frame-options',
+  'x-robots-tag',
   'x-serverest-stages',
   'x-xss-protection'
 ]

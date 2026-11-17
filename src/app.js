@@ -71,6 +71,12 @@ app.set('json spaces', 4)
 // o Express passaria a ler o primeiro endereço do X-Forwarded-For, que o próprio cliente
 // pode forjar, então o número de saltos precisa ser explícito.
 app.set('trust proxy', 1)
+// A API devolve e-mails e senhas da sandbox, e o Googlebot já pediu o /usuarios. Vem antes de tudo para
+// valer também nos erros do body e no 429; a página inicial e os assets do Swagger seguem indexáveis.
+app.use(['/login', '/usuarios', '/produtos', '/carrinhos', '/swagger.json'], (req, res, next) => {
+  res.set('X-Robots-Tag', 'noindex')
+  next()
+})
 app.use(['/login', '/usuarios', '/produtos', '/carrinhos'], iniciar)
 const parsersDoBody = express.Router()
 parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))

@@ -3,7 +3,7 @@ const zlib = require('zlib')
 
 const documento = require('../../../docs/swagger.json')
 const ptBr = require('../../../src/swagger/translations/pt-BR')
-const { LOAD_TEST_DETECTED } = require('../../../src/utils/constants')
+const { DOWNLOAD_LIMIT_EXCEEDED, LOAD_TEST_DETECTED } = require('../../../src/utils/constants')
 const utils = require('../utils')
 
 const METODOS = ['get', 'post', 'put', 'delete']
@@ -104,11 +104,14 @@ describe('Respostas documentadas dos erros comuns', () => {
     expect(body.message).to.equal('Login realizado com sucesso')
   })
 
-  it('toda operação documenta o 429 do limite de requisições, com a mensagem que o servidor devolve', () => {
+  it('toda operação documenta o 429 dos dois limites, com as mensagens que o servidor devolve e o Retry-After', () => {
     operacoes().forEach(({ rota }) => {
       const resposta = respostaDocumentada(rota, '429')
       expect(resposta, rota).to.not.equal(undefined)
       expect(exemploDocumentado(resposta), rota).to.deep.equal({ message: LOAD_TEST_DETECTED })
+      expect(exemploDocumentado(resposta, 'requisicoes'), rota).to.deep.equal({ message: LOAD_TEST_DETECTED })
+      expect(exemploDocumentado(resposta, 'dadosBaixados'), rota).to.deep.equal({ message: DOWNLOAD_LIMIT_EXCEEDED })
+      expect(resposta.headers['Retry-After'].schema.type, rota).to.equal('integer')
     })
   })
 
