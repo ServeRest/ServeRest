@@ -4,6 +4,7 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
+const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
 const produtosService = require('../services/produtos-service')
@@ -20,13 +21,13 @@ datastore.ensureIndex({ fieldName: 'quantidadeTotal' })
 /* istanbul ignore next */
 datastore.ensureIndex({ fieldName: 'produtos.idProduto' })
 
-exports.getAll = queryString => {
+exports.getAll = async queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return datastore.find(queryString)
+  return doMaisNovoAoMaisAntigo(await datastore.find(queryString))
 }
 
-exports.getOne = id => {
-  return datastore.findOne({ _id: id })
+exports.getOne = async id => {
+  return semMarca(await datastore.findOne({ _id: id }))
 }
 
 exports.existeCarrinho = pesquisa => {
@@ -38,7 +39,7 @@ exports.existeCarrinhoComProduto = idProduto => {
 }
 
 exports.criarCarrinho = async body => {
-  return datastore.insert(body)
+  return datastore.insert({ ...body, alteradoEm: marcarAlteracao() })
 }
 
 exports.extrairProdutosDuplicados = arrayProdutos => {
