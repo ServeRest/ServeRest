@@ -57,4 +57,28 @@ describe('carrinhosService', () => {
     chai.assert.equal(quantidadeTotal, 119)
     sandbox.assert.calledOnce(produtosService.updateQuantidadePorLote)
   })
+
+  it('extrairProdutosDuplicados - Deve retornar o produto repetido mesmo quando os repetidos não são vizinhos', () => {
+    const produtos = [{ idProduto: 'A' }, { idProduto: 'B' }, { idProduto: 'A' }]
+
+    chai.assert.deepEqual(service.extrairProdutosDuplicados(produtos), ['A'])
+  })
+
+  it('extrairProdutosDuplicados - Deve retornar o produto repetido quando os repetidos são vizinhos', () => {
+    const produtos = [{ idProduto: 'A' }, { idProduto: 'A' }, { idProduto: 'B' }]
+
+    chai.assert.deepEqual(service.extrairProdutosDuplicados(produtos), ['A'])
+  })
+
+  it('extrairProdutosDuplicados - Deve retornar uma única vez o produto que aparece três vezes', () => {
+    const produtos = [{ idProduto: 'A' }, { idProduto: 'B' }, { idProduto: 'A' }, { idProduto: 'A' }]
+
+    chai.assert.deepEqual(service.extrairProdutosDuplicados(produtos), ['A'])
+  })
+
+  it('extrairProdutosDuplicados - Deve retornar lista vazia quando não há produto repetido', () => {
+    const produtos = [{ idProduto: 'A' }, { idProduto: 'B' }, { idProduto: 'C' }]
+
+    chai.assert.deepEqual(service.extrairProdutosDuplicados(produtos), [])
+  })
 })
