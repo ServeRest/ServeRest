@@ -8,8 +8,13 @@ const morgan = require('morgan')
 const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { readFileSync } = require('fs')
+const { createRequire } = require('module')
 const { join } = require('path')
 const swaggerUi = require('swagger-ui-express')
+// A pasta que o swagger-ui-express serve: o swagger-ui-dist é dependência dele, não nossa.
+const pastaDoSwaggerUi = createRequire(require.resolve('swagger-ui-express'))(
+  'swagger-ui-dist/absolute-path'
+)()
 const ddTrace = require('dd-trace')
 const ipfilter = require('express-ipfilter').IpFilter
 
@@ -36,6 +41,7 @@ const { robotsTxt, sitemapXml } = require('./lab/buscadores')
 const {
   cacheForaDoLocalhost,
   cacheNoStatic,
+  comprimirSobDemanda,
   enviarResposta,
   prepararResposta,
   servirTextos,
@@ -183,7 +189,13 @@ app.get('/index.html', (req, res) => {
   res.redirect(301, inicioDaQuery === -1 ? '/' : '/?' + req.originalUrl.slice(inicioDaQuery + 1))
 })
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
-app.use('/', swaggerUi.serve)
+// Os três maiores saem comprimidos para quem aceita: o bundle tem 1,5 MB sem compressão.
+const SWAGGER_UI_GRANDES = [
+  'swagger-ui-bundle.js',
+  'swagger-ui-standalone-preset.js',
+  'swagger-ui.css'
+]
+app.use('/', comprimirSobDemanda(pastaDoSwaggerUi, SWAGGER_UI_GRANDES), swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {
   // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
   if (req.path !== '/swagger') {
