@@ -5,9 +5,10 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
-const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
+const { continuarDaMaiorMarca, doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/produtos.db'), autoload: true })
+continuarDaMaiorMarca(datastore)
 
 // Index frequently searched fields for better query performance
 /* istanbul ignore next */
@@ -142,14 +143,12 @@ exports.deleteById = async id => {
 
 exports.createOrUpdateById = async (idDoProdutoQueSeraAlterado, body) => {
   body = formatarValores(body)
-  return this.updateById(idDoProdutoQueSeraAlterado, body)
+  // Só o PUT marca: a baixa e a reposição de estoque feitas pelos carrinhos não mudam a posição na lista.
+  return this.updateById(idDoProdutoQueSeraAlterado, { ...body, alteradoEm: marcarAlteracao() })
 }
 
 exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {
-  // Vale também para as baixas e reposições de estoque feitas pelos carrinhos.
-  const alteradoEm = marcarAlteracao()
-  const alteracao = body.$set ? { $set: { ...body.$set, alteradoEm } } : { ...body, alteradoEm }
-  return datastore.update({ _id: idDoProdutoQueSeraAlterado }, alteracao, { upsert: true, returnUpdatedDocs: true })
+  return datastore.update({ _id: idDoProdutoQueSeraAlterado }, body, { upsert: true, returnUpdatedDocs: true })
 }
 
 function formatarValores (body) {

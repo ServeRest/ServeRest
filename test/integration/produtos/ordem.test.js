@@ -34,25 +34,28 @@ describe(rotaProdutos + ' ORDEM DA LISTA', () => {
     chai.assert.deepEqual(body, { quantidade: 2, produtos: [{ ...alterado, _id }, segundo] })
   })
 
-  it('Produto que entra num carrinho volta para o topo, pois o estoque mudou', async () => {
+  it('Produto não muda de posição quando um carrinho baixa ou repõe o estoque', async () => {
     const descricao = faker.string.alphanumeric(24)
     const primeiro = await utils.cadastrarProduto({ descricao, quantidade: 10, authorization })
     const segundo = await utils.cadastrarProduto({ descricao, authorization })
 
     await utils.cadastrarCarrinho({ idProduto: primeiro._id, quantidade: 1, authorization })
-    const { body } = await request.get(rotaProdutos).query({ descricao }).expect(200)
+    const { body: depoisDoCarrinho } = await request.get(rotaProdutos).query({ descricao }).expect(200)
+    await request.del('/carrinhos/cancelar-compra').set('authorization', authorization).expect(200)
+    const { body: depoisDoCancelamento } = await request.get(rotaProdutos).query({ descricao }).expect(200)
 
-    chai.assert.deepEqual(body, { quantidade: 2, produtos: [{ ...primeiro, quantidade: 9 }, segundo] })
+    chai.assert.deepEqual(depoisDoCarrinho, { quantidade: 2, produtos: [segundo, { ...primeiro, quantidade: 9 }] })
+    chai.assert.deepEqual(depoisDoCancelamento, { quantidade: 2, produtos: [segundo, primeiro] })
   })
 
-  it('Produto cadastrado vem antes dos produtos da semente, que ficam na ordem do _id - @skipE2E', async () => {
+  it('Produto cadastrado vem antes dos produtos da semente - @skipE2E', async () => {
     const produto = await utils.cadastrarProduto({ authorization })
 
     const { body } = await request.get(rotaProdutos).expect(200)
     const ids = body.produtos.map(({ _id }) => _id)
 
     chai.assert.isBelow(ids.indexOf(produto._id), ids.indexOf('BeeJh5lz3k6kSIzA'))
-    chai.assert.deepEqual(ids.slice(-2), ['BeeJh5lz3k6kSIzA', 'K6leHdftCeOJj8BJ'])
+    chai.assert.isBelow(ids.indexOf(produto._id), ids.indexOf('K6leHdftCeOJj8BJ'))
   })
 
   it('Lista e busca por id não mostram o campo interno de ordenação', async () => {

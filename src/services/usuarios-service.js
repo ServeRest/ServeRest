@@ -4,9 +4,10 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
-const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
+const { continuarDaMaiorMarca, doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/usuarios.db'), autoload: true })
+continuarDaMaiorMarca(datastore)
 
 // Index frequently searched fields for better query performance
 /* istanbul ignore next */
