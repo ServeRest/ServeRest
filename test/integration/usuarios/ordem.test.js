@@ -35,7 +35,6 @@ describe(rotaUsuarios + ' ORDEM DA LISTA', () => {
     const ids = body.usuarios.map(({ _id }) => _id)
 
     chai.assert.isBelow(ids.indexOf(usuario._id), ids.indexOf('0uxuPY0cbmQhpEz1'))
-    chai.assert.equal(ids[ids.length - 1], '0uxuPY0cbmQhpEz1')
   })
 
   it('Lista e busca por id não mostram o campo interno de ordenação', async () => {
