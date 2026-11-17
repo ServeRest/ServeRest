@@ -30,7 +30,7 @@ const { pararSeExpirou, descartarErroDepoisDaResposta } = require('./middlewares
 const { iniciar, etapa } = require('./utils/etapas')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
-const { ARQUIVOS_GRANDES, pastaDoSwaggerUi } = require('./swagger/arquivos-grandes')
+const { ARQUIVOS_GRANDES, pastaPrecomprimida } = require('./swagger/arquivos-grandes')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
 const { robotsTxt, sitemapXml } = require('./lab/buscadores')
@@ -186,7 +186,7 @@ app.get('/index.html', (req, res) => {
 })
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 // Os maiores saem comprimidos no build para quem aceita; o resto, como sempre.
-app.use('/', servirPrecomprimidos(pastaDoSwaggerUi, ARQUIVOS_GRANDES), swaggerUi.serve)
+app.use('/', servirPrecomprimidos(pastaPrecomprimida, ARQUIVOS_GRANDES), swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {
   // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
   if (req.path !== '/swagger') {

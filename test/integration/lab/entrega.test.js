@@ -291,32 +291,41 @@ describe('Cache dos arquivos da página', () => {
   })
 })
 
-// Uma pasta temporária com os três arquivos e as versões que o build grava ao lado deles.
-function pastaPrecomprimida (arquivos = ARQUIVOS_GRANDES) {
-  const pasta = mkdtempSync(join(tmpdir(), 'serverest-swagger-ui-'))
-  for (const arquivo of arquivos) copyFileSync(join(pastaDoSwaggerUi, arquivo), join(pasta, arquivo))
-  precomprimir(pasta, arquivos)
-  return pasta
+// Duas pastas temporárias, como no build: a dos arquivos, que o express.static serve, e a dos
+// pré-comprimidos.
+const pastasTemporarias = []
+function pastasDeTeste (arquivos = ARQUIVOS_GRANDES, { comprimir = true } = {}) {
+  const origem = mkdtempSync(join(tmpdir(), 'serverest-swagger-ui-'))
+  const destino = mkdtempSync(join(tmpdir(), 'serverest-precomprimido-'))
+  pastasTemporarias.push(origem, destino)
+  for (const arquivo of arquivos) copyFileSync(join(pastaDoSwaggerUi, arquivo), join(origem, arquivo))
+  if (comprimir) precomprimir(origem, destino, arquivos)
+  return { origem, destino }
+}
+after(() => pastasTemporarias.forEach(pasta => rmSync(pasta, { recursive: true, force: true })))
+
+// O express.static faz o papel do swagger-ui-express, que serve a pasta do mesmo jeito; o último
+// middleware só responde o erro do send com o status dele, sem imprimir o stack.
+function appDoSwaggerUi ({ origem, destino }, arquivos = ARQUIVOS_GRANDES) {
+  return express()
+    .use(servirPrecomprimidos(destino, arquivos), express.static(origem))
+    .use((erro, req, res, next) => res.sendStatus(erro.status))
 }
 
 describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
-  let pasta
+  let pastas
   before(function () {
     this.timeout(60000)
-    pasta = pastaPrecomprimida()
+    pastas = pastasDeTeste()
   })
-  after(() => rmSync(pasta, { recursive: true, force: true }))
-  // O express.static faz o papel do swagger-ui-express, que serve a pasta do mesmo jeito; o último
-  // middleware só responde o erro do send sem imprimir o stack.
-  const servidor = servidorLocal(() => express()
-    .use(servirPrecomprimidos(pasta, ARQUIVOS_GRANDES), express.static(pasta))
-    .use((erro, req, res, next) => res.sendStatus(erro.status)))
+  const servidor = servidorLocal(() => appDoSwaggerUi(pastas))
   const tipos = { '.js': /^application\/javascript; charset=utf-8$/i, '.css': /^text\/css; charset=utf-8$/i }
   const arquivos = ARQUIVOS_GRANDES.map(arquivo => ['/' + arquivo, tipos[arquivo.slice(arquivo.lastIndexOf('.'))]])
+  const original = caminho => readFileSync(join(pastas.origem, caminho))
+  const comprimido = caminho => readFileSync(join(pastas.destino, caminho))
 
   it('manda o .br a quem aceita br, com Vary e o Cache-Control de hoje - @skipE2E', async () => {
     for (const [caminho, tipo] of arquivos) {
-      const original = readFileSync(join(pasta, caminho))
       const br = await servidor.pedir(caminho, { 'accept-encoding': 'gzip, deflate, br, zstd' })
       expect(br.status, caminho).to.equal(200)
       expect(br.headers['content-encoding'], caminho).to.equal('br')
@@ -325,9 +334,9 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
       expect(br.headers['cache-control'], caminho).to.equal('public, max-age=0')
       expect(br.headers.etag, caminho).to.match(/^W\/"/)
       expect(br.headers, caminho).to.have.property('last-modified')
-      expect(br.corpo.equals(readFileSync(join(pasta, caminho + '.br'))), caminho).to.equal(true)
-      expect(zlib.brotliDecompressSync(br.corpo).equals(original), caminho).to.equal(true)
-      expect(br.corpo.length, caminho).to.be.lessThan(original.length / 3)
+      expect(br.corpo.equals(comprimido(caminho + '.br')), caminho).to.equal(true)
+      expect(zlib.brotliDecompressSync(br.corpo).equals(original(caminho)), caminho).to.equal(true)
+      expect(br.corpo.length, caminho).to.be.lessThan(original(caminho).length / 3)
     }
   })
 
@@ -338,7 +347,7 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
       expect(gzip.headers['content-encoding'], caminho).to.equal('gzip')
       expect(gzip.headers.vary, caminho).to.equal('Accept-Encoding')
       expect(gzip.headers['content-type'], caminho).to.match(tipo)
-      expect(zlib.gunzipSync(gzip.corpo).equals(readFileSync(join(pasta, caminho))), caminho).to.equal(true)
+      expect(zlib.gunzipSync(gzip.corpo).equals(original(caminho)), caminho).to.equal(true)
     }
   })
 
@@ -351,7 +360,7 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
         expect(cru.headers.vary, caminho).to.equal('Accept-Encoding')
         expect(cru.headers['accept-ranges'], caminho).to.equal('bytes')
         expect(cru.headers['content-type'], caminho).to.match(tipo)
-        expect(cru.corpo.equals(readFileSync(join(pasta, caminho))), caminho).to.equal(true)
+        expect(cru.corpo.equals(original(caminho)), caminho).to.equal(true)
       }
     }
   })
@@ -372,12 +381,12 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
     const res = await servidor.pedir('/swagger-ui.css', { 'accept-encoding': 'br' }, 'HEAD')
     expect(res.status).to.equal(200)
     expect(res.headers['content-encoding']).to.equal('br')
-    expect(Number(res.headers['content-length'])).to.equal(readFileSync(join(pasta, 'swagger-ui.css.br')).length)
+    expect(Number(res.headers['content-length'])).to.equal(comprimido('swagger-ui.css.br').length)
     expect(res.corpo.length).to.equal(0)
   })
 
   it('atende Range no arquivo comprimido - @skipE2E', async () => {
-    const br = readFileSync(join(pasta, 'swagger-ui-bundle.js.br'))
+    const br = comprimido('swagger-ui-bundle.js.br')
     const res = await servidor.pedir('/swagger-ui-bundle.js', { 'accept-encoding': 'br', range: 'bytes=0-99' })
     expect(res.status).to.equal(206)
     expect(res.headers['content-encoding']).to.equal('br')
@@ -385,18 +394,23 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
     expect(res.corpo.equals(br.subarray(0, 100))).to.equal(true)
   })
 
-  it('quando o comprimido não atende, o pedido segue para o express.static sem os headers dele - @skipE2E', async () => {
-    const original = readFileSync(join(pasta, 'swagger-ui.css'))
-    // Este trecho existe no arquivo original e não no .br, bem menor.
-    const trecho = await servidor.pedir('/swagger-ui.css', { 'accept-encoding': 'br', range: 'bytes=100000-100009' })
-    expect(trecho.status).to.equal(206)
-    expect(trecho.headers).to.not.have.property('content-encoding')
-    expect(trecho.headers['content-range']).to.equal(`bytes 100000-100009/${original.length}`)
-    expect(trecho.corpo.equals(original.subarray(100000, 100010))).to.equal(true)
-    const cru = await servidor.pedir('/swagger-ui.css', { 'if-match': '"outro"' })
-    const comprimido = await servidor.pedir('/swagger-ui.css', { 'accept-encoding': 'br', 'if-match': '"outro"' })
-    expect(comprimido.status).to.equal(412)
-    expect(comprimido.headers).to.deep.equal({ ...cru.headers, date: comprimido.headers.date })
+  it('responde 416 a um Range além do comprimido e 412 a um If-Match de outro arquivo, sem Content-Encoding - @skipE2E', async () => {
+    const br = comprimido('swagger-ui.css.br')
+    const alem = await servidor.pedir('/swagger-ui.css', { 'accept-encoding': 'br', range: `bytes=${br.length + 10}-` })
+    expect(alem.status).to.equal(416)
+    expect(alem.headers).to.not.have.property('content-encoding')
+    const outro = await servidor.pedir('/swagger-ui.css', { 'accept-encoding': 'br', 'if-match': '"outro"' })
+    expect(outro.status).to.equal(412)
+    expect(outro.headers).to.not.have.property('content-encoding')
+  })
+
+  it('não serve o .br como arquivo - @skipE2E', async () => {
+    for (const [caminho] of arquivos) {
+      for (const extensao of ['.br', '.gz']) {
+        const res = await servidor.pedir(caminho + extensao, { 'accept-encoding': 'br' })
+        expect(res.status, caminho + extensao).to.equal(404)
+      }
+    }
   })
 
   it('um POST num dos arquivos segue para o express.static, como antes - @skipE2E', async () => {
@@ -407,18 +421,9 @@ describe('Arquivos grandes do Swagger UI pré-comprimidos no build', () => {
 })
 
 describe('servirPrecomprimidos sem os arquivos do build', () => {
-  const pastas = []
-  after(() => pastas.forEach(pasta => rmSync(pasta, { recursive: true, force: true })))
-
-  function appSobre (pasta, arquivos) {
-    pastas.push(pasta)
-    return express().use(servirPrecomprimidos(pasta, arquivos), express.static(pasta))
-  }
-
   it('não quebra com arquivo que não existe e serve sem compressão o que não foi pré-comprimido - @skipE2E', async () => {
-    const pasta = mkdtempSync(join(tmpdir(), 'serverest-swagger-ui-'))
-    copyFileSync(join(pastaDoSwaggerUi, 'swagger-ui.css'), join(pasta, 'swagger-ui.css'))
-    const app = appSobre(pasta, ['swagger-ui.css', 'arquivo-renomeado.js'])
+    const pastas = pastasDeTeste(['swagger-ui.css'], { comprimir: false })
+    const app = appDoSwaggerUi(pastas, ['swagger-ui.css', 'arquivo-renomeado.js'])
     const res = await supertest(app).get('/swagger-ui.css').set('Accept-Encoding', 'br').expect(200)
     expect(res.headers).to.not.have.property('content-encoding')
     expect(res.headers.vary).to.equal('Accept-Encoding')
@@ -426,34 +431,47 @@ describe('servirPrecomprimidos sem os arquivos do build', () => {
   })
 
   it('serve sem compressão quando o .br some depois de o servidor subir - @skipE2E', async () => {
-    const pasta = pastaPrecomprimida(['swagger-ui.css'])
-    const app = appSobre(pasta, ['swagger-ui.css'])
-    unlinkSync(join(pasta, 'swagger-ui.css.br'))
+    const pastas = pastasDeTeste(['swagger-ui.css'])
+    const app = appDoSwaggerUi(pastas, ['swagger-ui.css'])
+    unlinkSync(join(pastas.destino, 'swagger-ui.css.br'))
     const res = await supertest(app).get('/swagger-ui.css').set('Accept-Encoding', 'br').expect(200)
     expect(res.headers).to.not.have.property('content-encoding')
-    expect(res.text).to.equal(readFileSync(join(pasta, 'swagger-ui.css'), 'utf8'))
+    expect(res.headers['content-type']).to.equal('text/css; charset=UTF-8')
+    expect(res.text).to.equal(readFileSync(join(pastas.origem, 'swagger-ui.css'), 'utf8'))
   })
 
-  it('não segue adiante quando quem pediu desiste no meio da resposta - @skipE2E', async () => {
-    const pasta = mkdtempSync(join(tmpdir(), 'serverest-swagger-ui-'))
-    writeFileSync(join(pasta, 'grande.css'), '')
-    writeFileSync(join(pasta, 'grande.css.br'), Buffer.alloc(64 * 1024 * 1024))
+  it('não segue adiante quando a conexão cai no meio da resposta - @skipE2E', async () => {
+    const { origem, destino } = pastasDeTeste([], { comprimir: false })
+    writeFileSync(join(origem, 'grande.css'), '')
+    writeFileSync(join(destino, 'grande.css.br'), Buffer.alloc(1024 * 1024))
     let seguiuDepoisDeEnviar = 0
-    const app = express().use(servirPrecomprimidos(pasta, ['grande.css']), (req, res, next) => {
-      if (res.headersSent) seguiuDepoisDeEnviar++
-      next()
-    })
-    pastas.push(pasta)
+    let fechou
+    const conexaoFechada = new Promise(resolve => { fechou = resolve })
+    const app = express()
+      .use((req, res, next) => {
+        // Derruba a conexão logo depois do primeiro pedaço do corpo, como quem desiste no meio.
+        const escrever = res.write
+        res.write = function (...args) {
+          res.write = escrever
+          const resultado = escrever.apply(this, args)
+          res.socket.destroy()
+          return resultado
+        }
+        res.on('close', fechou)
+        next()
+      })
+      .use(servirPrecomprimidos(destino, ['grande.css']), (req, res, next) => {
+        if (res.headersSent) seguiuDepoisDeEnviar++
+        next()
+      })
     const servidor = await new Promise(resolve => { const s = app.listen(0, () => resolve(s)) })
-    const fechou = new Promise(resolve => servidor.on('request', (req, res) => res.on('close', resolve)))
-    await new Promise((resolve, reject) => {
-      const pedido = http.get({ port: servidor.address().port, path: '/grande.css', headers: { 'accept-encoding': 'br' }, agent: false }, res => {
-        res.once('data', () => { pedido.destroy(); resolve() })
-      }).on('error', reject)
+    await new Promise(resolve => {
+      http.get({ port: servidor.address().port, path: '/grande.css', headers: { 'accept-encoding': 'br' }, agent: false }, res => {
+        res.on('error', resolve).on('close', resolve).resume()
+      }).on('error', resolve)
     })
-    await fechou
-    await new Promise(resolve => setTimeout(resolve, 50))
-    servidor.closeAllConnections()
+    await conexaoFechada
+    await new Promise(resolve => setTimeout(resolve, 20))
     await new Promise(resolve => servidor.close(resolve))
     expect(seguiuDepoisDeEnviar).to.equal(0)
   })
@@ -469,6 +487,16 @@ describe('Arquivos grandes do Swagger UI no app', () => {
       expect(res.headers, arquivo).to.not.have.property('content-encoding')
       expect(res.headers.vary, arquivo).to.equal('Accept-Encoding')
       expect(res.corpo.equals(readFileSync(join(pastaDoSwaggerUi, arquivo))), arquivo).to.equal(true)
+    }
+  })
+
+  it('o .br e o .gz não são URLs: respondem como qualquer rota que não existe - @skipE2E', async () => {
+    for (const arquivo of ARQUIVOS_GRANDES) {
+      for (const extensao of ['.br', '.gz']) {
+        const res = await servidor.pedir('/' + arquivo + extensao, { 'accept-encoding': 'br' })
+        expect(res.status, arquivo + extensao).to.equal(405)
+        expect(res.headers['content-type'], arquivo + extensao).to.match(/^application\/json/)
+      }
     }
   })
 
