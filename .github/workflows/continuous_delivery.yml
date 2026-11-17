@@ -17,14 +17,16 @@ jobs:
 
   #   steps:
   #   - name: Project checkout
-  #     uses: actions/checkout@v3
+  #     uses: actions/checkout@v7
   #   - name: Get specific changed files
   #     id: changed-files-specific
   #     uses: tj-actions/changed-files@v43
   #     with:
   #       files: src
   #   - name: Load secrets from 1password
-  #     uses: 1password/load-secrets-action@v2
+  #     uses: 1password/load-secrets-action@v5
+  #     with:
+  #       export-env: true
   #     env:
   #       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
   #       STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
@@ -50,9 +52,9 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Node.js Setup
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: 22
     # O Node 22 embute o npm 10.x e o trusted publishing exige 11.5.1 ou superior
@@ -61,7 +63,7 @@ jobs:
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Install 1Password CLI
-      uses: 1password/install-cli-action@v1
+      uses: 1password/install-cli-action@v4
       with:
         version: 2.18.0
     - name: Generate and fill .env file with secrets
@@ -69,7 +71,9 @@ jobs:
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GH_TOKEN: op://CI-CD/GitHub/GH_TOKEN

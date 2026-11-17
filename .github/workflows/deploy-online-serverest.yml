@@ -27,14 +27,16 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -57,13 +59,15 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -104,7 +108,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - run: docker compose build test-e2e-staging
     - name: Run E2E test in staging environment
       run: make test-e2e-staging
@@ -118,11 +122,11 @@ jobs:
 
     steps:
     - name: Create issue
-      uses: dacbd/create-issue-action@v2.0.0
-      with:
-        token: ${{ github.token }}
-        title: Staging tests failed - Deploy aborted
-        body: |
+      run: gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: Staging tests failed - Deploy aborted
+        BODY: |
           _This is an automatically generated issue_
 
           The attempt to deploy the `${{ github.ref }}` tag failed. Staging tests failed and because of that the version `${{ github.ref }}` was not sent to production.
@@ -136,8 +140,6 @@ jobs:
           | **Workflow name**       	| `${{ github.workflow }}`                                                      	|
           | **Tag**                  	| `${{ github.ref }}`                                                           	|
           | **Environment affected** 	| https://staging.serverest.dev/                                                	|
-        assignees: PauloGoncalvesBH
-        labels: bug
 
   deploy-production:
     name: Deploy on prod environment (serverest.dev)
@@ -149,13 +151,15 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -196,7 +200,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - run: docker compose build test-e2e-smoke-production
     - name: Run smoke test in production environment
       run: make test-e2e-smoke-production
@@ -213,12 +217,14 @@ jobs:
 
     steps:
     - name: Create issue
-      uses: dacbd/create-issue-action@v2.0.0
       id: create-issue-action
-      with:
-        token: ${{ github.token }}
-        title: Production tests failed - Deploy aborted
-        body: |
+      run: |
+        url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug)
+        echo "number=${url##*/}" >> "$GITHUB_OUTPUT"
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: Production tests failed - Deploy aborted
+        BODY: |
           _This is an automatically generated issue_
 
           The attempt to deploy the `${{ github.ref }}` tag failed. Production tests failed.
@@ -232,8 +238,6 @@ jobs:
           | **Workflow name**        | `${{ github.workflow }}`                                                      	|
           | **Tag**                  | `${{ github.ref }}`                                                           	|
           | **Environment affected** | https://serverest.dev/                                                       	|
-        assignees: PauloGoncalvesBH
-        labels: bug
 
 # Rollback jobs \/
 
@@ -247,12 +251,14 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
     - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
         echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
@@ -271,13 +277,19 @@ jobs:
           services update-traffic $SERVICE_PRODUCTION \
           --region $REGION \
           --to-revisions ${{ steps.gcloud_revision.outputs.penultimate }}=100
-    - uses: badsyntax/github-action-issue-comment@master
-      name: Comment on generated issue about rollback
-      with:
-        action: create
-        issue-number: ${{ needs.open-issue-production.outputs.issue-number }}
-        body: _This is an automatically generated comment_ \n\nRollback was performed in the production environment. \n\nThe production version is now `${{ needs.rollback-get-previous-info.outputs.git_tag }}`. \n\nUse the [staging environment](https://staging.serverest.dev/) for testing the failure.
-        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Comment on generated issue about rollback
+      run: gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ISSUE_NUMBER: ${{ needs.open-issue-production.outputs.issue-number }}
+        BODY: |
+          _This is an automatically generated comment_
+
+          Rollback was performed in the production environment.
+
+          Production traffic now goes to the Cloud Run revision `${{ steps.gcloud_revision.outputs.penultimate }}`.
+
+          Use the [staging environment](https://staging.serverest.dev/) for testing the failure.
 
   contract-test-rollback:
     name: Contract test - Rollback 'production' tag
@@ -289,7 +301,9 @@ jobs:
     # Why delete tag on rollback? Read: https://docs.pact.io/pact_broker/tags#handling-rollbacks
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
@@ -312,11 +326,13 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - run: docker pull pactfoundation/pact-cli:latest
     - name: Tag the pact contract with 'staging' tag
       run: |
@@ -339,9 +355,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
