@@ -29,11 +29,9 @@ function prepararResposta (conteudo, tipo) {
 }
 
 // O Express escolheria pela ordem do Accept-Encoding, e o Chrome manda gzip antes de br; aqui o br vence
-// sempre que é aceito.
-function codificacaoAceita (req) {
-  if (req.acceptsEncodings('br')) return 'br'
-  if (req.acceptsEncodings('gzip')) return 'gzip'
-  return 'identity'
+// sempre que é aceito. disponiveis limita a escolha às codificações que existem para a resposta.
+function codificacaoAceita (req, disponiveis = ['br', 'gzip']) {
+  return disponiveis.find(codificacao => req.acceptsEncodings(codificacao)) || 'identity'
 }
 
 // Com o ETag no header, o res.send do Express responde 304 sem corpo quando o pedido traz o mesmo
@@ -84,33 +82,34 @@ function servirTextos (textos) {
   }
 }
 
+const EXTENSOES = { br: '.br', gzip: '.gz' }
+
 // Entrega o .br ou o .gz que o build gravou na pasta dos pré-comprimidos, fora da que o
-// express.static serve, a quem aceita; o send cuida de ETag, Last-Modified, 304, Range e HEAD, e
-// os erros dele (412, 416) seguem como ele os dá. Sem o arquivo pré-comprimido (fora da imagem do
-// Cloud Run, ou apagado depois de o servidor subir), o pedido segue para o express.static como antes.
+// express.static serve, a quem aceita; o send cuida de ETag, Last-Modified, 304, Range e HEAD. Um
+// arquivo sem nenhum pré-comprimido (fora da imagem do Cloud Run) segue para o express.static
+// exatamente como antes; um que sumiu depois de o servidor subir também segue para lá.
 function servirPrecomprimidos (pasta, arquivos) {
-  const prontos = new Map(arquivos.map(arquivo => [
-    '/' + arquivo,
-    {
-      tipo: extname(arquivo),
-      br: existsSync(join(pasta, arquivo + '.br')) && arquivo + '.br',
-      gzip: existsSync(join(pasta, arquivo + '.gz')) && arquivo + '.gz'
-    }
-  ]))
+  const prontos = new Map(arquivos
+    .map(arquivo => [arquivo, Object.keys(EXTENSOES).filter(c => existsSync(join(pasta, arquivo + EXTENSOES[c])))])
+    .filter(([, codificacoes]) => codificacoes.length > 0)
+    .map(([arquivo, codificacoes]) => ['/' + arquivo, { arquivo, codificacoes, tipo: extname(arquivo) }]))
   return (req, res, next) => {
     const pronto = prontos.get(req.path)
     if (!pronto || !['GET', 'HEAD'].includes(req.method)) return next()
     res.vary('Accept-Encoding')
-    const codificacao = codificacaoAceita(req)
-    if (!pronto[codificacao]) return next()
+    const codificacao = codificacaoAceita(req, pronto.codificacoes)
+    if (codificacao === 'identity') return next()
     res.set('Content-Encoding', codificacao)
     res.type(pronto.tipo)
-    res.sendFile(pronto[codificacao], { root: pasta, maxAge: 0 }, erro => {
-      if (!erro || res.headersSent) return
+    res.sendFile(pronto.arquivo + EXTENSOES[codificacao], { root: pasta, maxAge: 0 }, erro => {
+      // Como o res.sendFile do Express sem callback: quem desistiu no meio não é erro do servidor.
+      if (!erro || erro.code === 'ECONNABORTED' || erro.syscall === 'write') return
       res.removeHeader('Content-Encoding')
-      if (erro.code !== 'ENOENT') return next(erro)
       res.removeHeader('Content-Type')
-      next()
+      if (erro.code === 'ENOENT') return next()
+      // 412 e 416 respondidos como o send faria, com o Content-Range dele, sem corpo.
+      if (erro.status < 500) return res.status(erro.status).set(erro.headers || {}).end()
+      next(erro)
     })
   }
 }
