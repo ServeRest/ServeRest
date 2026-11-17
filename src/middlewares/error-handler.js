@@ -11,7 +11,21 @@ function ehErroDoCliente (error) {
   return error.expose === true && error.statusCode >= 400 && error.statusCode < 500
 }
 
-function errorHandler (error, _req, res, _next) {
+// Os headers já saíram, então não há como responder de novo. Chega aqui o erro de um passo que termina depois do 408
+// do timeout, que é esperado, e o de uma resposta que falha no meio ou que é enviada duas vezes, que é bug. Como o
+// Express fazia, a conexão da resposta incompleta é fechada, para o cliente não ficar esperando o resto; a da
+// resposta que já terminou, como o 408, continua aberta.
+function registrarErroDepoisDaResposta (error, req, res) {
+  log({
+    level: req.timedout ? 'warn' : 'error',
+    message: `Erro depois da resposta enviada: ${req.method} ${req.originalUrl}, timedout: ${Boolean(req.timedout)}, ` +
+      `${error.code || error.name}: ${error.message}, Stack: ${error.stack}`
+  })
+  if (!res.writableEnded) req.socket.destroy()
+}
+
+function errorHandler (error, req, res, _next) {
+  if (res.headersSent) return registrarErroDepoisDaResposta(error, req, res)
   const erroDeSchema = error.name === 'ValidationError'
   if (erroDeSchema) {
     return res.status(400).json(montarMensagemDeErroDeSchema(error))
@@ -64,7 +78,7 @@ function errorHandler (error, _req, res, _next) {
   }
   log({
     level: 'error',
-    message: `Error: ${error?.type || JSON.stringify(error)}, Stack: ${error.stack || 'No stack available'}, Request body: ${JSON.stringify(_req.body)}`
+    message: `Error: ${error?.type || JSON.stringify(error)}, Stack: ${error.stack || 'No stack available'}, Request body: ${JSON.stringify(req.body)}`
   })
 
   if (error?.type) {

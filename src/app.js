@@ -26,7 +26,6 @@ const moesifMiddleware = require('./middlewares/moesif-monitor-middleware')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
-const { pararSeExpirou, descartarErroDepoisDaResposta } = require('./middlewares/parar-se-expirou')
 const { iniciar, etapa } = require('./utils/etapas')
 const { ROTAS_DA_API } = require('./utils/rotas-da-api')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
@@ -244,13 +243,17 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
-// Logo depois do errorHandler: é daqui que continua a requisição que já recebeu o 408 (src/middlewares/parar-se-expirou.js).
-app.use(pararSeExpirou)
-app.use(descartarErroDepoisDaResposta)
+// Depois de 5 s o connect-timeout passa um erro ETIMEDOUT adiante e o errorHandler acima responde 408, mas o passo
+// lento continua rodando. O Express guarda uma posição da cadeia por requisição, e ela já passou do errorHandler:
+// quando o passo termina, um next() atrasado chega a este 405, e um next(erro) atrasado, ou a rota que tenta
+// responder depois do 408, chega ao errorHandler abaixo. Em 2026-11-07 um next() atrasado de arquivos do Swagger
+// chegou aqui, tentou responder de novo e disparou o alerta de erro.
 app.use((req, res) => {
+  if (req.timedout) return
   res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${urlDocumentacao()} para ver as rotas disponíveis e como utilizá-las.`
   })
 })
+app.use(errorHandler)
 
 module.exports = app
