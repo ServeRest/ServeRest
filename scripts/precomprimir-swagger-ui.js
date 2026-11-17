@@ -10,5 +10,6 @@ const {
   precomprimir
 } = require('../src/swagger/arquivos-grandes')
 
-precomprimir(pastaDoSwaggerUi, pastaPrecomprimida, ARQUIVOS_GRANDES)
-console.log(`Swagger UI pré-comprimido em ${pastaPrecomprimida}: ${ARQUIVOS_GRANDES.join(', ')}`)
+const destino = pastaPrecomprimida()
+precomprimir(pastaDoSwaggerUi, destino, ARQUIVOS_GRANDES)
+console.log(`Swagger UI pré-comprimido em ${destino}: ${ARQUIVOS_GRANDES.join(', ')}`)

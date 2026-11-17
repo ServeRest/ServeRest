@@ -1,3 +1,11 @@
+const { tmpdir } = require('os')
+const { join } = require('path')
+
+// O app dos testes procura os pré-comprimidos do Swagger UI numa pasta que não existe, e não na do
+// repositório: um build local do Dockerfile.gcloud não muda o que os testes veem. Quem precisa dos
+// arquivos grava os seus numa pasta temporária e carrega um app novo apontado para ela.
+process.env.SWAGGER_UI_PRECOMPRESSED_DIR = join(tmpdir(), `serverest-sem-precomprimido-${process.pid}`)
+
 const app = require('../../../src/app')
 const supertest = require('supertest')
 
