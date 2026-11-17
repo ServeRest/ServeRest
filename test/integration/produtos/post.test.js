@@ -179,61 +179,82 @@ describe(rotaProdutos + ' POST', () => {
     })
   })
 
+  // Formulário HTML envia todo valor como texto. O Joi aceita o texto numérico e o serviço grava o número.
   describe('Número enviado como string', () => {
-    it('Bad request - preco como string numérica não é aceito', async () => {
-      const produto = { ...utils.dadosProduto(), preco: '470' }
+    it('preco e quantidade como string numérica são aceitos e gravados como número', async () => {
+      const produto = utils.dadosProduto()
 
       const { body } = await request
         .post(rotaProdutos)
-        .send(produto)
+        .send({ ...produto, preco: '470', quantidade: '5' })
         .set('authorization', authorizationAdministrador)
-        .expect(400)
+        .expect(201)
 
-      chai.assert.deepEqual(body, {
-        preco: 'preco deve ser um número'
-      })
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.deepEqual(produtoGravado, { ...produto, preco: 470, quantidade: 5, _id: body._id })
     })
 
-    it('Bad request - preco como string em notação científica não é aceito', async () => {
-      const produto = { ...utils.dadosProduto(), preco: '4e2' }
-
+    it('preco como string em notação científica é aceito e gravado pelo valor convertido', async () => {
       const { body } = await request
         .post(rotaProdutos)
-        .send(produto)
+        .send({ ...utils.dadosProduto(), preco: '4e2' })
         .set('authorization', authorizationAdministrador)
-        .expect(400)
+        .expect(201)
 
-      chai.assert.deepEqual(body, {
-        preco: 'preco deve ser um número'
-      })
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.strictEqual(produtoGravado.preco, 400)
     })
 
-    it('Bad request - quantidade como string numérica não é aceita', async () => {
-      const produto = { ...utils.dadosProduto(), quantidade: '5' }
+    it('corpo em application/x-www-form-urlencoded é aceito e gravado com números', async () => {
+      const produto = utils.dadosProduto()
 
-      const { body } = await request
-        .post(rotaProdutos)
-        .send(produto)
-        .set('authorization', authorizationAdministrador)
-        .expect(400)
-
-      chai.assert.deepEqual(body, {
-        quantidade: 'quantidade deve ser um número'
-      })
-    })
-
-    // O contrato declara só application/json; num formulário todo valor chega como texto.
-    it('Bad request - corpo em application/x-www-form-urlencoded não é aceito', async () => {
       const { body } = await request
         .post(rotaProdutos)
         .type('form')
-        .send(utils.dadosProduto())
+        .send(produto)
+        .set('authorization', authorizationAdministrador)
+        .expect(201)
+
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.deepEqual(produtoGravado, { ...produto, _id: body._id })
+    })
+
+    it('Bad request - preco e quantidade como string não numérica não são aceitos', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), preco: 'abc', quantidade: 'abc' })
         .set('authorization', authorizationAdministrador)
         .expect(400)
 
       chai.assert.deepEqual(body, {
         preco: 'preco deve ser um número',
         quantidade: 'quantidade deve ser um número'
+      })
+    })
+
+    it('Bad request - preco e quantidade como string decimal não são aceitos', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), preco: '4.5', quantidade: '1.5' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        preco: 'preco deve ser um inteiro',
+        quantidade: 'quantidade deve ser um inteiro'
+      })
+    })
+
+    it('Bad request - preco e quantidade como string negativa não são aceitos', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), preco: '-3', quantidade: '-1' })
+        .set('authorization', authorizationAdministrador)
+        .expect(400)
+
+      chai.assert.deepEqual(body, {
+        preco: 'preco deve ser um número positivo',
+        quantidade: 'quantidade deve ser maior ou igual a 0'
       })
     })
   })

@@ -79,12 +79,26 @@ describe(rotaProdutos + ' PUT', () => {
     })
   })
 
-  it('Bad request - preco como string numérica não é aceito', async () => {
+  it('preco e quantidade como string numérica são aceitos e gravados como número', async () => {
+    const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
+    const produto = utils.dadosProduto()
+
+    await request
+      .put(`${rotaProdutos}/${_id}`)
+      .send({ ...produto, preco: '470', quantidade: '5' })
+      .set('authorization', authorizationAdministrador)
+      .expect(200)
+
+    const { body: produtoGravado } = await request.get(`${rotaProdutos}/${_id}`).expect(200)
+    chai.assert.deepEqual(produtoGravado, { ...produto, preco: 470, quantidade: 5, _id })
+  })
+
+  it('Bad request - preco como string não numérica não é aceito', async () => {
     const { _id } = await utils.cadastrarProduto({ authorization: authorizationAdministrador })
 
     const { body } = await request
       .put(`${rotaProdutos}/${_id}`)
-      .send({ ...utils.dadosProduto(), preco: '470' })
+      .send({ ...utils.dadosProduto(), preco: 'abc' })
       .set('authorization', authorizationAdministrador)
       .expect(400)
 
