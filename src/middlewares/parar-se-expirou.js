@@ -1,8 +1,22 @@
 'use strict'
 
-// O connect-timeout responde 408 depois de 5 s, mas não interrompe a cadeia: quando o passo lento termina e chama
-// next(), a requisição seguiria até o 405, que tentaria responder de novo. Em 2026-11-07 isso gerou
-// um ERR_HTTP_HEADERS_SENT no log, e o alerta de erro disparou por uma requisição que já tinha recebido o 408.
-module.exports = function pararSeExpirou (req, _res, next) {
+const { log } = require('../utils/logger')
+
+// Depois de 5 s o connect-timeout passa um erro ETIMEDOUT adiante, e o errorHandler responde 408. A cadeia não é
+// interrompida, e o Express guarda a posição do errorHandler: quando o passo lento termina, a requisição continua
+// dali. Em 2026-11-07 um next() atrasado chegou ao 405, que tentou responder de novo e registrou
+// ERR_HTTP_HEADERS_SENT, o que disparou o alerta de erro. Estes dois ficam logo depois do errorHandler.
+
+// Um next() atrasado para aqui.
+function pararSeExpirou (req, _res, next) {
   if (!req.timedout) next()
 }
+
+// Um next(erro) atrasado, ou uma rota que tenta responder depois do 408, chega aqui. O cliente já recebeu a
+// resposta, então o erro vai para o log sem o nível de erro, em vez de ir ao tratador final do Express.
+function descartarErroDepoisDaResposta (error, _req, res, next) {
+  if (!res.headersSent) return next(error)
+  log({ message: `Erro depois da resposta enviada: ${error.message}` })
+}
+
+module.exports = { pararSeExpirou, descartarErroDepoisDaResposta }
