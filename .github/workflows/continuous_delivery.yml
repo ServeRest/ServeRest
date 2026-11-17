@@ -27,6 +27,7 @@ jobs:
   #     uses: 1password/load-secrets-action@v5
   #     with:
   #       export-env: true
+  #       version: 2.18.0
   #     env:
   #       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
   #       STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY
@@ -74,6 +75,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GH_TOKEN: op://CI-CD/GitHub/GH_TOKEN

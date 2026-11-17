@@ -30,6 +30,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
@@ -62,6 +63,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
@@ -154,6 +156,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
@@ -261,6 +264,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
@@ -314,6 +318,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
@@ -339,6 +344,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
@@ -370,6 +376,7 @@ jobs:
       uses: 1password/load-secrets-action@v5
       with:
         export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
