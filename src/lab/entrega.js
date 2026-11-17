@@ -1,7 +1,8 @@
 'use strict'
 
 const { createHash } = require('crypto')
-const { readdirSync, readFileSync } = require('fs')
+const express = require('express')
+const { readdirSync, readFileSync, statSync } = require('fs')
 const { extname, join, sep } = require('path')
 const zlib = require('zlib')
 
@@ -26,6 +27,8 @@ function brotli (corpo) {
   })
 }
 
+const COMPRESSORES = { br: brotli, gzip: corpo => zlib.gzipSync(corpo, { level: 9 }) }
+
 // Uma resposta da página montada uma vez: o corpo nas três codificações e o ETag. Nenhuma requisição
 // comprime nada. O ETag é fraco porque vale para as três codificações do mesmo conteúdo.
 function prepararResposta (conteudo, tipo) {
@@ -33,7 +36,7 @@ function prepararResposta (conteudo, tipo) {
   return {
     tipo,
     etag: `W/"${createHash('sha1').update(identity).digest('base64url')}"`,
-    corpos: { br: brotli(identity), gzip: zlib.gzipSync(identity, { level: 9 }), identity }
+    corpos: { br: COMPRESSORES.br(identity), gzip: COMPRESSORES.gzip(identity), identity }
   }
 }
 
@@ -93,9 +96,45 @@ function servirTextos (textos) {
   }
 }
 
+// Arquivos grandes que o express.static serve, comprimidos no primeiro pedido que aceita cada
+// codificação e guardados até o fim do processo: comprimir ao subir atrasaria cada cold start.
+// ETag, Last-Modified, Content-Type e Cache-Control são os do express.static, para um pedido
+// condicional valer nos dois caminhos. Quem não aceita br nem gzip segue para o express.static e
+// recebe o arquivo como antes; a cópia sem compressão não fica na memória.
+function comprimirSobDemanda (pasta, arquivos) {
+  const { mime } = express.static
+  const prontas = new Map(arquivos.map(arquivo => {
+    const caminho = join(pasta, arquivo)
+    const { size, mtime } = statSync(caminho)
+    const tipo = mime.lookup(caminho)
+    return ['/' + arquivo, {
+      caminho,
+      tipo: `${tipo}; charset=${mime.charsets.lookup(tipo)}`,
+      etag: `W/"${size.toString(16)}-${mtime.getTime().toString(16)}"`,
+      modificado: mtime.toUTCString(),
+      corpos: {}
+    }]
+  }))
+  return (req, res, next) => {
+    const pronta = prontas.get(req.path)
+    if (!pronta || !['GET', 'HEAD'].includes(req.method)) return next()
+    res.vary('Accept-Encoding')
+    const codificacao = codificacaoAceita(req)
+    if (codificacao === 'identity') return next()
+    res.set('Cache-Control', SEM_CACHE_LONGO)
+    res.set('Last-Modified', pronta.modificado)
+    res.set('ETag', pronta.etag)
+    if (!req.fresh && !pronta.corpos[codificacao]) {
+      pronta.corpos[codificacao] = COMPRESSORES[codificacao](readFileSync(pronta.caminho))
+    }
+    enviarResposta(req, res, pronta)
+  }
+}
+
 module.exports = {
   cacheForaDoLocalhost,
   cacheNoStatic,
+  comprimirSobDemanda,
   enviarResposta,
   prepararResposta,
   servirTextos,
