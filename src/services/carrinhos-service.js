@@ -4,12 +4,13 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
-const { doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
+const { continuarDaMaiorMarca, doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
 const produtosService = require('../services/produtos-service')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
+continuarDaMaiorMarca(datastore)
 
 // Index frequently searched fields for better query performance
 /* istanbul ignore next */
