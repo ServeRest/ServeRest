@@ -218,9 +218,14 @@ jobs:
     steps:
     - name: Create issue
       id: create-issue-action
+      # O rollback não depende desta issue: uma falha aqui não pode deixar a produção na versão quebrada.
+      continue-on-error: true
       run: |
         url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug)
-        echo "number=${url##*/}" >> "$GITHUB_OUTPUT"
+        number="${url##*/}"
+        if [[ "$number" =~ ^[0-9]+$ ]]; then
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+        fi
       env:
         GH_TOKEN: ${{ github.token }}
         TITLE: Production tests failed - Deploy aborted
@@ -243,8 +248,10 @@ jobs:
 
   rollback-production:
     name: Rollback production environment (serverest.dev)
-    needs: open-issue-production
-    if: ${{ always() && needs.open-issue-production.result == 'success' }}
+    # Quem dispara é o smoke test que falhou, não a issue: open-issue-production está aqui só para ler o
+    # número da issue, e o resultado dele não importa.
+    needs: [test-e2e-smoke-production, open-issue-production]
+    if: ${{ always() && needs.test-e2e-smoke-production.result == 'failure' }}
 
     runs-on: ubuntu-22.04
     environment: production
@@ -278,6 +285,9 @@ jobs:
           --region $REGION \
           --to-revisions ${{ steps.gcloud_revision.outputs.penultimate }}=100
     - name: Comment on generated issue about rollback
+      if: needs.open-issue-production.outputs.issue-number != ''
+      # Aqui o tráfego já voltou: um comentário que falha não pode marcar o rollback como falho.
+      continue-on-error: true
       run: gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$BODY"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
