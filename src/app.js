@@ -26,6 +26,7 @@ const moesifMiddleware = require('./middlewares/moesif-monitor-middleware')
 const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
+const pararSeExpirou = require('./middlewares/parar-se-expirou')
 const { iniciar, etapa } = require('./utils/etapas')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
@@ -235,6 +236,9 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
+// O 408 do timeout passa pelo errorHandler, e o Express guarda essa posição: quando o passo lento termina e chama
+// next(), a requisição continua daqui. Sem esta parada ela chegava ao 405, que respondia de novo.
+app.use(pararSeExpirou)
 app.use((req, res) => {
   res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${urlDocumentacao()} para ver as rotas disponíveis e como utilizá-las.`
