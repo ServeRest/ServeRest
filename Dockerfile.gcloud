@@ -12,7 +12,9 @@ COPY --from=datadog-serverless /datadog-init /app/datadog-init
 
 COPY --from=datadog-lib-js-init /operator-build/node_modules /dd_tracer/node/
 
-# Usuário sem root, sem shell e sem home, com UID fixo para quem montar volume poder alinhar o dono no host.
+# Usuário sem root e sem shell de login, com UID fixo. Só nesta imagem, a do serverest.dev, que fica exposta na
+# internet: a do Docker Hub roda na máquina de quem a usa, e trocar o usuário dela quebraria quem monta uma pasta em
+# /app/src/data ou estende a imagem com RUN.
 RUN addgroup -S -g 10001 serverest && adduser -S -D -H -u 10001 -G serverest -s /sbin/nologin serverest
 
 WORKDIR /app
