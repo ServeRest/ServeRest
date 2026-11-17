@@ -15,20 +15,22 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
     - name: Project checkout - Continuous Integration
       if: inputs.type_pipeline == 'continuous_integration'
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.ref }}
         repository: ${{ github.event.pull_request.head.repo.full_name }}
     - name: Project checkout - Continuous Delivery
       if: inputs.type_pipeline == 'continuous_delivery'
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - run: docker compose build test-contract
     - name: Run contract test
       run: make test-contract
@@ -41,9 +43,9 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Node.js Setup
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
     - name: Installation of Node.js dependencies
       run: npm ci
     - name: Lint
@@ -55,9 +57,9 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Node.js Setup
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
     - name: Validate Swagger translations
       run: npm run i18n:validate
 
@@ -67,7 +69,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - uses: wagoid/commitlint-github-action@v5
@@ -80,7 +82,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Validate production Docker Hub dockerfile (Dockerfile)
       run: docker run --rm -i hadolint/hadolint < Dockerfile
     - name: Validate production Google Cloud dockerfile (Dockerfile.gcloud)
@@ -96,9 +98,11 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
@@ -132,7 +136,7 @@ jobs:
         # Datadog fica associado ao commit do ramo.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: coverage-unit
         retention-days: 1
@@ -144,9 +148,11 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
@@ -180,7 +186,7 @@ jobs:
         # Datadog fica associado ao commit do ramo.
         DD_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         DD_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: coverage-integration
         retention-days: 1
@@ -192,9 +198,11 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         DD_API_KEY: op://CI-CD/Datadog/DD_API_KEY
@@ -237,18 +245,18 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
       with:
         ref: ${{ github.event.pull_request.head.ref }}
         repository: ${{ github.event.pull_request.head.repo.full_name }}
         fetch-depth: 0
     - name: Download unit test artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: coverage-unit
         path: coverage-unit
     - name: Download integration test artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: coverage-integration
         path: coverage-integration
@@ -258,12 +266,14 @@ jobs:
       id: currentversion
       run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         SONAR_TOKEN: op://CI-CD/sonar/SONAR_TOKEN
     - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@v7.0.0
+      uses: SonarSource/sonarqube-scan-action@v8.5.0
       with:
         args: >
           -Dsonar.organization=serverest
@@ -285,7 +295,7 @@ jobs:
 
     steps:
     - name: Project checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
     - run: docker compose build test-infra
     - name: Run infra test
       run: make test-infra
