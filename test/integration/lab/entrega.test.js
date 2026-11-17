@@ -1,7 +1,10 @@
 const { expect } = require('chai')
 const express = require('express')
-const { copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } = require('fs')
+const fs = require('fs')
+const { copyFileSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } = fs
 const http = require('http')
+const sinon = require('sinon')
+const { Readable } = require('stream')
 const supertest = require('supertest')
 const { tmpdir } = require('os')
 const { join } = require('path')
@@ -454,23 +457,114 @@ describe('servirPrecomprimidos sem todos os arquivos do build', () => {
     expect(res.text).to.equal(readFileSync(join(pastas.origem, 'swagger-ui.css'), 'utf8'))
   })
 
-  it('leva ao tratamento de erro um erro do send que não é do pedido - @skipE2E', async () => {
+  it('serve sem compressão, sem chegar ao tratamento de erro, quando a pasta dos pré-comprimidos vira arquivo (ENOTDIR) - @skipE2E', async () => {
     const pastas = pastasDeTeste(['swagger-ui.css'])
-    const erros = []
+    let erros = 0
+    const app = appDoSwaggerUi(pastas, ['swagger-ui.css'])
+      .use((erro, req, res, next) => {
+        erros++
+        next(erro)
+      })
+    rmSync(pastas.destino, { recursive: true })
+    writeFileSync(pastas.destino, '')
+    const res = await supertest(app).get('/swagger-ui.css').set('Accept-Encoding', 'br').expect(200)
+    expect(res.headers).to.not.have.property('content-encoding')
+    expect(res.headers['content-type']).to.equal('text/css; charset=UTF-8')
+    expect(res.text).to.equal(readFileSync(join(pastas.origem, 'swagger-ui.css'), 'utf8'))
+    expect(erros).to.equal(0)
+  })
+
+  it('serve sem compressão, sem chegar ao tratamento de erro, um erro do disco antes dos headers - @skipE2E', async () => {
+    const pastas = pastasDeTeste(['swagger-ui.css'])
+    let erros = 0
     const app = express()
       .use((req, res, next) => {
-        // Um erro de leitura do disco, que o send entrega como 500.
-        res.sendFile = (caminho, opcoes, callback) => callback(Object.assign(new Error('EIO'), { status: 500 }))
+        // Um erro de leitura do disco antes da resposta começar, que o send entrega como 500.
+        res.sendFile = (caminho, opcoes, callback) => callback(Object.assign(new Error('EIO'), { code: 'EIO', status: 500 }))
         next()
       })
-      .use(servirPrecomprimidos(pastas.destino, ['swagger-ui.css']))
+      .use(servirPrecomprimidos(pastas.destino, ['swagger-ui.css']), express.static(pastas.origem))
       .use((erro, req, res, next) => {
-        erros.push(erro.status)
-        res.sendStatus(500)
+        erros++
+        next(erro)
       })
-    const res = await supertest(app).get('/swagger-ui.css').set('Accept-Encoding', 'br').expect(500)
+    const res = await supertest(app).get('/swagger-ui.css').set('Accept-Encoding', 'br').expect(200)
     expect(res.headers).to.not.have.property('content-encoding')
-    expect(erros).to.deep.equal([500])
+    expect(res.text).to.equal(readFileSync(join(pastas.origem, 'swagger-ui.css'), 'utf8'))
+    expect(erros).to.equal(0)
+  })
+
+  describe('erro de leitura do disco depois dos headers', () => {
+    afterEach(() => sinon.restore())
+
+    it('fecha a conexão sem lançar exceção, sem seguir adiante e com uma linha de log - @skipE2E', async () => {
+      const { origem, destino } = pastasDeTeste([], { comprimir: false })
+      writeFileSync(join(origem, 'grande.css'), '')
+      writeFileSync(join(destino, 'grande.css.br'), Buffer.alloc(1024 * 1024))
+      // O primeiro pedaço sai, os headers vão junto, e o disco falha no seguinte, como um EIO real.
+      const createReadStream = fs.createReadStream
+      sinon.stub(fs, 'createReadStream').callsFake((caminho, opcoes) => {
+        if (!caminho.endsWith('grande.css.br')) return createReadStream(caminho, opcoes)
+        let lidos = 0
+        return new Readable({
+          read () {
+            if (lidos++ === 0) return this.push(Buffer.alloc(1024))
+            setImmediate(() => this.destroy(Object.assign(new Error('EIO: i/o error, read'), { code: 'EIO', syscall: 'read' })))
+          }
+        })
+      })
+      let seguiu = 0
+      let erros = 0
+      let respostaDoServidor
+      let fimDoSendFile
+      const sendFileTerminou = new Promise(resolve => { fimDoSendFile = resolve })
+      const app = express()
+        .use((req, res, next) => {
+          respostaDoServidor = res
+          const sendFile = res.sendFile
+          // O callback do middleware roda antes de a promessa resolver: uma exceção dele chega ao mocha
+          // como não capturada e reprova o teste.
+          res.sendFile = (caminho, opcoes, callback) => sendFile.call(res, caminho, opcoes, erro => {
+            callback(erro)
+            fimDoSendFile(erro)
+          })
+          next()
+        })
+        .use(servirPrecomprimidos(destino, ['grande.css']), (req, res, next) => {
+          seguiu++
+          next()
+        })
+        .use((erro, req, res, next) => {
+          erros++
+          next(erro)
+        })
+      const servidor = await new Promise(resolve => { const s = app.listen(0, () => resolve(s)) })
+      const linhas = []
+      const consoleLog = console.log
+      sinon.stub(console, 'log').callsFake((...args) => {
+        if (args[0] && args[0].level) linhas.push(args[0])
+        else consoleLog(...args)
+      })
+      const respostaDoCliente = new Promise(resolve => {
+        http.get({ port: servidor.address().port, path: '/grande.css', headers: { 'accept-encoding': 'br' }, agent: false }, res => {
+          res.on('error', () => {}).on('close', () => resolve(res)).resume()
+        }).on('error', () => {})
+      })
+      const erro = await sendFileTerminou
+      const cliente = await respostaDoCliente
+      console.log.restore()
+      await new Promise(resolve => servidor.close(resolve))
+      expect(erro.code).to.equal('EIO')
+      expect(cliente.statusCode).to.equal(200)
+      expect(cliente.headers['content-encoding']).to.equal('br')
+      expect(cliente.complete).to.equal(false)
+      expect(respostaDoServidor.destroyed).to.equal(true)
+      expect(seguiu).to.equal(0)
+      expect(erros).to.equal(0)
+      expect(linhas).to.have.lengthOf(1)
+      expect(linhas[0].level).to.equal('warn')
+      expect(linhas[0].message).to.include('/grande.css').and.include('EIO')
+    })
   })
 
   it('não segue adiante nem trata como erro quando a conexão cai no meio da resposta - @skipE2E', async () => {
@@ -518,13 +612,31 @@ describe('servirPrecomprimidos sem todos os arquivos do build', () => {
   })
 })
 
+describe('Pasta dos pré-comprimidos do Swagger UI', () => {
+  const VARIAVEL = 'SWAGGER_UI_PRECOMPRESSED_DIR'
+  let original
+  beforeEach(() => { original = process.env[VARIAVEL] })
+  afterEach(() => {
+    if (original === undefined) delete process.env[VARIAVEL]
+    else process.env[VARIAVEL] = original
+  })
+
+  it('sem a variável é a do build, com a versão do swagger-ui-dist que o app serve - @skipE2E', () => {
+    delete process.env[VARIAVEL]
+    const { version: versaoDoSwaggerUi } = JSON.parse(readFileSync(join(pastaDoSwaggerUi, 'package.json')))
+    expect(pastaPrecomprimida()).to.equal(join(__dirname, '../../../swagger-ui-precomprimido', versaoDoSwaggerUi))
+  })
+
+  it('com a variável é a pasta que ela indica - @skipE2E', () => {
+    process.env[VARIAVEL] = join(tmpdir(), 'outra-pasta')
+    expect(pastaPrecomprimida()).to.equal(join(tmpdir(), 'outra-pasta'))
+  })
+})
+
+// O app dos testes procura os pré-comprimidos numa pasta temporária que não existe
+// (test/integration/utils/global.js), como um clone sem o build do Dockerfile.gcloud.
 describe('Arquivos grandes do Swagger UI no app, sem os pré-comprimidos', () => {
   const servidor = servidorLocal()
-
-  // Vale para um clone sem o build do Dockerfile.gcloud, como no CI.
-  before(function () {
-    if (existsSync(pastaPrecomprimida)) this.skip()
-  })
 
   it('saem pelo express.static exatamente como antes, sem Vary - @skipE2E', async () => {
     for (const arquivo of ARQUIVOS_GRANDES) {
@@ -546,25 +658,29 @@ describe('Arquivos grandes do Swagger UI no app, sem os pré-comprimidos', () =>
 
 describe('Arquivos grandes do Swagger UI no app, com os pré-comprimidos do build', () => {
   const appCacheKey = require.resolve('../../../src/app')
-  const raiz = join(pastaPrecomprimida, '..')
-  const criados = []
+  const VARIAVEL = 'SWAGGER_UI_PRECOMPRESSED_DIR'
+  let destino
+  let pastaOriginal
   let appOriginal
 
-  // Grava os pré-comprimidos na pasta que o app usa, como o build, e carrega um app novo, que os
-  // procura ao subir. Só apaga depois o que ele mesmo criou.
+  // Grava os pré-comprimidos numa pasta temporária, como o build, e carrega um app novo apontado para
+  // ela, que os procura ao subir. Depois volta a variável e o app de antes, para os outros testes.
   before(function () {
     this.timeout(60000)
-    for (const pasta of [raiz, pastaPrecomprimida]) if (!existsSync(pasta)) criados.unshift(pasta)
-    precomprimir(pastaDoSwaggerUi, pastaPrecomprimida, ARQUIVOS_GRANDES)
+    destino = pastasDeTeste().destino
+    pastaOriginal = process.env[VARIAVEL]
+    process.env[VARIAVEL] = destino
     appOriginal = require.cache[appCacheKey]
     delete require.cache[appCacheKey]
   })
   after(() => {
-    require.cache[appCacheKey] = appOriginal
-    criados.forEach(pasta => rmSync(pasta, { recursive: true, force: true }))
+    if (pastaOriginal === undefined) delete process.env[VARIAVEL]
+    else process.env[VARIAVEL] = pastaOriginal
+    if (appOriginal) require.cache[appCacheKey] = appOriginal
+    else delete require.cache[appCacheKey]
   })
   const servidor = servidorLocal()
-  const br = () => readFileSync(join(pastaPrecomprimida, 'swagger-ui-bundle.js.br'))
+  const br = () => readFileSync(join(destino, 'swagger-ui-bundle.js.br'))
 
   it('manda o .br do bundle a quem aceita, e o original com Vary a quem não aceita - @skipE2E', async () => {
     const comprimido = await servidor.pedir('/swagger-ui-bundle.js', { 'accept-encoding': 'br, gzip' })

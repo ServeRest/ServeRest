@@ -14,9 +14,13 @@ const doSwaggerUiExpress = createRequire(require.resolve('swagger-ui-express'))
 const pastaDoSwaggerUi = doSwaggerUiExpress('swagger-ui-dist/absolute-path')()
 
 // Fora da pasta que o express.static serve, para o .br e o .gz não virarem URLs; a versão no
-// caminho impede servir a compressão de outra versão depois de atualizar as dependências.
-const pastaPrecomprimida = join(__dirname, '../../swagger-ui-precomprimido',
-  doSwaggerUiExpress('swagger-ui-dist/package.json').version)
+// caminho impede servir a compressão de outra versão depois de atualizar as dependências. A
+// SWAGGER_UI_PRECOMPRESSED_DIR troca a pasta nos testes, que assim não dependem da do repositório
+// nem gravam nela; lida a cada chamada, vale para o app carregado depois de mudá-la.
+function pastaPrecomprimida () {
+  return process.env.SWAGGER_UI_PRECOMPRESSED_DIR || join(__dirname, '../../swagger-ui-precomprimido',
+    doSwaggerUiExpress('swagger-ui-dist/package.json').version)
+}
 
 // Os três maiores arquivos do Swagger UI; o bundle tem 1,5 MB sem compressão.
 const ARQUIVOS_GRANDES = [
