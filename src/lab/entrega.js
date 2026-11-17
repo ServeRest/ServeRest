@@ -7,24 +7,13 @@ const zlib = require('zlib')
 
 const { version } = require('../../package.json')
 const { aplicacaoExecutandoLocalmente } = require('../utils/ambiente')
+const { brotli } = require('../utils/brotli')
 
 const UM_ANO = 'public, max-age=31536000, immutable'
 const UMA_SEMANA = 'public, max-age=604800'
 // O mesmo Cache-Control do express.static, que servia estes textos antes.
 const SEM_CACHE_LONGO = 'public, max-age=0'
 const TEXTOS = ['.js', '.css', '.svg']
-
-// Qualidade 9: a 11 gastava dez vezes mais CPU ao montar para só 8% a menos de bytes, num container que já
-// vive no teto de CPU e de memória.
-function brotli (corpo) {
-  return zlib.brotliCompressSync(corpo, {
-    params: {
-      [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-      [zlib.constants.BROTLI_PARAM_QUALITY]: 9,
-      [zlib.constants.BROTLI_PARAM_SIZE_HINT]: corpo.length
-    }
-  })
-}
 
 // Uma resposta da página montada uma vez: o corpo nas três codificações e o ETag. Nenhuma requisição
 // comprime nada. O ETag é fraco porque vale para as três codificações do mesmo conteúdo.
@@ -33,7 +22,9 @@ function prepararResposta (conteudo, tipo) {
   return {
     tipo,
     etag: `W/"${createHash('sha1').update(identity).digest('base64url')}"`,
-    corpos: { br: brotli(identity), gzip: zlib.gzipSync(identity, { level: 9 }), identity }
+    // Qualidade 9: a 11 gastava dez vezes mais CPU ao montar para só 8% a menos de bytes, num
+    // container que já vive no teto de CPU e de memória.
+    corpos: { br: brotli(identity, 9), gzip: zlib.gzipSync(identity, { level: 9 }), identity }
   }
 }
 
@@ -93,10 +84,10 @@ function servirTextos (textos) {
   }
 }
 
-// Entrega o .br ou o .gz gravado no build ao lado de cada arquivo, a quem aceita; o send cuida de
-// ETag, Last-Modified, 304, Range e HEAD. Sem o arquivo pré-comprimido (fora da imagem do Cloud
-// Run) ou se o send falhar antes de responder, o pedido segue para o express.static como antes,
-// sem os headers postos aqui.
+// Entrega o .br ou o .gz que o build gravou na pasta dos pré-comprimidos, fora da que o
+// express.static serve, a quem aceita; o send cuida de ETag, Last-Modified, 304, Range e HEAD, e
+// os erros dele (412, 416) seguem como ele os dá. Sem o arquivo pré-comprimido (fora da imagem do
+// Cloud Run, ou apagado depois de o servidor subir), o pedido segue para o express.static como antes.
 function servirPrecomprimidos (pasta, arquivos) {
   const prontos = new Map(arquivos.map(arquivo => [
     '/' + arquivo,
@@ -112,14 +103,13 @@ function servirPrecomprimidos (pasta, arquivos) {
     res.vary('Accept-Encoding')
     const codificacao = codificacaoAceita(req)
     if (!pronto[codificacao]) return next()
-    const headersDeAntes = new Set(res.getHeaderNames())
     res.set('Content-Encoding', codificacao)
     res.type(pronto.tipo)
     res.sendFile(pronto[codificacao], { root: pasta, maxAge: 0 }, erro => {
       if (!erro || res.headersSent) return
-      for (const nome of res.getHeaderNames()) {
-        if (!headersDeAntes.has(nome)) res.removeHeader(nome)
-      }
+      res.removeHeader('Content-Encoding')
+      if (erro.code !== 'ENOENT') return next(erro)
+      res.removeHeader('Content-Type')
       next()
     })
   }
