@@ -23,3 +23,5 @@ tmp/
 *.tgz
 gcloud-flags.yaml
 REVIEW.md
+# Gravada pelo scripts/precomprimir-swagger-ui.js no build do Dockerfile.gcloud
+swagger-ui-precomprimido/

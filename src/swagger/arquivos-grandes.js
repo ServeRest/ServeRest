@@ -1,15 +1,22 @@
 'use strict'
 
 // Sem dependências do servidor: o build da imagem roda isto antes de copiar o resto do código.
-const { readFileSync, writeFileSync } = require('fs')
+const { mkdirSync, readFileSync, writeFileSync } = require('fs')
 const { createRequire } = require('module')
 const { join } = require('path')
 const zlib = require('zlib')
 
-// A pasta que o swagger-ui-express serve: o swagger-ui-dist é dependência dele, não nossa.
-const pastaDoSwaggerUi = createRequire(require.resolve('swagger-ui-express'))(
-  'swagger-ui-dist/absolute-path'
-)()
+const { brotli } = require('../utils/brotli')
+
+// O swagger-ui-dist é dependência do swagger-ui-express, não nossa: resolvido a partir dele, é a
+// pasta que ele serve.
+const doSwaggerUiExpress = createRequire(require.resolve('swagger-ui-express'))
+const pastaDoSwaggerUi = doSwaggerUiExpress('swagger-ui-dist/absolute-path')()
+
+// Fora da pasta que o express.static serve, para o .br e o .gz não virarem URLs; a versão no
+// caminho impede servir a compressão de outra versão depois de atualizar as dependências.
+const pastaPrecomprimida = join(__dirname, '../../swagger-ui-precomprimido',
+  doSwaggerUiExpress('swagger-ui-dist/package.json').version)
 
 // Os três maiores arquivos do Swagger UI; o bundle tem 1,5 MB sem compressão.
 const ARQUIVOS_GRANDES = [
@@ -18,21 +25,15 @@ const ARQUIVOS_GRANDES = [
   'swagger-ui.css'
 ]
 
-// Grava o .br (qualidade 11) e o .gz ao lado de cada arquivo. Roda no build, onde o tempo da
-// qualidade máxima não pesa em nenhuma requisição.
-function precomprimir (pasta, arquivos) {
+// Grava em destino o .br (qualidade 11) e o .gz de cada arquivo de origem. Roda no build, onde o
+// tempo da qualidade máxima não pesa em nenhuma requisição.
+function precomprimir (origem, destino, arquivos) {
+  mkdirSync(destino, { recursive: true })
   for (const arquivo of arquivos) {
-    const caminho = join(pasta, arquivo)
-    const corpo = readFileSync(caminho)
-    writeFileSync(caminho + '.br', zlib.brotliCompressSync(corpo, {
-      params: {
-        [zlib.constants.BROTLI_PARAM_MODE]: zlib.constants.BROTLI_MODE_TEXT,
-        [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
-        [zlib.constants.BROTLI_PARAM_SIZE_HINT]: corpo.length
-      }
-    }))
-    writeFileSync(caminho + '.gz', zlib.gzipSync(corpo, { level: 9 }))
+    const corpo = readFileSync(join(origem, arquivo))
+    writeFileSync(join(destino, arquivo + '.br'), brotli(corpo, 11))
+    writeFileSync(join(destino, arquivo + '.gz'), zlib.gzipSync(corpo, { level: 9 }))
   }
 }
 
-module.exports = { ARQUIVOS_GRANDES, pastaDoSwaggerUi, precomprimir }
+module.exports = { ARQUIVOS_GRANDES, pastaDoSwaggerUi, pastaPrecomprimida, precomprimir }

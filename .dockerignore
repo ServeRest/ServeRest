@@ -13,3 +13,5 @@ coverage-unit/
 coverage-integration/
 lcov.info
 node_modules/
+# Gravada no próprio build; uma cópia local não pode sobrescrever a da imagem.
+swagger-ui-precomprimido/

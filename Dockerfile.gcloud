@@ -18,10 +18,11 @@ COPY package*.json ./
 
 RUN npm ci --production --ignore-scripts
 
-# Grava o .br e o .gz dos maiores arquivos do Swagger UI; só o script e a lista entram antes do
-# resto, para esta camada ser refeita apenas quando as dependências ou a lista mudarem.
+# Grava o .br e o .gz dos maiores arquivos do Swagger UI; só o script e o que ele usa entram antes
+# do resto, para esta camada ser refeita apenas quando as dependências ou esses arquivos mudarem.
 COPY scripts/precomprimir-swagger-ui.js scripts/
 COPY src/swagger/arquivos-grandes.js src/swagger/
+COPY src/utils/brotli.js src/utils/
 RUN node scripts/precomprimir-swagger-ui.js
 
 COPY . .
