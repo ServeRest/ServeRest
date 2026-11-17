@@ -231,6 +231,30 @@ describe(rotaCarrinhos + ' POST', () => {
     chai.assert.strictEqual(bodyProduto.quantidade, 8)
   })
 
+  it('Bad request - quantidade como string não numérica não é aceita e o estoque não muda', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto,
+          quantidade: 'abc'
+        }]
+      })
+      .set('authorization', authorization)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um número'
+    })
+
+    const { body: bodyProduto } = await request.get(`/produtos/${idProduto}`).expect(200)
+
+    chai.assert.strictEqual(bodyProduto.quantidade, 10)
+  })
+
   it('Bad request - quantidade como string decimal não é aceita', async () => {
     const { body } = await request
       .post(rotaCarrinhos)

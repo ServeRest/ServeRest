@@ -219,6 +219,17 @@ describe(rotaProdutos + ' POST', () => {
       chai.assert.deepEqual(produtoGravado, { ...produto, _id: body._id })
     })
 
+    it('quantidade como string "-0" é aceita e gravada como 0', async () => {
+      const { body } = await request
+        .post(rotaProdutos)
+        .send({ ...utils.dadosProduto(), quantidade: '-0' })
+        .set('authorization', authorizationAdministrador)
+        .expect(201)
+
+      const { body: produtoGravado } = await request.get(`${rotaProdutos}/${body._id}`).expect(200)
+      chai.assert.strictEqual(produtoGravado.quantidade, 0)
+    })
+
     it('Bad request - preco e quantidade como string não numérica não são aceitos', async () => {
       const { body } = await request
         .post(rotaProdutos)
