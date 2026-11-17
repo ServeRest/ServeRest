@@ -90,7 +90,7 @@ exports.criarProduto = async body => {
 
 /* istanbul ignore next */
 exports.getPrecoUnitarioOuErro = async (produto) => {
-  const quantidade = parseInt(produto.quantidade)
+  const quantidade = Number(produto.quantidade)
   const { idProduto } = produto
   const existePedido = await this.existeProduto({ _id: idProduto })
   if (!existePedido) {
@@ -113,7 +113,7 @@ exports.getPrecosUnitariosPorLote = async (arrayProdutos) => {
   // Validate each product and build result
   for (let i = 0; i < arrayProdutos.length; i++) {
     const produto = arrayProdutos[i]
-    const quantidade = parseInt(produto.quantidade)
+    const quantidade = Number(produto.quantidade)
     const { idProduto } = produto
 
     const produtoEmEstoque = produtosMap.get(idProduto)
@@ -152,8 +152,9 @@ function formatarValores (body) {
   body.nome = body.nome.trim()
   // O express-validation não devolve ao req.body o número que o Joi converteu, então um texto
   // como "470" chega aqui. Number, e não parseInt: o Joi aceita "4e2" como 400 e o parseInt leria 4.
-  body.preco = Number(body.preco)
-  body.quantidade = Number(body.quantidade)
+  // O + 0 transforma -0 em 0, como o Joi faz com "-0".
+  body.preco = Number(body.preco) + 0
+  body.quantidade = Number(body.quantidade) + 0
   if (body.imagem) {
     body.imagem = body.imagem.trim()
   }
