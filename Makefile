@@ -27,11 +27,11 @@ stop:
 # COMANDOS DE DESENVOLVIMENTO \/
 
 run-dev:
-	@docker compose up --abort-on-container-exit --build run-dev
+	@HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) docker compose up --abort-on-container-exit --build run-dev
 
 run-debug:
 	docker build --file Dockerfile --tag serverest-debug .
-	docker run --entrypoint "npm" -p 3000:3000 -p 9229:9229 -v $(shell pwd):/app serverest-debug run start:debug
+	docker run --entrypoint "npm" --user $(shell id -u):$(shell id -g) -p 3000:3000 -p 9229:9229 -v $(shell pwd):/app serverest-debug run start:debug
 
 test-contract:
 	@docker compose up --abort-on-container-exit --build test-contract
