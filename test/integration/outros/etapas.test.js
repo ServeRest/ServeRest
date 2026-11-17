@@ -347,7 +347,7 @@ describe('Etapas da requisição', () => {
     it('Headers expostos para outras origens - @skipE2E', async () => {
       const { headers } = await request.get('/usuarios').expect(200)
 
-      chai.assert.equal(headers['access-control-expose-headers'], 'X-ServeRest-Stages')
+      chai.assert.equal(headers['access-control-expose-headers'], 'X-ServeRest-Stages,Retry-After')
     })
   })
 

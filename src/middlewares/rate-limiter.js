@@ -1,11 +1,12 @@
-const { RateLimiterMemory } = require('rate-limiter-flexible')
+const { RateLimiterMemory, RateLimiterRes } = require('rate-limiter-flexible')
 
 const {
   aplicacaoExecutandoLocalmente,
   ehAmbienteDeTestes
 } = require('../utils/ambiente')
-const { DOWNLOAD_LIMIT_EXCEEDED, LOAD_TEST_DETECTED } = require('../utils/constants')
+const { DOWNLOAD_LIMIT_EXCEEDED, LOAD_TEST_DETECTED, SERVER_BUSY } = require('../utils/constants')
 const { log } = require('../utils/logger')
+const { ROTAS_DA_API } = require('../utils/rotas-da-api')
 
 // Limite por cliente. Depende do 'trust proxy' definido no app.js: sem ele req.ip resolve
 // para o endereço do proxy do Cloud Run e este limite passaria a valer para todos somados.
@@ -31,14 +32,21 @@ const limiteGlobal = new RateLimiterMemory({
 // turmas atrás de um mesmo IP vem desses arquivos.
 const BYTES_POR_HORA = 250 * 1024 * 1024
 // Sem distinguir maiúsculas, como as rotas do Express: /Usuarios chega à mesma lista.
-const ROTAS_DA_API = /^\/(login|usuarios|produtos|carrinhos)(\/|$)/i
+const ROTA_DA_API = new RegExp(`^(${ROTAS_DA_API.join('|')})(/|$)`, 'i')
 
 // O tipo de cada limite também nomeia o limite na linha de log do bloqueio.
 const MENSAGENS = {
   'orcamento-de-bytes': DOWNLOAD_LIMIT_EXCEEDED,
   'requisicoes-por-ip': LOAD_TEST_DETECTED,
-  'requisicoes-global': LOAD_TEST_DETECTED
+  'requisicoes-global': SERVER_BUSY
 }
+
+// O fim da janela calculado em cada bloqueio varia alguns milissegundos de uma requisição para outra; a janela
+// seguinte do mesmo limite termina pelo menos uma duração inteira (30 s ou mais) depois. Um segundo de folga separa
+// as duas sem depender de arredondamento.
+const FOLGA_DA_JANELA_MS = 1000
+// Teto das marcas de primeiro bloqueio: muito acima dos clientes barrados ao mesmo tempo, e ainda poucos MiB.
+const MAXIMO_DE_MARCAS = 10000
 
 function criarOrcamentoDeBytes ({ bytes = BYTES_POR_HORA, segundos = 3600 } = {}) {
   const contador = new RateLimiterMemory({ points: bytes, duration: segundos })
@@ -50,7 +58,8 @@ function criarOrcamentoDeBytes ({ bytes = BYTES_POR_HORA, segundos = 3600 } = {}
     },
     registrar (chave, tamanho) {
       if (tamanho > 0) contador.penalty(chave, tamanho)
-    }
+    },
+    duracaoMs: segundos * 1000
   }
 }
 
@@ -59,8 +68,10 @@ async function consumir (limite, chave, tipo) {
     await limite.consume(chave)
     return null
   } catch (recusa) {
-    // A recusa traz quanto falta para a janela acabar. Um erro do armazenamento não traz, e aí vale a janela inteira.
-    return { tipo, ms: recusa.msBeforeNext ?? limite.duration * 1000 }
+    // O bloqueio de verdade é um RateLimiterRes, com quanto falta para a janela acabar. Qualquer outra coisa é erro
+    // do armazenamento, que não traz o tempo: vale a janela inteira.
+    if (recusa instanceof RateLimiterRes) return { tipo, ms: recusa.msBeforeNext }
+    return { tipo, ms: limite.duration * 1000, erro: recusa }
   }
 }
 
@@ -71,13 +82,18 @@ function criarLimitador ({ global = limiteGlobal, porIp = limitePorIp, orcamento
   // janela daquele cliente acabar.
   return async function verificar (req, res) {
     // Um HEAD tem Content-Length mas não manda corpo, então não conta.
-    const daApi = req.method !== 'HEAD' && ROTAS_DA_API.test(req.path)
+    const daApi = req.method !== 'HEAD' && ROTA_DA_API.test(req.path)
     // O orçamento vem antes de tudo porque só lê: um cliente sem orçamento não gasta a cota
     // de requisições de ninguém. O global vem antes do por IP de propósito. Avaliar os dois em
     // paralelo faria a requisição consumir a cota individual mesmo quando o bloqueio viesse do
     // limite agregado, o que penalizaria clientes inocentes durante congestionamento e, pior,
     // criaria uma chave por endereço no mapa mesmo para requisições já rejeitadas.
-    const ms = daApi ? await orcamento.msAteLiberar(req.ip) : 0
+    let ms = 0
+    try {
+      if (daApi) ms = await orcamento.msAteLiberar(req.ip)
+    } catch (erro) {
+      return { tipo: 'orcamento-de-bytes', ms: orcamento.duracaoMs, erro }
+    }
     if (ms > 0) return { tipo: 'orcamento-de-bytes', ms }
     const bloqueio = await consumir(global, 'global', 'requisicoes-global') ||
       await consumir(porIp, req.ip, 'requisicoes-por-ip')
@@ -91,25 +107,41 @@ function criarLimitador ({ global = limiteGlobal, porIp = limitePorIp, orcamento
   }
 }
 
-// Diz se é o primeiro bloqueio desta chave na janela. A marca some quando a janela acaba, então o
-// mapa só guarda os clientes barrados agora.
-function criarMarcaDeBloqueio () {
-  const marcados = new Map()
+// Diz se é o primeiro bloqueio desta chave na janela do limite. A marca guarda o fim da janela que o próprio limite
+// informou no bloqueio, e não um timer: um timer atrasado ou adiantado pularia ou repetiria a linha. Cheio, o mapa
+// primeiro descarta as marcas de janelas que já acabaram e, se ainda faltar espaço, a mais antiga; no pior caso
+// aquele cliente ganha uma linha a mais.
+function criarMarcaDeBloqueio (maximo) {
+  const fimDaJanela = new Map()
   return function primeiroBloqueio (chave, ms) {
-    if (marcados.has(chave)) return false
-    marcados.set(chave, setTimeout(() => marcados.delete(chave), ms).unref())
+    const agora = Date.now()
+    const fim = agora + ms
+    const marcado = fimDaJanela.get(chave)
+    if (marcado !== undefined && fim <= marcado + FOLGA_DA_JANELA_MS) return false
+    fimDaJanela.delete(chave)
+    if (fimDaJanela.size >= maximo) {
+      for (const [outra, fimDaOutra] of fimDaJanela) if (fimDaOutra <= agora) fimDaJanela.delete(outra)
+      if (fimDaJanela.size >= maximo) fimDaJanela.delete(fimDaJanela.keys().next().value)
+    }
+    fimDaJanela.set(chave, fim)
     return true
   }
 }
 
-function criarRateLimiter ({ limitador = criarLimitador() } = {}) {
-  const primeiroBloqueio = criarMarcaDeBloqueio()
+function criarRateLimiter ({ limitador = criarLimitador(), maximoDeMarcas = MAXIMO_DE_MARCAS } = {}) {
+  const primeiroBloqueio = criarMarcaDeBloqueio(maximoDeMarcas)
   return async function rateLimiter (req, res, next) {
     const bloqueio = await limitador(req, res)
     if (bloqueio === null) return next()
-    // Conta quantos clientes cada limite barra, uma linha por cliente e janela, sem guardar o endereço
-    // no log: a mensagem fixa é o que o contador do GCP procura.
-    if (primeiroBloqueio(`${bloqueio.tipo} ${req.ip}`, bloqueio.ms)) {
+    if (bloqueio.erro) {
+      // Falha fechada: o erro do armazenamento também vira 429. O armazenamento é a memória do próprio processo e
+      // só falharia por defeito no código; deixar passar tiraria a proteção da instância única de 256 MiB
+      // justamente quando o limite não consegue contar. A linha não diz "Cliente bloqueado" para não entrar na
+      // contagem de clientes barrados.
+      log({ level: 'error', message: `Falha no armazenamento do rate limiter: ${bloqueio.tipo}` })
+    } else if (primeiroBloqueio(`${bloqueio.tipo} ${req.ip}`, bloqueio.ms)) {
+      // Conta quantos clientes cada limite barra, uma linha por cliente e janela, sem o endereço no log: a
+      // mensagem fixa é o que o contador do GCP procura.
       log({ level: 'warn', message: `Cliente bloqueado pelo limite: ${bloqueio.tipo}` })
     }
     res.set('Retry-After', String(Math.max(1, Math.ceil(bloqueio.ms / 1000))))
@@ -130,3 +162,4 @@ module.exports = async (req, res, next) => {
 module.exports.criarLimitador = criarLimitador
 module.exports.criarOrcamentoDeBytes = criarOrcamentoDeBytes
 module.exports.criarRateLimiter = criarRateLimiter
+module.exports.BYTES_POR_HORA = BYTES_POR_HORA
