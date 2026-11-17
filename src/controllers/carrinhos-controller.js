@@ -27,7 +27,9 @@ exports.post = async (req, res) => {
     return res.status(400).send({ message: constant.LIMIT_JUST_ONE_CART })
   }
 
-  const { produtos } = req.body
+  // O express-validation não devolve ao req.body o número que o Joi converteu. Sem o Number,
+  // quantidade "2" seria gravada como texto e quantidadeTotal viraria "02".
+  const produtos = req.body.produtos.map(produto => ({ ...produto, quantidade: Number(produto.quantidade) }))
 
   const idProdutosDuplicados = service.extrairProdutosDuplicados(produtos)
   etapas.regra('no_duplicate_product', !idProdutosDuplicados.length)

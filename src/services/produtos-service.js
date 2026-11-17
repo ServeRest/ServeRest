@@ -150,8 +150,10 @@ exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {
 
 function formatarValores (body) {
   body.nome = body.nome.trim()
-  body.preco = parseInt(body.preco)
-  body.quantidade = parseInt(body.quantidade)
+  // O express-validation não devolve ao req.body o número que o Joi converteu, então um texto
+  // como "470" chega aqui. Number, e não parseInt: o Joi aceita "4e2" como 400 e o parseInt leria 4.
+  body.preco = Number(body.preco)
+  body.quantidade = Number(body.quantidade)
   if (body.imagem) {
     body.imagem = body.imagem.trim()
   }
