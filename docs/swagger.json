@@ -1166,7 +1166,13 @@
                             "dadosBaixados": {
                                 "summary": "components.responses.LimiteDeRequisicoes.examples.dadosBaixados.summary",
                                 "value": {
-                                    "message": "Limite de dados baixados da API atingido: cada cliente pode baixar até 250 MiB por hora no ServeRest online. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga"
+                                    "message": "Limite de dados baixados da API atingido: cada cliente pode baixar até 250 MiB por hora no ServeRest online. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#limites-do-serverest-online"
+                                }
+                            },
+                            "servidorOcupado": {
+                                "summary": "components.responses.LimiteDeRequisicoes.examples.servidorOcupado.summary",
+                                "value": {
+                                    "message": "O ServeRest online está recebendo requisições demais, somando todos os clientes. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#limites-do-serverest-online"
                                 }
                             }
                         }
