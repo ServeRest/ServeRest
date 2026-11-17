@@ -193,7 +193,7 @@ app.get('/index.html', (req, res) => {
 })
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
 // Os maiores saem comprimidos no build para quem aceita; o resto, como sempre.
-app.use('/', servirPrecomprimidos(pastaPrecomprimida, ARQUIVOS_GRANDES), swaggerUi.serve)
+app.use('/', servirPrecomprimidos(pastaPrecomprimida(), ARQUIVOS_GRANDES), swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {
   // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
   if (req.path !== '/swagger') {

@@ -8,6 +8,7 @@ const zlib = require('zlib')
 const { version } = require('../../package.json')
 const { aplicacaoExecutandoLocalmente } = require('../utils/ambiente')
 const { brotli } = require('../utils/brotli')
+const { log } = require('../utils/logger')
 
 const UM_ANO = 'public, max-age=31536000, immutable'
 const UMA_SEMANA = 'public, max-age=604800'
@@ -87,7 +88,8 @@ const EXTENSOES = { br: '.br', gzip: '.gz' }
 // Entrega o .br ou o .gz que o build gravou na pasta dos pré-comprimidos, fora da que o
 // express.static serve, a quem aceita; o send cuida de ETag, Last-Modified, 304, Range e HEAD. Um
 // arquivo sem nenhum pré-comprimido (fora da imagem do Cloud Run) segue para o express.static
-// exatamente como antes; um que sumiu depois de o servidor subir também segue para lá.
+// exatamente como antes; um que sumiu ou não pôde ser lido depois de o servidor subir também segue
+// para lá.
 function servirPrecomprimidos (pasta, arquivos) {
   const prontos = new Map(arquivos
     .map(arquivo => [arquivo, Object.keys(EXTENSOES).filter(c => existsSync(join(pasta, arquivo + EXTENSOES[c])))])
@@ -104,12 +106,21 @@ function servirPrecomprimidos (pasta, arquivos) {
     res.sendFile(pronto.arquivo + EXTENSOES[codificacao], { root: pasta, maxAge: 0 }, erro => {
       // Como o res.sendFile do Express sem callback: quem desistiu no meio não é erro do servidor.
       if (!erro || erro.code === 'ECONNABORTED' || erro.syscall === 'write') return
+      // Um erro de leitura depois dos headers (EIO no meio do arquivo): a resposta já começou e não
+      // tem conserto. Mexer nos headers lançaria ERR_HTTP_HEADERS_SENT dentro do evento do stream, uma
+      // exceção não capturada que derruba a instância. Fecha a conexão, como o finalhandler do Express,
+      // para o navegador ver o corpo cortado como falha e não guardar metade do arquivo.
+      if (res.headersSent) {
+        log({ level: 'warn', message: `Swagger UI pré-comprimido cortado em ${req.path}: ${erro.code} (${erro.message})` })
+        return res.destroy()
+      }
       res.removeHeader('Content-Encoding')
       res.removeHeader('Content-Type')
-      if (erro.code === 'ENOENT') return next()
       // 412 e 416 respondidos como o send faria, com o Content-Range dele, sem corpo.
-      if (erro.status < 500) return res.status(erro.status).set(erro.headers || {}).end()
-      next(erro)
+      if (erro.status === 412 || erro.status === 416) return res.status(erro.status).set(erro.headers || {}).end()
+      // Qualquer outro erro antes dos headers (o arquivo sumiu, a pasta virou arquivo, falha de disco)
+      // segue para o express.static, que serve o arquivo sem compressão, como antes deste middleware.
+      next()
     })
   }
 }
