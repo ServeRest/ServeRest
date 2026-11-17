@@ -6,10 +6,12 @@ const utils = require('../utils')
 
 describe(rotaCarrinhos + ' POST', () => {
   let authorizationAdministrador
+  let idUsuarioAdministrador
   beforeEach(async () => {
-    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+    const { email, password, _id } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
     authorizationAdministrador = authorization
+    idUsuarioAdministrador = _id
   })
 
   it('Cadastro com sucesso', async () => {
@@ -53,6 +55,91 @@ describe(rotaCarrinhos + ' POST', () => {
         idProduto
       ]
     })
+  })
+
+  it('Não é permitido possuir produto duplicado mesmo quando os repetidos não são vizinhos', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProdutoA } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    const { _id: idProdutoB } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+      produtos: [
+        { idProduto: idProdutoA, quantidade: 1 },
+        { idProduto: idProdutoB, quantidade: 1 },
+        { idProduto: idProdutoA, quantidade: 1 }
+      ]
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      message: 'Não é permitido possuir produto duplicado',
+      idProdutosDuplicados: [
+        idProdutoA
+      ]
+    })
+  })
+
+  it('Não é permitido possuir produto duplicado quando os repetidos são vizinhos e há outro produto', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProdutoA } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    const { _id: idProdutoB } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+      produtos: [
+        { idProduto: idProdutoA, quantidade: 1 },
+        { idProduto: idProdutoA, quantidade: 1 },
+        { idProduto: idProdutoB, quantidade: 1 }
+      ]
+    }).expect(400)
+
+    chai.assert.deepEqual(body, {
+      message: 'Não é permitido possuir produto duplicado',
+      idProdutosDuplicados: [
+        idProdutoA
+      ]
+    })
+  })
+
+  it('Produto duplicado não vizinho não altera o estoque de nenhum produto', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProdutoA } = await utils.cadastrarProduto({ authorization, quantidade: 6 })
+    const { _id: idProdutoB } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    const { body: produtoAAntes } = await request.get(`/produtos/${idProdutoA}`).expect(200)
+    const { body: produtoBAntes } = await request.get(`/produtos/${idProdutoB}`).expect(200)
+
+    await request.post(rotaCarrinhos).set('authorization', authorization).send({
+      produtos: [
+        { idProduto: idProdutoA, quantidade: 5 },
+        { idProduto: idProdutoB, quantidade: 1 },
+        { idProduto: idProdutoA, quantidade: 5 }
+      ]
+    }).expect(400)
+
+    const { body: produtoADepois } = await request.get(`/produtos/${idProdutoA}`).expect(200)
+    const { body: produtoBDepois } = await request.get(`/produtos/${idProdutoB}`).expect(200)
+
+    chai.assert.strictEqual(produtoAAntes.quantidade, 6)
+    chai.assert.strictEqual(produtoBAntes.quantidade, 10)
+    chai.assert.strictEqual(produtoADepois.quantidade, 6)
+    chai.assert.strictEqual(produtoBDepois.quantidade, 10)
+  })
+
+  it('Produto duplicado não vizinho não cria carrinho para o usuário', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProdutoA } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    const { _id: idProdutoB } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+
+    await request.post(rotaCarrinhos).set('authorization', authorization).send({
+      produtos: [
+        { idProduto: idProdutoA, quantidade: 1 },
+        { idProduto: idProdutoB, quantidade: 1 },
+        { idProduto: idProdutoA, quantidade: 1 }
+      ]
+    }).expect(400)
+
+    const { body } = await request.get(rotaCarrinhos).query({ idUsuario: idUsuarioAdministrador }).expect(200)
+
+    chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
   })
 
   it('Não é permitido ter mais de 1 carrinho', async () => {
