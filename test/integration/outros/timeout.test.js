@@ -1,107 +1,160 @@
-require('express-async-errors')
 const chai = require('chai')
-const express = require('express')
+const fs = require('fs')
+const http = require('http')
 const sinon = require('sinon')
 const supertest = require('supertest')
-const timeout = require('connect-timeout')
+const { Readable } = require('stream')
 
 const app = require('../../../src/app')
-const errorHandler = require('../../../src/middlewares/error-handler')
-const { pararSeExpirou, descartarErroDepoisDaResposta } = require('../../../src/middlewares/parar-se-expirou')
+const usuariosService = require('../../../src/services/usuarios-service')
 
-// Reproduz o ERR_HTTP_HEADERS_SENT de 2026-11-07 com a ordem do app.js e um timeout de 200 ms no lugar de 5 s:
-// um passo lento termina depois do 408, e a requisição continua a partir do errorHandler.
-describe('Timeout da requisição - @skipE2E', () => {
+// Os casos de 2026-11-07 no app real: um passo lento termina depois de o cliente receber o 408. Para não esperar os
+// 5 s do connect-timeout, o teste faz o que o timer dele faz ao vencer (marca req.timedout e emite 'timeout') assim
+// que o passo lento começa, e só deixa o passo terminar depois que o cliente recebeu o 408.
+describe('Resposta depois do timeout - @skipE2E', () => {
   const sandbox = sinon.createSandbox()
+  const { stat, createReadStream } = fs
+  const LIMITE_MS = 2000
+
+  let requisicao
+  let destruir
+  let servidor
+  let registros
+
+  function expirar (req) {
+    req.timedout = true
+    req.emit('timeout', 5000)
+  }
+
+  function adiado () {
+    let resolver
+    const promessa = new Promise(resolve => { resolver = resolve })
+    return { promessa, resolver }
+  }
+
+  // Resolve quando o log recebe a mensagem; falha se ela não chegar dentro do limite.
+  function esperarRegistro (trecho) {
+    return new Promise((resolve, reject) => {
+      const limite = setTimeout(() => reject(new Error(`sem registro com "${trecho}" em ${LIMITE_MS} ms`)), LIMITE_MS)
+      const conferir = () => {
+        const registro = registros.find(r => r?.message?.includes(trecho))
+        if (!registro) return
+        clearTimeout(limite)
+        resolve(registro)
+      }
+      registros.conferir = conferir
+      conferir()
+    })
+  }
+
+  beforeEach(() => {
+    registros = []
+    sandbox.stub(console, 'log').callsFake(registro => {
+      registros.push(registro)
+      registros.conferir?.()
+    })
+    servidor = http.createServer((req, res) => {
+      requisicao = req
+      destruir = sandbox.spy(req.socket, 'destroy')
+      app(req, res)
+    })
+  })
+
   afterEach(() => sandbox.restore())
 
-  const esperar = ms => new Promise(resolve => setTimeout(resolve, ms))
-  const LENTO = 400
-
-  function montarApp () {
-    const final = sinon.spy((req, res) => res.status(405).send({ message: 'sem rota' }))
-    const tratadorFinal = sinon.spy((error, req, res, next) => next(error))
-    const lab = express()
-    lab.use(timeout('200ms'))
-    lab.use((req, res, next) => {
-      if (req.query.lento === 'next') return setTimeout(next, LENTO)
-      if (req.query.lento === 'erro') return setTimeout(() => next(new Error('passo lento falhou')), LENTO)
-      next()
-    })
-    lab.get('/rota-lenta', async (req, res) => {
-      await esperar(LENTO)
-      res.send({ tarde: true })
-    })
-    lab.use(errorHandler)
-    lab.use(pararSeExpirou)
-    lab.use(descartarErroDepoisDaResposta)
-    lab.use(final)
-    lab.use(tratadorFinal)
-    return { lab, final, tratadorFinal }
+  // O supertest fecha o servidor depois da resposta, e o Node destrói a conexão ociosa antes de a promessa resolver.
+  // Só conta o que acontece depois, quando o passo lento termina.
+  function soltarPassoLento (liberar) {
+    destruir.resetHistory()
+    liberar.resolver()
   }
 
-  async function pedirEsperandoOPassoLento (lab, caminho) {
-    const resposta = await supertest(lab).get(caminho)
-    await esperar(LENTO)
-    return resposta
+  function semRegistroDeErro () {
+    chai.assert.notExists(registros.find(r => r?.level === 'error'), JSON.stringify(registros))
   }
 
-  it('Deve responder só o 408 quando um passo termina com next() depois do timeout', async () => {
-    const { lab, final, tratadorFinal } = montarApp()
+  it('Deve parar o next() atrasado sem chegar ao 405 nem lançar erro', async () => {
+    const liberar = adiado()
+    const passoTerminou = adiado()
+    // O express.static do Swagger procura o arquivo, demora, não acha e chama next(), como em 2026-11-07.
+    sandbox.stub(fs, 'stat').callsFake((caminho, ...resto) => {
+      if (!caminho.endsWith('arquivo-que-demora.js')) return stat(caminho, ...resto)
+      const aoTerminar = resto.pop()
+      setImmediate(expirar, requisicao)
+      liberar.promessa.then(() => stat(caminho, ...resto, (...argumentos) => {
+        aoTerminar(...argumentos)
+        passoTerminou.resolver()
+      }))
+    })
 
-    const { status, body } = await pedirEsperandoOPassoLento(lab, '/qualquer?lento=next')
-
-    chai.assert.equal(status, 408)
-    chai.assert.match(body.message, /timeout/i)
-    chai.assert.isFalse(final.called, 'a requisição expirada não pode chegar ao 405')
-    chai.assert.isFalse(tratadorFinal.called)
-  })
-
-  it('Deve registrar sem nível de erro o next(erro) que chega depois do 408', async () => {
-    const consoleLogStub = sandbox.stub(console, 'log')
-    const { lab, tratadorFinal } = montarApp()
-
-    const { status } = await pedirEsperandoOPassoLento(lab, '/qualquer?lento=erro')
-
-    chai.assert.equal(status, 408)
-    chai.assert.isFalse(tratadorFinal.called, 'o erro atrasado não pode chegar ao tratador final do Express')
-    const registro = consoleLogStub.args.map(([r]) => r).find(r => r?.message?.startsWith('Erro depois da resposta'))
-    chai.assert.deepInclude(registro, { level: 'alert', message: 'Erro depois da resposta enviada: passo lento falhou' })
-  })
-
-  it('Deve registrar sem nível de erro a rota que tenta responder depois do 408', async () => {
-    const consoleLogStub = sandbox.stub(console, 'log')
-    const { lab, tratadorFinal } = montarApp()
-
-    const { status } = await pedirEsperandoOPassoLento(lab, '/rota-lenta')
+    const { status } = await supertest(servidor).get('/arquivo-que-demora.js')
+    soltarPassoLento(liberar)
+    await passoTerminou.promessa
 
     chai.assert.equal(status, 408)
-    chai.assert.isFalse(tratadorFinal.called)
-    const mensagens = consoleLogStub.args.map(([r]) => r?.message || '')
-    chai.assert.isTrue(mensagens.some(m => m.includes('after they are sent')), mensagens.join(' | '))
+    chai.assert.notExists(registros.find(r => r?.message?.includes('Erro depois da resposta')), JSON.stringify(registros))
+    semRegistroDeErro()
+    chai.assert.isFalse(destruir.called)
   })
 
-  it('Deve seguir normalmente quando a requisição não expirou', async () => {
-    const { lab, final } = montarApp()
+  it('Deve registrar como aviso, com método e caminho, a rota que responde depois do 408', async () => {
+    const liberar = adiado()
+    sandbox.stub(usuariosService, 'getAll').callsFake(() => {
+      setImmediate(expirar, requisicao)
+      return liberar.promessa.then(() => [])
+    })
 
-    await supertest(lab).get('/qualquer').expect(405)
+    const { status } = await supertest(servidor).get('/usuarios?nome=lento')
+    soltarPassoLento(liberar)
+    const registro = await esperarRegistro('Erro depois da resposta enviada')
 
-    chai.assert.isTrue(final.calledOnce)
+    chai.assert.equal(status, 408)
+    chai.assert.equal(registro.level, 'warn')
+    chai.assert.include(registro.message, 'GET /usuarios?nome=lento, timedout: true, ERR_HTTP_HEADERS_SENT: ')
+    chai.assert.include(registro.message, 'Stack: Error')
+    semRegistroDeErro()
+    chai.assert.isFalse(destruir.called, 'o 408 já terminou e a conexão dele não precisa ser fechada')
   })
 
-  it('Deve passar adiante o erro de quem ainda não recebeu resposta', () => {
-    const next = sinon.spy()
-    const erro = new Error('sem resposta')
+  it('Deve registrar como aviso o next(erro) que chega depois do 408', async () => {
+    const liberar = adiado()
+    sandbox.stub(usuariosService, 'getAll').callsFake(() => {
+      setImmediate(expirar, requisicao)
+      return liberar.promessa.then(() => { throw new Error('leitura lenta falhou') })
+    })
 
-    descartarErroDepoisDaResposta(erro, {}, { headersSent: false }, next)
+    const { status } = await supertest(servidor).get('/usuarios')
+    soltarPassoLento(liberar)
+    const registro = await esperarRegistro('Erro depois da resposta enviada')
 
-    chai.assert.isTrue(next.calledOnceWith(erro))
+    chai.assert.equal(status, 408)
+    chai.assert.equal(registro.level, 'warn')
+    chai.assert.include(registro.message, 'GET /usuarios, timedout: true, Error: leitura lenta falhou, Stack: ')
+    semRegistroDeErro()
+    chai.assert.isFalse(destruir.called)
   })
 
-  it('Deve manter as paradas logo depois do errorHandler no app', () => {
-    const nomes = app._router.stack.map(camada => camada.name)
-    const posicao = nomes.indexOf('errorHandler')
+  it('Deve registrar como erro e fechar a conexão quando a resposta falha no meio sem timeout', async () => {
+    // O arquivo começa a ser enviado e a leitura falha depois dos headers.
+    sandbox.stub(fs, 'createReadStream').callsFake((caminho, opcoes) => {
+      if (!caminho.endsWith('swagger-ui.css')) return createReadStream(caminho, opcoes)
+      let enviou = false
+      return new Readable({
+        read () {
+          if (enviou) return
+          enviou = true
+          this.push('body {')
+          setImmediate(() => this.destroy(new Error('leitura do disco falhou')))
+        }
+      })
+    })
 
-    chai.assert.deepEqual(nomes.slice(posicao, posicao + 3), ['errorHandler', 'pararSeExpirou', 'descartarErroDepoisDaResposta'])
+    const erro = await supertest(servidor).get('/swagger-ui.css').timeout(LIMITE_MS).then(() => null, e => e)
+    const registro = await esperarRegistro('Erro depois da resposta enviada')
+
+    chai.assert.exists(erro, 'a resposta cortada não pode chegar como completa')
+    chai.assert.notEqual(erro.code, 'ECONNABORTED', 'sem fechar a conexão o cliente fica esperando até o timeout')
+    chai.assert.equal(registro.level, 'error')
+    chai.assert.include(registro.message, 'GET /swagger-ui.css, timedout: false, Error: leitura do disco falhou, Stack: ')
   })
 })
