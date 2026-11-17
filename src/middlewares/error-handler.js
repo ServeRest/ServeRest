@@ -48,7 +48,6 @@ function errorHandler (error, _req, res, _next) {
       message: 'Corpo comprimido inválido. Envie o corpo de acordo com o header Content-Encoding ou remova o header.'
     })
   }
-  /* istanbul ignore if */
   if (error.code === 'ETIMEDOUT') {
     return res.status(408).json({ message: TIMEOUT })
   }
