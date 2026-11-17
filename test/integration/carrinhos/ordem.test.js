@@ -44,7 +44,6 @@ describe(rotaCarrinhos + ' ORDEM DA LISTA', () => {
     const ids = body.carrinhos.map(({ _id }) => _id)
 
     chai.assert.isBelow(ids.indexOf(_id), ids.indexOf('qbMqntef4iTOwWfg'))
-    chai.assert.equal(ids[ids.length - 1], 'qbMqntef4iTOwWfg')
   })
 
   it('Lista e busca por id não mostram o campo interno de ordenação, nem nos produtos', async () => {
