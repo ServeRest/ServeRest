@@ -8,8 +8,10 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 10
+    # fix nas dependências de produção faz o semantic-release publicar um patch, para que uma correção de
+    # segurança chegue ao npm e à imagem Docker sem esperar outra mudança.
     commit-message:
-      prefix: "chore"
+      prefix: "fix"
       prefix-development: "chore"
       include: "scope"
     groups:
@@ -27,7 +29,7 @@ updates:
       interval: "monthly"
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "chore"
+      prefix: "ci"
       include: "scope"
     groups:
       github-actions:
