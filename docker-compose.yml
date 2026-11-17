@@ -15,6 +15,9 @@ services:
     environment:
       - FORCE_RELEASE_BANNER=true
     entrypoint: npm run dev
+    # A imagem roda como o usuário 10001, que não grava na pasta montada do repositório. No desenvolvimento o
+    # container usa o usuário de quem roda (o Makefile passa HOST_UID e HOST_GID), também sem root.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - .:/app:rw
     ports:
