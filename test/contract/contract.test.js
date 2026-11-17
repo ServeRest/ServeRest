@@ -9,6 +9,7 @@ const {
   currentGitHash,
   isMainBranch
 } = require('./util')
+const { stateHandlers, trocarTokenPeloDoAdmin } = require('./util/front')
 
 describe('ServeRest - Verificação do contrato', () => {
   const SERVER_URL = 'http://localhost:3001'
@@ -30,7 +31,9 @@ describe('ServeRest - Verificação do contrato', () => {
       providerBaseUrl: SERVER_URL,
       providerVersionTags: [currentGitBranch],
       providerVersion: currentGitHash,
-      publishVerificationResult: isCI
+      publishVerificationResult: isCI,
+      stateHandlers,
+      requestFilter: trocarTokenPeloDoAdmin(SERVER_URL)
     }
 
     // Para builds que foram 'trigados' por webhook de 'mudança de conteúdo de contrato' é preciso verificar apenas o contrato (pact) alterado.
