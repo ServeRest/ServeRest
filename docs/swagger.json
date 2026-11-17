@@ -119,6 +119,7 @@
                     "Usuários"
                 ],
                 "summary": "paths.usuarios.get.summary",
+                "description": "paths.usuarios.get.description",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/_id"
@@ -378,6 +379,7 @@
                     "Produtos"
                 ],
                 "summary": "paths.produtos.get.summary",
+                "description": "paths.produtos.get.description",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/_id"
