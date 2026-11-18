@@ -43,7 +43,7 @@ describe(rotaCarrinhos + ' GET', () => {
     })
   })
 
-  // A query chega como texto, mas o express-query-int a converte antes do schema e da busca no banco.
+  // A query chega como texto, e os filtros numéricos são convertidos antes do schema e da busca no banco.
   it('Query string - quantidadeTotal chega como número e encontra o carrinho cadastrado', async () => {
     const { authorization } = usuarioAdministrador
     const quantidade = faker.number.int({ min: 1000, max: 100000 })
@@ -96,6 +96,20 @@ describe(rotaCarrinhos + ' GET', () => {
   })
 
   describe('Filtro com valor que parece número', () => {
+    // Como em produção: o branco vira 0 para o schema, que recusa o 0 nestes campos.
+    utils.VALORES_EM_BRANCO.forEach(valor => {
+      [
+        ['precoTotal', 'precoTotal deve ser um número positivo'],
+        ['quantidadeTotal', 'quantidadeTotal deve ser um número positivo']
+      ].forEach(([campo, mensagem]) => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} responde 400 como em produção`, async () => {
+          const { body } = await request.get(rotaCarrinhos).query({ [campo]: valor }).expect(400)
+
+          chai.assert.deepEqual(body, { [campo]: mensagem })
+        })
+      })
+    })
+
     utils.VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
       ['_id', 'idUsuario'].forEach(campo => {
         it(`Query string - ${campo} ${JSON.stringify(valor)} não encontra carrinho`, async () => {
