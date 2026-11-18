@@ -13,8 +13,10 @@ const estaEmBranco = require('./estaEmBranco')
 const converterFiltrosNumericos = campos => (req, res, next) => {
   req.filtrosEmBranco = Object.fromEntries(campos.filter(campo => estaEmBranco(req.query[campo])).map(campo => [campo, true]))
   for (const campo of campos) {
+    // Só texto vira número: Number num objeto da query (?preco[toString]=x) lança erro e respondia 500.
+    if (typeof req.query[campo] !== 'string') continue
     const numero = Number(req.query[campo])
-    if (typeof req.query[campo] === 'string' && !Number.isNaN(numero)) req.query[campo] = numero
+    if (!Number.isNaN(numero)) req.query[campo] = numero
   }
   next()
 }
