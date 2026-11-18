@@ -5,8 +5,10 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
+const { continuarDaMaiorMarca, doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/produtos.db'), autoload: true })
+continuarDaMaiorMarca(datastore)
 
 // Index frequently searched fields for better query performance
 /* istanbul ignore next */
@@ -16,13 +18,13 @@ datastore.ensureIndex({ fieldName: 'preco' })
 /* istanbul ignore next */
 datastore.ensureIndex({ fieldName: 'quantidade' })
 
-exports.getAll = queryString => {
+exports.getAll = async queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return datastore.find(queryString)
+  return doMaisNovoAoMaisAntigo(await datastore.find(queryString))
 }
 
-exports.getOne = id => {
-  return datastore.findOne({ _id: id })
+exports.getOne = async id => {
+  return semMarca(await datastore.findOne({ _id: id }))
 }
 
 /* istanbul ignore next */
@@ -74,7 +76,9 @@ exports.restoreQuantidadePorLote = async (arrayProdutosComQuantidade) => {
     const { idProduto, quantidade } = produto
     const produtoAtual = produtosMap.get(idProduto)
     if (produtoAtual) {
-      const quantidadeRestaurada = produtoAtual.quantidade + quantidade
+      // O estoque não passa de Number.MAX_SAFE_INTEGER: um PUT pode ter levado o produto ao limite enquanto o
+      // carrinho estava aberto, e a soma gravaria um número já arredondado.
+      const quantidadeRestaurada = Math.min(produtoAtual.quantidade + quantidade, Number.MAX_SAFE_INTEGER)
       return this.updateById(idProduto, { $set: { quantidade: quantidadeRestaurada } })
     }
     return Promise.resolve()
@@ -85,7 +89,7 @@ exports.restoreQuantidadePorLote = async (arrayProdutosComQuantidade) => {
 
 exports.criarProduto = async body => {
   body = formatarValores(body)
-  return datastore.insert(body)
+  return datastore.insert({ ...body, alteradoEm: marcarAlteracao() })
 }
 
 /* istanbul ignore next */
@@ -141,7 +145,8 @@ exports.deleteById = async id => {
 
 exports.createOrUpdateById = async (idDoProdutoQueSeraAlterado, body) => {
   body = formatarValores(body)
-  return this.updateById(idDoProdutoQueSeraAlterado, body)
+  // Só o PUT marca: a baixa e a reposição de estoque feitas pelos carrinhos não mudam a posição na lista.
+  return this.updateById(idDoProdutoQueSeraAlterado, { ...body, alteradoEm: marcarAlteracao() })
 }
 
 exports.updateById = async (idDoProdutoQueSeraAlterado, body) => {

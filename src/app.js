@@ -5,7 +5,6 @@ require('express-async-errors')
 const cors = require('cors')
 const express = require('express')
 const morgan = require('morgan')
-const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { readFileSync } = require('fs')
 const { join } = require('path')
@@ -30,6 +29,7 @@ const { iniciar, etapa } = require('./utils/etapas')
 const { ROTAS_DA_API } = require('./utils/rotas-da-api')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
+const { ARQUIVOS_GRANDES, pastaPrecomprimida } = require('./swagger/arquivos-grandes')
 const { localizeSwaggerDocument } = require('./swagger/translations')
 const { paginaPronta, LAB_ASSETS_DIR } = require('./lab')
 const { robotsTxt, sitemapXml } = require('./lab/buscadores')
@@ -38,6 +38,7 @@ const {
   cacheNoStatic,
   enviarResposta,
   prepararResposta,
+  servirPrecomprimidos,
   servirTextos,
   textosDaPasta
 } = require('./lab/entrega')
@@ -82,7 +83,6 @@ app.use(ROTAS_DA_API, iniciar)
 const parsersDoBody = express.Router()
 parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))
 app.use(etapa('body', parsersDoBody))
-app.use(queryParser())
 app.use(timeout())
 // O Retry-After do 429 diz quanto esperar; sem ele aqui, um front em outra origem não consegue lê-lo.
 app.use(cors({ exposedHeaders: ['X-ServeRest-Stages', 'Retry-After'] }))
@@ -190,7 +190,8 @@ app.get('/index.html', (req, res) => {
   res.redirect(301, inicioDaQuery === -1 ? '/' : '/?' + req.originalUrl.slice(inicioDaQuery + 1))
 })
 // Os assets do Swagger UI ficam na raiz: a página em /swagger os referencia com caminho relativo.
-app.use('/', swaggerUi.serve)
+// Os maiores saem comprimidos no build para quem aceita; o resto, como sempre.
+app.use('/', servirPrecomprimidos(pastaPrecomprimida(), ARQUIVOS_GRANDES), swaggerUi.serve)
 app.get('/swagger', (req, res, next) => {
   // A mesma rota atende /swagger/ e /SWAGGER; com a barra final os assets relativos não carregariam.
   if (req.path !== '/swagger') {
@@ -243,10 +244,17 @@ app.use('/produtos', require('./routes/produtos-route'))
 app.use('/carrinhos', require('./routes/carrinhos-route'))
 
 app.use(errorHandler)
+// Depois de 5 s o connect-timeout passa um erro ETIMEDOUT adiante e o errorHandler acima responde 408, mas o passo
+// lento continua rodando. O Express guarda uma posição da cadeia por requisição, e ela já passou do errorHandler:
+// quando o passo termina, um next() atrasado chega a este 405, e um next(erro) atrasado, ou a rota que tenta
+// responder depois do 408, chega ao errorHandler abaixo. Em 2026-11-07 um next() atrasado de arquivos do Swagger
+// chegou aqui, tentou responder de novo e disparou o alerta de erro.
 app.use((req, res) => {
+  if (req.timedout) return
   res.status(405).send({
     message: `Não é possível realizar ${req.method} em ${req.url}. Acesse ${urlDocumentacao()} para ver as rotas disponíveis e como utilizá-las.`
   })
 })
+app.use(errorHandler)
 
 module.exports = app

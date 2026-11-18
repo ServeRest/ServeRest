@@ -11,11 +11,14 @@ jobs:
 
     steps:
     - name: Load secrets from 1password
-      uses: 1password/load-secrets-action@v2
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
       with:
         ref: ${{ github.event.client_payload.providerProductionSha }}
     - run: docker compose build test-contract

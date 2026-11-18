@@ -1,16 +1,24 @@
 # Production dockerfile - Delivered at Google Cloud
 # hadolint ignore=DL3029
-FROM --platform=linux/amd64 datadog/serverless-init:1.2.1-alpine@sha256:61bfb550f733736c1b6bdb7922bd68677844551f372037be53a3eb98835dbed3 AS datadog-serverless
+FROM --platform=linux/amd64 datadog/serverless-init:1.11.4-alpine@sha256:6304c6b67244352b45768e04fb801567ba9bd933cb4e31d630f69f7350c76af6 AS datadog-serverless
 
 FROM datadog/dd-lib-js-init:v5.11.0@sha256:9a1e2f052a3891d21e2df354423cd8ebee4d32af5a5bf0e786b3207ddcc9fb8a AS datadog-lib-js-init
 
 FROM node:22-alpine3.20@sha256:2289fb1fba0f4633b08ec47b94a89c7e20b829fc5679f9b7b298eaa2f1ed8b7e AS base
 
 ENV ENVIRONMENT='docker'
+# O serverless-init 1.11 deixou de definir este valor. Sem ele, o dd-trace segue o traceparent do Cloud Run, que
+# pode chegar com a flag 00, e descarta o trace. Fica na imagem, junto da versão do agente que exige o ajuste.
+ENV DD_TRACE_PROPAGATION_STYLE='datadog'
 
 COPY --from=datadog-serverless /datadog-init /app/datadog-init
 
 COPY --from=datadog-lib-js-init /operator-build/node_modules /dd_tracer/node/
+
+# Usuário sem root e sem shell de login, com UID fixo. Só nesta imagem, a do serverest.dev, que fica exposta na
+# internet: a do Docker Hub roda na máquina de quem a usa, e trocar o usuário dela quebraria quem monta uma pasta em
+# /app/src/data ou estende a imagem com RUN.
+RUN addgroup -S -g 10001 serverest && adduser -S -D -H -u 10001 -G serverest -s /sbin/nologin serverest
 
 WORKDIR /app
 
@@ -18,8 +26,23 @@ COPY package*.json ./
 
 RUN npm ci --production --ignore-scripts
 
+# Grava o .br e o .gz dos maiores arquivos do Swagger UI; só o script e o que ele usa entram antes
+# do resto, para esta camada ser refeita apenas quando as dependências ou esses arquivos mudarem.
+COPY scripts/precomprimir-swagger-ui.js scripts/
+COPY src/swagger/arquivos-grandes.js src/swagger/
+COPY src/utils/brotli.js src/utils/
+RUN node scripts/precomprimir-swagger-ui.js
+
 COPY . .
+
+# O código fica do root, só leitura para o processo; só a base do NeDB precisa de escrita.
+RUN chown -R serverest:serverest /app/src/data
+USER 10001:10001
 
 EXPOSE 3000
 ENTRYPOINT ["/app/datadog-init"]
-CMD ["npm", "start", "--", "0"]
+# Direto no node, sem npm start: o datadog-init injeta o tracer em todo processo Node pelo NODE_OPTIONS, e o
+# npm, que é um processo Node só para repassar o comando, carregava o tracer à toa (cerca de 30 MiB parado).
+# Os sinais chegam ao node pelo datadog-init. É o mesmo comando do script start do package.json: mudar os dois
+# juntos. O --nodoc evita que o servidor tente abrir a documentação num navegador que o container não tem.
+CMD ["node", "./src/server.js", "--nodoc"]

@@ -1,6 +1,6 @@
 {
   "name": "serverest",
-  "version": "3.4.2",
+  "version": "3.5.0-beta.3",
   "description": "Servidor REST local de forma rápida e simples para estudo de testes de API",
   "author": "Paulo Gonçalves <author@serverest.dev> (https://www.linkedin.com/in/paulo-goncalves/)",
   "license": "GPL-3.0",
@@ -59,7 +59,6 @@
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
     "express-ipfilter": "^1.4.0",
-    "express-query-int": "^3.0.0",
     "express-status-monitor": "1.3.4",
     "express-validation": "^4.1.1",
     "jsonwebtoken": "^9.0.3",

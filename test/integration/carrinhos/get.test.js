@@ -43,7 +43,7 @@ describe(rotaCarrinhos + ' GET', () => {
     })
   })
 
-  // A query chega como texto, mas o express-query-int a converte antes do schema e da busca no banco.
+  // A query chega como texto, e os filtros numéricos são convertidos antes do schema e da busca no banco.
   it('Query string - quantidadeTotal chega como número e encontra o carrinho cadastrado', async () => {
     const { authorization } = usuarioAdministrador
     const quantidade = faker.number.int({ min: 1000, max: 100000 })
@@ -58,6 +58,29 @@ describe(rotaCarrinhos + ' GET', () => {
   it('Query string - Nenhum produto encontrado', async () => {
     const { body } = await request.get(rotaCarrinhos).query({ _id: 'a' }).expect(200)
     chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
+  })
+
+  // Objeto na query chegava à busca do NeDB como operador: ?_id[$ne]=x devolvia a lista inteira e
+  // ?_id[$where]=x respondia 500 com o stack. Nos campos com regex virava o texto "[object Object]".
+  ;[
+    ['_id[$ne]=x', '_id'],
+    ['idUsuario[$ne]=x', 'idUsuario']
+  ].forEach(([query, campo]) => {
+    it(`Query string - ${query} responde que ${campo} deve ser uma string`, async () => {
+      const { body } = await request.get(rotaCarrinhos).query(query).expect(400)
+
+      chai.assert.deepEqual(body, { [campo]: `${campo} deve ser uma string` })
+    })
+  })
+
+  // O parâmetro repetido chega como array e segue como em produção: 200, sem encontrar nada.
+  ;['_id', 'idUsuario'].forEach(campo => {
+    it(`Query string - ${campo} repetido continua respondendo 200`, async () => {
+      const valores = [faker.string.alphanumeric(16), faker.string.alphanumeric(16)]
+      const { body } = await request.get(rotaCarrinhos).query({ [campo]: valores }).expect(200)
+
+      chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
+    })
   })
 
   it('Query string - Chave inexistente', async () => {
@@ -92,6 +115,32 @@ describe(rotaCarrinhos + ' GET', () => {
     chai.assert.deepEqual(body, {
       precoTotal: 'precoTotal deve ser um inteiro',
       quantidadeTotal: 'quantidadeTotal deve ser um inteiro'
+    })
+  })
+
+  describe('Filtro com valor que parece número', () => {
+    // Como em produção: o branco vira 0 para o schema, que recusa o 0 nestes campos.
+    utils.VALORES_EM_BRANCO.forEach(valor => {
+      [
+        ['precoTotal', 'precoTotal deve ser um número positivo'],
+        ['quantidadeTotal', 'quantidadeTotal deve ser um número positivo']
+      ].forEach(([campo, mensagem]) => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} responde 400 como em produção`, async () => {
+          const { body } = await request.get(rotaCarrinhos).query({ [campo]: valor }).expect(400)
+
+          chai.assert.deepEqual(body, { [campo]: mensagem })
+        })
+      })
+    })
+
+    utils.VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
+      ['_id', 'idUsuario'].forEach(campo => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} não encontra carrinho`, async () => {
+          const { body } = await request.get(rotaCarrinhos).query({ [campo]: valor }).expect(200)
+
+          chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
+        })
+      })
     })
   })
 })

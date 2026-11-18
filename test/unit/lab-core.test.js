@@ -16,9 +16,9 @@ const textosDoFluxo = Object.keys(ptBr)
 
 // Cópia dos headers de test/unit/flow-panel.test.js, que cobre o modelo do fluxo.
 const headers = {
-  criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, write;st=ok;dur=1.02',
+  criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, rules.safe_totals;st=ok, write;st=ok;dur=1.02',
   semToken: 'body;st=ok;dur=0.21, rate_limit;st=ok;dur=0.09, auth;st=failed;dur=0.05;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run',
-  semEstoque: 'body;st=ok;dur=0.20, rate_limit;st=skipped, auth;st=ok;dur=1.38, schema;st=ok;dur=0.30, rules;st=failed;dur=1.92, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=failed;item=1, write;st=not_run',
+  semEstoque: 'body;st=ok;dur=0.20, rate_limit;st=skipped, auth;st=ok;dur=1.38, schema;st=ok;dur=0.30, rules;st=failed;dur=1.92, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=failed;item=1, rules.safe_totals;st=not_run, write;st=not_run',
   jsonMalformado: 'body;st=failed;dur=0.34, rate_limit;st=not_run',
   rotaInexistente: 'body;st=ok;dur=0.11, rate_limit;st=ok;dur=0.02',
   loginInvalido: 'body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, schema;st=ok;dur=0.31, rules;st=failed;dur=0.90'
@@ -478,7 +478,7 @@ describe('Página do lab: funções puras', () => {
           {
             status: '400',
             description: ptBr['paths.carrinhos.post.responses.400.description'],
-            example: { message: 'Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente' }
+            example: { message: 'Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente | precoTotal ou quantidadeTotal do carrinho não pode passar de 9007199254740991' }
           },
           {
             status: '401',

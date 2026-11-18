@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Cancel previous runs
-      uses: styfle/cancel-workflow-action@0.12.1
+      uses: styfle/cancel-workflow-action@0.13.1
       with:
         access_token: ${{ github.token }}
 
@@ -29,12 +29,15 @@ jobs:
 
   #   steps:
   #   - name: Project checkout
-  #     uses: actions/checkout@v3
+  #     uses: actions/checkout@v7
   #     with:
   #       fetch-depth: 0
   #   - run: docker compose build test-mutation-diff
   #   - name: Load secrets from 1password
-  #     uses: 1password/load-secrets-action@v2
+  #     uses: 1password/load-secrets-action@v5
+  #     with:
+  #       export-env: true
+  #       version: 2.18.0
   #     env:
   #       OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
   #       STRYKER_DASHBOARD_API_KEY: op://CI-CD/stryker-mutator/API_KEY

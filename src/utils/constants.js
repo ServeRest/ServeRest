@@ -18,6 +18,7 @@ module.exports = {
   DELETE_USER_WITH_CART: 'Não é permitido excluir usuário com carrinho cadastrado',
   DELETE_PRODUCT_WITH_CART: 'Não é permitido excluir produto que faz parte de carrinho',
   CART_WITH_DUPLICATE_PRODUCT: 'Não é permitido possuir produto duplicado',
+  CART_TOTALS_TOO_BIG: 'precoTotal ou quantidadeTotal do carrinho não pode passar de 9007199254740991',
   NO_CART: 'Não foi encontrado carrinho para esse usuário',
   REPLENISHED_STOCK: 'Estoque dos produtos reabastecido',
   USER_NOT_FOUND: 'Usuário não encontrado',

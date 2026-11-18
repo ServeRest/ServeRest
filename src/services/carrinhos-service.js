@@ -4,11 +4,13 @@ const Datastore = require('nedb-promises')
 const { join } = require('path')
 
 const alterarValoresParaRegex = require('../utils/alterarValoresParaRegex')
+const { continuarDaMaiorMarca, doMaisNovoAoMaisAntigo, marcarAlteracao, semMarca } = require('../utils/ordemDeAlteracao')
 const authService = require('../services/auth-service')
 const usuariosService = require('../services/usuarios-service')
 const produtosService = require('../services/produtos-service')
 
 const datastore = Datastore.create({ filename: join(__dirname, '../data/carrinhos.db'), autoload: true })
+continuarDaMaiorMarca(datastore)
 
 // Index frequently searched fields for better query performance
 /* istanbul ignore next */
@@ -20,13 +22,13 @@ datastore.ensureIndex({ fieldName: 'quantidadeTotal' })
 /* istanbul ignore next */
 datastore.ensureIndex({ fieldName: 'produtos.idProduto' })
 
-exports.getAll = queryString => {
+exports.getAll = async queryString => {
   queryString = alterarValoresParaRegex(queryString)
-  return datastore.find(queryString)
+  return doMaisNovoAoMaisAntigo(await datastore.find(queryString))
 }
 
-exports.getOne = id => {
-  return datastore.findOne({ _id: id })
+exports.getOne = async id => {
+  return semMarca(await datastore.findOne({ _id: id }))
 }
 
 exports.existeCarrinho = pesquisa => {
@@ -38,18 +40,17 @@ exports.existeCarrinhoComProduto = idProduto => {
 }
 
 exports.criarCarrinho = async body => {
-  return datastore.insert(body)
+  return datastore.insert({ ...body, alteradoEm: marcarAlteracao() })
 }
 
 exports.extrairProdutosDuplicados = arrayProdutos => {
-  const sortedArr = arrayProdutos.slice().sort()
-  const produtosDuplicados = []
-  for (let i = 0; i < sortedArr.length - 1; i++) {
-    if (sortedArr[i + 1].idProduto === sortedArr[i].idProduto) {
-      produtosDuplicados.push(sortedArr[i].idProduto)
-    }
+  const vistos = new Set()
+  const duplicados = new Set()
+  for (const { idProduto } of arrayProdutos) {
+    if (vistos.has(idProduto)) duplicados.add(idProduto)
+    vistos.add(idProduto)
   }
-  return produtosDuplicados
+  return [...duplicados]
 }
 
 exports.getProdutosComPrecoUnitarioOuErro = async arrayProdutos => {
@@ -91,16 +92,18 @@ exports.usuarioJaPossuiCarrinho = async (authorization) => {
   }
 }
 
-exports.precoTotal = async (produtos) => {
-  return produtos.reduce((total, produto) => {
-    return total + (produto.precoUnitario * produto.quantidade)
-  }, 0)
-}
+exports.precoTotal = produtos => produtos.reduce((total, produto) => total + produto.precoUnitario * produto.quantidade, 0)
 
-exports.quantidadeTotal = async (produtos) => {
+exports.quantidadeTotal = produtos => produtos.reduce((total, produto) => total + produto.quantidade, 0)
+
+// Acima de Number.MAX_SAFE_INTEGER o total seria gravado já arredondado, e o GET /carrinhos passaria a devolver
+// um número que nenhum contrato com Joi.number() aceita, reprovando a lista inteira e não só esse carrinho.
+exports.totaisSaoSeguros = (precoTotal, quantidadeTotal) =>
+  Number.isSafeInteger(precoTotal) && Number.isSafeInteger(quantidadeTotal)
+
+exports.baixarEstoque = async produtos => {
   // Use batch update to reduce round-trips instead of updating per-item
   await produtosService.updateQuantidadePorLote(produtos)
-  return produtos.reduce((total, produto) => total + produto.quantidade, 0)
 }
 
 exports.reabasteceEstoque = async produtos => {

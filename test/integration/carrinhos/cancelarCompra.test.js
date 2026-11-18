@@ -1,5 +1,4 @@
 const chai = require('chai')
-const { faker } = require('@faker-js/faker')
 
 const rotaCarrinhos = '/carrinhos'
 const rotaCancelarCompra = `${rotaCarrinhos}/cancelar-compra`
@@ -9,13 +8,13 @@ describe(rotaCancelarCompra + ' DELETE', () => {
   it('Registro excluído com sucesso. Estoque reabastecido', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
-    const quantidade = faker.number.int()
+    const quantidade = utils.quantidadeAleatoria()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body: bodyNovoCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
         idProduto,
-        quantidade: quantidade - 10
+        quantidade: quantidade - utils.SOBRA_NO_ESTOQUE
       }]
     }).expect(201)
 
@@ -78,6 +77,22 @@ describe(rotaCancelarCompra + ' DELETE', () => {
     chai.assert.deepEqual(body, {
       message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais'
     })
+  })
+
+  // Fora do E2E: não deixa produto com estoque extremo nos ambientes compartilhados.
+  it('Estoque reabastecido não passa de Number.MAX_SAFE_INTEGER quando o produto foi alterado no meio - @skipE2E', async () => {
+    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+    const { authorization } = await utils.login(email, password)
+    const produto = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    await utils.cadastrarCarrinho({ idProduto: produto._id, quantidade: 5, authorization })
+    const { _id, ...dados } = produto
+    await request.put(`/produtos/${_id}`).set('authorization', authorization)
+      .send({ ...dados, quantidade: Number.MAX_SAFE_INTEGER }).expect(200)
+
+    await request.del(rotaCancelarCompra).set('authorization', authorization).expect(200)
+
+    const { body } = await request.get('/produtos').query({ _id }).expect(200)
+    chai.assert.equal(body.produtos[0].quantidade, Number.MAX_SAFE_INTEGER)
   })
 
   it('Token inválido - Sem Bearer', async () => {

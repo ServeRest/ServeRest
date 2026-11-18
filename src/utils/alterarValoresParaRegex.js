@@ -1,16 +1,18 @@
 const escapeStringRegexp = require('escape-string-regexp').default
 
+const estaEmBranco = require('./estaEmBranco')
+
 const permittedKeys = ['nome', 'password', 'descricao']
 
 module.exports = queryString => {
   Object.keys(queryString).forEach(key => {
-    const isFieldEmpty = !queryString[key]
-    /* istanbul ignore next */
-    if (isFieldEmpty) {
+    // Só o valor em branco (?nome=, ?nome=%20) deixa de filtrar, como sempre foi. Descartar todo valor falso
+    // descartava também o 0: ?quantidade=0 e um _id que o parser convertia em 0 devolviam a lista inteira.
+    if (estaEmBranco(queryString[key])) {
       delete queryString[key]
     } else if (permittedKeys.includes(key)) {
-      // Ensure queryString[key] is a string
-      const queryStringValue = typeof queryString[key] === 'string' ? queryString[key] : String(queryString[key])
+      // Texto na query chega como string; String() cobre o valor repetido (?nome=a&nome=b), que chega como array.
+      const queryStringValue = String(queryString[key])
       // Add 'i' flag for case-insensitive matching
       queryString[key] = new RegExp(escapeStringRegexp(queryStringValue), 'i')
     }

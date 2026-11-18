@@ -34,15 +34,17 @@ describe('alterarValoresParaRegex', () => {
     expect(result.descricao.toString()).to.equal('/des\\|cription/i')
   })
 
-  it('should remove field without value', () => {
+  it('should keep zero and numeric text as filters', () => {
     const queryString = {
-      nome: 'test',
-      password: '',
-      empty: ''
+      _id: '0000000000000000',
+      quantidade: 0,
+      nome: '0'
     }
 
     const result = alterarValoresParaRegex(queryString)
 
-    expect(result).to.be.deep.equal({ nome: /test/i })
+    expect(result._id).to.equal('0000000000000000')
+    expect(result.quantidade).to.equal(0)
+    expect(result.nome.toString()).to.equal('/0/i')
   })
 })
