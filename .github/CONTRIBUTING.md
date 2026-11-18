@@ -209,7 +209,7 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 | @latest | trunk
 | @beta | beta
 
-Para ver todo o passo a passo da entrega contínua, como deploy em staging e produção, testes E2E em staging e produção e rollback automático se algum erro for detectado, acesse: https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml
+Para ver todo o passo a passo da entrega contínua, como deploy em staging e produção, testes E2E em staging e na revisão nova de produção e rollback automático se algum erro for detectado, acesse: https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml
 
 Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'. _(desatualizado)_
 
@@ -218,6 +218,8 @@ Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto 
 A revisão nova é testada na infraestrutura de produção antes de receber tráfego e fica sob vigia por 60 minutos depois de recebê-lo.
 
 Antes do tráfego ela passa pela suíte E2E inteira, a mesma do staging (`make test-e2e-canary` com `SERVEREST_URL` na URL da tag), com a configuração do serviço de produção e o `ENVIRONMENT` serverest.dev. É só ali que o robots.txt que libera os buscadores, o sitemap e o canonical com https://serverest.dev são testados antes de alguém vê-los. O alvo recusa rodar sem `SERVEREST_URL`, para a suíte, que cria e apaga dados, nunca cair em serverest.dev por padrão. Depois do E2E, os logs da revisão desde a criação são lidos no Cloud Logging: uma linha de OOM (`Memory limit of`), ou uma leitura que falha, impede a promoção. A vigia conta os sinais só desde a promoção, então um OOM durante o E2E ficaria de fora dela.
+
+Depois da promoção não roda teste em serverest.dev: o E2E já passou na revisão nova. A conferência de roteamento só prova o que a URL da tag não prova, o domínio, o TLS e a troca de tráfego: espera `GET /version` responder a versão do release e lê `GET /usuarios` filtrado pelo `_id` do usuário da semente. Só leitura, sem gravar dado de teste na produção e sem baixar a lista inteira.
 
 Não é um canário por porcentagem de tráfego. Cada instância do Cloud Run tem o seu NeDB em memória: um `POST` numa revisão e o `GET` seguinte na outra responderiam 404, e a afinidade de sessão do Cloud Run usa cookie, que os clientes de API não enviam. Dividir por IP exigiria um Load Balancer, que custa mais do que o projeto economiza.
 
@@ -228,7 +230,7 @@ deploy-online-serverest.yml
   → E2E completo na URL da tag (falhou: issue, a produção não foi tocada)
   → conferência de OOM nos logs da revisão nova (achou ou não leu: issue, a produção não foi tocada)
   → promoção da revisão nova para 100% do tráfego (falhou: rollback e issue)
-  → smoke test em https://serverest.dev (falhou: rollback e issue)
+  → conferência de roteamento em https://serverest.dev, só leitura (falhou: rollback e issue)
   → remoção da tag canario e disparo da vigia
 
 vigiar-producao.yml, à parte
