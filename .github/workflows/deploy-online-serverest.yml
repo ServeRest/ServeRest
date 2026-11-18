@@ -84,8 +84,9 @@ jobs:
         ENV_VARS="$ENV_VARS@DD_TAGS=git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest"
         ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_LOGS_ENABLED=false"
         ENV_VARS="$ENV_VARS@DD_PROFILING_ENABLED=false@DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false@DD_APPSEC_ENABLED=false"
-        ENV_VARS="$ENV_VARS@DD_TRACE_PROPAGATION_STYLE=datadog"
 
+        # --remove-env-vars apaga do serviço uma variável que saiu do ENV_VARS (update-env-vars não apaga).
+        # Pode sair depois que staging e produção receberem um deploy com ela.
         gcloud run \
           deploy $SERVICE_STAGING \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
@@ -179,8 +180,9 @@ jobs:
         ENV_VARS="$ENV_VARS@DD_TAGS=git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest"
         ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_LOGS_ENABLED=false"
         ENV_VARS="$ENV_VARS@DD_PROFILING_ENABLED=false@DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false@DD_APPSEC_ENABLED=false"
-        ENV_VARS="$ENV_VARS@DD_TRACE_PROPAGATION_STYLE=datadog"
 
+        # --remove-env-vars apaga do serviço uma variável que saiu do ENV_VARS (update-env-vars não apaga).
+        # Pode sair depois que staging e produção receberem um deploy com ela.
         gcloud run \
           deploy $SERVICE_PRODUCTION \
           --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \

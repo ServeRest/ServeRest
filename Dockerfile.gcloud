@@ -7,6 +7,9 @@ FROM datadog/dd-lib-js-init:v5.11.0@sha256:9a1e2f052a3891d21e2df354423cd8ebee4d3
 FROM node:22-alpine3.20@sha256:2289fb1fba0f4633b08ec47b94a89c7e20b829fc5679f9b7b298eaa2f1ed8b7e AS base
 
 ENV ENVIRONMENT='docker'
+# O serverless-init 1.11 deixou de definir este valor. Sem ele, o dd-trace segue o traceparent do Cloud Run, que
+# pode chegar com a flag 00, e descarta o trace. Fica na imagem, junto da versão do agente que exige o ajuste.
+ENV DD_TRACE_PROPAGATION_STYLE='datadog'
 
 COPY --from=datadog-serverless /datadog-init /app/datadog-init
 
