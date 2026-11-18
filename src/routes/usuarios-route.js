@@ -9,7 +9,6 @@ const { filtrosDaLista } = require('../utils/filtrosDaQuery')
 const { etapa, plano } = require('../utils/etapas')
 
 const router = express.Router()
-// O email é convertido só para ?email=123 manter a resposta de hoje ("email deve ser uma string").
 router.get('/', plano('schema', 'read'), filtrosDaLista(model.schemaGet), etapa('read', controller.get))
 router.get('/:id', plano('schema', 'read'), validateSchema(model.schemaGetOne), etapa('read', controller.getOne))
 router.post('/', plano('schema', 'rules'), validateSchema(model.schemaPost), etapa('rules', controller.post))

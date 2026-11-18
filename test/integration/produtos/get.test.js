@@ -78,6 +78,15 @@ describe(rotaProdutos + ' GET', () => {
     })
   })
 
+  it('Query string - objeto em filtro numérico responde 400, e não 500', async () => {
+    const { body } = await request.get(`${rotaProdutos}?preco[toString]=x&quantidade[$gt]=0`).expect(400)
+
+    chai.assert.deepEqual(body, {
+      preco: 'preco deve ser um número',
+      quantidade: 'quantidade deve ser um número'
+    })
+  })
+
   it('Query string - preco e quantidade devem ser inteiro', async () => {
     const { body } = await request.get(rotaProdutos).query({ preco: 0.1, quantidade: 0.1 }).expect(400)
 
