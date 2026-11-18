@@ -17,8 +17,9 @@ env:
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
   URL_PRODUCTION: https://serverest.dev
-  # Piso de testes passando do E2E no staging e na revisão nova; subir quando a suíte crescer (352 em 18/11/2026).
-  E2E_MIN_PASSING: 340
+  # Testes passando, no mínimo, no E2E do staging e da revisão nova: a contagem exata da suíte, para que um teste
+  # não suma sem ninguém ver. Quem remove teste baixa este número de propósito; quem adiciona deve subir.
+  E2E_MIN_PASSING: 352
   # Datadog variables
   DD_SERVICE: serverest
   DD_SITE: datadoghq.eu
