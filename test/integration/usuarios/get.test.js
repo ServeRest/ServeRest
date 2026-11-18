@@ -73,6 +73,19 @@ describe(rotaUsuarios + ' GET', () => {
       chai.assert.deepEqual(body, { quantidade: 1, usuarios: [agente] })
     })
 
+    // Como em produção: o branco do email vira 0, e o schema recusa número.
+    utils.VALORES_EM_BRANCO.forEach(valor => {
+      [
+        ['email', 'email deve ser uma string']
+      ].forEach(([campo, mensagem]) => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} responde 400 como em produção`, async () => {
+          const { body } = await request.get(rotaUsuarios).query({ [campo]: valor }).expect(400)
+
+          chai.assert.deepEqual(body, { [campo]: mensagem })
+        })
+      })
+    })
+
     utils.VALORES_EM_BRANCO.forEach(valor => {
       it(`Query string - valor ${JSON.stringify(valor)} não filtra`, async () => {
         const nome = `Filtro ${faker.string.alphanumeric(16)}`

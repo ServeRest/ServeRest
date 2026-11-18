@@ -20,7 +20,7 @@ describe(rotaProdutos + ' GET', () => {
     })
   })
 
-  // A query chega como texto, mas o express-query-int a converte antes do schema e da busca no banco.
+  // A query chega como texto, e os filtros numéricos são convertidos antes do schema e da busca no banco.
   it('Query string - preco chega como número e encontra o produto cadastrado', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
@@ -120,6 +120,19 @@ describe(rotaProdutos + ' GET', () => {
       const { body } = await request.get(rotaProdutos).query({ nome, descricao: '0' }).expect(200)
 
       chai.assert.deepEqual(body, { quantidade: 1, produtos: [comZero] })
+    })
+
+    // Como em produção: o branco vira 0 para o schema, que recusa o 0 nestes campos.
+    utils.VALORES_EM_BRANCO.forEach(valor => {
+      [
+        ['preco', 'preco deve ser um número positivo']
+      ].forEach(([campo, mensagem]) => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} responde 400 como em produção`, async () => {
+          const { body } = await request.get(rotaProdutos).query({ [campo]: valor }).expect(400)
+
+          chai.assert.deepEqual(body, { [campo]: mensagem })
+        })
+      })
     })
 
     // Pendente de decisão: em produção ?quantidade= em branco devolve a lista inteira, e assim continua.
