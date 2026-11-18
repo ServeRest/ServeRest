@@ -1,4 +1,6 @@
 name: Vigiar a revisão nova depois do deploy
+# O deploy acha a vigia do mesmo serviço por este prefixo para cancelá-la antes de começar.
+run-name: "Vigia de ${{ inputs.servico }}: ${{ inputs.revisao }}"
 
 # Disparado por deploy-online-serverest.yml depois da promoção e do smoke test em produção. Fica à parte
 # para não prender a fila do deploy por 60 min. Só sinal forte reverte (.github/scripts/vigiar-revisao.sh),
@@ -97,9 +99,10 @@ jobs:
 
   rollback:
     name: Rollback ${{ inputs.servico }} to ${{ inputs.anterior }}
-    # Só o veredito reverter volta o tráfego; uma falha qualquer do job da vigia, ou o cancelamento, não.
+    # Só o veredito reverter volta o tráfego; uma falha qualquer do job da vigia não. !cancelled(), e não
+    # always(): com always() o job rodaria mesmo com a vigia cancelada pelo deploy seguinte.
     needs: watch
-    if: ${{ always() && needs.watch.outputs.verdict == 'reverter' }}
+    if: ${{ !cancelled() && needs.watch.outputs.verdict == 'reverter' }}
 
     runs-on: ubuntu-22.04
     environment: ${{ inputs.servico == 'app' && 'production' || 'staging' }}

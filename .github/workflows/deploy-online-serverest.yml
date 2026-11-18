@@ -159,14 +159,53 @@ jobs:
 
     runs-on: ubuntu-22.04
     environment: production
+    permissions:
+      actions: write
+      contents: read
 
     outputs:
       previous-revision: ${{ steps.previous.outputs.revision }}
       new-revision: ${{ steps.new.outputs.revision }}
       canary-url: ${{ steps.new.outputs.url }}
-      version: ${{ steps.previous.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
+    - name: Read the release version from package.json
+      id: version
+      # Do commit do deploy, e não do nome da tag: um workflow_dispatch manual na trunk também tem a versão certa.
+      run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+    - name: Cancel the running watch of this service
+      # Uma vigia antiga ainda rodando poderia reverter para a revisão anterior dela no meio deste deploy, ou
+      # depois de ele ler a revisão que serve 100%. A vigia cancelada não reverte, e o deploy só segue
+      # quando ela terminou.
+      run: |
+        RUNS=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow vigiar-producao.yml --limit 20 \
+          --json databaseId,status,displayTitle \
+          --jq ".[] | select(.status != \"completed\" and (.displayTitle | startswith(\"Vigia de $SERVICE_PRODUCTION:\"))) | .databaseId")
+        if [ -z "$RUNS" ]; then
+          echo "Nenhuma vigia de $SERVICE_PRODUCTION rodando ou na fila"
+          exit 0
+        fi
+        for RUN in $RUNS; do
+          echo "Cancelando a vigia https://github.com/$GITHUB_REPOSITORY/actions/runs/$RUN"
+          gh run cancel "$RUN" --repo "$GITHUB_REPOSITORY" || true
+        done
+        for RUN in $RUNS; do
+          for _ in $(seq 1 30); do
+            [ "$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break
+            sleep 10
+          done
+          CONCLUSION=$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json status,conclusion --jq '"\(.status) \(.conclusion)"')
+          echo "Vigia $RUN: $CONCLUSION"
+          if [ "${CONCLUSION%% *}" != completed ]; then
+            echo "::error::A vigia $RUN não terminou em 5 min; deploy abortado"
+            exit 1
+          fi
+        done
+      env:
+        GH_TOKEN: ${{ github.token }}
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v5
       with:
@@ -197,7 +236,6 @@ jobs:
         fi
         echo "Revisão anterior: $PREVIOUS"
         echo "revision=$PREVIOUS" >> "$GITHUB_OUTPUT"
-        echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
     - name: Deploy container image to 'production' environment without traffic
       run: |
         ENV_VARS="^@^ENVIRONMENT=$ENVIRONMENT@DD_SERVICE=$DD_SERVICE@DD_ENV=$ENVIRONMENT@DD_SITE=$DD_SITE"
@@ -259,6 +297,7 @@ jobs:
         set -o pipefail
         make test-e2e-smoke-production 2>&1 | tee smoke.log
         grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
+        if grep -Eq ' [1-9][0-9]* failing' smoke.log; then echo "::error::Há teste falhando"; exit 1; fi
       env:
         SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
 
@@ -274,7 +313,7 @@ jobs:
       run: gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
       env:
         GH_TOKEN: ${{ github.token }}
-        TITLE: Smoke test na revisão nova falhou - produção não foi tocada
+        TITLE: "Smoke test na revisão nova falhou: produção não foi tocada"
         BODY: |
           _Issue gerada automaticamente_
 
@@ -346,6 +385,7 @@ jobs:
         set -o pipefail
         make test-e2e-smoke-production 2>&1 | tee smoke.log
         grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
+        if grep -Eq ' [1-9][0-9]* failing' smoke.log; then echo "::error::Há teste falhando"; exit 1; fi
       env:
         SERVEREST_URL: ${{ env.URL_PRODUCTION }}
 
@@ -374,9 +414,9 @@ jobs:
         PROMOTED_AT: ${{ needs.promote-production.outputs.promoted-at }}
 
   open-issue-production:
-    name: Open issue when production smoke test fail
-    needs: [deploy-production, test-e2e-smoke-production]
-    if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
+    name: Open issue when the promotion or the production smoke test fail
+    needs: [deploy-production, promote-production, test-e2e-smoke-production]
+    if: ${{ failure() && (needs.promote-production.result == 'failure' || needs.test-e2e-smoke-production.result == 'failure') }}
 
     runs-on: ubuntu-22.04
 
@@ -396,11 +436,11 @@ jobs:
         fi
       env:
         GH_TOKEN: ${{ github.token }}
-        TITLE: Production tests failed - Deploy aborted
+        TITLE: ${{ needs.promote-production.result == 'failure' && 'Production promotion failed. Deploy reverted' || 'Production tests failed. Deploy reverted' }}
         BODY: |
           _This is an automatically generated issue_
 
-          The attempt to deploy the `${{ github.ref }}` tag failed. Production tests failed after the new revision was promoted.
+          The attempt to deploy the `${{ github.ref }}` tag failed. ${{ needs.promote-production.result == 'failure' && 'The traffic update to the new revision failed, so traffic goes back to the previous revision.' || 'Production tests failed after the new revision was promoted.' }}
 
           ## Context
 
@@ -420,10 +460,12 @@ jobs:
 
   rollback-production:
     name: Rollback production environment (serverest.dev)
-    # Quem dispara é o smoke test que falhou, não a issue: open-issue-production está aqui só para ler o
-    # número da issue, e o resultado dele não importa. O rollback da vigia fica em vigiar-producao.yml.
-    needs: [deploy-production, test-e2e-smoke-production, open-issue-production]
-    if: ${{ always() && needs.test-e2e-smoke-production.result == 'failure' }}
+    # Quem dispara é a promoção ou o smoke test que falhou, não a issue: open-issue-production está aqui só
+    # para ler o número da issue, e o resultado dele não importa. Uma promoção que falha pode ter deixado o
+    # tráfego pela metade; voltar para a anterior é seguro mesmo se ele nem saiu dela. O rollback da vigia
+    # fica em vigiar-producao.yml.
+    needs: [deploy-production, promote-production, test-e2e-smoke-production, open-issue-production]
+    if: ${{ always() && (needs.promote-production.result == 'failure' || needs.test-e2e-smoke-production.result == 'failure') }}
 
     runs-on: ubuntu-22.04
     environment: production

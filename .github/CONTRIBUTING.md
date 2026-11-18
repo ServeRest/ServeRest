@@ -221,9 +221,10 @@ Não é um canário por porcentagem de tráfego. Cada instância do Cloud Run te
 
 ```
 deploy-online-serverest.yml
-  deploy sem tráfego, com a tag canario
+  cancelamento da vigia anterior de produção, se ainda roda
+  → deploy sem tráfego, com a tag canario
   → smoke test na URL da tag (falhou: issue, a produção não foi tocada)
-  → promoção da revisão nova para 100% do tráfego
+  → promoção da revisão nova para 100% do tráfego (falhou: rollback e issue)
   → smoke test em https://serverest.dev (falhou: rollback e issue)
   → remoção da tag canario e disparo da vigia
 
@@ -234,7 +235,7 @@ vigiar-producao.yml, à parte
 
 A vigia lê no Cloud Logging os logs da revisão nova desde a promoção e consulta `GET https://serverest.dev/version`. O rollback acontece com 1 linha de OOM, com 5 ou mais respostas 5xx ou com 2 sondas seguidas sem a versão do release. Reinício de container, memória e latência não revertem; os monitores do Datadog avisam deles. Quando a vigia não consegue ler os logs, o veredito é inconclusivo: abre issue e a revisão nova continua com o tráfego. A cada ciclo a vigia confere se a revisão ainda serve 100%: se um deploy mais novo ou uma mudança à mão trocou a revisão, ela termina como substituida e não reverte nada. A revisão anterior é a que servia 100% antes do deploy; ela está escalada a zero, então a primeira requisição depois do rollback espera de 10 a 12 segundos.
 
-A vigia roda num workflow próprio, com um grupo de concorrência por serviço, e não prende a fila do deploy: o deploy demora o mesmo que antes. O GitHub guarda só um run pendente por grupo de concorrência e cancela o pendente mais antigo; com a vigia dentro do deploy, um release beta poderia cancelar a promoção pendente de um release de trunk.
+A vigia roda num workflow próprio, com um grupo de concorrência por serviço, e não prende a fila do deploy: o deploy demora o mesmo que antes. Cada deploy de produção começa cancelando a vigia que ainda roda, e espera ela terminar, para que um rollback antigo não troque o tráfego no meio do deploy novo; a vigia cancelada não reverte. O GitHub guarda só um run pendente por grupo de concorrência e cancela o pendente mais antigo; com a vigia dentro do deploy, um release beta poderia cancelar a promoção pendente de um release de trunk.
 
 Efeito colateral do deploy sem tráfego: o serviço `app` deixa de seguir a última revisão. Uma revisão criada à mão ou por mudança de variável de ambiente no console não recebe tráfego sozinha; é preciso promovê-la com `update-traffic`.
 
