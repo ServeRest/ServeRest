@@ -34,6 +34,35 @@ describe(rotaUsuarios + ' GET', () => {
     chai.assert.deepEqual(body, { quantidade: 0, usuarios: [] })
   })
 
+  // Objeto na query, solto ou dentro de um array, chegava à busca do NeDB como operador: ?_id[$ne]=x devolvia
+  // a lista inteira e ?_id[$where]=x respondia 500 com o stack. Nos campos com regex virava "[object Object]".
+  ;[
+    ['_id[$ne]=x', '_id'],
+    ['_id[$exists]=true', '_id'],
+    ['_id[$where]=x', '_id'],
+    ['_id[$nin][]=a', '_id'],
+    ['nome[$ne]=x', 'nome'],
+    ['password[$regex]=.', 'password'],
+    ['_id[0][$ne]=x', '_id'],
+    ['nome[]=a&nome[][$ne]=x', 'nome']
+  ].forEach(([query, campo]) => {
+    it(`Query string - ${query} responde que ${campo} deve ser uma string`, async () => {
+      const { body } = await request.get(rotaUsuarios).query(query).expect(400)
+
+      chai.assert.deepEqual(body, { [campo]: `${campo} deve ser uma string` })
+    })
+  })
+
+  // O parâmetro repetido chega como array e segue como em produção: 200, sem encontrar nada.
+  ;['_id', 'nome', 'password'].forEach(campo => {
+    it(`Query string - ${campo} repetido continua respondendo 200`, async () => {
+      const valores = [faker.string.alphanumeric(16), faker.string.alphanumeric(16)]
+      const { body } = await request.get(rotaUsuarios).query({ [campo]: valores }).expect(200)
+
+      chai.assert.deepEqual(body, { quantidade: 0, usuarios: [] })
+    })
+  })
+
   it('Query string - Chave inexistente', async () => {
     const { body } = await request.get(rotaUsuarios).query({ inexistente: 'a' }).expect(400)
 

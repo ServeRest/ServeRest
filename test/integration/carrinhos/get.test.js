@@ -60,6 +60,29 @@ describe(rotaCarrinhos + ' GET', () => {
     chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
   })
 
+  // Objeto na query chegava à busca do NeDB como operador: ?_id[$ne]=x devolvia a lista inteira e
+  // ?_id[$where]=x respondia 500 com o stack. Nos campos com regex virava o texto "[object Object]".
+  ;[
+    ['_id[$ne]=x', '_id'],
+    ['idUsuario[$ne]=x', 'idUsuario']
+  ].forEach(([query, campo]) => {
+    it(`Query string - ${query} responde que ${campo} deve ser uma string`, async () => {
+      const { body } = await request.get(rotaCarrinhos).query(query).expect(400)
+
+      chai.assert.deepEqual(body, { [campo]: `${campo} deve ser uma string` })
+    })
+  })
+
+  // O parâmetro repetido chega como array e segue como em produção: 200, sem encontrar nada.
+  ;['_id', 'idUsuario'].forEach(campo => {
+    it(`Query string - ${campo} repetido continua respondendo 200`, async () => {
+      const valores = [faker.string.alphanumeric(16), faker.string.alphanumeric(16)]
+      const { body } = await request.get(rotaCarrinhos).query({ [campo]: valores }).expect(200)
+
+      chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
+    })
+  })
+
   it('Query string - Chave inexistente', async () => {
     const { body } = await request.get(rotaCarrinhos).query({ inexistente: 'a' }).expect(400)
 

@@ -2,12 +2,14 @@
 
 const { Joi } = require('express-validation')
 
+const filtroDeTexto = require('../utils/filtroDeTexto')
+
 exports.schemaGet = {
   query: Joi.object({
-    _id: Joi.any(),
-    nome: Joi.any(),
+    _id: filtroDeTexto,
+    nome: filtroDeTexto,
     email: Joi.string().email(),
-    password: Joi.any(),
+    password: filtroDeTexto,
     administrador: Joi.any().valid('true', 'false')
   })
 }
