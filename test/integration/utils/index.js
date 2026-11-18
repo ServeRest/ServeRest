@@ -94,7 +94,15 @@ const VALORES_QUE_VIRAVAM_ZERO = ['0', '0000000000000000', '-0', '0.0']
 // O valor em branco, como sai de um formulário vazio, não filtra em nenhum campo, como em produção.
 const VALORES_EM_BRANCO = ['', ' ']
 
+// A URL que o servidor anuncia no 405, no robots, no sitemap e na página: a do ENVIRONMENT dele, que pode não ser a
+// pedida. No deploy a revisão nova responde na URL da tag canario e anuncia https://serverest.dev.
+const URL_ANUNCIADA = {
+  'e2e-staging': 'https://staging.serverest.dev',
+  'e2e-production': 'https://serverest.dev'
+}[process.env.TEST_TYPE] || 'http://localhost:3000'
+
 module.exports = {
+  URL_ANUNCIADA,
   VALORES_EM_BRANCO,
   VALORES_QUE_VIRAVAM_ZERO,
   cadastrarCarrinho,
