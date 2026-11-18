@@ -19,7 +19,7 @@ exports.getOne = async (req, res) => {
 
 exports.post = async (req, res) => {
   const { etapas } = res.locals
-  etapas.regras('single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock')
+  etapas.regras('single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock', 'safe_totals')
 
   const { idUsuario, possuiCarrinho } = await service.usuarioJaPossuiCarrinho(req.headers.authorization)
   etapas.regra('single_cart', !possuiCarrinho)
@@ -51,9 +51,16 @@ exports.post = async (req, res) => {
   etapas.regra('product_exists', true)
   etapas.regra('enough_stock', true)
 
+  const precoTotal = service.precoTotal(produtosComPrecoUnitario)
+  const quantidadeTotal = service.quantidadeTotal(produtosComPrecoUnitario)
+  const totaisSeguros = service.totaisSaoSeguros(precoTotal, quantidadeTotal)
+  etapas.regra('safe_totals', totaisSeguros)
+  if (!totaisSeguros) {
+    return res.status(400).send({ message: constant.CART_TOTALS_TOO_BIG })
+  }
+
   etapas.abrir('write')
-  const precoTotal = await service.precoTotal(produtosComPrecoUnitario)
-  const quantidadeTotal = await service.quantidadeTotal(produtosComPrecoUnitario)
+  await service.baixarEstoque(produtosComPrecoUnitario)
 
   const carrinho = { produtos: produtosComPrecoUnitario, precoTotal, quantidadeTotal, idUsuario }
 

@@ -21,15 +21,15 @@ const parseStages = core.parseStages
 const buildFlowModel = (entries, status) => core.buildFlowModel(entries, status, textos)
 
 const headers = {
-  criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, write;st=ok;dur=1.02',
+  criado: 'body;st=ok;dur=0.18, rate_limit;st=skipped, auth;st=ok;dur=1.41, schema;st=ok;dur=0.32, rules;st=ok;dur=2.10, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=ok, rules.safe_totals;st=ok, write;st=ok;dur=1.02',
   semToken: 'body;st=ok;dur=0.21, rate_limit;st=ok;dur=0.09, auth;st=failed;dur=0.05;reason=token_missing, schema;st=not_run, rules;st=not_run, write;st=not_run',
-  semEstoque: 'body;st=ok;dur=0.20, rate_limit;st=skipped, auth;st=ok;dur=1.38, schema;st=ok;dur=0.30, rules;st=failed;dur=1.92, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=failed;item=1, write;st=not_run',
+  semEstoque: 'body;st=ok;dur=0.20, rate_limit;st=skipped, auth;st=ok;dur=1.38, schema;st=ok;dur=0.30, rules;st=failed;dur=1.92, rules.single_cart;st=ok, rules.no_duplicate_product;st=ok, rules.product_exists;st=ok, rules.enough_stock;st=failed;item=1, rules.safe_totals;st=not_run, write;st=not_run',
   jsonMalformado: 'body;st=failed;dur=0.34, rate_limit;st=not_run',
   rotaInexistente: 'body;st=ok;dur=0.11, rate_limit;st=ok;dur=0.02',
   loginInvalido: 'body;st=ok;dur=0.20, rate_limit;st=ok;dur=0.05, schema;st=ok;dur=0.31, rules;st=failed;dur=0.90'
 }
 
-const regras = ['single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock']
+const regras = ['single_cart', 'no_duplicate_product', 'product_exists', 'enough_stock', 'safe_totals']
 const motivosDeAuth = ['token_missing', 'bad_format', 'token_expired', 'token_invalid', 'user_not_found', 'not_admin']
 
 function modelo (header, status) {
@@ -93,7 +93,7 @@ describe('Modelo do fluxo da requisição na página inicial', () => {
     expect(semReason.whyKey).to.equal('ui.flow.why.stage.auth')
   })
 
-  it('cada uma das quatro regras falhando: textos vêm da regra e item fica exposto', () => {
+  it('cada uma das cinco regras falhando: textos vêm da regra e item fica exposto', () => {
     regras.forEach(regra => {
       const model = modelo(headerComRegraFalhando(regra), 400)
       expect(model.failedStage).to.equal('rules')

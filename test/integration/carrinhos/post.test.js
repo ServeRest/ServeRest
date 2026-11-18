@@ -189,6 +189,58 @@ describe(rotaCarrinhos + ' POST', () => {
     })
   })
 
+  // Fora do E2E: não deixa produto e carrinho com valor extremo nos ambientes compartilhados.
+  describe('Totais acima de Number.MAX_SAFE_INTEGER - @skipE2E', () => {
+    it('precoTotal acima do limite não cadastra o carrinho nem baixa o estoque', async () => {
+      const authorization = authorizationAdministrador
+      const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: Number.MAX_SAFE_INTEGER, quantidade: 2 })
+
+      const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+        produtos: [{ idProduto, quantidade: 2 }]
+      }).expect(400)
+
+      chai.assert.deepEqual(body, { message: 'precoTotal ou quantidadeTotal do carrinho não pode passar de 9007199254740991' })
+      const { body: bodyProduto } = await request.get('/produtos').query({ _id: idProduto }).expect(200)
+      chai.assert.equal(bodyProduto.produtos[0].quantidade, 2)
+      const { body: bodyCarrinhos } = await request.get(rotaCarrinhos).query({ idUsuario: idUsuarioAdministrador }).expect(200)
+      chai.assert.deepEqual(bodyCarrinhos, { quantidade: 0, carrinhos: [] })
+    })
+
+    it('precoTotal no limite cadastra o carrinho', async () => {
+      const authorization = authorizationAdministrador
+      const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: Number.MAX_SAFE_INTEGER, quantidade: 1 })
+
+      const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+        produtos: [{ idProduto, quantidade: 1 }]
+      }).expect(201)
+
+      const { body: carrinho } = await request.get(`${rotaCarrinhos}/${body._id}`).expect(200)
+      chai.assert.equal(carrinho.precoTotal, Number.MAX_SAFE_INTEGER)
+    })
+
+    it('Estoque insuficiente responde antes do limite dos totais', async () => {
+      const authorization = authorizationAdministrador
+      const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: Number.MAX_SAFE_INTEGER, quantidade: 1 })
+
+      const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+        produtos: [{ idProduto, quantidade: 2 }]
+      }).expect(400)
+
+      chai.assert.equal(body.message, 'Produto não possui quantidade suficiente')
+    })
+
+    it('Produto inexistente responde antes do limite dos totais', async () => {
+      const authorization = authorizationAdministrador
+      const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: Number.MAX_SAFE_INTEGER, quantidade: 2 })
+
+      const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
+        produtos: [{ idProduto, quantidade: 2 }, { idProduto: 'inexistente', quantidade: 1 }]
+      }).expect(400)
+
+      chai.assert.equal(body.message, 'Produto não encontrado')
+    })
+  })
+
   it('Produto sem quantidade suficiente', async () => {
     const authorization = authorizationAdministrador
     const quantidade = utils.quantidadeAleatoria()

@@ -76,7 +76,9 @@ exports.restoreQuantidadePorLote = async (arrayProdutosComQuantidade) => {
     const { idProduto, quantidade } = produto
     const produtoAtual = produtosMap.get(idProduto)
     if (produtoAtual) {
-      const quantidadeRestaurada = produtoAtual.quantidade + quantidade
+      // O estoque não passa de Number.MAX_SAFE_INTEGER: um PUT pode ter levado o produto ao limite enquanto o
+      // carrinho estava aberto, e a soma gravaria um número já arredondado.
+      const quantidadeRestaurada = Math.min(produtoAtual.quantidade + quantidade, Number.MAX_SAFE_INTEGER)
       return this.updateById(idProduto, { $set: { quantidade: quantidadeRestaurada } })
     }
     return Promise.resolve()
