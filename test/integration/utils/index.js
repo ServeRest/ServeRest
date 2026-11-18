@@ -89,7 +89,14 @@ async function login (email, password, cliente = request) {
   return body
 }
 
+// Valores que o Number aceita e que viravam 0 (ou -0) antes da busca, que então descartava o filtro.
+const VALORES_QUE_VIRAVAM_ZERO = ['0', '0000000000000000', '-0', '0.0']
+// O valor em branco, como sai de um formulário vazio, não filtra em nenhum campo, como em produção.
+const VALORES_EM_BRANCO = ['', ' ']
+
 module.exports = {
+  VALORES_EM_BRANCO,
+  VALORES_QUE_VIRAVAM_ZERO,
   cadastrarCarrinho,
   cadastrarProduto,
   cadastrarUsuario,

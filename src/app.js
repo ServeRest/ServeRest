@@ -5,7 +5,6 @@ require('express-async-errors')
 const cors = require('cors')
 const express = require('express')
 const morgan = require('morgan')
-const queryParser = require('express-query-int')
 const timeout = require('connect-timeout')
 const { readFileSync } = require('fs')
 const { join } = require('path')
@@ -27,6 +26,7 @@ const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
 const { iniciar, etapa } = require('./utils/etapas')
+const { converterFiltrosNumericos } = require('./utils/filtrosDaQuery')
 const { ROTAS_DA_API } = require('./utils/rotas-da-api')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
@@ -84,13 +84,7 @@ app.use(ROTAS_DA_API, iniciar)
 const parsersDoBody = express.Router()
 parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))
 app.use(etapa('body', parsersDoBody))
-// Só os filtros numéricos viram número. Sem a lista, o express-query-int converte todo valor que o Number aceita,
-// e um _id como 0000000000000000, um nome 007 ou um espaço chegavam à busca como 0, 7 e 0. O vazio continua
-// virando 0 nestes campos, como antes: ?preco= segue respondendo que preco deve ser positivo. O email fica na
-// lista só para manter a resposta de hoje (?email=123 responde que email deve ser uma string); o schema recusa
-// todo email que parece número, então a conversão não muda nenhuma busca.
-const FILTROS_CONVERTIDOS = new Set(['preco', 'quantidade', 'precoTotal', 'quantidadeTotal', 'email'])
-app.use(queryParser({ parser: (valor, base, campo) => FILTROS_CONVERTIDOS.has(campo) ? Number(valor) : NaN }))
+app.use(converterFiltrosNumericos)
 app.use(timeout())
 // O Retry-After do 429 diz quanto esperar; sem ele aqui, um front em outra origem não consegue lê-lo.
 app.use(cors({ exposedHeaders: ['X-ServeRest-Stages', 'Retry-After'] }))
