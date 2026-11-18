@@ -9,7 +9,7 @@ describe(rotaConcluirCompra + ' DELETE', () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { authorization } = await utils.login(email, password)
     const quantidade = utils.quantidadeAleatoria()
-    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: utils.precoAleatorio(), quantidade })
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body: bodyNovoCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
