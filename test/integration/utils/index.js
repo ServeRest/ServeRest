@@ -1,12 +1,13 @@
 const { faker } = require('@faker-js/faker')
 
-// Tetos baixos de propósito. O carrinho multiplica preço por quantidade, e com os inteiros até 2^53 que o
-// faker gera por padrão o precoTotal passava de Number.MAX_SAFE_INTEGER: o carrinho ficava no banco e o
-// contrato de /carrinhos GET reprovava na execução seguinte. Com estes tetos o precoTotal de um item não
-// passa de 10 milhões. Os testes de carrinho compram quantidade - SOBRA_NO_ESTOQUE, por isso a quantidade
-// sempre deixa ao menos 1 para comprar.
+// Tetos de propósito. O carrinho multiplica preço por quantidade, e com os inteiros até 2^53 que o faker gera
+// por padrão o precoTotal passava de Number.MAX_SAFE_INTEGER: o carrinho ficava no banco e o contrato de
+// /carrinhos GET reprovava na execução seguinte. Com estes tetos um item soma no máximo 10^12, e um carrinho
+// precisaria de mais de 9 mil itens para passar do limite. O preço vai até 1 bilhão para um filtro por preço
+// quase não repetir valor num ambiente compartilhado. Os testes de carrinho compram quantidade -
+// SOBRA_NO_ESTOQUE, por isso a quantidade sempre deixa ao menos 1 para comprar.
 const SOBRA_NO_ESTOQUE = 10
-const precoAleatorio = () => faker.number.int({ min: 1, max: 10000 })
+const precoAleatorio = () => faker.number.int({ min: 1, max: 1000000000 })
 const quantidadeAleatoria = () => faker.number.int({ min: SOBRA_NO_ESTOQUE + 1, max: 1000 })
 
 async function cadastrarCarrinho ({

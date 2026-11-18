@@ -16,7 +16,7 @@ describe(rotaCarrinhos + ' POST', () => {
   it('Cadastro com sucesso', async () => {
     const authorization = authorizationAdministrador
     const quantidade = utils.quantidadeAleatoria()
-    const produto = await utils.cadastrarProduto({ authorization, preco: utils.precoAleatorio(), quantidade })
+    const produto = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body: bodyCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
