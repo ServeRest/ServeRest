@@ -4,7 +4,7 @@ const rotaLogin = '/login'
 const utils = require('../utils')
 
 describe(rotaLogin + ' POST', () => {
-  it('Login com sucesso - @smokeE2E', async () => {
+  it('Login com sucesso', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
     const { body } = await request.post(rotaLogin).send({
       email,
