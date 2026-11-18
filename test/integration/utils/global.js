@@ -17,11 +17,26 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
   // reprovaria mutantes por uma exclusão que nenhum teste confere.
   if (process.env.TEST_TYPE === 'integration') {
     limpeza.registrarCadastros(global.request)
-    const timersPendentes = require('./timers-pendentes')
+    const [esperarTimersSemRef, falharSeSobrouTimerComRef] = require('./timers-pendentes').afterAll
     exports.mochaHooks = {
       ...limpeza.mochaHooks,
-      // A limpeza faz requisições; a contagem dos timers vem depois dela.
-      afterAll: [...limpeza.mochaHooks.afterAll, ...timersPendentes.afterAll]
+      // A limpeza faz requisições; a contagem dos timers vem depois dela. Um hook da raiz que falha faz o
+      // mocha pular os seguintes, então as duas verificações rodam juntas e a falha da limpeza vem por último.
+      afterAll: [
+        limpeza.apagarCadastrosForaDosTestes,
+        esperarTimersSemRef,
+        function verificarTimersELimpeza () {
+          const erros = []
+          for (const verificar of [falharSeSobrouTimerComRef, limpeza.relatarFalhasDaLimpeza]) {
+            try {
+              verificar()
+            } catch (erro) {
+              erros.push(erro.message)
+            }
+          }
+          if (erros.length) throw new Error(erros.join('\n\n'))
+        }
+      ]
     }
   }
 } else { // E2E test

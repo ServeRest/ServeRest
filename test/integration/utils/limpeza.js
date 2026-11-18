@@ -3,50 +3,136 @@
 // contrato de /carrinhos GET passava a validar carrinhos deixados pela execução anterior.
 //
 // O registro é feito pela resposta, não pelos helpers: todo POST ou PUT que devolve 201 em /usuarios,
-// /produtos ou /carrinhos entra na lista, inclusive os feitos direto com request.post nos testes.
+// /produtos ou /carrinhos entra na lista, inclusive os feitos direto com request.post nos testes. Um DELETE
+// do próprio teste que responde 200 tira o cadastro da lista: depois dele o registro não existe mais.
 
-const ROTA_QUE_CADASTRA = /\/(usuarios|produtos|carrinhos)(\/[^/?]*)?(\?|$)/i
+const { faker } = require('@faker-js/faker')
 
-let request
+const ROTA = /^\/(usuarios|produtos|carrinhos)(?:\/([^/]+))?$/
+// O token vale 600 s (src/utils/conf.js); a limpeza renova o seu bem antes disso.
+const RENOVAR_LOGIN_MS = 300 * 1000
+// As requisições da limpeza não mandam lang, então a resposta vem em pt-BR.
+const EXCLUIDO = 'Registro excluído com sucesso'
+
+let cliente
 let dentroDeTeste = false
 const doTeste = []
 const foraDeTeste = []
 const falhas = []
+let administrador
 
-function registrar (test) {
+const rotaDe = url => ROTA.exec(new URL(url).pathname)
+
+// O token do ServeRest leva o email e a senha do login; com eles a limpeza entra de novo como o dono.
+function credenciaisDoToken (authorization) {
+  const token = String(authorization).split(' ').pop()
+  const { email, password } = JSON.parse(Buffer.from(token.split('.')[1], 'base64url'))
+  return { email, password }
+}
+
+function esquecer (lista, deveSair) {
+  for (let indice = lista.length - 1; indice >= 0; indice--) {
+    if (deveSair(lista[indice])) lista.splice(indice, 1)
+  }
+}
+
+function registrar (test, metodo) {
+  // A lista é escolhida quando o pedido é montado: a resposta pode chegar depois do fim do teste.
+  const lista = dentroDeTeste ? doTeste : foraDeTeste
   test.on('response', res => {
-    const rota = ROTA_QUE_CADASTRA.exec(test.url)
-    if (res.status !== 201 || !rota || !res.body?._id) return
-    // O carrinho é apagado pelo token do dono; o produto, pelo token do administrador que o cadastrou.
-    const cadastro = { tipo: rota[1].toLowerCase(), _id: res.body._id, authorization: test._header.authorization }
-    ;(dentroDeTeste ? doTeste : foraDeTeste).push(cadastro)
+    const rota = rotaDe(test.url)
+    if (!rota) return
+    const [, tipo, id] = rota
+    if (metodo === 'del') {
+      if (res.status !== 200) return
+      const email = tipo === 'carrinhos' && credenciaisDoToken(test._header.authorization).email
+      const deveSair = item => item.tipo === tipo && (email ? item.email === email : item._id === id)
+      esquecer(doTeste, deveSair)
+      esquecer(foraDeTeste, deveSair)
+      return
+    }
+    if (res.status !== 201 || !res.body?._id) return
+    const cadastro = { tipo, _id: res.body._id }
+    if (tipo === 'carrinhos') Object.assign(cadastro, credenciaisDoToken(test._header.authorization))
+    lista.push(cadastro)
   })
   return test
 }
 
-function registrarCadastros (cliente) {
-  request = cliente
-  for (const metodo of ['post', 'put']) {
-    const original = cliente[metodo]
-    cliente[metodo] = (...args) => registrar(original(...args))
+function registrarCadastros (alvo) {
+  cliente = { ...alvo }
+  for (const metodo of ['post', 'put', 'del']) {
+    alvo[metodo] = (...args) => registrar(cliente[metodo](...args), metodo)
   }
-  return cliente
+  return alvo
+}
+
+async function login ({ email, password }) {
+  const { status, body } = await cliente.post('/login').send({ email, password })
+  if (status !== 200) throw new Error(`login de ${email}: ${status} ${JSON.stringify(body)}`)
+  return body.authorization
+}
+
+// Um administrador da própria limpeza: o que cadastrou o produto pode ter sido excluído, ter deixado de ser
+// administrador ou ter o token vencido.
+async function tokenDeAdministrador () {
+  if (!administrador) {
+    const dados = {
+      nome: 'Limpeza dos testes',
+      email: `limpeza-${faker.string.alphanumeric(16)}@qa.com`,
+      password: faker.string.alphanumeric(16),
+      administrador: 'true'
+    }
+    const { status, body } = await cliente.post('/usuarios').send(dados)
+    if (status !== 201) throw new Error(`administrador da limpeza: ${status} ${JSON.stringify(body)}`)
+    administrador = { ...dados, _id: body._id }
+  }
+  if (!administrador.authorization || Date.now() - administrador.desde > RENOVAR_LOGIN_MS) {
+    administrador.authorization = await login(administrador)
+    administrador.desde = Date.now()
+  }
+  return administrador.authorization
 }
 
 const exclusao = {
-  carrinhos: ({ authorization }) => request.del('/carrinhos/cancelar-compra').set('authorization', authorization),
-  produtos: ({ _id, authorization }) => request.del(`/produtos/${_id}`).set('authorization', authorization),
-  usuarios: ({ _id }) => request.del(`/usuarios/${_id}`)
+  carrinhos: async cadastro => cliente.del('/carrinhos/cancelar-compra').set('authorization', await login(cadastro)),
+  produtos: async ({ _id }) => cliente.del(`/produtos/${_id}`).set('authorization', await tokenDeAdministrador()),
+  usuarios: ({ _id }) => cliente.del(`/usuarios/${_id}`)
+}
+
+// Um 200 com "Nenhum registro excluído" ou "Não foi encontrado carrinho" também é falha: nada saiu do banco.
+async function excluir (cadastro) {
+  try {
+    const { status, body } = await exclusao[cadastro.tipo](cadastro)
+    if (status !== 200 || !String(body?.message).startsWith(EXCLUIDO)) {
+      falhas.push(`${cadastro.tipo} ${cadastro._id}: ${status} ${JSON.stringify(body)}`)
+    }
+  } catch (erro) {
+    falhas.push(`${cadastro.tipo} ${cadastro._id}: ${erro.message}`)
+  }
 }
 
 // Carrinho antes de produto e usuário: a API não exclui produto que está em carrinho nem usuário com carrinho.
 async function apagar (cadastros) {
   const pendentes = cadastros.splice(0)
   for (const tipo of ['carrinhos', 'produtos', 'usuarios']) {
-    for (const cadastro of pendentes.filter(item => item.tipo === tipo)) {
-      const { status, body } = await exclusao[tipo](cadastro)
-      if (status !== 200) falhas.push(`${tipo} ${cadastro._id}: ${status} ${JSON.stringify(body)}`)
-    }
+    await Promise.all(pendentes.filter(item => item.tipo === tipo).map(excluir))
+  }
+}
+
+// O que um before() de describe cadastrou serve a vários testes e só sai no fim, junto com o administrador.
+async function apagarCadastrosForaDosTestes () {
+  await apagar(foraDeTeste)
+  if (administrador) {
+    await excluir({ tipo: 'usuarios', _id: administrador._id })
+    administrador = undefined
+  }
+}
+
+// Síncrono e separado da exclusão, para a raiz poder rodar outras verificações antes de relatar.
+function relatarFalhasDaLimpeza () {
+  if (falhas.length) {
+    throw new Error(`Cadastros que a limpeza não conseguiu apagar:\n${falhas.splice(0).join('\n')}`)
   }
 }
 
@@ -59,15 +145,7 @@ const mochaHooks = {
     dentroDeTeste = false
     await apagar(doTeste)
   },
-  afterAll: [
-    // O que um before() de describe cadastrou serve a vários testes e só sai no fim.
-    async function apagarCadastrosForaDosTestes () {
-      await apagar(foraDeTeste)
-      if (falhas.length) {
-        throw new Error(`Cadastros que a limpeza não conseguiu apagar:\n${falhas.splice(0).join('\n')}`)
-      }
-    }
-  ]
+  afterAll: [apagarCadastrosForaDosTestes, relatarFalhasDaLimpeza]
 }
 
-module.exports = { registrarCadastros, mochaHooks }
+module.exports = { registrarCadastros, mochaHooks, apagarCadastrosForaDosTestes, relatarFalhasDaLimpeza }
