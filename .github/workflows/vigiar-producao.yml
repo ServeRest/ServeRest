@@ -2,7 +2,7 @@ name: Vigiar a revisão nova depois do deploy
 # O deploy acha a vigia do mesmo serviço por este prefixo para cancelá-la antes de começar.
 run-name: "Vigia de ${{ inputs.servico }}: ${{ inputs.revisao }}"
 
-# Disparado por deploy-online-serverest.yml depois da promoção e do smoke test em produção. Fica à parte
+# Disparado por deploy-online-serverest.yml depois da promoção e da conferência de roteamento. Fica à parte
 # para não prender a fila do deploy por 60 min. Só sinal forte reverte (.github/scripts/vigiar-revisao.sh),
 # e só se a revisão vigiada ainda serve 100% do tráfego: um deploy mais novo ou uma mudança à mão encerram
 # a vigia como substituida, sem rollback.
