@@ -19,11 +19,10 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
     limpeza.registrarCadastros(global.request)
     const [esperarTimersSemRef, falharSeSobrouTimerComRef] = require('./timers-pendentes').afterAll
     exports.mochaHooks = {
-      ...limpeza.mochaHooks,
       // A limpeza faz requisições; a contagem dos timers vem depois dela. Um hook da raiz que falha faz o
       // mocha pular os seguintes, então as duas verificações rodam juntas e a falha da limpeza vem por último.
       afterAll: [
-        limpeza.apagarCadastrosForaDosTestes,
+        limpeza.limparCadastros,
         esperarTimersSemRef,
         function verificarTimersELimpeza () {
           const erros = []

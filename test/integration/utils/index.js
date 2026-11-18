@@ -55,8 +55,8 @@ async function cadastrarUsuario ({
   email = faker.internet.email(),
   password = faker.internet.password(),
   administrador = `${faker.helpers.arrayElement([true, false])}`
-} = {}) {
-  const { body } = await request.post('/usuarios').send({
+} = {}, cliente = request) {
+  const { body } = await cliente.post('/usuarios').send({
     nome,
     email,
     password,
@@ -81,8 +81,8 @@ function dadosProduto () {
   }
 }
 
-async function login (email, password) {
-  const { body } = await request.post('/login').send({
+async function login (email, password, cliente = request) {
+  const { body } = await cliente.post('/login').send({
     email,
     password
   }).expect(200)
