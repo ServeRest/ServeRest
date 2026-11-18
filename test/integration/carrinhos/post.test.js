@@ -1,5 +1,4 @@
 const chai = require('chai')
-const { faker } = require('@faker-js/faker')
 
 const rotaCarrinhos = '/carrinhos'
 const utils = require('../utils')
@@ -16,7 +15,7 @@ describe(rotaCarrinhos + ' POST', () => {
 
   it('Cadastro com sucesso', async () => {
     const authorization = authorizationAdministrador
-    const quantidade = faker.number.int()
+    const quantidade = utils.quantidadeAleatoria()
     const produto = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body: bodyCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
@@ -35,7 +34,7 @@ describe(rotaCarrinhos + ' POST', () => {
 
   it('Não é permitido possuir produto duplicado', async () => {
     const authorization = authorizationAdministrador
-    const quantidade = faker.number.int()
+    const quantidade = utils.quantidadeAleatoria()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
@@ -144,7 +143,7 @@ describe(rotaCarrinhos + ' POST', () => {
 
   it('Não é permitido ter mais de 1 carrinho', async () => {
     const authorization = authorizationAdministrador
-    const quantidade = faker.number.int()
+    const quantidade = utils.quantidadeAleatoria()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
 
     await request.post(rotaCarrinhos).set('authorization', authorization).send({
@@ -192,7 +191,7 @@ describe(rotaCarrinhos + ' POST', () => {
 
   it('Produto sem quantidade suficiente', async () => {
     const authorization = authorizationAdministrador
-    const quantidade = faker.number.int()
+    const quantidade = utils.quantidadeAleatoria()
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade })
     const { body } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
