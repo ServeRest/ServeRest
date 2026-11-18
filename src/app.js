@@ -84,7 +84,13 @@ app.use(ROTAS_DA_API, iniciar)
 const parsersDoBody = express.Router()
 parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))
 app.use(etapa('body', parsersDoBody))
-app.use(queryParser())
+// Só os filtros numéricos viram número. Sem a lista, o express-query-int converte todo valor que o Number aceita,
+// e um _id como 0000000000000000, um nome 007 ou um espaço chegavam à busca como 0, 7 e 0. O vazio continua
+// virando 0 nestes campos, como antes: ?preco= segue respondendo que preco deve ser positivo. O email fica na
+// lista só para manter a resposta de hoje (?email=123 responde que email deve ser uma string); o schema recusa
+// todo email que parece número, então a conversão não muda nenhuma busca.
+const FILTROS_CONVERTIDOS = new Set(['preco', 'quantidade', 'precoTotal', 'quantidadeTotal', 'email'])
+app.use(queryParser({ parser: (valor, base, campo) => FILTROS_CONVERTIDOS.has(campo) ? Number(valor) : NaN }))
 app.use(timeout())
 // O Retry-After do 429 diz quanto esperar; sem ele aqui, um front em outra origem não consegue lê-lo.
 app.use(cors({ exposedHeaders: ['X-ServeRest-Stages', 'Retry-After'] }))

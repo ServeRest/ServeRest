@@ -3,6 +3,9 @@ const chai = require('chai')
 const rotaProdutos = '/produtos'
 const utils = require('../utils')
 
+// Valores que o Number aceita e que viravam 0 (ou -0) antes da busca, que então descartava o filtro.
+const VALORES_QUE_VIRAVAM_ZERO = ['0', '0000000000000000', '-0', '0.0', ' ']
+
 describe(rotaProdutos + ' GET', () => {
   it('Query string - Busca por todos as chaves', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
@@ -67,6 +70,38 @@ describe(rotaProdutos + ' GET', () => {
     chai.assert.deepEqual(body, {
       preco: 'preco deve ser um número positivo',
       quantidade: 'quantidade deve ser maior ou igual a 0'
+    })
+  })
+
+  describe('Filtro com valor que parece número', () => {
+    VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
+      it(`Query string - _id ${JSON.stringify(valor)} não encontra produto`, async () => {
+        const { body } = await request.get(rotaProdutos).query({ _id: valor }).expect(200)
+
+        chai.assert.deepEqual(body, { quantidade: 0, produtos: [] })
+      })
+    })
+
+    it('Query string - quantidade 0 só encontra produto sem estoque', async () => {
+      const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+      const { authorization } = await utils.login(email, password)
+      const produto = await utils.cadastrarProduto({ authorization, quantidade: 0 })
+
+      const { body } = await request.get(rotaProdutos).query({ quantidade: 0 }).expect(200)
+
+      chai.assert.deepInclude(body.produtos, produto)
+      body.produtos.forEach(({ quantidade }) => chai.assert.strictEqual(quantidade, 0))
+    })
+
+    it('Query string - descricao 0 só encontra descrição que contém 0', async () => {
+      const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+      const { authorization } = await utils.login(email, password)
+      const produto = await utils.cadastrarProduto({ authorization, descricao: 'Lote 0' })
+
+      const { body } = await request.get(rotaProdutos).query({ descricao: '0' }).expect(200)
+
+      chai.assert.deepInclude(body.produtos, produto)
+      body.produtos.forEach(({ descricao }) => chai.assert.include(descricao, '0'))
     })
   })
 })
