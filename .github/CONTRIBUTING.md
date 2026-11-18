@@ -219,7 +219,7 @@ A revisão nova é testada na infraestrutura de produção antes de receber trá
 
 Antes do tráfego ela passa pela suíte E2E inteira, a mesma do staging (`make test-e2e-canary` com `SERVEREST_URL` na URL da tag), com a configuração do serviço de produção e o `ENVIRONMENT` serverest.dev. É só ali que o robots.txt que libera os buscadores, o sitemap e o canonical com https://serverest.dev são testados antes de alguém vê-los. O alvo recusa rodar sem `SERVEREST_URL`, para a suíte, que cria e apaga dados, nunca cair em serverest.dev por padrão.
 
-O E2E, no staging e na revisão nova, só passa com um mínimo de testes passando (`E2E_MIN_PASSING` no workflow, a subir quando a suíte crescer) e nenhum falhando: uma suíte que roda poucos testes também sai com código 0. Depois do E2E, a instância da revisão nova, que é a que recebe o tráfego, precisa guardar só a semente: `.github/scripts/conferir-semente.sh` compara a quantidade e os `_id` de `/usuarios`, `/produtos` e `/carrinhos` com os arquivos de `src/data`. Um cadastro que a limpeza da suíte não apagou iria para a produção.
+O E2E, no staging e na revisão nova, só passa com um mínimo de testes passando (`E2E_MIN_PASSING` no workflow, a subir quando a suíte crescer) e nenhum falhando: uma suíte que roda poucos testes também sai com código 0. Depois do E2E, a instância da revisão nova, que é a que recebe o tráfego, precisa guardar só a semente: `.github/scripts/conferir-semente.sh` compara `/usuarios`, `/produtos` e `/carrinhos`, documento a documento e campo a campo, com os arquivos de `src/data`. Um cadastro que a limpeza da suíte não apagou, ou um registro da semente alterado (a senha de fulano@qa.com, o estoque de um produto depois de uma compra), iria para a produção.
 
 Por fim, os logs da revisão desde a criação são lidos no Cloud Logging: uma linha de OOM (`Memory limit of`), uma resposta 5xx, ou uma leitura que falha, impede a promoção. A vigia conta os sinais só desde a promoção, então um OOM ou um 5xx durante o E2E ficaria de fora dela. Nenhum teste do E2E provoca 5xx de propósito (os que provocam usam stub e ficam fora do E2E com `@skipE2E`), então aqui um 5xx basta, enquanto a vigia tolera até 4 vindas do público.
 
@@ -232,7 +232,7 @@ deploy-online-serverest.yml
   cancelamento da vigia anterior de produção, se ainda roda
   → deploy sem tráfego, com a tag canario
   → E2E completo na URL da tag, com o mínimo de testes (falhou: issue, a produção não foi tocada)
-  → conferência da semente na revisão nova (sobrou ou faltou dado: issue, a produção não foi tocada)
+  → conferência da semente na revisão nova (sobrou, faltou ou mudou dado: issue, a produção não foi tocada)
   → conferência de OOM e 5xx nos logs da revisão nova (achou ou não leu: issue, a produção não foi tocada)
   → promoção da revisão nova para 100% do tráfego (falhou: rollback e issue)
   → conferência de roteamento em https://serverest.dev, só leitura (falhou: rollback e issue)
