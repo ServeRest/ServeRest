@@ -3,7 +3,7 @@ const joi = require('@hapi/joi')
 const rotaUsuarios = '/usuarios'
 const schema = require('./schema')
 
-describe(rotaUsuarios + ' CONTRATO - @smokeE2E', () => {
+describe(rotaUsuarios + ' CONTRATO', () => {
   it('GET', async () => {
     const { body } = await request.get(rotaUsuarios).expect(200)
     joi.assert(body, schema.get)
