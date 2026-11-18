@@ -79,6 +79,22 @@ describe(rotaCancelarCompra + ' DELETE', () => {
     })
   })
 
+  // Fora do E2E: não deixa produto com estoque extremo nos ambientes compartilhados.
+  it('Estoque reabastecido não passa de Number.MAX_SAFE_INTEGER quando o produto foi alterado no meio - @skipE2E', async () => {
+    const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+    const { authorization } = await utils.login(email, password)
+    const produto = await utils.cadastrarProduto({ authorization, quantidade: 10 })
+    await utils.cadastrarCarrinho({ idProduto: produto._id, quantidade: 5, authorization })
+    const { _id, ...dados } = produto
+    await request.put(`/produtos/${_id}`).set('authorization', authorization)
+      .send({ ...dados, quantidade: Number.MAX_SAFE_INTEGER }).expect(200)
+
+    await request.del(rotaCancelarCompra).set('authorization', authorization).expect(200)
+
+    const { body } = await request.get('/produtos').query({ _id }).expect(200)
+    chai.assert.equal(body.produtos[0].quantidade, Number.MAX_SAFE_INTEGER)
+  })
+
   it('Token inválido - Sem Bearer', async () => {
     const { email, password } = await utils.cadastrarUsuario({ administrador: 'false' })
     const { authorization } = await utils.login(email, password)

@@ -92,16 +92,18 @@ exports.usuarioJaPossuiCarrinho = async (authorization) => {
   }
 }
 
-exports.precoTotal = async (produtos) => {
-  return produtos.reduce((total, produto) => {
-    return total + (produto.precoUnitario * produto.quantidade)
-  }, 0)
-}
+exports.precoTotal = produtos => produtos.reduce((total, produto) => total + produto.precoUnitario * produto.quantidade, 0)
 
-exports.quantidadeTotal = async (produtos) => {
+exports.quantidadeTotal = produtos => produtos.reduce((total, produto) => total + produto.quantidade, 0)
+
+// Acima de Number.MAX_SAFE_INTEGER o total seria gravado já arredondado, e o GET /carrinhos passaria a devolver
+// um número que nenhum contrato com Joi.number() aceita, reprovando a lista inteira e não só esse carrinho.
+exports.totaisSaoSeguros = (precoTotal, quantidadeTotal) =>
+  Number.isSafeInteger(precoTotal) && Number.isSafeInteger(quantidadeTotal)
+
+exports.baixarEstoque = async produtos => {
   // Use batch update to reduce round-trips instead of updating per-item
   await produtosService.updateQuantidadePorLote(produtos)
-  return produtos.reduce((total, produto) => total + produto.quantidade, 0)
 }
 
 exports.reabasteceEstoque = async produtos => {

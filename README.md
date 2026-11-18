@@ -160,11 +160,14 @@ Cada entrada é um nome seguido de parâmetros `;chave=valor`, separadas por ví
 
 As etapas são `body`, `rate_limit`, `auth`, `schema`, `read` (rotas GET), `rules` (regras de negócio e, enquanto a rota não for detalhada, também a gravação) e `write` (gravação, hoje apenas em `POST /carrinhos`). Entradas no formato `<etapa>.<regra>`, como `rules.enough_stock`, são regras da etapa citada antes do ponto: vêm logo depois dela e nunca possuem `dur`.
 
+Em `POST /carrinhos` a etapa `rules` traz cinco regras, nesta ordem: `rules.single_cart` (um carrinho por usuário), `rules.no_duplicate_product` (nenhum produto repetido), `rules.product_exists` (todo produto existe), `rules.enough_stock` (estoque suficiente) e `rules.safe_totals` (`precoTotal` e `quantidadeTotal` do carrinho até 9007199254740991, o maior inteiro que o JavaScript representa sem arredondar). A primeira que falha interrompe a requisição, e as seguintes ficam `not_run`.
+
 Casos que merecem atenção:
 
 - Status 400 ou maior sem nenhuma etapa `failed` significa que a resposta veio de fora das etapas: rota inexistente (405) ou URL malformada (400).
 - Em um timeout (408) a etapa que estava executando quando o tempo acabou é a marcada como `failed`.
 - Em `POST /carrinhos` as regras `rules.product_exists` e `rules.enough_stock` são avaliadas item a item, na ordem do array, e param no primeiro item que falha. Portanto `rules.product_exists;st=ok` ao lado de `rules.enough_stock;st=failed;item=1` significa "nenhum produto inexistente até o item que falhou", e não "todos os produtos existem".
+- Em `POST /carrinhos` a regra `rules.safe_totals` vem depois de todas as outras e antes de baixar o estoque: com ela `failed` (400 "precoTotal ou quantidadeTotal do carrinho não pode passar de 9007199254740991"), nenhum produto muda de quantidade e `write` fica `not_run`.
 
 Evolução: versões futuras apenas adicionam entradas, como uma etapa `write` depois de `rules` ou entradas `rules.<regra>` em mais rotas. A gramática, os nomes dos parâmetros, os valores de status e os nomes das etapas acima são estáveis; renomear ou remover algum deles é uma quebra de compatibilidade.
 

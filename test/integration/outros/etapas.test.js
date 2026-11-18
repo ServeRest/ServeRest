@@ -46,7 +46,8 @@ const REGRAS_OK = [
   'rules.single_cart;st=ok',
   'rules.no_duplicate_product;st=ok',
   'rules.product_exists;st=ok',
-  'rules.enough_stock;st=ok'
+  'rules.enough_stock;st=ok',
+  'rules.safe_totals;st=ok'
 ]
 
 describe('Etapas da requisição', () => {
@@ -136,6 +137,7 @@ describe('Etapas da requisição', () => {
         'rules.no_duplicate_product;st=not_run',
         'rules.product_exists;st=not_run',
         'rules.enough_stock;st=not_run',
+        'rules.safe_totals;st=not_run',
         'write;st=not_run'
       ])
     })
@@ -155,6 +157,7 @@ describe('Etapas da requisição', () => {
         'rules.no_duplicate_product;st=failed',
         'rules.product_exists;st=not_run',
         'rules.enough_stock;st=not_run',
+        'rules.safe_totals;st=not_run',
         'write;st=not_run'
       ])
     })
@@ -174,6 +177,7 @@ describe('Etapas da requisição', () => {
         'rules.no_duplicate_product;st=ok',
         'rules.product_exists;st=failed;item=1',
         'rules.enough_stock;st=not_run',
+        'rules.safe_totals;st=not_run',
         'write;st=not_run'
       ])
     })
@@ -195,6 +199,29 @@ describe('Etapas da requisição', () => {
         'rules.no_duplicate_product;st=ok',
         'rules.product_exists;st=ok',
         'rules.enough_stock;st=failed;item=1',
+        'rules.safe_totals;st=not_run',
+        'write;st=not_run'
+      ])
+    })
+
+    it('Regra safe_totals falha quando o precoTotal passaria do limite - @skipE2E', async () => {
+      const caro = await utils.cadastrarProduto({ authorization, preco: Number.MAX_SAFE_INTEGER, quantidade: 2 })
+
+      const resposta = await request.post('/carrinhos').set('authorization', authorization).send({
+        produtos: [{ idProduto: caro._id, quantidade: 2 }]
+      }).expect(400)
+
+      chai.assert.deepEqual(lerEtapas(resposta), [
+        'body;st=ok',
+        'rate_limit;st=skipped',
+        'auth;st=ok',
+        'schema;st=ok',
+        'rules;st=failed',
+        'rules.single_cart;st=ok',
+        'rules.no_duplicate_product;st=ok',
+        'rules.product_exists;st=ok',
+        'rules.enough_stock;st=ok',
+        'rules.safe_totals;st=failed',
         'write;st=not_run'
       ])
     })

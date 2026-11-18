@@ -752,7 +752,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente"
+                                            "example": "Não é permitido possuir produto duplicado | Não é permitido ter mais de 1 carrinho | Produto não encontrado | Produto não possui quantidade suficiente | precoTotal ou quantidadeTotal do carrinho não pode passar de 9007199254740991"
                                         }
                                     }
                                 }
