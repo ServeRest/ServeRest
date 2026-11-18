@@ -189,6 +189,24 @@ A página de status (_/status_) está disponível apenas localmente.
 
 > Fez teste de carga? O que acha de compartilhar com o autor do projeto o repositório e o relatório final contendo dados de RPS para auxiliar o ServeRest a entender o comportamento de sua infra?
 
+## Limites do ServeRest online
+
+O ServeRest online (<https://serverest.dev>) é um servidor só, usado por todo mundo ao mesmo tempo. Para que um cliente não derrube o estudo dos outros, as requisições passam por três limites. Rodando localmente ([NPM](#localmente-com-npm) ou [Docker](#localmente-com-docker)) nenhum deles existe.
+
+| Limite | Valor | Janela |
+| --- | --- | --- |
+| Requisições por IP | 300 requisições | 30 segundos |
+| Requisições de todos os clientes somados | 900 requisições | 30 segundos |
+| Dados baixados da API por IP | 250 MiB | 1 hora |
+
+Como cada limite funciona:
+
+- A janela começa na primeira requisição (ou no primeiro byte contado) e não desliza: quando ela acaba, a contagem volta a zero.
+- O limite de dados conta só o corpo das respostas de `/login`, `/usuarios`, `/produtos` e `/carrinhos`. A página inicial, o Swagger e o `/swagger.json` não entram, nem respostas a `HEAD`. A resposta que passa do limite ainda é entregue; as seguintes são barradas.
+- Quem passa de um limite recebe status `429` com uma mensagem que diz qual limite foi atingido e o header `Retry-After`, com os segundos que faltam para aquela janela acabar. Aguarde esse tempo antes de tentar de novo.
+
+Para teste de carga, veja [Teste de carga](#teste-de-carga).
+
 ## Badge
 
 Criou repositório utilizando o ServeRest? Adicione o código abaixo no topo do README.md para ter a badge do projeto.

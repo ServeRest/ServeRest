@@ -23,5 +23,7 @@ module.exports = {
   USER_NOT_FOUND: 'Usuário não encontrado',
   CART_NOT_FOUND: 'Carrinho não encontrado',
   PRODUCT_NOT_FOUND: 'Produto não encontrado',
-  LOAD_TEST_DETECTED: 'Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga'
+  LOAD_TEST_DETECTED: 'Foi detectado comportamento equivalente a teste de carga, não execute teste de carga nesse ambiente. Leia a documentação: https://github.com/ServeRest/ServeRest#teste-de-carga',
+  DOWNLOAD_LIMIT_EXCEEDED: 'Limite de dados baixados da API atingido: cada cliente pode baixar até 250 MiB por hora no ServeRest online. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#limites-do-serverest-online',
+  SERVER_BUSY: 'O ServeRest online está recebendo requisições demais, somando todos os clientes. Aguarde o tempo indicado no header Retry-After e tente de novo. Leia a documentação: https://github.com/ServeRest/ServeRest#limites-do-serverest-online'
 }

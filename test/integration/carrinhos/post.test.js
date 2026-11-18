@@ -207,7 +207,31 @@ describe(rotaCarrinhos + ' POST', () => {
     })
   })
 
-  it('Bad request - quantidade como string numérica não é aceita e o estoque não muda', async () => {
+  it('quantidade como string numérica é aceita e o carrinho grava números', async () => {
+    const authorization = authorizationAdministrador
+    const { _id: idProduto } = await utils.cadastrarProduto({ authorization, preco: 470, quantidade: 10 })
+
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto,
+          quantidade: '2'
+        }]
+      })
+      .set('authorization', authorization)
+      .expect(201)
+
+    const { body: bodyCarrinho } = await request.get(`${rotaCarrinhos}/${body._id}`).expect(200)
+    const { body: bodyProduto } = await request.get(`/produtos/${idProduto}`).expect(200)
+
+    chai.assert.strictEqual(bodyCarrinho.produtos[0].quantidade, 2)
+    chai.assert.strictEqual(bodyCarrinho.quantidadeTotal, 2)
+    chai.assert.strictEqual(bodyCarrinho.precoTotal, 940)
+    chai.assert.strictEqual(bodyProduto.quantidade, 8)
+  })
+
+  it('Bad request - quantidade como string não numérica não é aceita e o estoque não muda', async () => {
     const authorization = authorizationAdministrador
     const { _id: idProduto } = await utils.cadastrarProduto({ authorization, quantidade: 10 })
 
@@ -216,7 +240,7 @@ describe(rotaCarrinhos + ' POST', () => {
       .send({
         produtos: [{
           idProduto,
-          quantidade: '2'
+          quantidade: 'abc'
         }]
       })
       .set('authorization', authorization)
@@ -229,6 +253,23 @@ describe(rotaCarrinhos + ' POST', () => {
     const { body: bodyProduto } = await request.get(`/produtos/${idProduto}`).expect(200)
 
     chai.assert.strictEqual(bodyProduto.quantidade, 10)
+  })
+
+  it('Bad request - quantidade como string decimal não é aceita', async () => {
+    const { body } = await request
+      .post(rotaCarrinhos)
+      .send({
+        produtos: [{
+          idProduto: 'basdasd',
+          quantidade: '1.5'
+        }]
+      })
+      .set('authorization', authorizationAdministrador)
+      .expect(400)
+
+    chai.assert.deepEqual(body, {
+      'produtos[0].quantidade': 'produtos[0].quantidade deve ser um inteiro'
+    })
   })
 
   it('Bad request - quantidade deve ser inteiro', async () => {

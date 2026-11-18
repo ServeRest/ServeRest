@@ -27,6 +27,7 @@ const { version } = require('../package.json')
 const swaggerDocument = require('../docs/swagger.json')
 const rateLimiter = require('./middlewares/rate-limiter')
 const { iniciar, etapa } = require('./utils/etapas')
+const { ROTAS_DA_API } = require('./utils/rotas-da-api')
 const { fetchLatestRelease, isNewerVersion } = require('./utils/github-release')
 const { buildCustomJsStr, customCss } = require('./swagger')
 const { localizeSwaggerDocument } = require('./swagger/translations')
@@ -71,13 +72,20 @@ app.set('json spaces', 4)
 // o Express passaria a ler o primeiro endereço do X-Forwarded-For, que o próprio cliente
 // pode forjar, então o número de saltos precisa ser explícito.
 app.set('trust proxy', 1)
-app.use(['/login', '/usuarios', '/produtos', '/carrinhos'], iniciar)
+// A API devolve e-mails e senhas da sandbox, e o Googlebot já pediu o /usuarios. Vem antes de tudo para
+// valer também nos erros do body e no 429; a página inicial e os assets do Swagger seguem indexáveis.
+app.use([...ROTAS_DA_API, '/swagger.json'], (req, res, next) => {
+  res.set('X-Robots-Tag', 'noindex')
+  next()
+})
+app.use(ROTAS_DA_API, iniciar)
 const parsersDoBody = express.Router()
 parsersDoBody.use(express.json(), express.urlencoded({ extended: false }))
 app.use(etapa('body', parsersDoBody))
 app.use(queryParser())
 app.use(timeout())
-app.use(cors({ exposedHeaders: ['X-ServeRest-Stages'] }))
+// O Retry-After do 429 diz quanto esperar; sem ele aqui, um front em outra origem não consegue lê-lo.
+app.use(cors({ exposedHeaders: ['X-ServeRest-Stages', 'Retry-After'] }))
 app.use(moesifMiddleware)
 app.use(etapa('rate_limit', rateLimiter))
 
