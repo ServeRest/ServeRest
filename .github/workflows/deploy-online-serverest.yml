@@ -82,8 +82,9 @@ jobs:
         ENV_VARS="^@^ENVIRONMENT=$ENVIRONMENT@DD_SERVICE=$DD_SERVICE@DD_ENV=$ENVIRONMENT@DD_SITE=$DD_SITE"
         ENV_VARS="$ENV_VARS@DD_API_KEY=$DD_API_KEY@DD_VERSION=${{ github.ref_name }}"
         ENV_VARS="$ENV_VARS@DD_TAGS=git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest"
-        ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_TRACE_HEADER_TAGS=true@DD_LOGS_ENABLED=false"
+        ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_LOGS_ENABLED=false"
         ENV_VARS="$ENV_VARS@DD_PROFILING_ENABLED=false@DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false@DD_APPSEC_ENABLED=false"
+        ENV_VARS="$ENV_VARS@DD_TRACE_PROPAGATION_STYLE=datadog"
 
         gcloud run \
           deploy $SERVICE_STAGING \
@@ -91,7 +92,8 @@ jobs:
           --region $REGION \
           --concurrency=80 \
           --timeout=60s \
-          --update-env-vars="$ENV_VARS"
+          --update-env-vars="$ENV_VARS" \
+          --remove-env-vars=DD_TRACE_HEADER_TAGS
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: staging.serverest.dev
@@ -175,8 +177,9 @@ jobs:
         ENV_VARS="^@^ENVIRONMENT=$ENVIRONMENT@DD_SERVICE=$DD_SERVICE@DD_ENV=$ENVIRONMENT@DD_SITE=$DD_SITE"
         ENV_VARS="$ENV_VARS@DD_API_KEY=$DD_API_KEY@DD_VERSION=${{ github.ref_name }}"
         ENV_VARS="$ENV_VARS@DD_TAGS=git.commit.sha:${{ github.sha }},git.repository_url:github.com/ServeRest/ServeRest"
-        ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_TRACE_HEADER_TAGS=true@DD_LOGS_ENABLED=false"
+        ENV_VARS="$ENV_VARS@DD_LOGS_INJECTION=true@DD_RUNTIME_METRICS_ENABLED=true@DD_LOGS_ENABLED=false"
         ENV_VARS="$ENV_VARS@DD_PROFILING_ENABLED=false@DD_PROFILING_EXPERIMENTAL_CPU_ENABLED=false@DD_APPSEC_ENABLED=false"
+        ENV_VARS="$ENV_VARS@DD_TRACE_PROPAGATION_STYLE=datadog"
 
         gcloud run \
           deploy $SERVICE_PRODUCTION \
@@ -184,7 +187,8 @@ jobs:
           --region $REGION \
           --concurrency=80 \
           --timeout=60s \
-          --update-env-vars="$ENV_VARS"
+          --update-env-vars="$ENV_VARS" \
+          --remove-env-vars=DD_TRACE_HEADER_TAGS
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
