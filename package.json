@@ -78,7 +78,7 @@
     "@commitlint/config-conventional": "^20.4.1",
     "@faker-js/faker": "^10.2.0",
     "@hapi/joi": "^17.1.1",
-    "@pact-foundation/pact": "^16.0.4",
+    "@pact-foundation/pact": "^17.1.4",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
