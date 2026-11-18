@@ -52,7 +52,7 @@
     "colors": "^1.4.0",
     "connect-timeout": "^1.9.1",
     "cors": "^2.8.6",
-    "dd-trace": "^5.136.0",
+    "dd-trace": "^6.25.0",
     "debug": "^4.4.3",
     "dotenv": "^17.2.4",
     "escape-string-regexp": "^5.0.0",
