@@ -67,7 +67,7 @@
     "nedb-promises": "^6.2.3",
     "on-headers": "^1.1.0",
     "open": "^11.0.0",
-    "rate-limiter-flexible": "^9.1.0",
+    "rate-limiter-flexible": "^11.5.0",
     "swagger-ui-express": "^5.0.1",
     "yargs": "^18.0.0"
   },
