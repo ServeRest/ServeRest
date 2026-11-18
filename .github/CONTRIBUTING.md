@@ -49,6 +49,7 @@ Você pode contribuir de várias maneiras, sendo as mais conhecidas as seguintes
     - [💥💻 Commit](#-commit)
     - [💥 Dockerfile lint](#-dockerfile-lint)
 - [Entrega contínua](#entrega-contínua)
+    - [Deploy em produção: revisão sem tráfego e vigia](#deploy-em-produção-revisão-sem-tráfego-e-vigia)
 - [Documentação](#documentação)
 - [Reconhecimento de contribuição](#reconhecimento-de-contribuição)
 
@@ -211,6 +212,37 @@ A publicação de novas versões no [NPM](https://www.npmjs.com/package/serveres
 Para ver todo o passo a passo da entrega contínua, como deploy em staging e produção, testes E2E em staging e produção e rollback automático se algum erro for detectado, acesse: https://github.com/ServeRest/ServeRest/actions/workflows/deploy-online-serverest.yml
 
 Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto '[Entrega contínua no ServeRest](https://github.com/PauloGoncalvesBH/entrega-continua-no-serverest)'. _(desatualizado)_
+
+### Deploy em produção: revisão sem tráfego e vigia
+
+A revisão nova é testada na infraestrutura de produção antes de receber tráfego e fica sob vigia por 60 minutos depois de recebê-lo.
+
+Não é um canário por porcentagem de tráfego. Cada instância do Cloud Run tem o seu NeDB em memória: um `POST` numa revisão e o `GET` seguinte na outra responderiam 404, e a afinidade de sessão do Cloud Run usa cookie, que os clientes de API não enviam. Dividir por IP exigiria um Load Balancer, que custa mais do que o projeto economiza.
+
+```
+deploy-online-serverest.yml
+  deploy sem tráfego, com a tag canario
+  → smoke test na URL da tag (falhou: issue, a produção não foi tocada)
+  → promoção da revisão nova para 100% do tráfego
+  → smoke test em https://serverest.dev (falhou: rollback e issue)
+  → remoção da tag canario e disparo da vigia
+
+vigiar-producao.yml, à parte
+  → um ciclo a cada 5 min por 60 min
+  → rollback para a revisão anterior, só por sinal forte
+```
+
+A vigia lê no Cloud Logging os logs da revisão nova desde a promoção e consulta `GET https://serverest.dev/version`. O rollback acontece com 1 linha de OOM, com 5 ou mais respostas 5xx ou com 2 sondas seguidas sem a versão do release. Reinício de container, memória e latência não revertem; os monitores do Datadog avisam deles. Quando a vigia não consegue ler os logs, o veredito é inconclusivo: abre issue e a revisão nova continua com o tráfego. A cada ciclo a vigia confere se a revisão ainda serve 100%: se um deploy mais novo ou uma mudança à mão trocou a revisão, ela termina como substituida e não reverte nada. A revisão anterior é a que servia 100% antes do deploy; ela está escalada a zero, então a primeira requisição depois do rollback espera de 10 a 12 segundos.
+
+A vigia roda num workflow próprio, com um grupo de concorrência por serviço, e não prende a fila do deploy: o deploy demora o mesmo que antes. O GitHub guarda só um run pendente por grupo de concorrência e cancela o pendente mais antigo; com a vigia dentro do deploy, um release beta poderia cancelar a promoção pendente de um release de trunk.
+
+Efeito colateral do deploy sem tráfego: o serviço `app` deixa de seguir a última revisão. Uma revisão criada à mão ou por mudança de variável de ambiente no console não recebe tráfego sozinha; é preciso promovê-la com `update-traffic`.
+
+Rollback manual, para um problema que apareça depois da vigia (as revisões estão na issue do deploy ou em `gcloud run revisions list --service app --region us-central1`):
+
+```
+gcloud run services update-traffic app --region us-central1 --to-revisions <revisão anterior>=100
+```
 
 ## Documentação
 

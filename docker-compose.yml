@@ -147,4 +147,6 @@ services:
     command: npm run test:smoke -- --retries 1 --slow 1000
     environment:
       - TEST_TYPE=e2e-production
+      # URL da revisão nova no deploy, antes da promoção; sem ela o smoke vai em https://serverest.dev
+      - SERVEREST_URL
       - CI

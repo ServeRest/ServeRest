@@ -1,0 +1,191 @@
+name: Vigiar a revisão nova depois do deploy
+
+# Disparado por deploy-online-serverest.yml depois da promoção e do smoke test em produção. Fica à parte
+# para não prender a fila do deploy por 60 min. Só sinal forte reverte (.github/scripts/vigiar-revisao.sh),
+# e só se a revisão vigiada ainda serve 100% do tráfego: um deploy mais novo ou uma mudança à mão encerram
+# a vigia como substituida, sem rollback.
+
+on:
+  workflow_dispatch:
+    inputs:
+      servico:
+        description: Serviço do Cloud Run
+        type: choice
+        options: [app, app-staging]
+        default: app
+        required: true
+      revisao:
+        description: Revisão promovida, a vigiada
+        required: true
+      anterior:
+        description: Revisão que servia 100% antes do deploy, destino do rollback
+        required: true
+      versao:
+        description: Versão que GET /version deve responder
+        required: true
+      promovido_em:
+        description: Hora da promoção, RFC 3339 em UTC
+        required: true
+      minutos:
+        description: Duração da vigia em minutos
+        default: '60'
+        required: true
+
+# Uma vigia por serviço. Um deploy novo durante a vigia deixa a próxima pendente; a atual para no ciclo
+# seguinte como substituida.
+concurrency:
+  group: vigia-${{ inputs.servico }}
+  cancel-in-progress: false
+
+env:
+  REGION: us-central1
+  LOGS_PROJECT_ID: serverest
+  WATCH_INTERVAL_SECONDS: 300
+  PUBLIC_URL: ${{ inputs.servico == 'app' && 'https://serverest.dev' || 'https://staging.serverest.dev' }}
+
+jobs:
+  watch:
+    name: Watch ${{ inputs.revisao }} for ${{ inputs.minutos }} minutes
+    runs-on: ubuntu-22.04
+    timeout-minutes: 75
+
+    outputs:
+      verdict: ${{ steps.watch.outputs.veredito }}
+      reason: ${{ steps.watch.outputs.motivo }}
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Watch traffic, OOM, 5xx and the public /version of the revision
+      id: watch
+      run: bash .github/scripts/vigiar-revisao.sh
+      env:
+        PROJETO: ${{ env.LOGS_PROJECT_ID }}
+        SERVICO: ${{ inputs.servico }}
+        REGIAO: ${{ env.REGION }}
+        REVISAO: ${{ inputs.revisao }}
+        PROMOVIDO_EM: ${{ inputs.promovido_em }}
+        URL_PUBLICA: ${{ env.PUBLIC_URL }}
+        VERSAO: ${{ inputs.versao }}
+        MINUTOS: ${{ inputs.minutos }}
+        INTERVALO_S: ${{ env.WATCH_INTERVAL_SECONDS }}
+    - name: Fail when the verdict asks for action
+      if: steps.watch.outputs.veredito != 'saudavel' && steps.watch.outputs.veredito != 'substituida'
+      run: |
+        echo "::error::Vigia: $VERDICT ($REASON)"
+        exit 1
+      env:
+        VERDICT: ${{ steps.watch.outputs.veredito }}
+        REASON: ${{ steps.watch.outputs.motivo }}
+
+  rollback:
+    name: Rollback ${{ inputs.servico }} to ${{ inputs.anterior }}
+    # Só o veredito reverter volta o tráfego; uma falha qualquer do job da vigia, ou o cancelamento, não.
+    needs: watch
+    if: ${{ always() && needs.watch.outputs.verdict == 'reverter' }}
+
+    runs-on: ubuntu-22.04
+    environment: ${{ inputs.servico == 'app' && 'production' || 'staging' }}
+
+    outputs:
+      result: ${{ steps.rollback.outputs.result }}
+
+    steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Update traffic to the previous revision, if the watched one still serves 100%
+      id: rollback
+      # A anterior está escalada a zero: a primeira requisição espera 10 a 12 s pela instância subir.
+      run: |
+        SERVING=$(gcloud run services describe "$SERVICE" --region "$REGION" --format=json \
+          | jq -r '[.status.traffic[] | select(.percent == 100) | .revisionName] | if length == 1 then .[0] else "" end')
+        if [ "$SERVING" != "$WATCHED" ]; then
+          echo "::warning::$WATCHED não serve mais 100% (agora '$SERVING'); rollback não feito"
+          echo "result=substituida" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        gcloud run services update-traffic "$SERVICE" --region "$REGION" --to-revisions "$PREVIOUS=100"
+        echo "result=revertido" >> "$GITHUB_OUTPUT"
+        gcloud run services describe "$SERVICE" --region "$REGION" --format=json | jq '.status.traffic'
+      env:
+        SERVICE: ${{ inputs.servico }}
+        WATCHED: ${{ inputs.revisao }}
+        PREVIOUS: ${{ inputs.anterior }}
+
+  open-issue:
+    name: Open issue when the watch asks for action
+    needs: [watch, rollback]
+    if: ${{ !cancelled() && needs.watch.result == 'failure' }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Create issue
+      run: |
+        case "$VERDICT" in
+          reverter) TITLE="Vigia de $SERVICE reverteu $WATCHED" ;;
+          inconclusivo) TITLE="Vigia de $SERVICE inconclusiva para $WATCHED, sem rollback" ;;
+          *) TITLE="Vigia de $SERVICE terminou sem veredito para $WATCHED, sem rollback" ;;
+        esac
+        BODY=$(cat <<BODY
+        _Issue gerada automaticamente_
+
+        | | Detalhe |
+        |---|---|
+        | **Veredito** | ${VERDICT:-sem veredito}: ${REASON:-o job da vigia falhou ou estourou o tempo} |
+        | **Rollback** | ${ROLLBACK:-não feito} |
+        | **Revisão vigiada** | \`$WATCHED\` |
+        | **Revisão anterior** | \`$PREVIOUS\` |
+        | **Versão** | \`$VERSION\` |
+        | **Run** | $RUN_URL |
+
+        Rollback manual:
+
+        \`\`\`
+        gcloud run services update-traffic $SERVICE --region $REGION --to-revisions $PREVIOUS=100
+        \`\`\`
+        BODY
+        )
+        gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        VERDICT: ${{ needs.watch.outputs.verdict }}
+        REASON: ${{ needs.watch.outputs.reason }}
+        ROLLBACK: ${{ needs.rollback.outputs.result }}
+        SERVICE: ${{ inputs.servico }}
+        WATCHED: ${{ inputs.revisao }}
+        PREVIOUS: ${{ inputs.anterior }}
+        VERSION: ${{ inputs.versao }}
