@@ -93,7 +93,10 @@ const PALAVRAS = [
 
 // As regras do Joi que este teste sabe comparar. Uma regra nova (um .max(50), um .alphanum()) falha aqui até
 // alguém decidir como ela entra no documento. trim não tem palavra no OpenAPI: o documento fica com minLength 1.
+// custom em any é o filtro de texto das listas (src/utils/filtroDeTexto.js): ele só recusa objeto, e o documento
+// já diz string.
 const REGRAS_CONHECIDAS = {
+  any: ['custom'],
   string: ['email', 'min', 'max', 'pattern', 'trim'],
   number: ['sign', 'integer', 'min', 'max', 'greater', 'less'],
   array: ['min', 'max', 'length']

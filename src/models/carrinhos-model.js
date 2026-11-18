@@ -2,12 +2,14 @@
 
 const { Joi } = require('express-validation')
 
+const filtroDeTexto = require('../utils/filtroDeTexto')
+
 exports.schemaGet = {
   query: Joi.object({
     precoTotal: Joi.number().positive().integer(),
     quantidadeTotal: Joi.number().positive().integer(),
-    idUsuario: Joi.any(),
-    _id: Joi.any()
+    idUsuario: filtroDeTexto,
+    _id: filtroDeTexto
   })
 }
 
