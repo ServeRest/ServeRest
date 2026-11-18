@@ -9,11 +9,20 @@ process.env.SWAGGER_UI_PRECOMPRESSED_DIR = join(tmpdir(), `serverest-sem-precomp
 const app = require('../../../src/app')
 const supertest = require('supertest')
 
+const limpeza = require('./limpeza')
+
 if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutation') {
   global.request = supertest(app)
-  // Só na integração: na mutação a espera da verificação se repetiria a cada mutante.
+  // Só na integração: na mutação a espera da verificação se repetiria a cada mutante, e a limpeza
+  // reprovaria mutantes por uma exclusão que nenhum teste confere.
   if (process.env.TEST_TYPE === 'integration') {
-    exports.mochaHooks = require('./timers-pendentes')
+    limpeza.registrarCadastros(global.request)
+    const timersPendentes = require('./timers-pendentes')
+    exports.mochaHooks = {
+      ...limpeza.mochaHooks,
+      // A limpeza faz requisições; a contagem dos timers vem depois dela.
+      afterAll: [...limpeza.mochaHooks.afterAll, ...timersPendentes.afterAll]
+    }
   }
 } else { // E2E test
   let URL
@@ -35,11 +44,12 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
     limitar(supertest(URL)[method](args)
       .set('monitor', true))
 
-  global.request = {
+  global.request = limpeza.registrarCadastros({
     post: hook('post'),
     get: hook('get'),
     head: hook('head'),
     put: hook('put'),
     del: hook('delete')
-  }
+  })
+  exports.mochaHooks = limpeza.mochaHooks
 }

@@ -1,5 +1,12 @@
 const { faker } = require('@faker-js/faker')
 
+// Tetos baixos de propósito. O carrinho multiplica preço por quantidade, e com os inteiros até 2^53 que o
+// faker gera por padrão o precoTotal passava de Number.MAX_SAFE_INTEGER: o carrinho ficava no banco e o
+// contrato de /carrinhos GET reprovava na execução seguinte. Com estes tetos o precoTotal de um item não
+// passa de 10 milhões. A quantidade começa em 11 porque testes de carrinho compram quantidade - 10.
+const precoAleatorio = () => faker.number.int({ min: 1, max: 10000 })
+const quantidadeAleatoria = () => faker.number.int({ min: 11, max: 1000 })
+
 async function cadastrarCarrinho ({
   idProduto,
   quantidade = 1,
@@ -20,9 +27,9 @@ async function cadastrarCarrinho ({
 
 async function cadastrarProduto ({
   nome = faker.commerce.productName() + faker.number.int() + faker.number.int(),
-  preco = faker.number.int(),
+  preco = precoAleatorio(),
   descricao = faker.lorem.words(),
-  quantidade = faker.number.int(),
+  quantidade = quantidadeAleatoria(),
   authorization
 } = {}) {
   const { body } = await request.post('/produtos').send({
@@ -64,9 +71,9 @@ async function cadastrarUsuario ({
 function dadosProduto () {
   return {
     nome: faker.commerce.productName() + faker.number.int() + faker.number.int(),
-    preco: faker.number.int(),
+    preco: precoAleatorio(),
     descricao: faker.lorem.words(),
-    quantidade: faker.number.int(),
+    quantidade: quantidadeAleatoria(),
     imagem: faker.lorem.words()
   }
 }
@@ -84,5 +91,6 @@ module.exports = {
   cadastrarProduto,
   cadastrarUsuario,
   dadosProduto,
-  login
+  login,
+  quantidadeAleatoria
 }
