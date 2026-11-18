@@ -4,6 +4,9 @@ const { faker } = require('@faker-js/faker')
 const rotaCarrinhos = '/carrinhos'
 const utils = require('../utils')
 
+// Valores que o Number aceita e que viravam 0 (ou -0) antes da busca, que então descartava o filtro.
+const VALORES_QUE_VIRAVAM_ZERO = ['0', '0000000000000000', '-0', '0.0', ' ']
+
 describe(rotaCarrinhos + ' GET', () => {
   let usuarioAdministrador
   beforeEach(async () => {
@@ -92,6 +95,18 @@ describe(rotaCarrinhos + ' GET', () => {
     chai.assert.deepEqual(body, {
       precoTotal: 'precoTotal deve ser um inteiro',
       quantidadeTotal: 'quantidadeTotal deve ser um inteiro'
+    })
+  })
+
+  describe('Filtro com valor que parece número', () => {
+    VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
+      ['_id', 'idUsuario'].forEach(campo => {
+        it(`Query string - ${campo} ${JSON.stringify(valor)} não encontra carrinho`, async () => {
+          const { body } = await request.get(rotaCarrinhos).query({ [campo]: valor }).expect(200)
+
+          chai.assert.deepEqual(body, { quantidade: 0, carrinhos: [] })
+        })
+      })
     })
   })
 })
