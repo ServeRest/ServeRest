@@ -148,8 +148,9 @@ jobs:
           | **Environment affected** 	| https://staging.serverest.dev/                                                	|
 
   # Produção \/
-  # A revisão nova sobe sem tráfego, com a tag canario, e passa pelo smoke na URL da tag. Só depois recebe o
-  # tráfego e passa pelo smoke em serverest.dev; a vigia de 60 min roda à parte, em vigiar-producao.yml.
+  # A revisão nova sobe sem tráfego, com a tag canario, passa pelo E2E completo na URL da tag e pela conferência
+  # de OOM nos logs dela. Só depois recebe o tráfego e passa pelo smoke em serverest.dev; a vigia de 60 min roda
+  # à parte, em vigiar-producao.yml.
   # Não é um canário por porcentagem: cada instância tem o seu NeDB em memória, então um POST numa revisão
   # e o GET seguinte na outra dariam 404. O rollback volta para a revisão que servia 100% antes do deploy.
   deploy-production:
@@ -276,35 +277,95 @@ jobs:
       env:
         PREVIOUS: ${{ steps.previous.outputs.revision }}
 
-  test-e2e-smoke-canary:
-    name: Smoke test on the new revision, before it gets traffic
+  test-e2e-canary:
+    name: E2E test on the new revision, before it gets traffic
     needs: deploy-production
 
     runs-on: ubuntu-22.04
 
+    outputs:
+      finished-at: ${{ steps.e2e.outputs.finished-at }}
+
     steps:
     - name: Project checkout
       uses: actions/checkout@v7
-    - run: docker compose build test-e2e-smoke-production
+    - run: docker compose build test-e2e-canary
     - name: Wait for the new revision on the canary tag URL
       run: bash .github/scripts/esperar-versao.sh "$SERVEREST_URL" "$VERSION"
       env:
         SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
         VERSION: ${{ needs.deploy-production.outputs.version }}
-    - name: Run smoke test on the canary tag URL
-      # Os dados que o smoke deixa ficam na instância que vira produção, como no smoke de serverest.dev.
+    - name: Run E2E test on the canary tag URL
+      id: e2e
+      # A suíte inteira, a mesma do staging, mas com a configuração do serviço de produção e o ENVIRONMENT
+      # serverest.dev: robots, sitemap e canonical só têm a forma de produção aqui. A limpeza do fim apaga o
+      # que a suíte cadastrou; o que ela não conseguir apagar fica na instância que vira produção.
       run: |
         set -o pipefail
-        make test-e2e-smoke-production 2>&1 | tee smoke.log
-        grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
-        if grep -Eq ' [1-9][0-9]* failing' smoke.log; then echo "::error::Há teste falhando"; exit 1; fi
+        make test-e2e-canary 2>&1 | tee e2e.log
+        echo "finished-at=$(date -u +%s)" >> "$GITHUB_OUTPUT"
+        grep -Eq ' [1-9][0-9]* passing' e2e.log || { echo "::error::Nenhum teste passou"; exit 1; }
+        if grep -Eq ' [1-9][0-9]* failing' e2e.log; then echo "::error::Há teste falhando"; exit 1; fi
       env:
         SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
 
+  check-oom-canary:
+    name: Check the new revision logs for OOM, before it gets traffic
+    # A vigia só conta os sinais desde a promoção: um OOM durante o E2E ficaria de fora dela. Uma linha basta
+    # para não promover, o mesmo critério que reverte na vigia (.github/scripts/vigiar-revisao.sh). Sem
+    # conseguir ler os logs também não promove: aqui não promover é seguro, a produção segue na anterior.
+    needs: [deploy-production, test-e2e-canary]
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Look for "Memory limit of" in the new revision logs since its creation
+      # Os logs chegam cerca de 40 s depois do evento: espera 90 s desde o fim do E2E, como o último ciclo
+      # da vigia.
+      run: |
+        ESPERA=$((FINISHED_AT + 90 - $(date -u +%s)))
+        if [ "$ESPERA" -gt 0 ]; then sleep "$ESPERA"; fi
+        CRIADA=$(gcloud run revisions describe "$NEW" --region "$REGION" --format 'value(metadata.creationTimestamp)')
+        if [ -z "$CRIADA" ]; then
+          echo "::error::Não foi possível ler a criação da revisão $NEW; promoção abortada"
+          exit 1
+        fi
+        FILTRO="resource.type=\"cloud_run_revision\" resource.labels.service_name=\"$SERVICE_PRODUCTION\""
+        FILTRO="$FILTRO resource.labels.revision_name=\"$NEW\" timestamp>=\"$CRIADA\" textPayload:\"Memory limit of\""
+        if ! OOM=$(gcloud logging read "$FILTRO" --project "$IMAGE_PROJECT_ID" --limit 1 --format 'value(timestamp)'); then
+          echo "::error::A leitura dos logs da revisão $NEW falhou; promoção abortada"
+          exit 1
+        fi
+        if [ -n "$OOM" ]; then
+          echo "::error::Linha de OOM (Memory limit of) na revisão $NEW em $OOM; promoção abortada"
+          exit 1
+        fi
+        echo "Nenhuma linha de OOM na revisão $NEW desde $CRIADA"
+      env:
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        FINISHED_AT: ${{ needs.test-e2e-canary.outputs.finished-at }}
+
   open-issue-canary:
-    name: Open issue when the smoke test on the new revision fails
-    needs: [deploy-production, test-e2e-smoke-canary]
-    if: ${{ failure() && needs.test-e2e-smoke-canary.result == 'failure' }}
+    name: Open issue when the E2E test or the OOM check on the new revision fail
+    needs: [deploy-production, test-e2e-canary, check-oom-canary]
+    if: ${{ failure() && (needs.test-e2e-canary.result == 'failure' || needs.check-oom-canary.result == 'failure') }}
 
     runs-on: ubuntu-22.04
 
@@ -313,11 +374,11 @@ jobs:
       run: gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
       env:
         GH_TOKEN: ${{ github.token }}
-        TITLE: "Smoke test na revisão nova falhou: produção não foi tocada"
+        TITLE: ${{ needs.test-e2e-canary.result == 'failure' && 'Teste E2E na revisão nova falhou, produção não foi tocada' || 'Conferência de OOM na revisão nova falhou, produção não foi tocada' }}
         BODY: |
           _Issue gerada automaticamente_
 
-          O smoke test na revisão nova `${{ needs.deploy-production.outputs.new-revision }}` falhou antes de ela receber tráfego. A produção não foi tocada: o tráfego continua na revisão `${{ needs.deploy-production.outputs.previous-revision }}`.
+          ${{ needs.test-e2e-canary.result == 'failure' && 'O teste E2E' || 'A conferência de OOM nos logs' }} da revisão nova `${{ needs.deploy-production.outputs.new-revision }}` falhou antes de ela receber tráfego. A produção não foi tocada: o tráfego continua na revisão `${{ needs.deploy-production.outputs.previous-revision }}`.
 
           | | Detalhe |
           |---|---|
@@ -327,7 +388,7 @@ jobs:
 
   promote-production:
     name: Promote the new revision to 100% of production traffic
-    needs: [deploy-production, test-e2e-smoke-canary]
+    needs: [deploy-production, test-e2e-canary, check-oom-canary]
 
     runs-on: ubuntu-22.04
     environment: production
@@ -519,7 +580,7 @@ jobs:
     name: Remove the canary tag from production
     # A URL da tag manteria a revisão alcançável por fora do domínio. Roda no fim, com sucesso ou rollback;
     # uma falha aqui não muda o resultado do deploy.
-    needs: [deploy-production, test-e2e-smoke-canary, promote-production, test-e2e-smoke-production, rollback-production]
+    needs: [deploy-production, test-e2e-canary, check-oom-canary, promote-production, test-e2e-smoke-production, rollback-production]
     if: ${{ always() && needs.deploy-production.result != 'skipped' }}
 
     runs-on: ubuntu-22.04
