@@ -73,16 +73,16 @@ describe(rotaUsuarios + ' GET', () => {
       chai.assert.deepEqual(body, { quantidade: 1, usuarios: [agente] })
     })
 
-    // Como em produção: o branco do email vira 0, e o schema recusa número.
-    utils.VALORES_EM_BRANCO.forEach(valor => {
-      [
-        ['email', 'email deve ser uma string']
-      ].forEach(([campo, mensagem]) => {
-        it(`Query string - ${campo} ${JSON.stringify(valor)} responde 400 como em produção`, async () => {
-          const { body } = await request.get(rotaUsuarios).query({ [campo]: valor }).expect(400)
+    // Antes o 123, o vazio e o espaço viravam o número 0, e as três respostas diziam que email deve ser uma string.
+    ;[
+      ['123', 'email deve ser um email válido'],
+      ['', 'email não pode ficar em branco'],
+      [' ', 'email deve ser um email válido']
+    ].forEach(([email, mensagem]) => {
+      it(`Query string - email ${JSON.stringify(email)} responde que ${mensagem.replace('email ', '')}`, async () => {
+        const { body } = await request.get(rotaUsuarios).query({ email }).expect(400)
 
-          chai.assert.deepEqual(body, { [campo]: mensagem })
-        })
+        chai.assert.deepEqual(body, { email: mensagem })
       })
     })
 

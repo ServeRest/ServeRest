@@ -26,11 +26,10 @@ const tirarFiltrosEmBranco = (req, res, next) => {
 }
 
 // Os três passos de um GET de lista: converter, validar e tirar o branco da busca.
-exports.filtrosDaLista = (schemaGet, outrosCampos = []) => {
+exports.filtrosDaLista = schemaGet => {
   const campos = Object.entries(schemaGet.query.describe().keys)
     .filter(([, { type }]) => type === 'number')
     .map(([campo]) => campo)
-    .concat(outrosCampos)
   return [converterFiltrosNumericos(campos), validateSchema(schemaGet), tirarFiltrosEmBranco]
 }
 

@@ -3,11 +3,12 @@ const { Joi } = require('express-validation')
 
 const { filtrosDaLista } = require('../../src/utils/filtrosDaQuery')
 const produtos = require('../../src/models/produtos-model')
+const usuarios = require('../../src/models/usuarios-model')
 
 // Roda só o primeiro passo de filtrosDaLista, a conversão.
-function converter (schemaGet, query, outrosCampos) {
+function converter (schemaGet, query) {
   const req = { query }
-  filtrosDaLista(schemaGet, outrosCampos)[0](req, {}, () => {})
+  filtrosDaLista(schemaGet)[0](req, {}, () => {})
   return req
 }
 
@@ -35,8 +36,8 @@ describe('filtrosDaQuery', () => {
     expect(converter(schemaGet, { nota: '10', nome: '10' }).query).to.deep.equal({ nota: 10, nome: '10' })
   })
 
-  it('converte também os campos extras pedidos pela rota', () => {
-    expect(converter(produtos.schemaGet, { email: '123' }, ['email']).query).to.deep.equal({ email: 123 })
+  it('não converte o email, que é texto no schema', () => {
+    expect(converter(usuarios.schemaGet, { email: '123' }).query).to.deep.equal({ email: '123' })
   })
 
   it('não converte texto que não é número nem valor que não é texto', () => {
