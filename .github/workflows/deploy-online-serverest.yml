@@ -17,6 +17,8 @@ env:
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
   URL_PRODUCTION: https://serverest.dev
+  # Piso de testes passando do E2E no staging e na revisão nova; subir quando a suíte crescer (352 em 18/11/2026).
+  E2E_MIN_PASSING: 340
   # Datadog variables
   DD_SERVICE: serverest
   DD_SITE: datadoghq.eu
@@ -117,7 +119,11 @@ jobs:
       uses: actions/checkout@v7
     - run: docker compose build test-e2e-staging
     - name: Run E2E test in staging environment
-      run: make test-e2e-staging
+      # O código de saída do compose não basta: uma suíte que roda poucos testes também sai com 0.
+      run: |
+        set -o pipefail
+        make test-e2e-staging 2>&1 | tee e2e.log
+        bash .github/scripts/conferir-testes-e2e.sh e2e.log "$E2E_MIN_PASSING"
 
   open-issue-staging:
     name: Open issue when staging test fail
@@ -148,9 +154,10 @@ jobs:
           | **Environment affected** 	| https://staging.serverest.dev/                                                	|
 
   # Produção \/
-  # A revisão nova sobe sem tráfego, com a tag canario, passa pelo E2E completo na URL da tag e pela conferência
-  # de OOM nos logs dela. Só depois recebe o tráfego; a conferência de roteamento só prova que serverest.dev
-  # serve a revisão nova, e a vigia de 60 min roda à parte, em vigiar-producao.yml.
+  # A revisão nova sobe sem tráfego, com a tag canario, passa pelo E2E completo na URL da tag, pela conferência
+  # da semente e pela conferência de OOM e 5xx nos logs dela. Só depois recebe o tráfego; a conferência de
+  # roteamento só prova que serverest.dev serve a revisão nova, e a vigia de 60 min roda à parte, em
+  # vigiar-producao.yml.
   # Não é um canário por porcentagem: cada instância tem o seu NeDB em memória, então um POST numa revisão
   # e o GET seguinte na outra dariam 404. O rollback volta para a revisão que servia 100% antes do deploy.
   deploy-production:
@@ -284,7 +291,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     outputs:
-      finished-at: ${{ steps.e2e.outputs.finished-at }}
+      finished-at: ${{ steps.seed.outputs.finished-at }}
+      # O resultado de cada conferência, para a issue dizer qual falhou.
+      e2e: ${{ steps.e2e.outcome }}
+      seed: ${{ steps.seed.outcome }}
 
     steps:
     - name: Project checkout
@@ -299,24 +309,42 @@ jobs:
       id: e2e
       # A suíte inteira, a mesma do staging, mas com a configuração do serviço de produção e o ENVIRONMENT
       # serverest.dev: robots, sitemap e canonical só têm a forma de produção aqui. A limpeza do fim apaga o
-      # que a suíte cadastrou; o que ela não conseguir apagar fica na instância que vira produção.
+      # que a suíte cadastrou; o passo seguinte confere que nada sobrou.
       run: |
         set -o pipefail
         make test-e2e-canary 2>&1 | tee e2e.log
+        bash .github/scripts/conferir-testes-e2e.sh e2e.log "$E2E_MIN_PASSING"
+      env:
+        SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
+    - name: Check that the new revision holds only the seed data
+      id: seed
+      # A instância que passou pelo E2E é a que recebe o tráfego: um cadastro que a limpeza não apagou, ou um
+      # registro da semente que um teste apagou, iria para a produção. Fica neste job porque ele já tem o
+      # checkout com src/data, de onde sai a semente esperada. Roda também depois de um E2E que falhou, para a
+      # issue dizer se sobrou dado. É a última requisição à revisão: a espera dos logs conta a partir daqui.
+      if: ${{ !cancelled() && steps.e2e.outcome != 'skipped' }}
+      run: |
+        bash .github/scripts/conferir-semente.sh "$SERVEREST_URL"
         echo "finished-at=$(date -u +%s)" >> "$GITHUB_OUTPUT"
-        grep -Eq ' [1-9][0-9]* passing' e2e.log || { echo "::error::Nenhum teste passou"; exit 1; }
-        if grep -Eq ' [1-9][0-9]* failing' e2e.log; then echo "::error::Há teste falhando"; exit 1; fi
       env:
         SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
 
-  check-oom-canary:
-    name: Check the new revision logs for OOM, before it gets traffic
-    # A vigia só conta os sinais desde a promoção: um OOM durante o E2E ficaria de fora dela. Uma linha basta
-    # para não promover, o mesmo critério que reverte na vigia (.github/scripts/vigiar-revisao.sh). Sem
-    # conseguir ler os logs também não promove: aqui não promover é seguro, a produção segue na anterior.
+  check-logs-canary:
+    name: Check the new revision logs for OOM and 5xx, before it gets traffic
+    # A vigia só conta os sinais desde a promoção: um OOM ou um 5xx durante o E2E ficaria de fora dela. Uma
+    # linha de OOM basta para não promover, o mesmo critério que reverte na vigia
+    # (.github/scripts/vigiar-revisao.sh). Uma resposta 5xx também basta, enquanto a vigia tolera até 4 vindas
+    # do público: nenhum teste do E2E provoca 5xx de propósito (os que provocam usam stub e são @skipE2E),
+    # então aqui um 5xx é defeito. Sem conseguir ler os logs também não promove: aqui não promover é seguro,
+    # a produção segue na anterior.
     needs: [deploy-production, test-e2e-canary]
 
     runs-on: ubuntu-22.04
+
+    outputs:
+      # O resultado de cada conferência, para a issue dizer qual falhou.
+      oom: ${{ steps.oom.outcome }}
+      errors-5xx: ${{ steps.errors-5xx.outcome }}
 
     steps:
     - name: Load secrets from 1password
@@ -336,9 +364,10 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Look for "Memory limit of" in the new revision logs since its creation
-      # Os logs chegam cerca de 40 s depois do evento: espera 90 s desde o fim do E2E, como o último ciclo
-      # da vigia.
+    - name: Wait for the logs and read the new revision creation
+      id: creation
+      # Os logs chegam cerca de 40 s depois do evento: espera 90 s desde a última requisição à revisão, como
+      # o último ciclo da vigia.
       run: |
         ESPERA=$((FINISHED_AT + 90 - $(date -u +%s)))
         if [ "$ESPERA" -gt 0 ]; then sleep "$ESPERA"; fi
@@ -347,10 +376,17 @@ jobs:
           echo "::error::Não foi possível ler a criação da revisão $NEW; promoção abortada"
           exit 1
         fi
+        echo "created-at=$CRIADA" >> "$GITHUB_OUTPUT"
+      env:
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        FINISHED_AT: ${{ needs.test-e2e-canary.outputs.finished-at }}
+    - name: Look for "Memory limit of" in the new revision logs since its creation
+      id: oom
+      run: |
         FILTRO="resource.type=\"cloud_run_revision\" resource.labels.service_name=\"$SERVICE_PRODUCTION\""
         FILTRO="$FILTRO resource.labels.revision_name=\"$NEW\" timestamp>=\"$CRIADA\" textPayload:\"Memory limit of\""
         if ! OOM=$(gcloud logging read "$FILTRO" --project "$IMAGE_PROJECT_ID" --limit 1 --format 'value(timestamp)'); then
-          echo "::error::A leitura dos logs da revisão $NEW falhou; promoção abortada"
+          echo "::error::A leitura dos logs de OOM da revisão $NEW falhou; promoção abortada"
           exit 1
         fi
         if [ -n "$OOM" ]; then
@@ -360,35 +396,98 @@ jobs:
         echo "Nenhuma linha de OOM na revisão $NEW desde $CRIADA"
       env:
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
-        FINISHED_AT: ${{ needs.test-e2e-canary.outputs.finished-at }}
+        CRIADA: ${{ steps.creation.outputs.created-at }}
+    - name: Look for responses with status 500 or above in the new revision logs since its creation
+      id: errors-5xx
+      # Roda mesmo depois de um OOM, para a issue dizer se também houve 5xx. O filtro é o da vigia.
+      if: ${{ !cancelled() && steps.creation.outcome == 'success' }}
+      run: |
+        FILTRO="resource.type=\"cloud_run_revision\" resource.labels.service_name=\"$SERVICE_PRODUCTION\""
+        FILTRO="$FILTRO resource.labels.revision_name=\"$NEW\" timestamp>=\"$CRIADA\""
+        FILTRO="$FILTRO log_name=\"projects/$IMAGE_PROJECT_ID/logs/run.googleapis.com%2Frequests\" httpRequest.status>=500"
+        if ! ERROS=$(gcloud logging read "$FILTRO" --project "$IMAGE_PROJECT_ID" --limit 20 \
+          --format 'value(timestamp,httpRequest.status,httpRequest.requestMethod,httpRequest.requestUrl)'); then
+          echo "::error::A leitura dos logs de 5xx da revisão $NEW falhou; promoção abortada"
+          exit 1
+        fi
+        if [ -n "$ERROS" ]; then
+          echo "$ERROS"
+          echo "::error::$(printf '%s\n' "$ERROS" | grep -c .) resposta(s) 5xx na revisão $NEW (até 20 listadas); promoção abortada"
+          exit 1
+        fi
+        echo "Nenhuma resposta 5xx na revisão $NEW desde $CRIADA"
+      env:
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        CRIADA: ${{ steps.creation.outputs.created-at }}
 
   open-issue-canary:
-    name: Open issue when the E2E test or the OOM check on the new revision fail
-    needs: [deploy-production, test-e2e-canary, check-oom-canary]
-    if: ${{ failure() && (needs.test-e2e-canary.result == 'failure' || needs.check-oom-canary.result == 'failure') }}
+    name: Open issue when a check on the new revision fails
+    needs: [deploy-production, test-e2e-canary, check-logs-canary]
+    if: ${{ failure() && (needs.test-e2e-canary.result == 'failure' || needs.check-logs-canary.result == 'failure') }}
 
     runs-on: ubuntu-22.04
 
     steps:
     - name: Create issue
-      run: gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
+      # Cada conferência entra na issue com o seu resultado. Um job que falha antes das conferências (o build
+      # da imagem de teste, a espera da versão, a autenticação no GCloud) deixa as dele sem resultado.
+      run: |
+        resultado () {
+          case "$1" in
+            success) echo passou ;;
+            failure) echo '**falhou**' ;;
+            *) echo 'não rodou' ;;
+          esac
+        }
+        FALHAS=()
+        [ "$E2E" = failure ] && FALHAS+=('o teste E2E')
+        [ "$SEED" = failure ] && FALHAS+=('a conferência da semente')
+        [ "$OOM" = failure ] && FALHAS+=('a conferência de OOM nos logs')
+        [ "$ERRORS_5XX" = failure ] && FALHAS+=('a conferência de 5xx nos logs')
+        if [ "${#FALHAS[@]}" -eq 0 ]; then
+          [ "$E2E_JOB" = failure ] && FALHAS+=('o job do E2E antes do teste')
+          [ "$LOGS_JOB" = failure ] && FALHAS+=('a leitura dos logs')
+        fi
+        LISTA=$(printf '%s, ' "${FALHAS[@]}")
+        LISTA=${LISTA%, }
+        LISTA=${LISTA:-uma conferência}
+        TITLE="Revisão nova reprovada antes do tráfego, produção não foi tocada"
+        BODY=$(cat <<EOF
+        _Issue gerada automaticamente_
+
+        Falhou $LISTA na revisão nova \`$NEW\`, antes de ela receber tráfego. A produção não foi tocada: o tráfego continua na revisão \`$PREVIOUS\`.
+
+        | Conferência | Resultado |
+        |---|---|
+        | E2E completo na URL da tag, com $E2E_MIN_PASSING testes passando no mínimo | $(resultado "$E2E") |
+        | Só a semente na instância depois do E2E | $(resultado "$SEED") |
+        | Nenhuma linha de OOM nos logs da revisão | $(resultado "$OOM") |
+        | Nenhuma resposta 5xx nos logs da revisão | $(resultado "$ERRORS_5XX") |
+
+        | | Detalhe |
+        |---|---|
+        | **Run** | $RUN_URL |
+        | **Codebase** | $CODEBASE_URL |
+        | **Tag** | \`$GITHUB_REF\` |
+        EOF
+        )
+        gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
       env:
         GH_TOKEN: ${{ github.token }}
-        TITLE: ${{ needs.test-e2e-canary.result == 'failure' && 'Teste E2E na revisão nova falhou, produção não foi tocada' || 'Conferência de OOM na revisão nova falhou, produção não foi tocada' }}
-        BODY: |
-          _Issue gerada automaticamente_
-
-          ${{ needs.test-e2e-canary.result == 'failure' && 'O teste E2E' || 'A conferência de OOM nos logs' }} da revisão nova `${{ needs.deploy-production.outputs.new-revision }}` falhou antes de ela receber tráfego. A produção não foi tocada: o tráfego continua na revisão `${{ needs.deploy-production.outputs.previous-revision }}`.
-
-          | | Detalhe |
-          |---|---|
-          | **Run** | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} |
-          | **Codebase** | https://github.com/${{ github.repository }}/tree/${{ github.sha }} |
-          | **Tag** | `${{ github.ref }}` |
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
+        E2E_JOB: ${{ needs.test-e2e-canary.result }}
+        LOGS_JOB: ${{ needs.check-logs-canary.result }}
+        E2E: ${{ needs.test-e2e-canary.outputs.e2e }}
+        SEED: ${{ needs.test-e2e-canary.outputs.seed }}
+        OOM: ${{ needs.check-logs-canary.outputs.oom }}
+        ERRORS_5XX: ${{ needs.check-logs-canary.outputs.errors-5xx }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        CODEBASE_URL: https://github.com/${{ github.repository }}/tree/${{ github.sha }}
 
   promote-production:
     name: Promote the new revision to 100% of production traffic
-    needs: [deploy-production, test-e2e-canary, check-oom-canary]
+    needs: [deploy-production, test-e2e-canary, check-logs-canary]
 
     runs-on: ubuntu-22.04
     environment: production
@@ -580,7 +679,7 @@ jobs:
     needs:
       - deploy-production
       - test-e2e-canary
-      - check-oom-canary
+      - check-logs-canary
       - promote-production
       - check-routing-production
       - rollback-production
