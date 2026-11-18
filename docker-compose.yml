@@ -142,15 +142,6 @@ services:
       - TEST_TYPE=e2e-staging
       - CI
 
-  test-e2e-smoke-production:
-    extends: test-base
-    command: npm run test:smoke -- --retries 1 --slow 1000
-    environment:
-      - TEST_TYPE=e2e-production
-      # O deploy passa https://serverest.dev depois da promoção; sem SERVEREST_URL o smoke também vai nela
-      - SERVEREST_URL
-      - CI
-
   # A suíte E2E inteira, como no staging, na revisão nova do deploy antes de ela receber tráfego. Ela cria e
   # apaga dados: sem SERVEREST_URL o serviço sai com erro, em vez de cair em https://serverest.dev. A conferência
   # fica no comando porque um ${VAR:?} aqui faria o compose recusar todos os serviços quando a variável falta.

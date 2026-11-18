@@ -149,8 +149,8 @@ jobs:
 
   # Produção \/
   # A revisão nova sobe sem tráfego, com a tag canario, passa pelo E2E completo na URL da tag e pela conferência
-  # de OOM nos logs dela. Só depois recebe o tráfego e passa pelo smoke em serverest.dev; a vigia de 60 min roda
-  # à parte, em vigiar-producao.yml.
+  # de OOM nos logs dela. Só depois recebe o tráfego; a conferência de roteamento só prova que serverest.dev
+  # serve a revisão nova, e a vigia de 60 min roda à parte, em vigiar-producao.yml.
   # Não é um canário por porcentagem: cada instância tem o seu NeDB em memória, então um POST numa revisão
   # e o GET seguinte na outra dariam 404. O rollback volta para a revisão que servia 100% antes do deploy.
   deploy-production:
@@ -426,8 +426,11 @@ jobs:
       env:
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
 
-  test-e2e-smoke-production:
-    name: Smoke test in production environment
+  check-routing-production:
+    name: Check that serverest.dev serves the new revision
+    # O E2E completo já rodou na revisão nova pela URL da tag. Aqui só falta provar o que a URL da tag não prova: o
+    # domínio, o TLS e a troca de tráfego. Só leitura, para não gravar dado de teste na produção; a lista vem
+    # filtrada pelo _id do usuário da semente, que responde 200 mesmo sem ele, para não baixar a lista inteira.
     needs: [deploy-production, promote-production]
 
     runs-on: ubuntu-22.04
@@ -435,27 +438,21 @@ jobs:
     steps:
     - name: Project checkout
       uses: actions/checkout@v7
-    - run: docker compose build test-e2e-smoke-production
     - name: Wait for the new revision on the public URL
-      run: bash .github/scripts/esperar-versao.sh "$SERVEREST_URL" "$VERSION"
+      run: bash .github/scripts/esperar-versao.sh "$URL_PRODUCTION" "$VERSION"
       env:
-        SERVEREST_URL: ${{ env.URL_PRODUCTION }}
         VERSION: ${{ needs.deploy-production.outputs.version }}
-    - name: Run smoke test in production environment
+    - name: Read a list through the public URL
       run: |
-        set -o pipefail
-        make test-e2e-smoke-production 2>&1 | tee smoke.log
-        grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
-        if grep -Eq ' [1-9][0-9]* failing' smoke.log; then echo "::error::Há teste falhando"; exit 1; fi
-      env:
-        SERVEREST_URL: ${{ env.URL_PRODUCTION }}
+        curl --fail --silent --show-error --max-time 20 --retry 2 --retry-delay 5 --retry-all-errors \
+          -o /dev/null -w 'GET /usuarios: %{http_code}\n' "$URL_PRODUCTION/usuarios?_id=0uxuPY0cbmQhpEz1"
 
   start-watch-production:
     name: Start the 60-minute watch of the new revision
     # A vigia roda em outro workflow, com o seu grupo de concorrência: aqui ela prenderia a fila do deploy por
     # 60 min, e o GitHub guarda só um run pendente por grupo, então um release beta cancelaria a promoção
     # pendente de um release de trunk. Se o disparo falhar, a revisão nova fica sem vigia: o job falha à vista.
-    needs: [deploy-production, promote-production, test-e2e-smoke-production]
+    needs: [deploy-production, promote-production, check-routing-production]
 
     runs-on: ubuntu-22.04
     permissions:
@@ -475,9 +472,9 @@ jobs:
         PROMOTED_AT: ${{ needs.promote-production.outputs.promoted-at }}
 
   open-issue-production:
-    name: Open issue when the promotion or the production smoke test fail
-    needs: [deploy-production, promote-production, test-e2e-smoke-production]
-    if: ${{ failure() && (needs.promote-production.result == 'failure' || needs.test-e2e-smoke-production.result == 'failure') }}
+    name: Open issue when the promotion or the production routing check fail
+    needs: [deploy-production, promote-production, check-routing-production]
+    if: ${{ failure() && (needs.promote-production.result == 'failure' || needs.check-routing-production.result == 'failure') }}
 
     runs-on: ubuntu-22.04
 
@@ -497,11 +494,11 @@ jobs:
         fi
       env:
         GH_TOKEN: ${{ github.token }}
-        TITLE: ${{ needs.promote-production.result == 'failure' && 'Production promotion failed. Deploy reverted' || 'Production tests failed. Deploy reverted' }}
+        TITLE: ${{ needs.promote-production.result == 'failure' && 'Production promotion failed. Deploy reverted' || 'Production routing check failed. Deploy reverted' }}
         BODY: |
           _This is an automatically generated issue_
 
-          The attempt to deploy the `${{ github.ref }}` tag failed. ${{ needs.promote-production.result == 'failure' && 'The traffic update to the new revision failed, so traffic goes back to the previous revision.' || 'Production tests failed after the new revision was promoted.' }}
+          The attempt to deploy the `${{ github.ref }}` tag failed. ${{ needs.promote-production.result == 'failure' && 'The traffic update to the new revision failed, so traffic goes back to the previous revision.' || 'After the promotion, serverest.dev did not answer with the new version or did not serve the API, so traffic goes back to the previous revision.' }}
 
           ## Context
 
@@ -521,12 +518,12 @@ jobs:
 
   rollback-production:
     name: Rollback production environment (serverest.dev)
-    # Quem dispara é a promoção ou o smoke test que falhou, não a issue: open-issue-production está aqui só
-    # para ler o número da issue, e o resultado dele não importa. Uma promoção que falha pode ter deixado o
-    # tráfego pela metade; voltar para a anterior é seguro mesmo se ele nem saiu dela. O rollback da vigia
-    # fica em vigiar-producao.yml.
-    needs: [deploy-production, promote-production, test-e2e-smoke-production, open-issue-production]
-    if: ${{ always() && (needs.promote-production.result == 'failure' || needs.test-e2e-smoke-production.result == 'failure') }}
+    # Quem dispara é a promoção ou a conferência de roteamento que falhou, não a issue: open-issue-production
+    # está aqui só para ler o número da issue, e o resultado dele não importa. Uma promoção que falha pode ter
+    # deixado o tráfego pela metade; voltar para a anterior é seguro mesmo se ele nem saiu dela. O rollback da
+    # vigia fica em vigiar-producao.yml.
+    needs: [deploy-production, promote-production, check-routing-production, open-issue-production]
+    if: ${{ always() && (needs.promote-production.result == 'failure' || needs.check-routing-production.result == 'failure') }}
 
     runs-on: ubuntu-22.04
     environment: production
@@ -580,7 +577,13 @@ jobs:
     name: Remove the canary tag from production
     # A URL da tag manteria a revisão alcançável por fora do domínio. Roda no fim, com sucesso ou rollback;
     # uma falha aqui não muda o resultado do deploy.
-    needs: [deploy-production, test-e2e-canary, check-oom-canary, promote-production, test-e2e-smoke-production, rollback-production]
+    needs:
+      - deploy-production
+      - test-e2e-canary
+      - check-oom-canary
+      - promote-production
+      - check-routing-production
+      - rollback-production
     if: ${{ always() && needs.deploy-production.result != 'skipped' }}
 
     runs-on: ubuntu-22.04
