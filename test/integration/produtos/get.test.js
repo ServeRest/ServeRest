@@ -1,10 +1,8 @@
 const chai = require('chai')
+const { faker } = require('@faker-js/faker')
 
 const rotaProdutos = '/produtos'
 const utils = require('../utils')
-
-// Valores que o Number aceita e que viravam 0 (ou -0) antes da busca, que então descartava o filtro.
-const VALORES_QUE_VIRAVAM_ZERO = ['0', '0000000000000000', '-0', '0.0', ' ']
 
 describe(rotaProdutos + ' GET', () => {
   it('Query string - Busca por todos as chaves', async () => {
@@ -73,35 +71,67 @@ describe(rotaProdutos + ' GET', () => {
     })
   })
 
+  // Os casos que procuram valor de produto somam outro filtro de valor único, para o E2E não baixar a lista do
+  // ambiente.
   describe('Filtro com valor que parece número', () => {
-    VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
+    let authorization
+    before(async () => {
+      const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
+      authorization = (await utils.login(email, password)).authorization
+    })
+
+    utils.VALORES_QUE_VIRAVAM_ZERO.forEach(valor => {
       it(`Query string - _id ${JSON.stringify(valor)} não encontra produto`, async () => {
         const { body } = await request.get(rotaProdutos).query({ _id: valor }).expect(200)
 
         chai.assert.deepEqual(body, { quantidade: 0, produtos: [] })
       })
-    })
 
-    it('Query string - quantidade 0 só encontra produto sem estoque', async () => {
-      const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
-      const { authorization } = await utils.login(email, password)
-      const produto = await utils.cadastrarProduto({ authorization, quantidade: 0 })
+      it(`Query string - quantidade ${JSON.stringify(valor)} só encontra produto sem estoque`, async () => {
+        const descricao = faker.string.alphanumeric(24)
+        const semEstoque = await utils.cadastrarProduto({ authorization, descricao, quantidade: 0 })
+        await utils.cadastrarProduto({ authorization, descricao, quantidade: 5 })
 
-      const { body } = await request.get(rotaProdutos).query({ quantidade: 0 }).expect(200)
+        const { body } = await request.get(rotaProdutos).query({ descricao, quantidade: valor }).expect(200)
 
-      chai.assert.deepInclude(body.produtos, produto)
-      body.produtos.forEach(({ quantidade }) => chai.assert.strictEqual(quantidade, 0))
+        chai.assert.deepEqual(body, { quantidade: 1, produtos: [semEstoque] })
+      })
+
+      // imagem é comparada inteira, sem regex.
+      it(`Query string - imagem ${JSON.stringify(valor)} só encontra a imagem igual`, async () => {
+        const descricao = faker.string.alphanumeric(24)
+        const comImagem = { ...utils.dadosProduto(), descricao, imagem: valor }
+        const { body: cadastro } = await request.post(rotaProdutos).set('authorization', authorization)
+          .send(comImagem).expect(201)
+        await request.post(rotaProdutos).set('authorization', authorization)
+          .send({ ...utils.dadosProduto(), descricao, imagem: 'foto.png' }).expect(201)
+
+        const { body } = await request.get(rotaProdutos).query({ descricao, imagem: valor }).expect(200)
+
+        chai.assert.deepEqual(body, { quantidade: 1, produtos: [{ ...comImagem, _id: cadastro._id }] })
+      })
     })
 
     it('Query string - descricao 0 só encontra descrição que contém 0', async () => {
-      const { email, password } = await utils.cadastrarUsuario({ administrador: 'true' })
-      const { authorization } = await utils.login(email, password)
-      const produto = await utils.cadastrarProduto({ authorization, descricao: 'Lote 0' })
+      const nome = `Filtro ${faker.string.alphanumeric(16)}`
+      const comZero = await utils.cadastrarProduto({ authorization, nome: `${nome} A`, descricao: 'Lote 0' })
+      await utils.cadastrarProduto({ authorization, nome: `${nome} B`, descricao: 'Lote' })
 
-      const { body } = await request.get(rotaProdutos).query({ descricao: '0' }).expect(200)
+      const { body } = await request.get(rotaProdutos).query({ nome, descricao: '0' }).expect(200)
 
-      chai.assert.deepInclude(body.produtos, produto)
-      body.produtos.forEach(({ descricao }) => chai.assert.include(descricao, '0'))
+      chai.assert.deepEqual(body, { quantidade: 1, produtos: [comZero] })
+    })
+
+    // Pendente de decisão: em produção ?quantidade= em branco devolve a lista inteira, e assim continua.
+    utils.VALORES_EM_BRANCO.forEach(valor => {
+      it(`Query string - quantidade ${JSON.stringify(valor)} não filtra, como em produção`, async () => {
+        const descricao = faker.string.alphanumeric(24)
+        const produto = await utils.cadastrarProduto({ authorization, descricao, quantidade: 5 })
+
+        const { body } = await request.get(rotaProdutos).query({ descricao, quantidade: valor }).expect(200)
+
+        chai.assert.deepEqual(body, { quantidade: 1, produtos: [produto] })
+      })
     })
   })
 })
