@@ -14,7 +14,7 @@ const ROTA = /^\/(usuarios|produtos|carrinhos)(?:\/[^/]+)?\/?$/i
 // Carrinho antes de produto e usuário: a API não exclui produto que está em carrinho nem usuário com carrinho.
 const FASES = ['carrinhos', 'produtos', 'usuarios']
 // No staging e na revisão nova a limpeza só avisa: um E2E que falha segura o deploy, e um cadastro que sobrou não
-// justifica isso.
+// justifica isso. Na revisão nova o deploy confere depois, pela semente, se sobrou algum cadastro.
 const REMOTO = ['e2e-staging', 'e2e-production'].includes(process.env.TEST_TYPE)
 // Cada requisição da limpeza tem 5 s e não é reenviada depois de um 429. A limpeza inteira tem um orçamento
 // bem abaixo do timeout do hook (30 s local, 100 s remoto).
