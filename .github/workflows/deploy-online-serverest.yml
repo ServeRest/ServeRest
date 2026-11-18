@@ -16,6 +16,7 @@ env:
   REGION: us-central1
   SERVICE_PRODUCTION: app
   SERVICE_STAGING: app-staging
+  URL_PRODUCTION: https://serverest.dev
   # Datadog variables
   DD_SERVICE: serverest
   DD_SITE: datadoghq.eu
@@ -146,13 +147,24 @@ jobs:
           | **Tag**                  	| `${{ github.ref }}`                                                           	|
           | **Environment affected** 	| https://staging.serverest.dev/                                                	|
 
+  # Produção \/
+  # A revisão nova sobe sem tráfego, com a tag canario, e passa pelo smoke na URL da tag. Só depois recebe o
+  # tráfego e passa pelo smoke em serverest.dev; a vigia de 60 min roda à parte, em vigiar-producao.yml.
+  # Não é um canário por porcentagem: cada instância tem o seu NeDB em memória, então um POST numa revisão
+  # e o GET seguinte na outra dariam 404. O rollback volta para a revisão que servia 100% antes do deploy.
   deploy-production:
-    name: Deploy on prod environment (serverest.dev)
+    name: Deploy on prod environment without traffic (serverest.dev)
     needs: test-e2e-staging
     if: "!contains(github.ref, 'beta')"
 
     runs-on: ubuntu-22.04
     environment: production
+
+    outputs:
+      previous-revision: ${{ steps.previous.outputs.revision }}
+      new-revision: ${{ steps.new.outputs.revision }}
+      canary-url: ${{ steps.new.outputs.url }}
+      version: ${{ steps.previous.outputs.version }}
 
     steps:
     - name: Load secrets from 1password
@@ -168,12 +180,25 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Deploy container image to 'production' environment
+    - name: Read the revision serving 100% before the deploy
+      id: previous
+      # Sem ela não há para onde voltar: melhor não fazer o deploy.
+      run: |
+        PREVIOUS=$(gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json \
+          | jq -r '[.status.traffic[] | select(.percent == 100) | .revisionName] | if length == 1 then .[0] else "" end')
+        if [ -z "$PREVIOUS" ]; then
+          echo "::error::Nenhuma revisão com 100% do tráfego; deploy abortado"
+          exit 1
+        fi
+        echo "Revisão anterior: $PREVIOUS"
+        echo "revision=$PREVIOUS" >> "$GITHUB_OUTPUT"
+        echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+    - name: Deploy container image to 'production' environment without traffic
       run: |
         ENV_VARS="^@^ENVIRONMENT=$ENVIRONMENT@DD_SERVICE=$DD_SERVICE@DD_ENV=$ENVIRONMENT@DD_SITE=$DD_SITE"
         ENV_VARS="$ENV_VARS@DD_API_KEY=$DD_API_KEY@DD_VERSION=${{ github.ref_name }}"
@@ -183,26 +208,38 @@ jobs:
 
         # --remove-env-vars apaga do serviço uma variável que saiu do ENV_VARS (update-env-vars não apaga).
         # Pode sair depois que staging e produção receberem um deploy com ela.
+        # --no-traffic: o serviço deixa de seguir a última revisão; a promoção é explícita, mais abaixo.
         gcloud run \
-          deploy $SERVICE_PRODUCTION \
-          --image gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }} \
-          --region $REGION \
+          deploy "$SERVICE_PRODUCTION" \
+          --image "gcr.io/$IMAGE_PROJECT_ID/$IMAGE_SERVICE_NAME:${{ github.sha }}" \
+          --region "$REGION" \
           --concurrency=80 \
           --timeout=60s \
           --update-env-vars="$ENV_VARS" \
-          --remove-env-vars=DD_TRACE_HEADER_TAGS
+          --remove-env-vars=DD_TRACE_HEADER_TAGS \
+          --no-traffic \
+          --tag canario
       env:
         DD_API_KEY: ${{ env.DD_API_KEY }}
         ENVIRONMENT: serverest.dev
-    - name: Update production traffic to latest revision
+    - name: Read the new revision and the canary tag URL
+      id: new
       run: |
-        gcloud run \
-          services update-traffic $SERVICE_PRODUCTION \
-          --region $REGION \
-          --to-latest
+        TRAFFIC=$(gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic')
+        echo "$TRAFFIC"
+        NEW=$(jq -r '.[] | select(.tag == "canario") | .revisionName' <<< "$TRAFFIC")
+        URL=$(jq -r '.[] | select(.tag == "canario") | .url' <<< "$TRAFFIC")
+        if [ -z "$NEW" ] || [ -z "$URL" ] || [ "$NEW" = "$PREVIOUS" ]; then
+          echo "::error::Revisão nova '$NEW' (URL '$URL') ausente ou igual à anterior '$PREVIOUS'"
+          exit 1
+        fi
+        echo "revision=$NEW" >> "$GITHUB_OUTPUT"
+        echo "url=$URL" >> "$GITHUB_OUTPUT"
+      env:
+        PREVIOUS: ${{ steps.previous.outputs.revision }}
 
-  test-e2e-smoke-production:
-    name: Smoke test in production environment
+  test-e2e-smoke-canary:
+    name: Smoke test on the new revision, before it gets traffic
     needs: deploy-production
 
     runs-on: ubuntu-22.04
@@ -211,12 +248,134 @@ jobs:
     - name: Project checkout
       uses: actions/checkout@v7
     - run: docker compose build test-e2e-smoke-production
+    - name: Wait for the new revision on the canary tag URL
+      run: bash .github/scripts/esperar-versao.sh "$SERVEREST_URL" "$VERSION"
+      env:
+        SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
+        VERSION: ${{ needs.deploy-production.outputs.version }}
+    - name: Run smoke test on the canary tag URL
+      # Os dados que o smoke deixa ficam na instância que vira produção, como no smoke de serverest.dev.
+      run: |
+        set -o pipefail
+        make test-e2e-smoke-production 2>&1 | tee smoke.log
+        grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
+      env:
+        SERVEREST_URL: ${{ needs.deploy-production.outputs.canary-url }}
+
+  open-issue-canary:
+    name: Open issue when the smoke test on the new revision fails
+    needs: [deploy-production, test-e2e-smoke-canary]
+    if: ${{ failure() && needs.test-e2e-smoke-canary.result == 'failure' }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Create issue
+      run: gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: Smoke test na revisão nova falhou - produção não foi tocada
+        BODY: |
+          _Issue gerada automaticamente_
+
+          O smoke test na revisão nova `${{ needs.deploy-production.outputs.new-revision }}` falhou antes de ela receber tráfego. A produção não foi tocada: o tráfego continua na revisão `${{ needs.deploy-production.outputs.previous-revision }}`.
+
+          | | Detalhe |
+          |---|---|
+          | **Run** | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+          | **Codebase** | https://github.com/${{ github.repository }}/tree/${{ github.sha }} |
+          | **Tag** | `${{ github.ref }}` |
+
+  promote-production:
+    name: Promote the new revision to 100% of production traffic
+    needs: [deploy-production, test-e2e-smoke-canary]
+
+    runs-on: ubuntu-22.04
+    environment: production
+
+    outputs:
+      promoted-at: ${{ steps.promote.outputs.promoted-at }}
+
+    steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Update production traffic to the new revision
+      id: promote
+      # A vigia conta os sinais a partir daqui; a hora sai antes da troca para não perder o começo.
+      run: |
+        echo "promoted-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+        gcloud run \
+          services update-traffic "$SERVICE_PRODUCTION" \
+          --region "$REGION" \
+          --to-revisions "$NEW=100"
+      env:
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+
+  test-e2e-smoke-production:
+    name: Smoke test in production environment
+    needs: [deploy-production, promote-production]
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
+    - run: docker compose build test-e2e-smoke-production
+    - name: Wait for the new revision on the public URL
+      run: bash .github/scripts/esperar-versao.sh "$SERVEREST_URL" "$VERSION"
+      env:
+        SERVEREST_URL: ${{ env.URL_PRODUCTION }}
+        VERSION: ${{ needs.deploy-production.outputs.version }}
     - name: Run smoke test in production environment
-      run: make test-e2e-smoke-production
+      run: |
+        set -o pipefail
+        make test-e2e-smoke-production 2>&1 | tee smoke.log
+        grep -Eq ' [1-9][0-9]* passing' smoke.log || { echo "::error::Nenhum teste passou"; exit 1; }
+      env:
+        SERVEREST_URL: ${{ env.URL_PRODUCTION }}
+
+  start-watch-production:
+    name: Start the 60-minute watch of the new revision
+    # A vigia roda em outro workflow, com o seu grupo de concorrência: aqui ela prenderia a fila do deploy por
+    # 60 min, e o GitHub guarda só um run pendente por grupo, então um release beta cancelaria a promoção
+    # pendente de um release de trunk. Se o disparo falhar, a revisão nova fica sem vigia: o job falha à vista.
+    needs: [deploy-production, promote-production, test-e2e-smoke-production]
+
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: write
+
+    steps:
+    - name: Dispatch vigiar-producao.yml
+      run: |
+        gh workflow run vigiar-producao.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME" \
+          -f servico="$SERVICE_PRODUCTION" -f revisao="$NEW" -f anterior="$PREVIOUS" \
+          -f versao="$VERSION" -f promovido_em="$PROMOTED_AT"
+      env:
+        GH_TOKEN: ${{ github.token }}
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
+        VERSION: ${{ needs.deploy-production.outputs.version }}
+        PROMOTED_AT: ${{ needs.promote-production.outputs.promoted-at }}
 
   open-issue-production:
     name: Open issue when production smoke test fail
-    needs: test-e2e-smoke-production
+    needs: [deploy-production, test-e2e-smoke-production]
     if: ${{ failure() && needs.test-e2e-smoke-production.result == 'failure' }}
 
     runs-on: ubuntu-22.04
@@ -241,7 +400,7 @@ jobs:
         BODY: |
           _This is an automatically generated issue_
 
-          The attempt to deploy the `${{ github.ref }}` tag failed. Production tests failed.
+          The attempt to deploy the `${{ github.ref }}` tag failed. Production tests failed after the new revision was promoted.
 
           ## Context
 
@@ -252,14 +411,18 @@ jobs:
           | **Workflow name**        | `${{ github.workflow }}`                                                      	|
           | **Tag**                  | `${{ github.ref }}`                                                           	|
           | **Environment affected** | https://serverest.dev/                                                       	|
+          | **Previous revision**    | `${{ needs.deploy-production.outputs.previous-revision }}`                    	|
+          | **New revision**         | `${{ needs.deploy-production.outputs.new-revision }}`                         	|
+
+          Manual rollback: `gcloud run services update-traffic ${{ env.SERVICE_PRODUCTION }} --region ${{ env.REGION }} --to-revisions ${{ needs.deploy-production.outputs.previous-revision }}=100`
 
 # Rollback jobs \/
 
   rollback-production:
     name: Rollback production environment (serverest.dev)
     # Quem dispara é o smoke test que falhou, não a issue: open-issue-production está aqui só para ler o
-    # número da issue, e o resultado dele não importa.
-    needs: [test-e2e-smoke-production, open-issue-production]
+    # número da issue, e o resultado dele não importa. O rollback da vigia fica em vigiar-producao.yml.
+    needs: [deploy-production, test-e2e-smoke-production, open-issue-production]
     if: ${{ always() && needs.test-e2e-smoke-production.result == 'failure' }}
 
     runs-on: ubuntu-22.04
@@ -278,22 +441,21 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
         gcloud auth activate-service-account --key-file gcloud-service-key.json
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Get penultimate gcloud revision
-      id: gcloud_revision
-      run: |
-        PENULTIMATE_REVISION=$(gcloud run revisions list --service $SERVICE_PRODUCTION --region $REGION --format="value(metadata.name)" --limit=2 | tail -n 1)
-        echo "penultimate=$PENULTIMATE_REVISION" >> $GITHUB_OUTPUT
-    - name: Update production traffic to penultimate revision
+    - name: Update production traffic to the previous revision
+      # A anterior está escalada a zero: a primeira requisição espera 10 a 12 s pela instância subir.
       run: |
         gcloud run \
-          services update-traffic $SERVICE_PRODUCTION \
-          --region $REGION \
-          --to-revisions ${{ steps.gcloud_revision.outputs.penultimate }}=100
+          services update-traffic "$SERVICE_PRODUCTION" \
+          --region "$REGION" \
+          --to-revisions "$PREVIOUS=100"
+        gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic'
+      env:
+        PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
     - name: Comment on generated issue about rollback
       if: needs.open-issue-production.outputs.issue-number != ''
       # Aqui o tráfego já voltou: um comentário que falha não pode marcar o rollback como falho.
@@ -307,9 +469,43 @@ jobs:
 
           Rollback was performed in the production environment.
 
-          Production traffic now goes to the Cloud Run revision `${{ steps.gcloud_revision.outputs.penultimate }}`.
+          Production traffic now goes to the Cloud Run revision `${{ needs.deploy-production.outputs.previous-revision }}`.
 
           Use the [staging environment](https://staging.serverest.dev/) for testing the failure.
+
+  remove-canary-tag:
+    name: Remove the canary tag from production
+    # A URL da tag manteria a revisão alcançável por fora do domínio. Roda no fim, com sucesso ou rollback;
+    # uma falha aqui não muda o resultado do deploy.
+    needs: [deploy-production, test-e2e-smoke-canary, promote-production, test-e2e-smoke-production, rollback-production]
+    if: ${{ always() && needs.deploy-production.result != 'skipped' }}
+
+    runs-on: ubuntu-22.04
+    environment: production
+
+    steps:
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
+        gcloud auth activate-service-account --key-file gcloud-service-key.json
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Remove the canary tag
+      continue-on-error: true
+      run: |
+        gcloud run services update-traffic "$SERVICE_PRODUCTION" --region "$REGION" --remove-tags canario
+        gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic'
 
   contract-test-rollback:
     name: Contract test - Rollback 'production' tag
@@ -372,7 +568,7 @@ jobs:
 
   contract-test-tag-production:
     name: Contract test - Tag with 'production'
-    needs: deploy-production
+    needs: promote-production
 
     runs-on: ubuntu-22.04
 
