@@ -6,6 +6,7 @@ const { join } = require('path')
 const ptBr = require('../../../src/swagger/translations/pt-BR')
 const en = require('../../../src/swagger/translations/en')
 const es = require('../../../src/swagger/translations/es')
+const { URL_ANUNCIADA } = require('../utils')
 
 const tiposDosArquivos = {
   'core.js': /javascript/,
@@ -387,9 +388,7 @@ describe('/ GET (marcação da página inicial)', () => {
 })
 
 describe('/ GET (endereços e cartão de compartilhamento)', () => {
-  // A URL do servidor que o teste usa, que é a que a página anuncia.
-  const BASES = { 'e2e-staging': 'https://staging.serverest.dev', 'e2e-production': 'https://serverest.dev' }
-  const base = BASES[process.env.TEST_TYPE] || 'http://localhost:3000'
+  const base = URL_ANUNCIADA
   const enderecos = { 'pt-BR': `${base}/`, en: `${base}/?lang=en`, es: `${base}/?lang=es` }
   const locais = { 'pt-BR': 'pt_BR', en: 'en_GB', es: 'es_PE' }
   const imagem = '/lab/assets/img/serverest-og.png'

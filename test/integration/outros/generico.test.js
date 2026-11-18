@@ -2,15 +2,14 @@ const chai = require('chai')
 const joi = require('@hapi/joi')
 
 const { version } = require('../../../package.json')
+const { URL_ANUNCIADA } = require('../utils')
 
 describe('GENERICO', () => {
   it('Mensagem de rota inexistente', async () => {
     const rotaInexistente = '/api-doc'
     const { body } = await request.get(rotaInexistente).expect(405)
 
-    const URL = (process.env.TEST_TYPE === 'e2e-staging') ? 'https://staging.serverest.dev' : 'http://localhost:3000'
-
-    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse ${URL} para ver as rotas disponíveis e como utilizá-las.`
+    const message = `Não é possível realizar GET em ${rotaInexistente}. Acesse ${URL_ANUNCIADA} para ver as rotas disponíveis e como utilizá-las.`
     chai.assert.deepEqual(body, { message })
   })
 

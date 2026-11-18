@@ -1,10 +1,8 @@
 const { expect } = require('chai')
 
 const { robotsTxt } = require('../../../src/lab/buscadores')
+const { URL_ANUNCIADA: base } = require('../utils')
 
-// A URL do servidor que o teste usa: a que ele põe no robots, no sitemap e na mensagem do 405.
-const BASES = { 'e2e-staging': 'https://staging.serverest.dev', 'e2e-production': 'https://serverest.dev' }
-const base = BASES[process.env.TEST_TYPE] || 'http://localhost:3000'
 const producao = process.env.TEST_TYPE === 'e2e-production'
 
 describe('/robots.txt GET', () => {
