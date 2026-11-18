@@ -15,3 +15,5 @@ lcov.info
 node_modules/
 # Gravada no próprio build; uma cópia local não pode sobrescrever a da imagem.
 swagger-ui-precomprimido/
+# Chave de serviço do GCP: nunca entra na imagem, mesmo que alguém a grave no checkout.
+gcloud-service-key.json

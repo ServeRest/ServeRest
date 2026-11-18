@@ -1,0 +1,8 @@
+# Arquivos que o gcloud builds submit não envia ao Cloud Build. As quatro primeiras linhas são o padrão que o
+# gcloud usa quando este arquivo não existe; a chave de serviço entra como segunda barreira, além de ela ser
+# gravada fora do checkout ($RUNNER_TEMP) nos workflows.
+.gcloudignore
+.git
+.gitignore
+#!include:.gitignore
+gcloud-service-key.json

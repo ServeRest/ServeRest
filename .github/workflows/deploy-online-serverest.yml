@@ -43,9 +43,11 @@ jobs:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
+      # A chave fica fora do checkout em todos os jobs: o builds submit abaixo envia o checkout ao Cloud Build, e
+      # o COPY . . do Dockerfile.gcloud a levaria para a imagem. O .gcloudignore e o .dockerignore também a barram.
       run: |
-        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -53,7 +55,7 @@ jobs:
       run: |
         gcloud builds submit . \
           --config=.github/cloudbuild.yaml \
-          --substitutions=COMMIT_SHA=${{ github.sha }},_VERSION=${{ github.ref_name }},_PROJECT_ID=$IMAGE_PROJECT_ID,_SERVICE_NAME=$IMAGE_SERVICE_NAME
+          --substitutions="COMMIT_SHA=${{ github.sha }},_VERSION=${{ github.ref_name }},_PROJECT_ID=$IMAGE_PROJECT_ID,_SERVICE_NAME=$IMAGE_SERVICE_NAME"
 
   deploy-staging:
     name: Deploy on staging environment (staging.serverest.dev)
@@ -76,8 +78,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo $GCP_IAM_SERVICE_ACCOUNT_KEY > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -228,8 +230,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -360,8 +362,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -509,8 +511,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -641,8 +643,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -702,8 +704,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest

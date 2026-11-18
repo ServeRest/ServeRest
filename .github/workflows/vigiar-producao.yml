@@ -70,8 +70,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
@@ -123,8 +123,8 @@ jobs:
       uses: google-github-actions/setup-gcloud@v3
     - name: Authentication on GCloud
       run: |
-        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > gcloud-service-key.json
-        gcloud auth activate-service-account --key-file gcloud-service-key.json
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
