@@ -16,12 +16,12 @@ describe(rotaCarrinhos + ' POST', () => {
   it('Cadastro com sucesso', async () => {
     const authorization = authorizationAdministrador
     const quantidade = utils.quantidadeAleatoria()
-    const produto = await utils.cadastrarProduto({ authorization, quantidade })
+    const produto = await utils.cadastrarProduto({ authorization, preco: utils.precoAleatorio(), quantidade })
 
     const { body: bodyCarrinho } = await request.post(rotaCarrinhos).set('authorization', authorization).send({
       produtos: [{
         idProduto: produto._id,
-        quantidade: quantidade - 10
+        quantidade: quantidade - utils.SOBRA_NO_ESTOQUE
       }]
     }).expect(201)
 
@@ -29,7 +29,7 @@ describe(rotaCarrinhos + ' POST', () => {
 
     const { body: bodyProduto } = await request.get('/produtos').query({ _id: produto._id })
 
-    chai.assert.equal(bodyProduto.produtos[0].quantidade, 10)
+    chai.assert.equal(bodyProduto.produtos[0].quantidade, utils.SOBRA_NO_ESTOQUE)
   })
 
   it('Não é permitido possuir produto duplicado', async () => {
