@@ -47,16 +47,4 @@ describe('alterarValoresParaRegex', () => {
     expect(result.quantidade).to.equal(0)
     expect(result.nome.toString()).to.equal('/0/i')
   })
-
-  it('should remove field without value', () => {
-    const queryString = {
-      nome: 'test',
-      password: '',
-      empty: ''
-    }
-
-    const result = alterarValoresParaRegex(queryString)
-
-    expect(result).to.be.deep.equal({ nome: /test/i })
-  })
 })

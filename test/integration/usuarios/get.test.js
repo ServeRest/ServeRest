@@ -86,6 +86,16 @@ describe(rotaUsuarios + ' GET', () => {
       })
     })
 
+    // Comportamento de hoje, mantido: ?nome[]= chega como array com o branco e não filtra, como ?nome=.
+    it('Query string - nome[]= em branco não filtra', async () => {
+      const password = faker.string.alphanumeric(24)
+      const usuario = await utils.cadastrarUsuario({ password })
+
+      const { body } = await request.get(rotaUsuarios).query(`nome[]=&password=${password}`).expect(200)
+
+      chai.assert.deepEqual(body, { quantidade: 1, usuarios: [usuario] })
+    })
+
     utils.VALORES_EM_BRANCO.forEach(valor => {
       it(`Query string - valor ${JSON.stringify(valor)} não filtra`, async () => {
         const nome = `Filtro ${faker.string.alphanumeric(16)}`
