@@ -147,6 +147,20 @@ services:
     command: npm run test:smoke -- --retries 1 --slow 1000
     environment:
       - TEST_TYPE=e2e-production
-      # URL da revisão nova no deploy, antes da promoção; sem ela o smoke vai em https://serverest.dev
+      # O deploy passa https://serverest.dev depois da promoção; sem SERVEREST_URL o smoke também vai nela
+      - SERVEREST_URL
+      - CI
+
+  # A suíte E2E inteira, como no staging, na revisão nova do deploy antes de ela receber tráfego. Ela cria e
+  # apaga dados: sem SERVEREST_URL o serviço sai com erro, em vez de cair em https://serverest.dev. A conferência
+  # fica no comando porque um ${VAR:?} aqui faria o compose recusar todos os serviços quando a variável falta.
+  test-e2e-canary:
+    extends: test-base
+    command:
+      - sh
+      - -c
+      - '[ -n "$$SERVEREST_URL" ] || { echo "SERVEREST_URL obrigatoria" >&2; exit 1; }; exec npm run test:e2e -- --retries 1 --slow 1000'
+    environment:
+      - TEST_TYPE=e2e-production
       - SERVEREST_URL
       - CI

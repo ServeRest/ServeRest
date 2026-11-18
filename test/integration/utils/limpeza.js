@@ -13,8 +13,8 @@ const utils = require('./index')
 const ROTA = /^\/(usuarios|produtos|carrinhos)(?:\/[^/]+)?\/?$/i
 // Carrinho antes de produto e usuário: a API não exclui produto que está em carrinho nem usuário com carrinho.
 const FASES = ['carrinhos', 'produtos', 'usuarios']
-// No staging e na produção a limpeza só avisa: um smoke que falha na produção dispara o rollback, e um E2E
-// que falha no staging segura o deploy, e um cadastro que sobrou não justifica nenhum dos dois.
+// No staging e na produção a limpeza só avisa: um E2E que falha no staging ou na revisão nova segura o deploy,
+// um smoke que falha em serverest.dev dispara o rollback, e um cadastro que sobrou não justifica nenhum deles.
 const REMOTO = ['e2e-staging', 'e2e-production'].includes(process.env.TEST_TYPE)
 // Cada requisição da limpeza tem 5 s e não é reenviada depois de um 429. A limpeza inteira tem um orçamento
 // bem abaixo do timeout do hook (30 s local, 100 s remoto).

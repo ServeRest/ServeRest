@@ -65,3 +65,6 @@ test-e2e-staging:
 
 test-e2e-smoke-production:
 	@docker compose up --abort-on-container-exit --build test-e2e-smoke-production
+
+test-e2e-canary:
+	@docker compose up --abort-on-container-exit --exit-code-from test-e2e-canary --build test-e2e-canary

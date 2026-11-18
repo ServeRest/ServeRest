@@ -49,9 +49,9 @@ if (process.env.TEST_TYPE === 'integration' || process.env.TEST_TYPE === 'mutati
     URL = 'http://127.0.0.1:3000'
   }
 
-  // O deploy roda o smoke na URL da revisão nova antes de ela receber tráfego. Só o smoke de produção
-  // aceita a URL de fora: num outro tipo, um SERVEREST_URL esquecido no ambiente levaria a suíte inteira,
-  // que cria e apaga dados, para um servidor que ela não deveria tocar.
+  // O deploy roda a suíte E2E inteira na URL da revisão nova antes de ela receber tráfego (make
+  // test-e2e-canary). Só o tipo de produção aceita a URL de fora: num outro tipo, um SERVEREST_URL esquecido no
+  // ambiente levaria a suíte, que cria e apaga dados, para um servidor que ela não deveria tocar.
   if (process.env.SERVEREST_URL) {
     if (process.env.TEST_TYPE !== 'e2e-production') {
       throw new Error(`SERVEREST_URL só vale com TEST_TYPE=e2e-production, não com TEST_TYPE=${process.env.TEST_TYPE}`)
