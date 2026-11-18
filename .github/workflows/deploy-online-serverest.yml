@@ -319,7 +319,7 @@ jobs:
     - name: Check that the new revision holds only the seed data
       id: seed
       # A instância que passou pelo E2E é a que recebe o tráfego: um cadastro que a limpeza não apagou, ou um
-      # registro da semente que um teste apagou, iria para a produção. Fica neste job porque ele já tem o
+      # registro da semente que um teste apagou ou alterou, iria para a produção. Fica neste job porque ele tem o
       # checkout com src/data, de onde sai a semente esperada. Roda também depois de um E2E que falhou, para a
       # issue dizer se sobrou dado. É a última requisição à revisão: a espera dos logs conta a partir daqui.
       if: ${{ !cancelled() && steps.e2e.outcome != 'skipped' }}
