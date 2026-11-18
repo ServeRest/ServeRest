@@ -14,8 +14,9 @@
 # Entrada (ambiente): PROJETO (dos logs), SERVICO, REGIAO, REVISAO, PROMOVIDO_EM (RFC 3339 em UTC),
 # URL_PUBLICA, VERSAO, MINUTOS (padrão 60) e INTERVALO_S (padrão 300). O gcloud já autenticado e com o
 # projeto do serviço configurado.
-# Saída no GITHUB_OUTPUT: veredito (saudavel, reverter, inconclusivo ou substituida) e motivo. Sai sempre
-# com 0: quem chama decide pelo veredito, para que uma falha qualquer do job nunca vire rollback.
+# Saída no GITHUB_OUTPUT: veredito (saudavel, reverter, inconclusivo ou substituida) e motivo. Sai com 0
+# sempre que roda a vigia: quem chama decide pelo veredito, para que uma falha qualquer do job nunca vire
+# rollback. Só sai com 1, sem veredito, quando MINUTOS não é um inteiro de 1 a 60.
 set -uo pipefail
 
 MINUTOS=${MINUTOS:-60}
@@ -42,6 +43,14 @@ revisao_servindo () {
   gcloud run services describe "$SERVICO" --region "$REGIAO" --format=json |
     jq -r '[.status.traffic[] | select(.percent == 100) | .revisionName] | if length == 1 then .[0] else "" end'
 }
+
+# A janela vem de um input manual: um valor fora de 1 a 60 deixaria a vigia sem fim ou além do
+# timeout de 75 min do job. Falha antes do laço, sem veredito.
+if ! [[ "$MINUTOS" =~ ^[0-9]+$ ]] || ((10#$MINUTOS < 1 || 10#$MINUTOS > 60)); then
+  echo "::error::minutos deve ser um inteiro de 1 a 60, recebido '$MINUTOS'"
+  exit 1
+fi
+MINUTOS=$((10#$MINUTOS))
 
 inicio=$(date -u -d "$PROMOVIDO_EM" +%s)
 fim=$((inicio + MINUTOS * 60 + ATRASO_DOS_LOGS_S))
