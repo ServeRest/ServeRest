@@ -147,9 +147,48 @@ jobs:
         WATCHED: ${{ inputs.revisao }}
         PREVIOUS: ${{ inputs.anterior }}
 
+  contract-test-rollback:
+    name: Contract test - Rollback 'production' tag
+    # O mesmo do rollback em deploy-online-serverest.yml: a tag production do Pact volta para a versão da
+    # revisão anterior. Só no app, o único que recebe a tag, e só se o rollback trocou o tráfego.
+    needs: rollback
+    if: ${{ !cancelled() && inputs.servico == 'app' && needs.rollback.outputs.result == 'revertido' }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
+    - name: Load secrets from 1password
+      uses: 1password/load-secrets-action@v5
+      with:
+        export-env: true
+        version: 2.18.0
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
+        PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
+      run: |
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
+      env:
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Move the 'production' tag back to the previous revision version
+      run: bash .github/scripts/reverter-tag-pact.sh
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
+        PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+        REGIAO: ${{ env.REGION }}
+        REVISAO_REVERTIDA: ${{ inputs.revisao }}
+        REVISAO_ANTERIOR: ${{ inputs.anterior }}
+
   open-issue:
     name: Open issue when the watch asks for action
-    needs: [watch, rollback]
+    needs: [watch, rollback, contract-test-rollback]
     if: ${{ !cancelled() && needs.watch.result == 'failure' }}
 
     runs-on: ubuntu-22.04
@@ -162,6 +201,11 @@ jobs:
           inconclusivo) TITLE="Vigia de $SERVICE inconclusiva para $WATCHED, sem rollback" ;;
           *) TITLE="Vigia de $SERVICE terminou sem veredito para $WATCHED, sem rollback" ;;
         esac
+        case "$PACT" in
+          success) PACT_TAG='devolvida à versão da revisão anterior' ;;
+          failure) PACT_TAG='**não voltou**, ver o job no run' ;;
+          *) PACT_TAG='não mexida' ;;
+        esac
         BODY=$(cat <<BODY
         _Issue gerada automaticamente_
 
@@ -169,6 +213,7 @@ jobs:
         |---|---|
         | **Veredito** | ${VERDICT:-sem veredito}: ${REASON:-o job da vigia falhou ou estourou o tempo} |
         | **Rollback** | ${ROLLBACK:-não feito} |
+        | **Tag production do Pact** | $PACT_TAG |
         | **Revisão vigiada** | \`$WATCHED\` |
         | **Revisão anterior** | \`$PREVIOUS\` |
         | **Versão** | \`$VERSION\` |
@@ -188,6 +233,7 @@ jobs:
         VERDICT: ${{ needs.watch.outputs.verdict }}
         REASON: ${{ needs.watch.outputs.reason }}
         ROLLBACK: ${{ needs.rollback.outputs.result }}
+        PACT: ${{ needs.contract-test-rollback.result }}
         SERVICE: ${{ inputs.servico }}
         WATCHED: ${{ inputs.revisao }}
         PREVIOUS: ${{ inputs.anterior }}
