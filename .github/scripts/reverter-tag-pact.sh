@@ -6,7 +6,9 @@
 # Primeiro a tag volta para a anterior (se ela já a tem, o PUT não muda nada), depois sai da revertida: o broker
 # considera a versão mais nova com a tag, então só tirar a tag da revertida já devolveria a anterior, mas assim
 # nenhum instante fica sem versão com a tag. A versão anterior precisa existir no broker: a tag não cria versão.
-# Uma tag que a revertida não tem (a promoção falhou antes de marcá-la) responde 404 e conta como já tirada.
+# Se pôr a tag na anterior falha, a tag sai da revertida mesmo assim, que é a parte que importa, e o script
+# sai com 1 no fim dizendo o que falhou. Uma tag que a revertida não tem (a promoção falhou antes de marcá-la)
+# responde 404 e conta como já tirada.
 #
 # Entrada (ambiente): PACT_BROKER_BASE_URL, PACT_BROKER_TOKEN, REGIAO, REVISAO_REVERTIDA, REVISAO_ANTERIOR e,
 # opcionais, PACTICIPANT e TAG. O gcloud já autenticado e com o projeto do serviço configurado.
@@ -45,21 +47,37 @@ if [[ "$REVERTIDA" == "$ANTERIOR" ]]; then
 fi
 
 VERSOES="$PACT_BROKER_BASE_URL/pacticipants/$(uri "$PACTICIPANT")/versions"
+FALHAS=()
 
-broker -o /dev/null "$VERSOES/$ANTERIOR"
-broker -o /dev/null -X PUT -H 'Content-Type: application/json' -d '{}' "$VERSOES/$ANTERIOR/tags/$(uri "$TAG")"
-echo "Tag $TAG na versão $ANTERIOR"
+if broker -o /dev/null "$VERSOES/$ANTERIOR" &&
+  broker -o /dev/null -X PUT -H 'Content-Type: application/json' -d '{}' "$VERSOES/$ANTERIOR/tags/$(uri "$TAG")"; then
+  echo "Tag $TAG na versão $ANTERIOR"
+else
+  echo "::error::Não foi possível pôr a tag $TAG na versão $ANTERIOR (ausente no broker ou erro do broker)"
+  FALHAS+=("pôr a tag $TAG na versão anterior $ANTERIOR")
+fi
 
 corpo=$(mktemp)
-codigo=$(curl --silent --show-error --max-time 30 --retry 2 --retry-delay 5 -o "$corpo" -w '%{http_code}' \
-  -X DELETE -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$VERSOES/$REVERTIDA/tags/$(uri "$TAG")")
+if ! codigo=$(curl --silent --show-error --max-time 30 --retry 2 --retry-delay 5 -o "$corpo" -w '%{http_code}' \
+  -X DELETE -H "Authorization: Bearer $PACT_BROKER_TOKEN" "$VERSOES/$REVERTIDA/tags/$(uri "$TAG")"); then
+  codigo=000
+fi
 case "$codigo" in
   2??) echo "Tag $TAG tirada da versão $REVERTIDA" ;;
   404) echo "A versão $REVERTIDA não tinha a tag $TAG" ;;
+  000)
+    echo "::error::O broker não respondeu ao tirar a tag $TAG da versão $REVERTIDA"
+    FALHAS+=("tirar a tag $TAG da versão revertida $REVERTIDA")
+    ;;
   *)
     echo "::error::O broker respondeu $codigo ao tirar a tag $TAG da versão $REVERTIDA"
     cat "$corpo"
     echo
-    exit 1
+    FALHAS+=("tirar a tag $TAG da versão revertida $REVERTIDA")
     ;;
 esac
+
+if [[ "${#FALHAS[@]}" -gt 0 ]]; then
+  echo "::error::Rollback da tag $TAG incompleto; falhou: $(printf '%s; ' "${FALHAS[@]}")"
+  exit 1
+fi
