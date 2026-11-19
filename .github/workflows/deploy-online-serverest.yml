@@ -891,3 +891,99 @@ jobs:
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+
+  open-issue-unfinished-production:
+    name: Open issue when the production path ends badly without an issue
+    # Os outros jobs de issue só cobrem a revisão reprovada antes do tráfego (open-issue-canary) e a promoção ou
+    # o roteamento que falham (open-issue-production). Este cobre o resto do caminho de produção: a conferência
+    # da tag ou o deploy que falham ou são cancelados, a promoção cancelada no meio, a revisão nova com 100% sem
+    # roteamento conferido ou sem vigia (um cancelamento depois da promoção também cai aqui), o rollback que
+    # falha, e um daqueles jobs de issue que não conseguiu abrir a dele. Só roda quando o run tentou a produção.
+    needs:
+      - check-production-release
+      - deploy-production
+      - open-issue-canary
+      - promote-production
+      - check-routing-production
+      - start-watch-production
+      - open-issue-production
+      - rollback-production
+    if: ${{ always() && needs.check-production-release.result != 'skipped' }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Create issue when some step of the production path ended badly
+      # always() também no passo: num run cancelado, um passo sem ele não roda.
+      if: ${{ always() }}
+      run: |
+        MOTIVOS=()
+        if [ "$GATE" = failure ]; then
+          MOTIVOS+=("A conferência da tag de release falhou, então a produção ficou de fora deste run.")
+        fi
+        if [ "$DEPLOY" = failure ] || [ "$DEPLOY" = cancelled ]; then
+          MOTIVOS+=("O deploy da revisão sem tráfego terminou como $DEPLOY. O tráfego não foi trocado, mas a revisão pode ter sido criada.")
+        fi
+        if [ "$ISSUE_CANARY" = failure ]; then
+          MOTIVOS+=("Uma conferência da revisão nova falhou e a issue dela não foi aberta.")
+        fi
+        if [ "$PROMOTE" = cancelled ]; then
+          MOTIVOS+=("A promoção foi cancelada no meio: o tráfego pode ter ficado dividido entre \`$PREVIOUS\` e \`$NEW\`.")
+        fi
+        if [ "$PROMOTE" = success ]; then
+          if [ "$ROUTING" != success ] && [ "$ROUTING" != failure ]; then
+            MOTIVOS+=("A revisão nova recebeu o tráfego, mas a conferência de roteamento terminou como $ROUTING: não houve rollback nem vigia.")
+          elif [ "$ROUTING" = success ] && [ "$WATCH" != success ]; then
+            MOTIVOS+=("A revisão nova recebeu o tráfego, mas o disparo da vigia terminou como $WATCH: ela está sem vigia.")
+          fi
+        fi
+        if [ "$PROMOTE" = failure ] || [ "$ROUTING" = failure ]; then
+          if [ -z "$ISSUE_PROD_NUMBER" ]; then
+            MOTIVOS+=("A promoção ou a conferência de roteamento falhou e a issue dela não foi aberta.")
+          fi
+          if [ "$ROLLBACK" != success ]; then
+            MOTIVOS+=("O rollback terminou como $ROLLBACK: a produção pode continuar na revisão nova reprovada \`$NEW\`.")
+          fi
+        fi
+        if [ "${#MOTIVOS[@]}" -eq 0 ]; then
+          echo "O caminho de produção terminou num estado previsto ou com a sua própria issue"
+          exit 0
+        fi
+        LISTA=$(printf '* %s\n' "${MOTIVOS[@]}")
+        TITLE="Deploy de produção de $GITHUB_REF_NAME terminou fora do caminho previsto"
+        BODY=$(cat <<BODY
+        _Issue gerada automaticamente_
+
+        $LISTA
+
+        | | Detalhe |
+        |---|---|
+        | **Run** | $RUN_URL |
+        | **Codebase** | $CODEBASE_URL |
+        | **Tag** | \`$GITHUB_REF\` |
+        | **Revisão anterior** | \`${PREVIOUS:-não lida}\` |
+        | **Revisão nova** | \`${NEW:-não criada}\` |
+
+        Ver o tráfego atual e, se preciso, voltar para a anterior:
+
+        \`\`\`
+        gcloud run services describe $SERVICE_PRODUCTION --region $REGION --format json | jq '.status.traffic'
+        gcloud run services update-traffic $SERVICE_PRODUCTION --region $REGION --to-revisions ${PREVIOUS:-<revisão anterior>}=100
+        \`\`\`
+        BODY
+        )
+        gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GATE: ${{ needs.check-production-release.result }}
+        DEPLOY: ${{ needs.deploy-production.result }}
+        ISSUE_CANARY: ${{ needs.open-issue-canary.result }}
+        PROMOTE: ${{ needs.promote-production.result }}
+        ROUTING: ${{ needs.check-routing-production.result }}
+        WATCH: ${{ needs.start-watch-production.result }}
+        ISSUE_PROD_NUMBER: ${{ needs.open-issue-production.outputs.issue-number }}
+        ROLLBACK: ${{ needs.rollback-production.result }}
+        PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        CODEBASE_URL: https://github.com/${{ github.repository }}/tree/${{ github.sha }}

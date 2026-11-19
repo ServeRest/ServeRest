@@ -240,15 +240,20 @@ deploy-online-serverest.yml
   → promoção da revisão nova para 100% do tráfego (falhou: rollback e issue)
   → conferência de roteamento em https://serverest.dev, só leitura (falhou: rollback e issue)
   → remoção da tag canario e disparo da vigia
+  → no fim, issue se o caminho de produção terminou mal sem a issue de outra etapa (deploy que falha ou é
+    cancelado, run cancelado depois da promoção, vigia que não foi disparada, rollback que falha)
 
 vigiar-producao.yml, à parte
   → um ciclo a cada 5 min por 60 min
   → rollback para a revisão anterior, só por sinal forte
+  → issue quando pede ação, termina sem veredito ou é cancelada (menos pelo deploy seguinte)
 ```
 
 A vigia lê no Cloud Logging os logs da revisão nova desde a promoção e consulta `GET https://serverest.dev/version`. O rollback acontece com 1 linha de OOM, com 5 ou mais respostas 5xx ou com 2 sondas seguidas sem a versão do release. Reinício de container, memória e latência não revertem; os monitores do Datadog avisam deles. Quando a vigia não consegue ler os logs, o veredito é inconclusivo: abre issue e a revisão nova continua com o tráfego. A cada ciclo a vigia confere se a revisão ainda serve 100%: se um deploy mais novo ou uma mudança à mão trocou a revisão, ela termina como substituida e não reverte nada. A revisão anterior é a que servia 100% antes do deploy; ela está escalada a zero, então a primeira requisição depois do rollback espera de 10 a 12 segundos.
 
 Todo rollback que troca o tráfego, no deploy ou na vigia, também devolve a tag `production` do Pact Broker à versão da revisão anterior (`.github/scripts/reverter-tag-pact.sh`). A versão do provider no broker é o commit, e o commit de cada revisão sai da tag da imagem dela (`gcr.io/serverest/app:<commit>`). No deploy, esse job espera o que marca a tag na promoção, para não tirá-la antes de ela ser criada.
+
+Uma vigia cancelada antes do veredito, à mão ou por timeout, também abre issue: a revisão nova fica com o tráfego e sem vigia. O cancelamento que o deploy seguinte faz é o esperado e não abre issue, porque o deploy dispara uma vigia nova; a vigia reconhece esse caso por haver um run do deploy em andamento.
 
 A vigia roda num workflow próprio, com um grupo de concorrência por serviço, e não prende a fila do deploy nem atrasa a migração: ela começa depois da promoção. Cada deploy de produção começa cancelando a vigia que ainda roda, e espera ela terminar, para que um rollback antigo não troque o tráfego no meio do deploy novo; a vigia cancelada não reverte. O GitHub guarda só um run pendente por grupo de concorrência e cancela o pendente mais antigo; com a vigia dentro do deploy, um release beta poderia cancelar a promoção pendente de um release de trunk.
 
