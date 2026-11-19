@@ -559,17 +559,31 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Update production traffic to the new revision
+    - name: Update production traffic to the new revision, if the previous one still serves 100%
       id: promote
+      # Um re-run de um run antigo mandaria 100% para uma revisão velha: a troca só acontece se a revisão com
+      # 100% ainda é a anterior lida por este run. Se já é a nova, não há o que trocar. Qualquer outro estado
+      # (outra revisão, tráfego dividido, leitura que falha) falha o job sem tocar no tráfego.
       # A vigia conta os sinais a partir daqui; a hora sai antes da troca para não perder o começo.
       run: |
+        SERVING=$(gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json \
+          | jq -r '[.status.traffic[] | select(.percent == 100) | .revisionName] | if length == 1 then .[0] else "" end')
         echo "promoted-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+        if [ "$SERVING" = "$NEW" ]; then
+          echo "::notice::$NEW já serve 100%; nada a promover"
+          exit 0
+        fi
+        if [ "$SERVING" != "$PREVIOUS" ]; then
+          echo "::error::A revisão com 100% é '$SERVING', não a anterior $PREVIOUS deste run; promoção não feita"
+          exit 1
+        fi
         gcloud run \
           services update-traffic "$SERVICE_PRODUCTION" \
           --region "$REGION" \
           --to-revisions "$NEW=100"
       env:
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
+        PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
 
   check-routing-production:
     name: Check that serverest.dev serves the new revision
@@ -694,10 +708,19 @@ jobs:
       env:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
-    - name: Update production traffic to the previous revision
+    - name: Update production traffic to the previous revision, if the new one still holds traffic
       id: rollback
+      # Como na vigia: um re-run de um run antigo não pode tirar o tráfego de uma revisão mais nova. Só reverte
+      # se a revisão nova deste run ainda tem alguma porcentagem; sem ela, termina como substituida.
       # A anterior está escalada a zero: a primeira requisição espera 10 a 12 s pela instância subir.
       run: |
+        TRAFFIC=$(gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic')
+        if ! jq -e --arg new "$NEW" 'any(.[]; .revisionName == $new and (.percent // 0) > 0)' <<< "$TRAFFIC" > /dev/null; then
+          echo "$TRAFFIC"
+          echo "::notice::$NEW não tem mais tráfego; rollback não feito"
+          echo "result=substituida" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         gcloud run \
           services update-traffic "$SERVICE_PRODUCTION" \
           --region "$REGION" \
@@ -705,9 +728,10 @@ jobs:
         echo "result=revertido" >> "$GITHUB_OUTPUT"
         gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic'
       env:
+        NEW: ${{ needs.deploy-production.outputs.new-revision }}
         PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
     - name: Comment on generated issue about rollback
-      if: needs.open-issue-production.outputs.issue-number != ''
+      if: needs.open-issue-production.outputs.issue-number != '' && steps.rollback.outputs.result == 'revertido'
       # Aqui o tráfego já voltou: um comentário que falha não pode marcar o rollback como falho.
       continue-on-error: true
       run: gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$BODY"

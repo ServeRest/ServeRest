@@ -252,6 +252,8 @@ Todo rollback que troca o tráfego, no deploy ou na vigia, também devolve a tag
 
 A vigia roda num workflow próprio, com um grupo de concorrência por serviço, e não prende a fila do deploy nem atrasa a migração: ela começa depois da promoção. Cada deploy de produção começa cancelando a vigia que ainda roda, e espera ela terminar, para que um rollback antigo não troque o tráfego no meio do deploy novo; a vigia cancelada não reverte. O GitHub guarda só um run pendente por grupo de concorrência e cancela o pendente mais antigo; com a vigia dentro do deploy, um release beta poderia cancelar a promoção pendente de um release de trunk.
 
+A promoção e o rollback do deploy conferem o tráfego antes de mexer nele, como a vigia: refazer os jobs de um run antigo ("Re-run failed jobs") não pode mandar o tráfego para uma revisão velha. A promoção só troca se a revisão com 100% ainda é a anterior lida pelo run (se já é a nova, não faz nada; em qualquer outro estado, falha sem tocar no tráfego). O rollback só troca se a revisão nova do run ainda tem tráfego; se não tem, termina como substituida, sem comentário na issue e sem mexer na tag do Pact.
+
 Efeito colateral do deploy sem tráfego: o serviço `app` deixa de seguir a última revisão. Uma revisão criada à mão ou por mudança de variável de ambiente no console não recebe tráfego sozinha; é preciso promovê-la com `update-traffic`.
 
 Rollback manual, para um problema que apareça depois da vigia (as revisões estão na issue do deploy ou em `gcloud run revisions list --service app --region us-central1`):
