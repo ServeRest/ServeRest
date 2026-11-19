@@ -187,20 +187,52 @@ jobs:
         REVISAO_ANTERIOR: ${{ inputs.anterior }}
 
   open-issue:
-    name: Open issue when the watch asks for action
+    name: Open issue when the watch asks for action or ends without a verdict
+    # always(), e não !cancelled(): uma vigia cancelada antes do veredito deixa a revisão com o tráfego e sem
+    # vigia. O cancelamento que o deploy seguinte faz é o esperado (ele dispara uma vigia nova): com um run do
+    # deploy em andamento, não abre issue. O timeout do job também chega aqui como cancelled.
     needs: [watch, rollback, contract-test-rollback]
-    if: ${{ !cancelled() && needs.watch.result == 'failure' }}
+    if: ${{ always() && (needs.watch.result == 'failure' || needs.watch.result == 'cancelled') }}
 
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Create issue
+    - name: Check for a running deploy, the expected cause of a cancelled watch
+      id: deploy
+      # always() também nos passos: num run cancelado, um passo sem ele não roda.
+      if: ${{ always() && needs.watch.result == 'cancelled' }}
       run: |
-        case "$VERDICT" in
-          reverter) TITLE="Vigia de $SERVICE reverteu $WATCHED" ;;
-          inconclusivo) TITLE="Vigia de $SERVICE inconclusiva para $WATCHED, sem rollback" ;;
-          *) TITLE="Vigia de $SERVICE terminou sem veredito para $WATCHED, sem rollback" ;;
-        esac
+        RUNNING=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow deploy-online-serverest.yml --limit 20 \
+          --json status --jq '[.[] | select(.status != "completed")] | length')
+        echo "Runs do deploy em andamento: $RUNNING"
+        if [ "$RUNNING" -gt 0 ]; then
+          echo "::notice::Vigia cancelada com um deploy em andamento; ele dispara uma vigia nova, sem issue aqui"
+          echo "running=true" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - name: Create issue
+      if: ${{ always() && steps.deploy.outputs.running != 'true' }}
+      run: |
+        if [ "$WATCH_JOB" = cancelled ]; then
+          TITLE="Vigia de $SERVICE cancelada antes do veredito para $WATCHED, sem rollback"
+          REASON=${REASON:-a vigia foi cancelada ou estourou o tempo antes de decidir}
+        else
+          case "$VERDICT" in
+            reverter)
+              case "$ROLLBACK" in
+                revertido) TITLE="Vigia de $SERVICE reverteu $WATCHED" ;;
+                substituida) TITLE="Vigia de $SERVICE pediu rollback de $WATCHED, que já não servia 100%" ;;
+                *) TITLE="Vigia de $SERVICE pediu rollback de $WATCHED, e o rollback não foi feito" ;;
+              esac
+              ;;
+            inconclusivo) TITLE="Vigia de $SERVICE inconclusiva para $WATCHED, sem rollback" ;;
+            *) TITLE="Vigia de $SERVICE terminou sem veredito para $WATCHED, sem rollback" ;;
+          esac
+        fi
+        if [ -z "$ROLLBACK" ] && [ "$ROLLBACK_JOB" = failure ]; then
+          ROLLBACK='**falhou**, ver o job no run'
+        fi
         case "$PACT" in
           success) PACT_TAG='devolvida à versão da revisão anterior' ;;
           failure) PACT_TAG='**não voltou**, ver o job no run' ;;
@@ -233,6 +265,8 @@ jobs:
         VERDICT: ${{ needs.watch.outputs.verdict }}
         REASON: ${{ needs.watch.outputs.reason }}
         ROLLBACK: ${{ needs.rollback.outputs.result }}
+        ROLLBACK_JOB: ${{ needs.rollback.result }}
+        WATCH_JOB: ${{ needs.watch.result }}
         PACT: ${{ needs.contract-test-rollback.result }}
         SERVICE: ${{ inputs.servico }}
         WATCHED: ${{ inputs.revisao }}
