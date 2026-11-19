@@ -163,10 +163,53 @@ jobs:
   # vigiar-producao.yml.
   # Não é um canário por porcentagem: cada instância tem o seu NeDB em memória, então um POST numa revisão
   # e o GET seguinte na outra dariam 404. O rollback volta para a revisão que servia 100% antes do deploy.
+  check-production-release:
+    name: Check that the ref is a stable release tag on trunk
+    # Só um release estável da trunk vai para a produção. O if barra o que não é tag vX.Y.Z sem sufixo: um release
+    # beta (vX.Y.Z-beta.N) e um workflow_dispatch de um ramo qualquer, que antes iam para a produção desde que o
+    # nome não tivesse beta. O git barra a tag estável cujo commit não está na trunk. Em ambos os casos a
+    # produção fica de fora e o staging segue como antes.
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-') }}
+
+    runs-on: ubuntu-22.04
+
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+
+    steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+    - name: Check the tag name and that its commit is on trunk
+      id: check
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        if ! [[ "$GITHUB_REF" == refs/tags/* && "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::warning::$GITHUB_REF não é uma tag de release estável (vX.Y.Z); produção fora deste run"
+          echo "allowed=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        git fetch --no-tags origin +refs/heads/trunk:refs/remotes/origin/trunk
+        # O merge-base sai com 1 quando o commit não está na trunk e com outro código quando o git falha: só o 1
+        # tira a produção do run; uma falha do git falha o job, e a issue do fim do workflow avisa.
+        if git merge-base --is-ancestor "$GITHUB_SHA" origin/trunk; then
+          echo "Tag $TAG no commit $GITHUB_SHA, contido na trunk"
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+        else
+          CODE=$?
+          if [ "$CODE" -ne 1 ]; then
+            echo "::error::git merge-base saiu com $CODE ao conferir $GITHUB_SHA na trunk"
+            exit 1
+          fi
+          echo "::warning::O commit $GITHUB_SHA da tag $TAG não está na trunk; produção fora deste run"
+          echo "allowed=false" >> "$GITHUB_OUTPUT"
+        fi
+
   deploy-production:
     name: Deploy on prod environment without traffic (serverest.dev)
-    needs: test-e2e-staging
-    if: "!contains(github.ref, 'beta')"
+    needs: [test-e2e-staging, check-production-release]
+    if: ${{ needs.check-production-release.outputs.allowed == 'true' }}
 
     runs-on: ubuntu-22.04
     environment: production
@@ -185,7 +228,7 @@ jobs:
       uses: actions/checkout@v7
     - name: Read the release version from package.json
       id: version
-      # Do commit do deploy, e não do nome da tag: um workflow_dispatch manual na trunk também tem a versão certa.
+      # Do commit do deploy, e não do nome da tag.
       run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
     - name: Cancel the running watch of this service
       # Uma vigia antiga ainda rodando poderia reverter para a revisão anterior dela no meio deste deploy, ou
