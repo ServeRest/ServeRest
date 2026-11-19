@@ -578,13 +578,22 @@ jobs:
       # Um re-run de um run antigo mandaria 100% para uma revisão velha: a troca só acontece se a revisão com
       # 100% ainda é a anterior lida por este run. Se já é a nova, não há o que trocar. Qualquer outro estado
       # (outra revisão, tráfego dividido, leitura que falha) falha o job sem tocar no tráfego.
-      # A vigia conta os sinais a partir daqui; a hora sai antes da troca para não perder o começo.
+      # A vigia conta os sinais a partir de promoted-at; a hora sai antes da troca para não perder o começo.
       run: |
         SERVING=$(gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json \
           | jq -r '[.status.traffic[] | select(.percent == 100) | .revisionName] | if length == 1 then .[0] else "" end')
-        echo "promoted-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
         if [ "$SERVING" = "$NEW" ]; then
-          echo "::notice::$NEW já serve 100%; nada a promover"
+          # A nova já tem o tráfego desde uma promoção anterior, de hora desconhecida: a vigia conta desde a
+          # criação dela, que é mais cedo. Contar a mais não reverte à toa, porque antes da promoção o
+          # check-logs-canary já exigiu zero OOM e zero 5xx desde a criação. Sem ler a criação, fica a hora
+          # atual com um aviso: falhar aqui faria o rollback tirar o tráfego de uma revisão que o tem.
+          CRIADA=$(gcloud run revisions describe "$NEW" --region "$REGION" --format 'value(metadata.creationTimestamp)') || CRIADA=''
+          if [ -z "$CRIADA" ]; then
+            echo "::warning::Não foi possível ler a criação de $NEW; a vigia conta desde agora"
+            CRIADA=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          echo "promoted-at=$CRIADA" >> "$GITHUB_OUTPUT"
+          echo "::notice::$NEW já serve 100%; nada a promover, vigia desde $CRIADA"
           exit 0
         fi
         if [ "$SERVING" != "$PREVIOUS" ]; then
@@ -597,6 +606,7 @@ jobs:
           fi
           exit 1
         fi
+        echo "promoted-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
         gcloud run \
           services update-traffic "$SERVICE_PRODUCTION" \
           --region "$REGION" \
