@@ -952,7 +952,9 @@ jobs:
     # o roteamento que falham (open-issue-production). Este cobre o resto do caminho de produção: a conferência
     # da tag ou o deploy que falham ou são cancelados, a promoção cancelada no meio, a revisão nova com 100% sem
     # roteamento conferido ou sem vigia (um cancelamento depois da promoção também cai aqui), o rollback que
-    # falha, e um daqueles jobs de issue que não conseguiu abrir a dele. Só roda quando o run tentou a produção.
+    # falha, a tag production do Pact que não foi posta ou não voltou, e um daqueles jobs de issue que não
+    # conseguiu abrir a dele. Só roda quando o run tentou a produção. Uma issue por run: se open-issue-production
+    # já abriu a dela, estes motivos entram como comentário nela.
     needs:
       - check-production-release
       - deploy-production
@@ -962,6 +964,8 @@ jobs:
       - start-watch-production
       - open-issue-production
       - rollback-production
+      - contract-test-tag-production
+      - contract-test-rollback
     if: ${{ always() && needs.check-production-release.result != 'skipped' }}
 
     runs-on: ubuntu-22.04
@@ -1000,11 +1004,25 @@ jobs:
             MOTIVOS+=("O rollback não terminou (job $ROLLBACK): a produção pode continuar na revisão nova reprovada \`$NEW\`.")
           fi
         fi
+        # A tag na versão nova só importa se ela ficou com o tráfego; revertida, quem cuida é o contract-test-rollback.
+        if [ "$PACT_TAG" = failure ] && [ "$ROLLBACK_RESULT" != revertido ]; then
+          MOTIVOS+=("A tag production do Pact não foi posta na versão nova \`$GITHUB_SHA\`, que serve o tráfego.")
+        fi
+        if [ "$PACT_ROLLBACK" = failure ]; then
+          MOTIVOS+=("O tráfego voltou para \`$PREVIOUS\`, mas a tag production do Pact não voltou junto: ver o job do Pact no run.")
+        fi
         if [ "${#MOTIVOS[@]}" -eq 0 ]; then
           echo "O caminho de produção terminou num estado previsto ou com a sua própria issue"
           exit 0
         fi
         LISTA=$(printf '* %s\n' "${MOTIVOS[@]}")
+        if [ -n "$ISSUE_PROD_NUMBER" ]; then
+          COMENTARIO=$(printf '_Comentário gerado automaticamente_\n\nO deploy terminou com mais problemas:\n\n%s\n\nRun: %s\n' "$LISTA" "$RUN_URL")
+          if gh issue comment "$ISSUE_PROD_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$COMENTARIO"; then
+            exit 0
+          fi
+          echo "::warning::O comentário na issue $ISSUE_PROD_NUMBER falhou; abrindo uma issue nova"
+        fi
         TITLE="Deploy de produção de $GITHUB_REF_NAME terminou fora do caminho previsto"
         BODY=$(cat <<BODY
         _Issue gerada automaticamente_
@@ -1039,6 +1057,8 @@ jobs:
         ISSUE_PROD_NUMBER: ${{ needs.open-issue-production.outputs.issue-number }}
         ROLLBACK: ${{ needs.rollback-production.result }}
         ROLLBACK_RESULT: ${{ needs.rollback-production.outputs.result }}
+        PACT_TAG: ${{ needs.contract-test-tag-production.result }}
+        PACT_ROLLBACK: ${{ needs.contract-test-rollback.result }}
         PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
         RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

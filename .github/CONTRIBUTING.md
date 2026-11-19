@@ -241,7 +241,8 @@ deploy-online-serverest.yml
   → conferência de roteamento em https://serverest.dev, só leitura (falhou: rollback e issue)
   → remoção da tag canario e disparo da vigia
   → no fim, issue se o caminho de produção terminou mal sem a issue de outra etapa (deploy que falha ou é
-    cancelado, run cancelado depois da promoção, vigia que não foi disparada, rollback que falha)
+    cancelado, run cancelado depois da promoção, vigia que não foi disparada, rollback que falha, tag
+    production do Pact que não foi posta ou não voltou); se a issue da promoção já existe, vira comentário nela
 
 vigiar-producao.yml, à parte
   → um ciclo a cada 5 min por 60 min
