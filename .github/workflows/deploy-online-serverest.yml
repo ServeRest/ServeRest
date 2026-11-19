@@ -778,7 +778,9 @@ jobs:
           --region "$REGION" \
           --to-revisions "$PREVIOUS=100"
         echo "result=revertido" >> "$GITHUB_OUTPUT"
-        gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic'
+        # Só para o log: o tráfego já voltou, uma leitura que falha aqui não pode marcar o rollback como falho.
+        gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic' \
+          || echo "::warning::Rollback feito, mas a leitura do tráfego depois dele falhou"
       env:
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
         PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
@@ -993,8 +995,9 @@ jobs:
           if [ -z "$ISSUE_PROD_NUMBER" ]; then
             MOTIVOS+=("A promoção ou a conferência de roteamento falhou e a issue dela não foi aberta.")
           fi
-          if [ "$ROLLBACK" != success ]; then
-            MOTIVOS+=("O rollback terminou como $ROLLBACK: a produção pode continuar na revisão nova reprovada \`$NEW\`.")
+          # O resultado do rollback, e não o do job: revertido trocou o tráfego, substituida não precisava.
+          if [ "$ROLLBACK_RESULT" != revertido ] && [ "$ROLLBACK_RESULT" != substituida ]; then
+            MOTIVOS+=("O rollback não terminou (job $ROLLBACK): a produção pode continuar na revisão nova reprovada \`$NEW\`.")
           fi
         fi
         if [ "${#MOTIVOS[@]}" -eq 0 ]; then
@@ -1035,6 +1038,7 @@ jobs:
         WATCH: ${{ needs.start-watch-production.result }}
         ISSUE_PROD_NUMBER: ${{ needs.open-issue-production.outputs.issue-number }}
         ROLLBACK: ${{ needs.rollback-production.result }}
+        ROLLBACK_RESULT: ${{ needs.rollback-production.outputs.result }}
         PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
         NEW: ${{ needs.deploy-production.outputs.new-revision }}
         RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
