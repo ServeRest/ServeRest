@@ -47,6 +47,8 @@ env:
 
 jobs:
   watch:
+    # O deploy, ao cancelar a vigia, espera os jobs cujo nome começa com "Watch " e "Rollback ": mudar os
+    # nomes aqui exige mudar lá (deploy-online-serverest.yml, passo que cancela a vigia).
     name: Watch ${{ inputs.revisao }} for ${{ inputs.minutos }} minutes
     runs-on: ubuntu-22.04
     timeout-minutes: 75

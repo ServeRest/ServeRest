@@ -233,7 +233,9 @@ jobs:
     - name: Cancel the running watch of this service
       # Uma vigia antiga ainda rodando poderia reverter para a revisão anterior dela no meio deste deploy, ou
       # depois de ele ler a revisão que serve 100%. A vigia cancelada não reverte, e o deploy só segue
-      # quando ela terminou.
+      # quando os jobs que mexem no tráfego (Watch e Rollback) terminaram, ou o run inteiro, se ele nem
+      # começou. Não espera o run inteiro: a issue da vigia cancelada roda com always() e pode esperar runner.
+      # O nome deste job é o que a vigia procura para saber que foi cancelada por um deploy (vigiar-producao.yml).
       run: |
         RUNS=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow vigiar-producao.yml --limit 20 \
           --json databaseId,status,displayTitle \
@@ -247,14 +249,22 @@ jobs:
           gh run cancel "$RUN" --repo "$GITHUB_REPOSITORY" || true
         done
         for RUN in $RUNS; do
+          PARADA=false
           for _ in $(seq 1 30); do
-            [ "$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break
+            # "<status do run> <jobs Watch> <jobs Watch ou Rollback ainda não terminados>"
+            ESTADO=$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json status,jobs --jq '"\(.status) \(
+              [.jobs[] | select(.name | startswith("Watch "))] | length) \(
+              [.jobs[] | select((.name | startswith("Watch ") or startswith("Rollback ")) and .status != "completed")] | length)"')
+            read -r STATUS WATCH_JOBS ATIVOS <<< "$ESTADO"
+            if [ "$STATUS" = completed ] || { [ "$WATCH_JOBS" -gt 0 ] && [ "$ATIVOS" -eq 0 ]; }; then
+              PARADA=true
+              break
+            fi
             sleep 10
           done
-          CONCLUSION=$(gh run view "$RUN" --repo "$GITHUB_REPOSITORY" --json status,conclusion --jq '"\(.status) \(.conclusion)"')
-          echo "Vigia $RUN: $CONCLUSION"
-          if [ "${CONCLUSION%% *}" != completed ]; then
-            echo "::error::A vigia $RUN não terminou em 5 min; deploy abortado"
+          echo "Vigia $RUN: run $STATUS, $WATCH_JOBS job(s) Watch, $ATIVOS job(s) Watch ou Rollback rodando"
+          if [ "$PARADA" != true ]; then
+            echo "::error::Os jobs da vigia $RUN não pararam em 5 min; deploy abortado"
             exit 1
           fi
         done
