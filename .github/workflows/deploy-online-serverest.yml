@@ -551,6 +551,9 @@ jobs:
 
     outputs:
       promoted-at: ${{ steps.promote.outputs.promoted-at }}
+      # stale quando outra revisão, nem a anterior nem a nova deste run, tem 100%: run antigo, produção intocada.
+      state: ${{ steps.promote.outputs.state }}
+      serving: ${{ steps.promote.outputs.serving }}
 
     steps:
     - name: Load secrets from 1password
@@ -586,6 +589,12 @@ jobs:
         fi
         if [ "$SERVING" != "$PREVIOUS" ]; then
           echo "::error::A revisão com 100% é '$SERVING', não a anterior $PREVIOUS deste run; promoção não feita"
+          # Outra revisão com 100% quer dizer run antigo. Tráfego dividido não: pode ser uma tentativa anterior
+          # deste run, e aí o rollback volta para a anterior e a issue é a de sempre.
+          if [ -n "$SERVING" ]; then
+            echo "state=stale" >> "$GITHUB_OUTPUT"
+            echo "serving=$SERVING" >> "$GITHUB_OUTPUT"
+          fi
           exit 1
         fi
         gcloud run \
@@ -655,8 +664,14 @@ jobs:
     - name: Create issue
       id: create-issue-action
       # O rollback não depende desta issue: uma falha aqui não pode deixar a produção na versão quebrada.
+      # Uma promoção stale (run antigo) não tocou na produção: a issue diz isso, sem "Deploy reverted" e sem o
+      # comando de rollback, que mandaria o tráfego para a revisão velha deste run.
       continue-on-error: true
       run: |
+        if [ "$PROMOTE_STATE" = stale ]; then
+          TITLE=$STALE_TITLE
+          BODY=$STALE_BODY
+        fi
         url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY" --assignee PauloGoncalvesBH --label bug)
         number="${url##*/}"
         if [[ "$number" =~ ^[0-9]+$ ]]; then
@@ -683,6 +698,22 @@ jobs:
           | **New revision**         | `${{ needs.deploy-production.outputs.new-revision }}`                         	|
 
           Manual rollback: `gcloud run services update-traffic ${{ env.SERVICE_PRODUCTION }} --region ${{ env.REGION }} --to-revisions ${{ needs.deploy-production.outputs.previous-revision }}=100`
+        PROMOTE_STATE: ${{ needs.promote-production.outputs.state }}
+        STALE_TITLE: Stale production promotion skipped. Production unchanged
+        STALE_BODY: |
+          _This is an automatically generated issue_
+
+          This run of the `${{ github.ref }}` tag is stale, probably a re-run of an old run. When it tried to promote its new revision, 100% of production traffic was on `${{ needs.promote-production.outputs.serving }}`, not on this run's previous revision. Nothing was changed in production, and no rollback is needed.
+
+          ## Context
+
+          | | Detail |
+          |---|---|
+          | **Run** | https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+          | **Tag** | `${{ github.ref }}` |
+          | **Serving 100%** | `${{ needs.promote-production.outputs.serving }}` |
+          | **This run's previous revision** | `${{ needs.deploy-production.outputs.previous-revision }}` |
+          | **This run's new revision** | `${{ needs.deploy-production.outputs.new-revision }}` |
 
 # Rollback jobs \/
 
