@@ -217,6 +217,8 @@ Para aprofundar sobre como é feita a publicação do _ServeRest_, leia o texto 
 
 A revisão nova é testada na infraestrutura de produção antes de receber tráfego e fica sob vigia por 60 minutos depois de recebê-lo.
 
+Só um release estável da trunk chega à produção: o run precisa ser de uma tag `vX.Y.Z`, sem sufixo, cujo commit está na trunk. Um release beta, um `workflow_dispatch` de um ramo ou uma tag estável fora da trunk fazem só o staging; o job `check-production-release` deixa um aviso dizendo por quê. Para refazer à mão o deploy de produção de um release, dispare o workflow escolhendo a tag dele em "Use workflow from", e não a trunk.
+
 Antes do tráfego ela passa pela suíte E2E inteira, a mesma do staging (`make test-e2e-canary` com `SERVEREST_URL` na URL da tag), com a configuração do serviço de produção e o `ENVIRONMENT` serverest.dev. É só ali que o robots.txt que libera os buscadores, o sitemap e o canonical com https://serverest.dev são testados antes de alguém vê-los. O alvo recusa rodar sem `SERVEREST_URL`, para a suíte, que cria e apaga dados, nunca cair em serverest.dev por padrão.
 
 O E2E, no staging e na revisão nova, só passa com um mínimo de testes passando e nenhum falhando: uma suíte que roda poucos testes também sai com código 0. O mínimo (`E2E_MIN_PASSING` no workflow) é a contagem exata da suíte, para que um teste não suma sem ninguém ver: quem remove teste baixa o número de propósito, quem adiciona deve subir. Depois do E2E, a instância da revisão nova, que é a que recebe o tráfego, precisa guardar só a semente: `.github/scripts/conferir-semente.sh` compara `/usuarios`, `/produtos` e `/carrinhos`, documento a documento e campo a campo, com os arquivos de `src/data`. Um cadastro que a limpeza da suíte não apagou, ou um registro da semente alterado (a senha de fulano@qa.com, o estoque de um produto depois de uma compra), iria para a produção.
@@ -229,7 +231,8 @@ Não é um canário por porcentagem de tráfego. Cada instância do Cloud Run te
 
 ```
 deploy-online-serverest.yml
-  cancelamento da vigia anterior de produção, se ainda roda
+  conferência da tag: só vX.Y.Z com o commit na trunk segue para a produção
+  → cancelamento da vigia anterior de produção, se ainda roda
   → deploy sem tráfego, com a tag canario
   → E2E completo na URL da tag, com o mínimo de testes (falhou: issue, a produção não foi tocada)
   → conferência da semente na revisão nova (sobrou, faltou ou mudou dado: issue, a produção não foi tocada)
