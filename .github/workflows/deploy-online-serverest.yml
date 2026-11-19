@@ -673,6 +673,9 @@ jobs:
     runs-on: ubuntu-22.04
     environment: production
 
+    outputs:
+      result: ${{ steps.rollback.outputs.result }}
+
     steps:
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v5
@@ -692,12 +695,14 @@ jobs:
         GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
     - run: gcloud config set project serverest
     - name: Update production traffic to the previous revision
+      id: rollback
       # A anterior está escalada a zero: a primeira requisição espera 10 a 12 s pela instância subir.
       run: |
         gcloud run \
           services update-traffic "$SERVICE_PRODUCTION" \
           --region "$REGION" \
           --to-revisions "$PREVIOUS=100"
+        echo "result=revertido" >> "$GITHUB_OUTPUT"
         gcloud run services describe "$SERVICE_PRODUCTION" --region "$REGION" --format=json | jq '.status.traffic'
       env:
         PREVIOUS: ${{ needs.deploy-production.outputs.previous-revision }}
@@ -760,13 +765,18 @@ jobs:
 
   contract-test-rollback:
     name: Contract test - Rollback 'production' tag
-    needs: rollback-production
-    if: ${{ always() && needs.rollback-production.result == 'success' }}
+    # Depois do contract-test-tag-production quando os dois rodam: a promoção marca a tag e a conferência de
+    # roteamento que falha reverte em paralelo, e um DELETE antes do PUT deixaria a tag na versão revertida.
+    # Só roda se o rollback trocou o tráfego (result revertido).
+    needs: [deploy-production, rollback-production, contract-test-tag-production]
+    if: ${{ always() && needs.rollback-production.outputs.result == 'revertido' }}
 
     runs-on: ubuntu-22.04
 
     # Why delete tag on rollback? Read: https://docs.pact.io/pact_broker/tags#handling-rollbacks
     steps:
+    - name: Project checkout
+      uses: actions/checkout@v7
     - name: Load secrets from 1password
       uses: 1password/load-secrets-action@v5
       with:
@@ -774,15 +784,25 @@ jobs:
         version: 2.18.0
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        GCP_IAM_SERVICE_ACCOUNT_KEY: op://CI-CD/google-cloud/SERVICE_ACCOUNT_KEY
         PACT_BROKER_TOKEN: op://CI-CD/pactflow/PACT_BROKER_TOKEN
-    - name: Delete Production tag recently created
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v3
+    - name: Authentication on GCloud
       run: |
-        curl -X DELETE https://paulogoncalves.pactflow.io/pacticipants/$PACTICIPANT/versions/$VERSION/tags/$TAG -H "Authorization: Bearer $PACT_BROKER_TOKEN"
+        echo "$GCP_IAM_SERVICE_ACCOUNT_KEY" > "$RUNNER_TEMP/gcloud-service-key.json"
+        gcloud auth activate-service-account --key-file "$RUNNER_TEMP/gcloud-service-key.json"
       env:
-        PACTICIPANT: ServeRest - API Rest
-        VERSION: ${{ github.sha }}
-        TAG: production
+        GCP_IAM_SERVICE_ACCOUNT_KEY: ${{ env.GCP_IAM_SERVICE_ACCOUNT_KEY }}
+    - run: gcloud config set project serverest
+    - name: Move the 'production' tag back to the previous revision version
+      run: bash .github/scripts/reverter-tag-pact.sh
+      env:
+        PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
         PACT_BROKER_TOKEN: ${{ env.PACT_BROKER_TOKEN }}
+        REGIAO: ${{ env.REGION }}
+        REVISAO_REVERTIDA: ${{ needs.deploy-production.outputs.new-revision }}
+        REVISAO_ANTERIOR: ${{ needs.deploy-production.outputs.previous-revision }}
 
 # Rollback jobs /\
 
@@ -811,7 +831,7 @@ jobs:
           pactfoundation/pact-cli \
           broker create-version-tag \
           --pacticipant 'ServeRest - API Rest' \
-          --version ${{ github.sha }} \
+          --version "${{ github.sha }}" \
           --tag staging
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
@@ -842,7 +862,7 @@ jobs:
           pactfoundation/pact-cli \
           broker create-version-tag \
           --pacticipant 'ServeRest - API Rest' \
-          --version ${{ github.sha }} \
+          --version "${{ github.sha }}" \
           --tag production
       env:
         PACT_BROKER_BASE_URL: https://paulogoncalves.pactflow.io
