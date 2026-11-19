@@ -178,19 +178,20 @@ jobs:
 
     steps:
     - name: Project checkout
+      # Com fetch-depth 0 o checkout busca +refs/heads/*:refs/remotes/origin/*, então origin/trunk já existe.
       uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Check the tag name and that its commit is on trunk
       id: check
       run: |
+        # O if do job já exige refs/tags/v sem hífen; aqui falta o formato vX.Y.Z.
         TAG=${GITHUB_REF#refs/tags/}
-        if ! [[ "$GITHUB_REF" == refs/tags/* && "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           echo "::warning::$GITHUB_REF não é uma tag de release estável (vX.Y.Z); produção fora deste run"
           echo "allowed=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        git fetch --no-tags origin +refs/heads/trunk:refs/remotes/origin/trunk
         # O merge-base sai com 1 quando o commit não está na trunk e com outro código quando o git falha: só o 1
         # tira a produção do run; uma falha do git falha o job, e a issue do fim do workflow avisa.
         if git merge-base --is-ancestor "$GITHUB_SHA" origin/trunk; then
